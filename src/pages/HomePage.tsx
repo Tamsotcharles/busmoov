@@ -19,10 +19,6 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center relative z-10">
           {/* Left Content */}
           <div className="animate-fadeIn">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-magenta/10 to-purple/10 border border-magenta/20 rounded-full text-magenta text-sm font-medium mb-6">
-              ✨ Nouveau service disponible
-            </div>
-
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-purple-dark leading-tight mb-6">
               Location d'autocar{' '}
               <span className="gradient-text">avec chauffeur</span>{' '}
