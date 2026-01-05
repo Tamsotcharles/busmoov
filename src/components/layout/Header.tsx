@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom'
-import { Phone, Menu, User } from 'lucide-react'
-import { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { Phone, Menu, X, User } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 interface HeaderProps {
   showAdminLink?: boolean
@@ -8,6 +8,14 @@ interface HeaderProps {
 
 export function Header({ showAdminLink = true }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const location = useLocation()
+
+  // Fermer le menu mobile lors d'un changement de route
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [location.pathname])
+
+  const closeMenu = () => setMobileMenuOpen(false)
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
@@ -53,36 +61,36 @@ export function Header({ showAdminLink = true }: HeaderProps) {
           className="md:hidden p-2"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
-          <Menu size={24} />
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </nav>
 
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 py-4 px-4 space-y-4">
-          <a href="#how-it-works" className="block text-gray-600 hover:text-magenta font-medium">
+          <a href="#how-it-works" onClick={closeMenu} className="block text-gray-600 hover:text-magenta font-medium">
             Comment ça marche
           </a>
-          <a href="#features" className="block text-gray-600 hover:text-magenta font-medium">
+          <a href="#features" onClick={closeMenu} className="block text-gray-600 hover:text-magenta font-medium">
             Nos services
           </a>
-          <a href="#testimonials" className="block text-gray-600 hover:text-magenta font-medium">
+          <a href="#testimonials" onClick={closeMenu} className="block text-gray-600 hover:text-magenta font-medium">
             Avis clients
           </a>
           <a href="tel:+33176311283" className="flex items-center gap-2 text-purple font-semibold">
             <Phone size={18} />
             01 76 31 12 83
           </a>
-          <Link to="/espace-client" className="flex items-center gap-2 text-gray-600 hover:text-magenta font-medium">
+          <Link to="/espace-client" onClick={closeMenu} className="flex items-center gap-2 text-gray-600 hover:text-magenta font-medium">
             <User size={18} />
             Espace client
           </Link>
           {showAdminLink && (
-            <Link to="/admin" className="block btn btn-secondary w-full">
+            <Link to="/admin" onClick={closeMenu} className="block btn btn-secondary w-full">
               Admin
             </Link>
           )}
-          <a href="#quote" className="block btn btn-primary w-full text-center">
+          <a href="#quote" onClick={closeMenu} className="block btn btn-primary w-full text-center">
             Obtenir un devis
           </a>
         </div>
