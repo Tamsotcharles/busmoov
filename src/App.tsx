@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { HomePage } from '@/pages/HomePage'
 import { CGVPage } from '@/pages/CGVPage'
 import { AProposPage } from '@/pages/AProposPage'
@@ -18,6 +19,17 @@ import { AdminLoginPage } from '@/pages/admin/AdminLoginPage'
 import { AdminDashboard } from '@/pages/admin/AdminDashboard'
 import { useAuth } from '@/hooks/useAuth'
 import { ABTestProvider } from '@/components/ab-testing'
+
+// Scroll to top on route change
+function ScrollToTop() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
+  return null
+}
 
 // Protected route wrapper for admin pages
 function AdminRoute({ children }: { children: React.ReactNode }) {
@@ -54,6 +66,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <ABTestProvider>
         <Routes>
           {/* Public routes */}
