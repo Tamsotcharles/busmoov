@@ -154,94 +154,50 @@ export function MesDevisPage() {
     setError(null)
 
     try {
-      // First try to find a dossier
-      const { data: dossierData } = await supabase
-        .from('dossiers')
-        .select('*, transporteur:transporteurs(*)')
-        .eq('reference', reference)
-        .eq('client_email', email.toLowerCase())
-        .single()
+      // Utiliser l'Edge Function sécurisée pour récupérer les données
+      const { data: clientData, error: fnError } = await supabase.functions.invoke('get-client-data', {
+        body: { email: email.toLowerCase(), reference: reference.toUpperCase(), type: 'all' }
+      })
 
-      if (dossierData) {
-        const dossier = dossierData as unknown as DossierWithRelations
-        // Get devis for this dossier
-        const { data: devisData, error: devisError } = await supabase
-          .from('devis')
-          .select('*, transporteur:transporteurs(*)')
-          .eq('dossier_id', dossier.id)
-          .order('price_ttc', { ascending: true })
-
-        if (devisError) console.error('Error loading devis:', devisError)
-
-        // Charger les paiements
-        const { data: paiementsData, error: paiementsError } = await supabase
-          .from('paiements')
-          .select('*')
-          .eq('dossier_id', dossier.id)
-          .order('payment_date', { ascending: false })
-
-        if (paiementsError) console.error('Error loading paiements:', paiementsError)
-
-        // Charger les factures
-        const { data: facturesData, error: facturesError } = await supabase
-          .from('factures')
-          .select('*')
-          .eq('dossier_id', dossier.id)
-          .order('created_at', { ascending: false })
-
-        if (facturesError) console.error('Error loading factures:', facturesError)
-
-        // Charger les infos voyage (feuille de route)
-        const { data: voyageInfoData, error: voyageInfoError } = await supabase
-          .from('voyage_infos')
-          .select('*')
-          .eq('dossier_id', dossier.id)
-          .single()
-
-        // PGRST116 = no rows found, which is OK for voyage_info
-        if (voyageInfoError && voyageInfoError.code !== 'PGRST116') {
-          console.error('Error loading voyage info:', voyageInfoError)
-        }
-        setVoyageInfo(voyageInfoData || null)
-
-        setData({
-          type: 'dossier',
-          dossier: { ...dossier, paiements: paiementsData || [], factures: facturesData || [] },
-          devis: (devisData as unknown as DevisWithTransporteur[]) || [],
-        })
-      } else {
-        // Try to find a demande
-        const { data: demandeData, error: demandeError } = await supabase
+      if (fnError || !clientData?.success) {
+        // Fallback: essayer avec les demandes (pas de dossier encore)
+        const { data: demandeData } = await supabase
           .from('demandes')
           .select('*')
           .eq('reference', reference)
           .eq('client_email', email.toLowerCase())
           .single()
 
-        // PGRST116 = no rows found, which means demande not found
-        if (demandeError && demandeError.code !== 'PGRST116') {
-          console.error('Error loading demande:', demandeError)
-        }
-
         if (demandeData) {
           const demande = demandeData as Demande
-          // Get devis for this demande
-          const { data: devisData, error: devisError } = await supabase
-            .from('devis')
-            .select('*, transporteur:transporteurs(*)')
-            .eq('demande_id', demande.id)
-            .order('price_ttc', { ascending: true })
-
-          if (devisError) console.error('Error loading devis for demande:', devisError)
+          // Get devis for this demande via Edge Function
+          const { data: devisResult } = await supabase.functions.invoke('get-client-data', {
+            body: { email: email.toLowerCase(), reference: reference.toUpperCase(), type: 'devis' }
+          })
 
           setData({
             type: 'demande',
             demande,
-            devis: (devisData as unknown as DevisWithTransporteur[]) || [],
+            devis: (devisResult?.devis as unknown as DevisWithTransporteur[]) || [],
           })
         } else {
           setError('Demande introuvable. Vérifiez votre numéro de référence et email.')
         }
+        return
+      }
+
+      // Données récupérées via Edge Function sécurisée
+      const { dossier, devis, paiements, factures, voyage_infos } = clientData
+
+      if (dossier) {
+        setVoyageInfo(voyage_infos || null)
+        setData({
+          type: 'dossier',
+          dossier: { ...dossier, paiements: paiements || [], factures: factures || [] } as DossierWithRelations,
+          devis: (devis as unknown as DevisWithTransporteur[]) || [],
+        })
+      } else {
+        setError('Demande introuvable. Vérifiez votre numéro de référence et email.')
       }
     } catch (err) {
       setError('Une erreur est survenue. Veuillez réessayer.')

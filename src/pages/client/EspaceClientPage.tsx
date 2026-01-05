@@ -16,28 +16,27 @@ export function EspaceClientPage() {
     setError(null)
 
     try {
-      // Chercher le dossier par référence et email
-      const { data: dossier, error: dossierError } = await supabase
-        .from('dossiers')
-        .select('id, reference, client_email, status')
-        .eq('reference', reference.toUpperCase())
-        .eq('client_email', email.toLowerCase())
-        .single()
+      // Valider l'accès via Edge Function sécurisée
+      const { data, error: fnError } = await supabase.functions.invoke('validate-client-access', {
+        body: { email: email.toLowerCase(), reference: reference.toUpperCase() }
+      })
 
-      if (dossierError || !dossier) {
-        setError('Aucun dossier trouvé avec ces informations. Vérifiez votre email et référence.')
+      if (fnError || !data?.success) {
+        setError(data?.error || 'Aucun dossier trouvé avec ces informations. Vérifiez votre email et référence.')
         return
       }
 
       // Stocker les infos en session storage pour l'accès client
       sessionStorage.setItem('client_dossier', JSON.stringify({
-        id: dossier.id,
-        reference: dossier.reference,
-        email: dossier.client_email
+        id: data.dossier.id,
+        reference: data.dossier.reference,
+        email: data.dossier.email,
+        session_token: data.session_token,
+        expires_at: data.expires_at
       }))
 
       // Rediriger directement vers la page des devis
-      navigate(`/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`)
+      navigate(`/mes-devis?ref=${data.dossier.reference}&email=${encodeURIComponent(data.dossier.email)}`)
     } catch (err: any) {
       setError('Une erreur est survenue. Veuillez réessayer.')
     } finally {
