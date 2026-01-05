@@ -45,7 +45,7 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Contact</h4>
             <ul className="space-y-3 text-sm text-gray-400">
-              <li><a href="tel:+33187211476" className="hover:text-magenta transition-colors">01 87 21 14 76</a></li>
+              <li><a href="tel:+33176311283" className="hover:text-magenta transition-colors">01 76 31 12 83</a></li>
               <li><a href="mailto:infos@busmoov.com" className="hover:text-magenta transition-colors">infos@busmoov.com</a></li>
               <li>Lun - Sam : 9h - 19h</li>
             </ul>

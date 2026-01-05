@@ -30,9 +30,9 @@ export function Header({ showAdminLink = true }: HeaderProps) {
           <a href="#testimonials" className="text-gray-600 hover:text-magenta font-medium transition-colors">
             Avis clients
           </a>
-          <a href="tel:+33187211476" className="flex items-center gap-2 text-purple font-semibold">
+          <a href="tel:+33176311283" className="flex items-center gap-2 text-purple font-semibold">
             <Phone size={18} />
-            01 87 21 14 76
+            01 76 31 12 83
           </a>
           <Link to="/espace-client" className="flex items-center gap-2 text-gray-600 hover:text-magenta font-medium transition-colors">
             <User size={18} />
@@ -69,9 +69,9 @@ export function Header({ showAdminLink = true }: HeaderProps) {
           <a href="#testimonials" className="block text-gray-600 hover:text-magenta font-medium">
             Avis clients
           </a>
-          <a href="tel:+33187211476" className="flex items-center gap-2 text-purple font-semibold">
+          <a href="tel:+33176311283" className="flex items-center gap-2 text-purple font-semibold">
             <Phone size={18} />
-            01 87 21 14 76
+            01 76 31 12 83
           </a>
           <Link to="/espace-client" className="flex items-center gap-2 text-gray-600 hover:text-magenta font-medium">
             <User size={18} />

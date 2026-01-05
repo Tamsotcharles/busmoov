@@ -2220,11 +2220,11 @@ export function MesDevisPage() {
           <h3 className="font-display text-xl font-semibold mb-2">Une question ?</h3>
           <p className="text-white/80 mb-4">Notre équipe est là pour vous</p>
           <a
-            href="tel:+33187211476"
+            href="tel:+33176311283"
             className="inline-flex items-center gap-2 text-white font-semibold text-lg hover:opacity-80"
           >
             <Phone size={20} />
-            01 87 21 14 76
+            01 76 31 12 83
           </a>
         </div>
       </div>

@@ -521,8 +521,8 @@ export function PaymentPage() {
         {/* Help Section */}
         <div className="text-center text-gray-500 text-sm">
           <p>Une question sur le paiement ?</p>
-          <a href="tel:+33187211476" className="text-magenta font-semibold hover:underline">
-            01 87 21 14 76
+          <a href="tel:+33176311283" className="text-magenta font-semibold hover:underline">
+            01 76 31 12 83
           </a>
         </div>
       </div>

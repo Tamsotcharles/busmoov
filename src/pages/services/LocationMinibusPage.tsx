@@ -42,11 +42,11 @@ export function LocationMinibusPage() {
                 <ArrowRight size={20} />
               </Link>
               <a
-                href="tel:+33187211476"
+                href="tel:+33176311283"
                 className="btn btn-secondary text-lg px-8 py-4 inline-flex items-center justify-center gap-2"
               >
                 <Phone size={20} />
-                01 87 21 14 76
+                01 76 31 12 83
               </a>
             </div>
 

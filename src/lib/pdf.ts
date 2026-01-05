@@ -84,7 +84,7 @@ const DEFAULT_COMPANY_INFO = {
   legalName: 'BUSMOOV SAS',
   address: '41 Rue Barrault',
   zipCity: '75013 Paris',
-  phone: '01 87 21 14 76',
+  phone: '01 76 31 12 83',
   email: 'infos@busmoov.com',
   siret: '853 867 703 00029',
   rcs: 'Paris 853 867 703',

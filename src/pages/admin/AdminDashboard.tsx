@@ -17610,7 +17610,7 @@ function SettingsPage() {
                   className="input"
                   value={companySettings.phone}
                   onChange={(e) => updateField('phone', e.target.value)}
-                  placeholder="01 87 21 14 76"
+                  placeholder="01 76 31 12 83"
                 />
               </div>
               <div>

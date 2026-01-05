@@ -499,7 +499,7 @@ export function RecapitulatifPage() {
                   <p className="text-sm text-gray-600 mb-2">
                     Nos conseillers sont disponibles par téléphone pour vous aider à planifier votre voyage et à finaliser votre réservation.
                   </p>
-                  <p className="text-lg font-bold text-magenta">{companySettings?.phone || '01 87 21 14 76'}</p>
+                  <p className="text-lg font-bold text-magenta">{companySettings?.phone || '01 76 31 12 83'}</p>
                 </div>
               </div>
             </div>

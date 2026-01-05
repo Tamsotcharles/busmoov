@@ -41,8 +41,8 @@ ${formData.message}
     {
       icon: Phone,
       label: 'Téléphone',
-      value: '01 87 21 14 76',
-      href: 'tel:+33187211476',
+      value: '01 76 31 12 83',
+      href: 'tel:+33176311283',
       color: 'bg-emerald-500',
     },
     {
@@ -55,8 +55,8 @@ ${formData.message}
     {
       icon: MapPin,
       label: 'Adresse',
-      value: '12 Rue de la Paix, 75002 Paris',
-      href: 'https://maps.google.com/?q=12+Rue+de+la+Paix+75002+Paris',
+      value: '41 Rue Barrault, 75013 Paris',
+      href: 'https://maps.google.com/?q=41+Rue+Barrault+75013+Paris',
       color: 'bg-magenta',
     },
     {
@@ -142,7 +142,7 @@ ${formData.message}
                   <div className="space-y-3 text-gray-600">
                     <p><span className="text-gray-400">Raison sociale :</span> <strong>Centrale Autocar SAS</strong></p>
                     <p><span className="text-gray-400">Marque commerciale :</span> <strong>Busmoov</strong></p>
-                    <p><span className="text-gray-400">Siège social :</span> 12 Rue de la Paix, 75002 Paris</p>
+                    <p><span className="text-gray-400">Siège social :</span> 41 Rue Barrault, 75013 Paris</p>
                     <p><span className="text-gray-400">SIRET :</span> XXX XXX XXX XXXXX</p>
                     <p><span className="text-gray-400">TVA Intracommunautaire :</span> FR XX XXX XXX XXX</p>
                   </div>
@@ -156,11 +156,11 @@ ${formData.message}
                     <div>
                       <h3 className="font-semibold text-gray-900 mb-2">Besoin d'une réponse rapide ?</h3>
                       <p className="text-gray-600 text-sm mb-4">
-                        Appelez-nous directement au <strong>01 87 21 14 76</strong>.
+                        Appelez-nous directement au <strong>01 76 31 12 83</strong>.
                         Notre équipe est disponible du lundi au samedi de 9h à 19h.
                       </p>
                       <a
-                        href="tel:+33187211476"
+                        href="tel:+33176311283"
                         className="btn btn-primary btn-sm"
                       >
                         <Phone size={16} />
@@ -281,9 +281,9 @@ ${formData.message}
             <div className="bg-gray-200 rounded-2xl h-80 flex items-center justify-center">
               <div className="text-center text-gray-500">
                 <MapPin size={48} className="mx-auto mb-4 opacity-50" />
-                <p className="font-medium">12 Rue de la Paix, 75002 Paris</p>
+                <p className="font-medium">41 Rue Barrault, 75013 Paris</p>
                 <a
-                  href="https://maps.google.com/?q=12+Rue+de+la+Paix+75002+Paris"
+                  href="https://maps.google.com/?q=41+Rue+Barrault+75013+Paris"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-purple hover:underline text-sm mt-2 inline-block"

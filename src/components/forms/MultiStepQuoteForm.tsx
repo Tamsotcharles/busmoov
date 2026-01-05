@@ -587,7 +587,7 @@ export function MultiStepQuoteForm() {
                     Pour vous aider à planifier votre voyage et à finaliser votre réservation.
                   </p>
                   <p className="text-sm font-semibold text-blue-700 mt-2">
-                    {companySettings?.phone || '01 87 21 14 76'}
+                    {companySettings?.phone || '01 76 31 12 83'}
                   </p>
                 </div>
               </div>

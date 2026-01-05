@@ -30,7 +30,12 @@
       "Bash(git remote remove:*)",
       "Bash(git remote add:*)",
       "Bash(git branch:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(while read file)",
+      "Bash(do sed -i 's/01 87 21 14 76/01 76 31 12 83/g' \"$file\")",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(powershell -Command:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
