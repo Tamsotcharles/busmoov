@@ -62,6 +62,7 @@ import {
   PiggyBank,
   Bell,
   BellRing,
+  Lock,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useQueryClient } from '@tanstack/react-query'
@@ -17076,9 +17077,169 @@ function PaymentSettingsTab() {
   )
 }
 
+// Composant pour l'onglet Sécurité (changement de mot de passe)
+function SecurityTab() {
+  const { user } = useAuth()
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setSuccess(false)
+
+    // Validations
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setError('Tous les champs sont obligatoires')
+      return
+    }
+
+    if (newPassword.length < 8) {
+      setError('Le nouveau mot de passe doit contenir au moins 8 caractères')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Les mots de passe ne correspondent pas')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('change-admin-password', {
+        body: {
+          current_password: currentPassword,
+          new_password: newPassword
+        }
+      })
+
+      if (fnError) {
+        setError('Erreur de connexion au serveur')
+        return
+      }
+
+      if (!data?.success) {
+        setError(data?.error || 'Erreur lors du changement de mot de passe')
+        return
+      }
+
+      setSuccess(true)
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err) {
+      setError('Une erreur est survenue')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="card p-6">
+        <h3 className="font-semibold text-purple-dark mb-4 flex items-center gap-2">
+          <Lock size={20} />
+          Changer le mot de passe
+        </h3>
+
+        <div className="max-w-md">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
+              <AlertCircle size={16} />
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+              <CheckCircle size={16} />
+              Mot de passe modifié avec succès !
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="label">Mot de passe actuel</label>
+              <input
+                type="password"
+                className="input"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="current-password"
+              />
+            </div>
+
+            <div>
+              <label className="label">Nouveau mot de passe</label>
+              <input
+                type="password"
+                className="input"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="new-password"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Minimum 8 caractères
+              </p>
+            </div>
+
+            <div>
+              <label className="label">Confirmer le nouveau mot de passe</label>
+              <input
+                type="password"
+                className="input"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="new-password"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-primary"
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin mr-2" />
+                  Modification...
+                </>
+              ) : (
+                <>
+                  <Lock size={16} className="mr-2" />
+                  Changer le mot de passe
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Info compte */}
+      <div className="card p-6">
+        <h3 className="font-semibold text-purple-dark mb-4 flex items-center gap-2">
+          <Mail size={20} />
+          Informations du compte
+        </h3>
+        <div className="text-sm text-gray-600">
+          <p><strong>Email :</strong> {user?.email || 'Non connecté'}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function SettingsPage() {
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<'company' | 'api' | 'workflows' | 'tarifs' | 'automation' | 'payments' | 'cgv' | 'experiments' | 'test-runner'>('company')
+  const [activeTab, setActiveTab] = useState<'company' | 'api' | 'workflows' | 'tarifs' | 'automation' | 'payments' | 'cgv' | 'experiments' | 'test-runner' | 'security'>('company')
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
 
@@ -17367,6 +17528,18 @@ function SettingsPage() {
         >
           <TestTube2 size={16} className="inline mr-2" />
           Tests Auto
+        </button>
+        <button
+          onClick={() => setActiveTab('security')}
+          className={cn(
+            'px-4 py-2 rounded-lg font-medium transition-all',
+            activeTab === 'security'
+              ? 'bg-purple text-white'
+              : 'bg-white text-gray-600 hover:bg-gray-50'
+          )}
+        >
+          <Lock size={16} className="inline mr-2" />
+          Sécurité
         </button>
       </div>
 
@@ -17791,6 +17964,11 @@ VITE_GEOAPIFY_API_KEY=votre_cle_geoapify
       {/* Tests Auto Tab */}
       {activeTab === 'test-runner' && (
         <TestRunnerPage />
+      )}
+
+      {/* Security Tab */}
+      {activeTab === 'security' && (
+        <SecurityTab />
       )}
     </div>
   )
