@@ -1077,7 +1077,9 @@ export function EditDevisModal({
                 type="number"
                 className="input bg-blue-100"
                 value={formData.price_ttc || ''}
-                readOnly
+                onChange={(e) => handleChange('price_ttc', parseFloat(e.target.value) || 0)}
+                min="0"
+                step="0.01"
               />
             </div>
           </div>
