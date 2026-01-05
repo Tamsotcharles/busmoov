@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Mail, FileText, ArrowRight, Bus } from 'lucide-react'
+import { Mail, FileText, ArrowRight, Bus, Menu, X, Phone } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 export function EspaceClientPage() {
@@ -9,6 +9,7 @@ export function EspaceClientPage() {
   const [reference, setReference] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,7 +54,42 @@ export function EspaceClientPage() {
             <img src="/logo-icon.svg" alt="Busmoov" className="w-10 h-10" />
             <span className="font-display text-xl font-bold gradient-text">Busmoov</span>
           </Link>
+
+          {/* Desktop links */}
+          <div className="hidden md:flex items-center gap-6">
+            <a href="tel:+33176311283" className="flex items-center gap-2 text-purple font-semibold">
+              <Phone size={18} />
+              01 76 31 12 83
+            </a>
+            <Link to="/" className="btn btn-primary btn-sm">
+              Demander un devis
+            </Link>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-gray-100 py-4 px-4 space-y-4">
+            <Link to="/" onClick={() => setMobileMenuOpen(false)} className="block text-gray-600 hover:text-magenta font-medium">
+              Accueil
+            </Link>
+            <a href="tel:+33176311283" className="flex items-center gap-2 text-purple font-semibold">
+              <Phone size={18} />
+              01 76 31 12 83
+            </a>
+            <Link to="/" onClick={() => setMobileMenuOpen(false)} className="block btn btn-primary w-full text-center">
+              Demander un devis
+            </Link>
+          </div>
+        )}
       </header>
 
       {/* Main content */}

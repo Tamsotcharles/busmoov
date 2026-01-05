@@ -15,7 +15,11 @@ export function Header({ showAdminLink = true }: HeaderProps) {
     setMobileMenuOpen(false)
   }, [location.pathname])
 
-  const closeMenu = () => setMobileMenuOpen(false)
+  const closeMenu = () => {
+    setMobileMenuOpen(false)
+    // Scroll vers le haut après fermeture du menu
+    window.scrollTo(0, 0)
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
