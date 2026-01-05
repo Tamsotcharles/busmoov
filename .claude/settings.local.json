@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(del \"c:\\\\Users\\\\User\\\\busmoov\\\\src\\\\pages\\\\fournisseur\\\\FournisseurLoginPage.tsx\" \"c:\\\\Users\\\\User\\\\busmoov\\\\src\\\\hooks\\\\useFournisseur.ts\")",
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
+      "Bash(dir:*)",
+      "Bash(npx supabase functions deploy:*)",
+      "Bash(node -e \"\nconst { createClient } = require\\(''@supabase/supabase-js''\\);\n\nconst supabase = createClient\\(\n  ''https://rsxfmokwmwujercgpnfu.supabase.co'',\n  ''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzeGZtb2t3bXd1amVyY2dwbmZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NjU5NTIsImV4cCI6MjA4MjA0MTk1Mn0.OTUBLLy1l92HURVsnk_j6EEb_8UQuH3lSSE3xUGHM1g''\n\\);\n\nasync function main\\(\\) {\n  // Récupérer un dossier existant pour voir sa structure\n  const { data, error } = await supabase\n    .from\\(''dossiers''\\)\n    .select\\(''*''\\)\n    .limit\\(1\\);\n  \n  if \\(data && data.length > 0\\) {\n    console.log\\(''Colonnes du dossier:''\\);\n    console.log\\(Object.keys\\(data[0]\\).join\\('', ''\\)\\);\n  }\n}\n\nmain\\(\\);\n\")",
+      "Bash(node:*)",
+      "Bash(python:*)",
+      "Bash(cat:*)",
+      "Bash(npx supabase link:*)",
+      "Bash(ls -la \"c:\\\\Users\\\\User\\\\busmoov\\\\supabase\\\\functions\"\" 2>/dev/null || echo \"Functions directory not found \")",
+      "Bash(npx tsc:*)",
+      "Bash(ls:*)",
+      "Bash(node -e:*)",
+      "Bash(taskkill:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(npm install:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}

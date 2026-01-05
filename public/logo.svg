@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 60">
+  <!-- Busmoov Logo - Icon + Text -->
+
+  <!-- B Icon (scaled down) -->
+  <g fill="none" stroke="#E91E8C" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" transform="translate(2, 5)">
+    <!-- Vertical bar on the left -->
+    <line x1="11" y1="6" x2="11" y2="44"/>
+
+    <!-- Top horizontal + curve -->
+    <path d="M11 6 L24 6 C34 6 38 11 38 16 C38 22 33 25 25 25"/>
+
+    <!-- Bottom horizontal + curve (larger) -->
+    <path d="M11 44 L26 44 C37 44 42 38 42 32 C42 26 36 25 27 25"/>
+
+    <!-- Middle horizontal bar that extends left -->
+    <line x1="4" y1="25" x2="30" y2="25"/>
+  </g>
+
+  <!-- Busmoov text -->
+  <text x="58" y="42" font-family="'Poppins', 'Outfit', 'Segoe UI', sans-serif" font-size="32" font-weight="700" fill="#2D1B69">Busmoov</text>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Busmoov B Logo - Stroke-based open design -->
+  <g fill="none" stroke="#E91E8C" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Vertical bar on the left -->
+    <line x1="22" y1="12" x2="22" y2="88"/>
+
+    <!-- Top horizontal + curve -->
+    <path d="M22 12 L48 12 C68 12 76 22 76 32 C76 44 66 50 50 50"/>
+
+    <!-- Bottom horizontal + curve (larger) -->
+    <path d="M22 88 L52 88 C74 88 84 76 84 64 C84 52 72 50 54 50"/>
+
+    <!-- Middle horizontal bar that extends left -->
+    <line x1="8" y1="50" x2="60" y2="50"/>
+  </g>
+</svg>
