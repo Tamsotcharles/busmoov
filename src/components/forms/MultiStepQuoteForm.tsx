@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, ArrowLeft, Check, Shield, MapPin, Calendar, Users, Info, User, Briefcase } from 'lucide-react'
 import { useCreateDemande, useCompanySettings } from '@/hooks/useSupabase'
@@ -23,6 +23,7 @@ export function MultiStepQuoteForm() {
   const navigate = useNavigate()
   const createDemande = useCreateDemande()
   const { data: companySettings } = useCompanySettings()
+  const formRef = useRef<HTMLDivElement>(null)
 
   const [currentStep, setCurrentStep] = useState(1)
   const [tripType, setTripType] = useState<TripType>('round-trip')
@@ -92,9 +93,20 @@ export function MultiStepQuoteForm() {
     }
   }
 
+  const scrollToForm = () => {
+    // Scroll vers le haut du formulaire
+    if (formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    } else {
+      // Fallback: scroll en haut de la page
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
   const handleNext = () => {
     if (validateStep(currentStep)) {
       setCurrentStep(prev => Math.min(prev + 1, 3))
+      scrollToForm()
     } else {
       setError('Veuillez remplir tous les champs obligatoires')
       setTimeout(() => setError(null), 3000)
@@ -103,6 +115,7 @@ export function MultiStepQuoteForm() {
 
   const handleBack = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1))
+    scrollToForm()
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -216,7 +229,7 @@ export function MultiStepQuoteForm() {
   }
 
   return (
-    <div>
+    <div ref={formRef}>
       {/* Step Indicators */}
       <div className="flex items-center justify-between mb-8">
         {steps.map((step, index) => {
