@@ -2030,14 +2030,11 @@ export function useMarkFeuilleRouteEnvoyee() {
   })
 }
 
-// Fonction utilitaire pour générer un token unique
+// Fonction utilitaire pour générer un token unique (cryptographiquement sûr)
 export function generateChauffeurToken(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  let token = ''
-  for (let i = 0; i < 32; i++) {
-    token += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return token
+  const array = new Uint8Array(32)
+  crypto.getRandomValues(array)
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('')
 }
 
 // ============ APP SETTINGS ============

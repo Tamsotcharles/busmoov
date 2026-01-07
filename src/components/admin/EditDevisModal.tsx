@@ -275,9 +275,14 @@ export function EditDevisModal({
   function calculateDureeJours(dos: DossierWithRelations | null | undefined): number {
     if (!dos?.return_date || !dos?.departure_date) return 1
 
-    const depDate = new Date(dos.departure_date)
-    const retDate = new Date(dos.return_date)
-    const diffDays = Math.ceil((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
+    // Parser les dates en UTC pour éviter les problèmes de timezone
+    const [depYear, depMonth, depDay] = dos.departure_date.split('-').map(Number)
+    const [retYear, retMonth, retDay] = dos.return_date.split('-').map(Number)
+
+    const depDate = new Date(Date.UTC(depYear, depMonth - 1, depDay))
+    const retDate = new Date(Date.UTC(retYear, retMonth - 1, retDay))
+
+    const diffDays = Math.round((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
 
     return Math.max(1, diffDays + 1) // +1 car on compte le jour de départ
   }
@@ -445,6 +450,9 @@ export function EditDevisModal({
       isPetitKm,
       kmHorsGrille,
       detailType: result.detailType,
+      // Supplément jours (quand la grille n'a pas le prix pour ce nb de jours)
+      supplementJours: result.supplementJours,
+      joursSupplementaires: result.joursSupplementaires,
     }
   }, [
     formData.km,
@@ -1031,8 +1039,14 @@ export function EditDevisModal({
             </div>
 
             {/* Détails supplémentaires */}
-            {(tarifEstime.majorationRegion > 0 || tarifEstime.coutRelaisChauffeur > 0 || tarifEstime.supplementHorsGrille > 0) && (
+            {(tarifEstime.majorationRegion > 0 || tarifEstime.coutRelaisChauffeur > 0 || tarifEstime.supplementHorsGrille > 0 || tarifEstime.supplementJours > 0) && (
               <div className="mt-3 pt-3 border-t border-purple-200 grid grid-cols-3 gap-3 text-xs">
+                {tarifEstime.supplementJours > 0 && (
+                  <div className="bg-green-50 rounded p-2">
+                    <span className="text-green-700">Supplément {tarifEstime.joursSupplementaires}j</span>
+                    <p className="font-medium text-green-800">+{formatPrice(tarifEstime.supplementJours)}</p>
+                  </div>
+                )}
                 {tarifEstime.majorationRegion > 0 && (
                   <div className="bg-amber-50 rounded p-2">
                     <span className="text-amber-700">Majoration région</span>
