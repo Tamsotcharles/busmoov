@@ -14,6 +14,7 @@ import { EspaceClientPage } from '@/pages/client/EspaceClientPage'
 import { ClientDashboardPage } from '@/pages/client/ClientDashboardPage'
 import { PaymentPage } from '@/pages/client/PaymentPage'
 import { RecapitulatifPage } from '@/pages/client/RecapitulatifPage'
+import { ReviewPage } from '@/pages/client/ReviewPage'
 import { ValidationBpaPage } from '@/pages/fournisseur/ValidationBpaPage'
 import { ChauffeurInfoPage } from '@/pages/fournisseur/ChauffeurInfoPage'
 import { PropositionTarifPage } from '@/pages/fournisseur/PropositionTarifPage'
@@ -105,6 +106,7 @@ export default function App() {
           <Route path="/recapitulatif" element={<RecapitulatifPage />} />
           <Route path="/espace-client" element={<EspaceClientPage />} />
           <Route path="/espace-client/dashboard" element={<ClientDashboardPage />} />
+          <Route path="/avis" element={<ReviewPage />} />
 
           {/* Fournisseur routes */}
           <Route path="/validation-bpa" element={<ValidationBpaPage />} />

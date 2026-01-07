@@ -1,9 +1,86 @@
+import { useState, useEffect } from 'react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
 import { Bus, Clock, Wallet, Shield, Star } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+
+interface Review {
+  id: string
+  rating: number
+  comment: string
+  client_name: string
+  dossier?: {
+    departure: string
+    arrival: string
+  }
+}
+
+// Témoignages par défaut (fallback)
+const defaultTestimonials = [
+  {
+    text: "Service impeccable ! J'ai reçu 3 devis très rapidement et le chauffeur était ponctuel et professionnel. Je recommande vivement.",
+    author: 'Marie L.',
+    role: 'Mariage - Île-de-France',
+    rating: 5,
+  },
+  {
+    text: 'Nous utilisons Busmoov pour tous les déplacements de notre club de foot. Toujours des prix compétitifs et un service au top !',
+    author: 'Thomas D.',
+    role: 'Club sportif - Lyon',
+    rating: 5,
+  },
+  {
+    text: "Organisation de notre séminaire d'entreprise facilitée grâce à Busmoov. 50 personnes transportées sans aucun souci. Merci !",
+    author: 'Sophie C.',
+    role: 'Séminaire - Paris',
+    rating: 5,
+  },
+]
 
 export function HomePage() {
+  const [reviews, setReviews] = useState<Review[]>([])
+
+  useEffect(() => {
+    // Charger les avis approuvés/featured
+    const loadReviews = async () => {
+      try {
+        const { data } = await supabase
+          .from('reviews')
+          .select(`
+            id,
+            rating,
+            comment,
+            client_name,
+            dossier:dossiers(departure, arrival)
+          `)
+          .in('status', ['approved', 'featured'])
+          .eq('is_public', true)
+          .not('comment', 'is', null)
+          .order('status', { ascending: false }) // 'featured' first
+          .limit(6)
+
+        if (data && data.length > 0) {
+          setReviews(data as unknown as Review[])
+        }
+      } catch {
+        // Table not yet created, use default testimonials
+      }
+    }
+
+    loadReviews()
+  }, [])
+
+  // Utiliser les vrais avis s'il y en a, sinon les témoignages par défaut
+  const testimonials = reviews.length >= 3
+    ? reviews.slice(0, 3).map((review) => ({
+        text: review.comment || '',
+        author: review.client_name || 'Client Busmoov',
+        role: review.dossier ? `${review.dossier.departure} → ${review.dossier.arrival}` : 'France',
+        rating: review.rating || 5,
+      }))
+    : defaultTestimonials
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -175,30 +252,17 @@ export function HomePage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                text: "Service impeccable ! J'ai reçu 3 devis très rapidement et le chauffeur était ponctuel et professionnel. Je recommande vivement.",
-                author: 'Marie L.',
-                role: 'Mariage - Île-de-France',
-              },
-              {
-                text: 'Nous utilisons Busmoov pour tous les déplacements de notre club de foot. Toujours des prix compétitifs et un service au top !',
-                author: 'Thomas D.',
-                role: 'Club sportif - Lyon',
-              },
-              {
-                text: "Organisation de notre séminaire d'entreprise facilitée grâce à Busmoov. 50 personnes transportées sans aucun souci. Merci !",
-                author: 'Sophie C.',
-                role: 'Séminaire - Paris',
-              },
-            ].map((testimonial, index) => (
+            {testimonials.map((testimonial, index) => (
               <div
                 key={index}
                 className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-8"
               >
                 <div className="flex gap-1 text-yellow-400 mb-4">
-                  {[...Array(5)].map((_, i) => (
+                  {[...Array(testimonial.rating)].map((_, i) => (
                     <Star key={i} size={20} fill="currentColor" />
+                  ))}
+                  {[...Array(5 - testimonial.rating)].map((_, i) => (
+                    <Star key={i + testimonial.rating} size={20} className="text-white/30" />
                   ))}
                 </div>
                 <p className="text-white/90 mb-6 leading-relaxed">

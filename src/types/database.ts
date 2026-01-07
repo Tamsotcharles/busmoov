@@ -1863,6 +1863,64 @@ export interface Database {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          id: string
+          dossier_id: string
+          token: string
+          rating: number | null
+          comment: string | null
+          client_name: string | null
+          status: string
+          is_public: boolean
+          admin_response: string | null
+          submitted_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          dossier_id: string
+          token: string
+          rating?: number | null
+          comment?: string | null
+          client_name?: string | null
+          status?: string
+          is_public?: boolean
+          admin_response?: string | null
+          submitted_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          dossier_id?: string
+          token?: string
+          rating?: number | null
+          comment?: string | null
+          client_name?: string | null
+          status?: string
+          is_public?: boolean
+          admin_response?: string | null
+          submitted_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_dossier_id_fkey"
+            columns: ["dossier_id"]
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1905,6 +1963,7 @@ export type Paiement = Tables<'paiements'>
 export type CompanySettings = Tables<'company_settings'>
 export type WorkflowRule = Tables<'workflow_rules'>
 export type DemandeFournisseur = Tables<'demandes_fournisseurs'>
+export type Review = Tables<'reviews'>
 
 // New pricing tables
 export type TarifAllerSimple = Tables<'tarifs_aller_simple'>

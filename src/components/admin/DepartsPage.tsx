@@ -131,25 +131,27 @@ export function DepartsPage({ onViewDossier }: { onViewDossier: (id: string) => 
 
       const dossierIdsFromVoyageInfos = (voyageInfosInRange?.map(vi => vi.dossier_id).filter((id): id is string => id !== null) || []) as string[]
 
-      // Charger les dossiers - deux requêtes séparées puis fusionner
-      // 1. Dossiers avec departure_date dans la plage
+      // Charger les dossiers SIGNÉS uniquement - deux requêtes séparées puis fusionner
+      // 1. Dossiers avec departure_date dans la plage (avec contrat signé)
       const { data: dossiersByDate, error: error1 } = await supabase
         .from('dossiers')
-        .select('*')
+        .select('*, contrats!inner(signed_at)')
         .gte('departure_date', startDate)
         .lte('departure_date', endDate)
         .not('status', 'eq', 'cancelled')
+        .not('contrats.signed_at', 'is', null)
 
       if (error1) throw error1
 
-      // 2. Dossiers qui ont un voyage_info avec aller_date dans la plage
+      // 2. Dossiers qui ont un voyage_info avec aller_date dans la plage (avec contrat signé)
       let dossiersByVoyageInfo: any[] = []
       if (dossierIdsFromVoyageInfos.length > 0) {
         const { data, error: error2 } = await supabase
           .from('dossiers')
-          .select('*')
+          .select('*, contrats!inner(signed_at)')
           .in('id', dossierIdsFromVoyageInfos)
           .not('status', 'eq', 'cancelled')
+          .not('contrats.signed_at', 'is', null)
 
         if (error2) throw error2
         dossiersByVoyageInfo = data || []
@@ -369,7 +371,7 @@ export function DepartsPage({ onViewDossier }: { onViewDossier: (id: string) => 
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Départs</h2>
-          <p className="text-gray-500 mt-1">Vue d'ensemble des départs avec contacts</p>
+          <p className="text-gray-500 mt-1">Vue d'ensemble des départs (dossiers signés uniquement)</p>
         </div>
         <button
           onClick={loadDeparts}

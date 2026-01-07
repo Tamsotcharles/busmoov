@@ -116,10 +116,11 @@ import { WorkflowPage } from '@/components/admin/WorkflowPage'
 import { DepartsPage } from '@/components/admin/DepartsPage'
 import { ExperimentsPage } from '@/components/admin/ExperimentsPage'
 import { TestRunnerPage } from '@/components/admin/TestRunnerPage'
-import { FlaskConical, TestTube2 } from 'lucide-react'
+import { ReviewsPage } from '@/components/admin/ReviewsPage'
+import { FlaskConical, TestTube2, Star } from 'lucide-react'
 import type { DossierWithRelations } from '@/types/database'
 
-type Page = 'dashboard' | 'dossiers' | 'devis' | 'exploitation' | 'factures' | 'transporteurs' | 'clients' | 'workflow' | 'templates' | 'messages' | 'service-client' | 'stats' | 'calendrier' | 'departs' | 'settings'
+type Page = 'dashboard' | 'dossiers' | 'devis' | 'exploitation' | 'factures' | 'transporteurs' | 'clients' | 'workflow' | 'templates' | 'messages' | 'service-client' | 'reviews' | 'stats' | 'calendrier' | 'departs' | 'settings'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -136,6 +137,7 @@ const navigation = [
   { id: 'templates', label: 'Templates', icon: FileType },
   { id: 'messages', label: 'Messages', icon: MessageCircle },
   { id: 'service-client', label: 'Service Client', icon: Headphones },
+  { id: 'reviews', label: 'Avis clients', icon: Star },
   { id: 'settings', label: 'Paramètres', icon: Settings },
 ]
 
@@ -1664,6 +1666,11 @@ export function AdminDashboard() {
                 }
               }}
             />
+          )}
+
+          {/* Reviews Page */}
+          {currentPage === 'reviews' && (
+            <ReviewsPage />
           )}
 
           {/* Statistiques Page */}
