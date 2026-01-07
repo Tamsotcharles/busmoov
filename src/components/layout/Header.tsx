@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Phone, Menu, X, User } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -9,6 +9,8 @@ interface HeaderProps {
 export function Header({ showAdminLink = true }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+  const isHomePage = location.pathname === '/'
 
   // Fermer le menu mobile lors d'un changement de route
   useEffect(() => {
@@ -17,8 +19,23 @@ export function Header({ showAdminLink = true }: HeaderProps) {
 
   const closeMenu = () => {
     setMobileMenuOpen(false)
-    // Scroll vers le haut après fermeture du menu
-    window.scrollTo(0, 0)
+  }
+
+  // Gérer la navigation vers une section de la page d'accueil
+  const handleHashNavigation = (hash: string) => (e: React.MouseEvent) => {
+    e.preventDefault()
+    closeMenu()
+
+    if (isHomePage) {
+      // Sur la page d'accueil, scroll direct vers la section
+      const element = document.querySelector(hash)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' })
+      }
+    } else {
+      // Sur une autre page, naviguer vers la page d'accueil avec le hash
+      navigate('/' + hash)
+    }
   }
 
   return (
@@ -33,13 +50,13 @@ export function Header({ showAdminLink = true }: HeaderProps) {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
-          <a href="#how-it-works" className="text-gray-600 hover:text-magenta font-medium transition-colors">
+          <a href="#how-it-works" onClick={handleHashNavigation('#how-it-works')} className="text-gray-600 hover:text-magenta font-medium transition-colors">
             Comment ça marche
           </a>
-          <a href="#features" className="text-gray-600 hover:text-magenta font-medium transition-colors">
+          <a href="#features" onClick={handleHashNavigation('#features')} className="text-gray-600 hover:text-magenta font-medium transition-colors">
             Nos services
           </a>
-          <a href="#testimonials" className="text-gray-600 hover:text-magenta font-medium transition-colors">
+          <a href="#testimonials" onClick={handleHashNavigation('#testimonials')} className="text-gray-600 hover:text-magenta font-medium transition-colors">
             Avis clients
           </a>
           <a href="tel:+33176311283" className="flex items-center gap-2 text-purple font-semibold">
@@ -55,7 +72,7 @@ export function Header({ showAdminLink = true }: HeaderProps) {
               Admin
             </Link>
           )}
-          <a href="#quote" className="btn btn-primary">
+          <a href="#quote" onClick={handleHashNavigation('#quote')} className="btn btn-primary">
             Obtenir un devis
           </a>
         </div>
@@ -72,13 +89,13 @@ export function Header({ showAdminLink = true }: HeaderProps) {
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 py-4 px-4 space-y-4">
-          <a href="#how-it-works" onClick={closeMenu} className="block text-gray-600 hover:text-magenta font-medium">
+          <a href="#how-it-works" onClick={handleHashNavigation('#how-it-works')} className="block text-gray-600 hover:text-magenta font-medium">
             Comment ça marche
           </a>
-          <a href="#features" onClick={closeMenu} className="block text-gray-600 hover:text-magenta font-medium">
+          <a href="#features" onClick={handleHashNavigation('#features')} className="block text-gray-600 hover:text-magenta font-medium">
             Nos services
           </a>
-          <a href="#testimonials" onClick={closeMenu} className="block text-gray-600 hover:text-magenta font-medium">
+          <a href="#testimonials" onClick={handleHashNavigation('#testimonials')} className="block text-gray-600 hover:text-magenta font-medium">
             Avis clients
           </a>
           <a href="tel:+33176311283" className="flex items-center gap-2 text-purple font-semibold">
@@ -94,7 +111,7 @@ export function Header({ showAdminLink = true }: HeaderProps) {
               Admin
             </Link>
           )}
-          <a href="#quote" onClick={closeMenu} className="block btn btn-primary w-full text-center">
+          <a href="#quote" onClick={handleHashNavigation('#quote')} className="block btn btn-primary w-full text-center">
             Obtenir un devis
           </a>
         </div>

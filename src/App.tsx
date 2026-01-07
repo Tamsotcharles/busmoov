@@ -22,13 +22,25 @@ import { AdminDashboard } from '@/pages/admin/AdminDashboard'
 import { useAuth } from '@/hooks/useAuth'
 import { ABTestProvider } from '@/components/ab-testing'
 
-// Scroll to top on route change
+// Scroll to top on route change, but handle hash links
 function ScrollToTop() {
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
 
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
+    // Si un hash est présent, scroll vers l'élément correspondant
+    if (hash) {
+      // Petit délai pour laisser la page se charger
+      setTimeout(() => {
+        const element = document.querySelector(hash)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' })
+        }
+      }, 100)
+    } else {
+      // Sinon, scroll en haut de la page
+      window.scrollTo(0, 0)
+    }
+  }, [pathname, hash])
 
   return null
 }
