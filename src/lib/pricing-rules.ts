@@ -810,19 +810,6 @@ export function calculerTarifComplet(params: CalculTarifParams): CalculTarifResu
     if (tranche) {
       const supplementParJour = Number(tranche.supplement_jour) || T.SUPPLEMENT_JOUR_SANS_MAD
 
-      // DEBUG: Log des valeurs
-      console.log('🔴 DEBUG calculerTarifComplet AR_SANS_MAD:', {
-        nbJours,
-        distanceKm,
-        tranche_km: `${tranche.km_min}-${tranche.km_max}`,
-        prix_2j: tranche.prix_2j,
-        prix_3j: tranche.prix_3j,
-        prix_4j: tranche.prix_4j,
-        keyRecherche: `prix_${nbJours}j`,
-        valeurTrouvee: (tranche as any)[`prix_${nbJours}j`],
-        supplementParJour,
-      })
-
       if (nbJours > 6) {
         joursSupplementaires = nbJours - 6
         supplementJours = joursSupplementaires * supplementParJour
@@ -859,13 +846,6 @@ export function calculerTarifComplet(params: CalculTarifParams): CalculTarifResu
         result.erreur = "Cette durée n'est pas disponible pour cette distance"
         return result
       }
-
-      // DEBUG: Log du résultat
-      console.log('🔴 DEBUG calculerTarifComplet RESULT:', {
-        prixBase,
-        joursSupplementaires,
-        supplementJours,
-      })
     }
 
     detailType = `AR ${nbJours} jours sans MAD`

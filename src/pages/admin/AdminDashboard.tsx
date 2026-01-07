@@ -9616,8 +9616,6 @@ function NewDevisModal({
     const vehicleType = formData.vehicle_type || 'standard'
     const nombreCars = formData.nombre_cars || 1
 
-    console.log('tarifEstime debug:', { km, serviceType, amplitude, grilles: !!grilles, tarifsAR1J: tarifsAR1J.length })
-
     if (km <= 0 || !grilles) return null
 
     // Trouver le coefficient véhicule

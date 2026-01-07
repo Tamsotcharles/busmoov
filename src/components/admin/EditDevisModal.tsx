@@ -218,19 +218,7 @@ export function EditDevisModal({
           supplement_jour: t.supplement_jour != null ? parseFloat(String(t.supplement_jour)) : null,
         })))
         if (resARSansMAD.data) {
-          // DEBUG: Voir les données brutes de Supabase pour la tranche 200-250km
-          const tranche200_250 = resARSansMAD.data.find((t: any) => Number(t.km_min) <= 224 && Number(t.km_max) >= 224)
-          console.log('🔴 RAW SUPABASE DATA tarifs_ar_sans_mad (tranche 224km):', {
-            tranche: tranche200_250,
-            prix_2j_raw: tranche200_250?.prix_2j,
-            prix_3j_raw: tranche200_250?.prix_3j,
-            prix_3j_type: typeof tranche200_250?.prix_3j,
-            prix_3j_isNull: tranche200_250?.prix_3j === null,
-            prix_3j_isUndefined: tranche200_250?.prix_3j === undefined,
-            allTranches: resARSansMAD.data.map((t: any) => ({ km_min: t.km_min, km_max: t.km_max, prix_3j: t.prix_3j })),
-          })
-
-          setTarifsARSansMAD(resARSansMAD.data.map((t: any) => ({
+            setTarifsARSansMAD(resARSansMAD.data.map((t: any) => ({
             km_min: Number(t.km_min),
             km_max: Number(t.km_max),
             // IMPORTANT: Les types numeric de Supabase arrivent en strings
@@ -323,33 +311,12 @@ export function EditDevisModal({
     const diffDays = Math.round((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
     const result = Math.max(1, diffDays + 1) // +1 car on compte le jour de départ
 
-    // DEBUG EXPLICITE
-    console.log('⭐⭐⭐ CALCUL DUREE:', {
-      departure_raw: dos.departure_date,
-      return_raw: dos.return_date,
-      depDateStr,
-      retDateStr,
-      depYear, depMonth, depDay,
-      retYear, retMonth, retDay,
-      diffDays,
-      result,
-    })
-
     return result
   }
 
   // Durée calculée automatiquement - utiliser useMemo pour garantir la synchronisation
   const dureeJours = useMemo(() => {
-    const result = calculateDureeJours(dossier)
-    // DEBUG: Log détaillé du calcul de durée
-    console.log('🔵🔵🔵 CALCUL DUREE JOURS (useMemo):', {
-      departure_date_raw: dossier?.departure_date,
-      return_date_raw: dossier?.return_date,
-      depStr: dossier?.departure_date?.substring(0, 10),
-      retStr: dossier?.return_date?.substring(0, 10),
-      dureeJours: result,
-    })
-    return result
+    return calculateDureeJours(dossier)
   }, [dossier?.departure_date, dossier?.return_date])
 
   // Obtenir la ville de départ pour la majoration régionale
@@ -457,38 +424,10 @@ export function EditDevisModal({
 
     if (km <= 0 || !grilles) return null
 
-    // DEBUG: Afficher les données de la grille pour cette distance
-    if (serviceType === 'ar_sans_mad') {
-      const tranche = grilles.tarifsARSansMAD.find(t => km > t.km_min && km <= t.km_max)
-      const trancheRaw = tarifsARSansMAD.find(t => km > t.km_min && km <= t.km_max)
-      console.log('🟢 DEBUG AR_SANS_MAD (calcul tarif):', {
-        km,
-        dureeJours,
-        // Prix pour chaque nb de jours dans la tranche
-        tranche_km: tranche ? `${tranche.km_min}-${tranche.km_max}` : 'non trouvée',
-        prix_2j: tranche?.prix_2j,
-        prix_3j: tranche?.prix_3j,
-        prix_4j: tranche?.prix_4j,
-        // Le prix qui sera utilisé
-        prix_utilisé: tranche ? tranche[`prix_${dureeJours}j` as keyof typeof tranche] : null,
-        // Types pour debug
-        prix_3j_isNull: tranche?.prix_3j === null,
-        prix_3j_isNumber: typeof tranche?.prix_3j === 'number',
-      })
-    }
-
     // Trouver le coefficient véhicule
     const vehiculeFromCapacites = capacitesVehicules.find(c => c.code === vehicleType)
     const vehiculeFromCoeff = coefficientsVehicules.find(c => c.code === vehicleType)
     const coeff = vehiculeFromCapacites?.coefficient || vehiculeFromCoeff?.coefficient || 1
-
-    console.log('DEBUG VEHICULE:', {
-      vehicleType,
-      vehiculeFromCapacites,
-      vehiculeFromCoeff,
-      coeff,
-      allCapacitesCodes: capacitesVehicules.map(c => c.code),
-    })
 
     // Déterminer l'amplitude automatiquement si AR 1 jour et non spécifiée
     let amplitudeUtilisee = amplitude
@@ -502,20 +441,6 @@ export function EditDevisModal({
     const heureRetour = (formData as any).return_time_override || dossier?.return_time || null
     const dateDepart = (formData as any).departure_date_override || dossier?.departure_date || null
     const dateRetour = (formData as any).return_date_override || dossier?.return_date || null
-
-    // DEBUG: Vérifier la valeur de dureeJours passée à calculerTarifComplet
-    console.log('🟣 DEBUG dureeJours AVANT calculerTarifComplet:', {
-      dureeJours,
-      dateDepart,
-      dateRetour,
-      dossier_departure_date: dossier?.departure_date,
-      dossier_return_date: dossier?.return_date,
-      departure_date_override: (formData as any).departure_date_override,
-      return_date_override: (formData as any).return_date_override,
-    })
-
-    // DEBUG CRITIQUE: Valeur exacte de dureeJours juste avant l'appel
-    console.log('🟠🟠🟠 APPEL calculerTarifComplet avec nbJours =', dureeJours)
 
     const result = calculerTarifComplet({
       distanceKm: km,
