@@ -283,6 +283,21 @@ export function PropositionTarifPage() {
             type: 'note',
             content: `Proposition tarifaire reçue de ${demandeInfo.transporteur.name} : ${formatPrice(prix)} TTC (${formatPrice(prixHT)} HT)`,
           })
+
+        // Créer une notification CRM
+        await (supabase as any)
+          .from('notifications_crm')
+          .insert({
+            dossier_id: demandeInfo.dossier.id,
+            dossier_reference: demandeInfo.dossier.reference,
+            type: 'tarif_fournisseur',
+            title: `Tarif reçu: ${formatPrice(prix)} TTC`,
+            description: `${demandeInfo.transporteur.name} a proposé ${formatPrice(prix)} TTC (${formatPrice(prixHT)} HT) pour le trajet ${demandeInfo.dossier.departure} → ${demandeInfo.dossier.arrival}`,
+            source_type: 'transporteur',
+            source_name: demandeInfo.transporteur.name,
+            source_id: demandeInfo.transporteur.id,
+            metadata: { prix_ttc: prix, prix_ht: prixHT }
+          })
       }
 
       setSuccess(true)
@@ -325,6 +340,20 @@ export function PropositionTarifPage() {
           dossier_id: demandeInfo.dossier.id,
           type: 'note',
           content: `${demandeInfo.transporteur.name} a décliné la demande de tarif (non disponible)`,
+        })
+
+      // Créer une notification CRM
+      await (supabase as any)
+        .from('notifications_crm')
+        .insert({
+          dossier_id: demandeInfo.dossier.id,
+          dossier_reference: demandeInfo.dossier.reference,
+          type: 'refus_fournisseur',
+          title: `Refus de ${demandeInfo.transporteur.name}`,
+          description: `${demandeInfo.transporteur.name} n'est pas disponible pour le trajet ${demandeInfo.dossier.departure} → ${demandeInfo.dossier.arrival} du ${formatDate(demandeInfo.dossier.departure_date)}`,
+          source_type: 'transporteur',
+          source_name: demandeInfo.transporteur.name,
+          source_id: demandeInfo.transporteur.id,
         })
 
       setRefused(true)

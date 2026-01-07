@@ -2937,3 +2937,119 @@ export function useExperimentAssignments(experimentId: string | null) {
     enabled: !!experimentId,
   })
 }
+
+// ============ NOTIFICATIONS CRM ============
+
+export interface CreateNotificationCRM {
+  dossier_id?: string
+  dossier_reference?: string
+  type: 'infos_voyage' | 'contact_chauffeur' | 'tarif_fournisseur' | 'refus_fournisseur'
+  title: string
+  description?: string
+  source_type?: 'client' | 'transporteur' | 'system'
+  source_name?: string
+  source_id?: string
+  metadata?: Record<string, any>
+}
+
+// Hook pour créer une notification CRM
+export function useCreateNotificationCRM() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (notification: CreateNotificationCRM) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from('notifications_crm')
+        .insert(notification)
+        .select()
+        .single()
+
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications-crm'] })
+    },
+  })
+}
+
+// Hook pour récupérer les notifications CRM
+export function useNotificationsCRM(filter?: { type?: string; unreadOnly?: boolean }) {
+  return useQuery({
+    queryKey: ['notifications-crm', filter],
+    queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let query = (supabase as any)
+        .from('notifications_crm')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      if (filter?.type) {
+        query = query.eq('type', filter.type)
+      }
+      if (filter?.unreadOnly) {
+        query = query.eq('is_read', false)
+      }
+
+      const { data, error } = await query
+      if (error) throw error
+      return data || []
+    },
+    refetchInterval: 30000,
+  })
+}
+
+// Hook pour compter les notifications non lues
+export function useUnreadNotificationsCount() {
+  return useQuery({
+    queryKey: ['notifications-crm-unread-count'],
+    queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { count, error } = await (supabase as any)
+        .from('notifications_crm')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_read', false)
+
+      if (error) throw error
+      return count || 0
+    },
+    refetchInterval: 30000,
+  })
+}
+
+// Hook pour marquer une notification comme lue
+export function useMarkNotificationRead() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (notificationId: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
+        .from('notifications_crm')
+        .update({
+          is_read: true,
+          read_at: new Date().toISOString()
+        })
+        .eq('id', notificationId)
+
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications-crm'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications-crm-unread-count'] })
+    },
+  })
+}
+
+// Fonction utilitaire pour créer une notification (utilisable hors React)
+export async function createNotificationCRM(notification: CreateNotificationCRM) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
+    .from('notifications_crm')
+    .insert(notification)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}

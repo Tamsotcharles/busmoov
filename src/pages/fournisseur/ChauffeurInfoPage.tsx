@@ -461,6 +461,27 @@ L'équipe Busmoov`
         }
       }
 
+      // Créer une notification CRM pour le service client
+      const allVehicules = [...vehiculesAller, ...vehiculesRetour]
+      const chauffeurPrincipal = vehiculesAller[0]?.chauffeurs?.find((c: ChauffeurForm) => c.role === 'principal') || vehiculesAller[0]?.chauffeurs?.[0]
+      await (supabase as any)
+        .from('notifications_crm')
+        .insert({
+          dossier_id: demande.dossier.id,
+          dossier_reference: demande.dossier.reference,
+          type: 'contact_chauffeur',
+          title: `Contact chauffeur reçu`,
+          description: `${demande.transporteur.name} a transmis les infos chauffeur${chauffeurPrincipal ? ` (${chauffeurPrincipal.nom})` : ''} pour ${demande.dossier.departure} → ${demande.dossier.arrival}`,
+          source_type: 'transporteur',
+          source_name: demande.transporteur.name,
+          source_id: demande.transporteur.id,
+          metadata: {
+            nb_vehicules: allVehicules.length,
+            chauffeur_principal: chauffeurPrincipal?.nom,
+            chauffeur_tel: chauffeurPrincipal?.tel
+          }
+        })
+
       setSuccess(true)
     } catch (err) {
       console.error('Erreur soumission:', err)

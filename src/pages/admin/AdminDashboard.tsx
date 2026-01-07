@@ -72,6 +72,7 @@ import { CronSettingsSection } from '@/components/admin/CronSettingsSection'
 import { EditDevisModal } from '@/components/admin/EditDevisModal'
 import { CGVPage } from '@/components/admin/CGVPage'
 import { EmailTemplatesPage } from '@/components/admin/EmailTemplatesPage'
+import { NotificationsPanel } from '@/components/admin/NotificationsPanel'
 import {
   calculerTarifComplet,
   calculerInfosTrajet,
@@ -1077,6 +1078,17 @@ export function AdminDashboard() {
                     </button>
                   </div>
                 )}
+              </div>
+
+              {/* Notifications CRM */}
+              <div className="mb-6">
+                <NotificationsPanel
+                  onOpenDossier={(dossierId) => {
+                    const dossier = dossiers.find(d => d.id === dossierId)
+                    if (dossier) handleSelectDossier(dossier)
+                  }}
+                  maxHeight="300px"
+                />
               </div>
 
               {/* Alertes Marge Positive */}

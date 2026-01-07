@@ -176,6 +176,19 @@ export function InfosVoyagePage() {
 
       await updateDossier.mutateAsync(updateData)
 
+      // Créer une notification CRM pour le service client
+      await (supabase as any)
+        .from('notifications_crm')
+        .insert({
+          dossier_id: dossier!.id,
+          dossier_reference: dossier!.reference,
+          type: 'infos_voyage',
+          title: `Infos voyage reçues`,
+          description: `${dossier!.client_name} a soumis ses informations de voyage pour ${dossier!.departure} → ${dossier!.arrival}`,
+          source_type: 'client',
+          source_name: dossier!.client_name,
+        })
+
       setSuccess(true)
     } catch (err) {
       console.error('Error saving voyage info:', err)
