@@ -198,6 +198,38 @@ serve(async (req) => {
         metadata: { provider: 'mollie', payment_id: paymentId, status: payment.status },
       })
 
+      // Recuperer les infos du dossier pour la notification
+      const { data: dossierInfo } = await supabase
+        .from('dossiers')
+        .select('reference, client_name, departure, arrival')
+        .eq('id', dossier_id)
+        .single()
+
+      // Creer une notification CRM pour alerter l'admin
+      const statusLabels: Record<string, string> = {
+        canceled: 'annulé',
+        expired: 'expiré',
+        failed: 'échoué',
+      }
+      const statusLabel = statusLabels[payment.status] || payment.status
+      const amount = parseFloat(payment.amount?.value || '0')
+
+      await supabase.from('notifications_crm').insert({
+        dossier_id,
+        dossier_reference: dossierInfo?.reference || reference,
+        type: 'paiement_echoue',
+        title: `Paiement CB ${statusLabel} - ${amount}€`,
+        description: `Le paiement ${type || 'acompte'} de ${dossierInfo?.client_name || 'Client'} a ${statusLabel}. Dossier: ${dossierInfo?.departure || ''} → ${dossierInfo?.arrival || ''}`,
+        source_type: 'system',
+        source_name: 'Mollie',
+        metadata: {
+          payment_status: payment.status,
+          amount,
+          payment_type: type || 'acompte',
+          payment_id: paymentId,
+        },
+      })
+
     } else {
       // Statuts intermediaires (open, pending, authorized)
       console.log('Payment in intermediate status:', payment.status)

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Bell, Check, CheckCheck, Info, Truck, Euro, XCircle, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+import { Bell, Check, CheckCheck, Info, Truck, Euro, XCircle, ChevronDown, ChevronUp, ExternalLink, CreditCard } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -10,7 +10,7 @@ interface NotificationCRM {
   created_at: string
   dossier_id: string | null
   dossier_reference: string | null
-  type: 'infos_voyage' | 'contact_chauffeur' | 'tarif_fournisseur' | 'refus_fournisseur'
+  type: 'infos_voyage' | 'contact_chauffeur' | 'tarif_fournisseur' | 'refus_fournisseur' | 'paiement_echoue'
   title: string
   description: string | null
   source_type: string | null
@@ -45,6 +45,12 @@ const TYPE_CONFIG = {
     color: 'text-red-600',
     bgColor: 'bg-red-100',
     label: 'Refus fournisseur',
+  },
+  paiement_echoue: {
+    icon: CreditCard,
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
+    label: 'Paiement CB',
   },
 }
 
@@ -236,7 +242,12 @@ export function NotificationsPanel({ onOpenDossier, maxHeight = '400px' }: Notif
             ) : (
               <div className="divide-y">
                 {notifications.map((notification) => {
-                  const config = TYPE_CONFIG[notification.type]
+                  const config = TYPE_CONFIG[notification.type] || {
+                    icon: Bell,
+                    color: 'text-gray-600',
+                    bgColor: 'bg-gray-100',
+                    label: notification.type,
+                  }
                   const Icon = config.icon
 
                   return (

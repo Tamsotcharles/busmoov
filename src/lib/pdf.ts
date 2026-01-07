@@ -1869,7 +1869,7 @@ export async function generateFeuilleRoutePDF(data: FeuilleRouteData): Promise<v
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(100, 100, 100)
-  doc.text(`Devis ${data.reference} - Dossier ${data.dossier_reference || ''}`, pageWidth / 2 + 20, 22, { align: 'center' })
+  doc.text(`Devis ${data.reference}${data.dossier_reference ? ` - Dossier ${data.dossier_reference}` : ''}`, pageWidth / 2 + 20, 22, { align: 'center' })
 
   let y = 40
 
@@ -2178,7 +2178,7 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(100, 100, 100)
-  doc.text(`Devis ${data.reference} - Dossier ${data.dossier_reference || ''}`, pageWidth / 2 + 20, 22, { align: 'center' })
+  doc.text(`Devis ${data.reference}${data.dossier_reference ? ` - Dossier ${data.dossier_reference}` : ''}`, pageWidth / 2 + 20, 22, { align: 'center' })
 
   let y = 40
 
@@ -2464,7 +2464,7 @@ export async function generateInfosVoyagePDF(data: InfosVoyageData): Promise<voi
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(100, 100, 100)
-  doc.text(`Devis ${data.reference} - Dossier ${data.dossier_reference || ''}`, pageWidth / 2 + 20, 22, { align: 'center' })
+  doc.text(`Devis ${data.reference}${data.dossier_reference ? ` - Dossier ${data.dossier_reference}` : ''}`, pageWidth / 2 + 20, 22, { align: 'center' })
 
   let y = 40
 
@@ -2677,7 +2677,7 @@ export async function generateInfosVoyagePDFBase64(data: InfosVoyageData): Promi
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(100, 100, 100)
-  doc.text(`Devis ${data.reference} - Dossier ${data.dossier_reference || ''}`, pageWidth / 2 + 20, 22, { align: 'center' })
+  doc.text(`Devis ${data.reference}${data.dossier_reference ? ` - Dossier ${data.dossier_reference}` : ''}`, pageWidth / 2 + 20, 22, { align: 'center' })
 
   let y = 40
 
