@@ -314,12 +314,17 @@ export function calculerInfosTrajet(
     if (minutesArriveeDestination >= 24 * 60) heureArrivee += ' (J+1)'
   }
 
-  // Nombre de jours
+  // Nombre de jours - utiliser substring(0,10) pour gérer les formats ISO et PostgreSQL
   let nbJoursVoyage = 1
   let estMemeJour = true
   if (dateDepart && dateRetour) {
-    const d1 = new Date(dateDepart)
-    const d2 = new Date(dateRetour)
+    // Extraire uniquement YYYY-MM-DD pour éviter les problèmes de timezone
+    const depDateStr = dateDepart.substring(0, 10)
+    const retDateStr = dateRetour.substring(0, 10)
+    const [depYear, depMonth, depDay] = depDateStr.split('-').map(Number)
+    const [retYear, retMonth, retDay] = retDateStr.split('-').map(Number)
+    const d1 = new Date(Date.UTC(depYear, depMonth - 1, depDay))
+    const d2 = new Date(Date.UTC(retYear, retMonth - 1, retDay))
     nbJoursVoyage = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24)) + 1
     estMemeJour = d1.getTime() === d2.getTime()
   }
@@ -336,9 +341,8 @@ export function calculerInfosTrajet(
     let minutesDepartRetour = hRet * 60 + mRet
 
     if (!estMemeJour && dateDepart && dateRetour) {
-      const d1 = new Date(dateDepart)
-      const d2 = new Date(dateRetour)
-      const diffJours = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24))
+      // Réutiliser le calcul déjà fait pour nbJoursVoyage
+      const diffJours = nbJoursVoyage - 1
       minutesDepartRetour += diffJours * 24 * 60
     }
 
@@ -806,6 +810,19 @@ export function calculerTarifComplet(params: CalculTarifParams): CalculTarifResu
     if (tranche) {
       const supplementParJour = Number(tranche.supplement_jour) || T.SUPPLEMENT_JOUR_SANS_MAD
 
+      // DEBUG: Log des valeurs
+      console.log('🔴 DEBUG calculerTarifComplet AR_SANS_MAD:', {
+        nbJours,
+        distanceKm,
+        tranche_km: `${tranche.km_min}-${tranche.km_max}`,
+        prix_2j: tranche.prix_2j,
+        prix_3j: tranche.prix_3j,
+        prix_4j: tranche.prix_4j,
+        keyRecherche: `prix_${nbJours}j`,
+        valeurTrouvee: (tranche as any)[`prix_${nbJours}j`],
+        supplementParJour,
+      })
+
       if (nbJours > 6) {
         joursSupplementaires = nbJours - 6
         supplementJours = joursSupplementaires * supplementParJour
@@ -842,6 +859,13 @@ export function calculerTarifComplet(params: CalculTarifParams): CalculTarifResu
         result.erreur = "Cette durée n'est pas disponible pour cette distance"
         return result
       }
+
+      // DEBUG: Log du résultat
+      console.log('🔴 DEBUG calculerTarifComplet RESULT:', {
+        prixBase,
+        joursSupplementaires,
+        supplementJours,
+      })
     }
 
     detailType = `AR ${nbJours} jours sans MAD`

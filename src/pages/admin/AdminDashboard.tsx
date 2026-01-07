@@ -9489,14 +9489,20 @@ function NewDevisModal({
     }
   }, [dossier, isOpen])
 
-  // Calculer la durée en jours
+  // Calculer la durée en jours - utiliser Date.UTC pour éviter les problèmes de timezone
   const dureeJours = useMemo(() => {
     if (!dossier?.return_date || !dossier?.departure_date) return 1
-    const depDate = new Date(dossier.departure_date)
-    const retDate = new Date(dossier.return_date)
-    const diffDays = Math.ceil((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
+    // Extraire uniquement YYYY-MM-DD pour éviter les problèmes de timezone
+    // Les dates peuvent être au format ISO (T) ou PostgreSQL (espace)
+    const depDateStr = dossier.departure_date.substring(0, 10)
+    const retDateStr = dossier.return_date.substring(0, 10)
+    const [depYear, depMonth, depDay] = depDateStr.split('-').map(Number)
+    const [retYear, retMonth, retDay] = retDateStr.split('-').map(Number)
+    const depDate = new Date(Date.UTC(depYear, depMonth - 1, depDay))
+    const retDate = new Date(Date.UTC(retYear, retMonth - 1, retDay))
+    const diffDays = Math.round((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
     return Math.max(1, diffDays + 1)
-  }, [dossier])
+  }, [dossier?.departure_date, dossier?.return_date])
 
   // Obtenir la ville de départ (override ou dossier)
   const villeDepartAvecCP = useMemo(() => {

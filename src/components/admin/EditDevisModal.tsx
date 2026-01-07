@@ -197,34 +197,52 @@ export function EditDevisModal({
           km_max: Number(t.km_max),
           prix_public: parseFloat(t.prix_public) || 0,
         })))
+        // IMPORTANT: Les types numeric de Supabase arrivent en strings
+        // On utilise != null pour capturer aussi les valeurs 0 (qui sont valides)
         if (resAR1J.data) setTarifsAR1J(resAR1J.data.map((t: any) => ({
           km_min: Number(t.km_min),
           km_max: Number(t.km_max),
-          prix_8h: t.prix_8h ? parseFloat(t.prix_8h) : null,
-          prix_10h: t.prix_10h ? parseFloat(t.prix_10h) : null,
-          prix_12h: t.prix_12h ? parseFloat(t.prix_12h) : null,
-          prix_9h_coupure: t.prix_9h_coupure ? parseFloat(t.prix_9h_coupure) : null,
+          prix_8h: t.prix_8h != null ? parseFloat(String(t.prix_8h)) : null,
+          prix_10h: t.prix_10h != null ? parseFloat(String(t.prix_10h)) : null,
+          prix_12h: t.prix_12h != null ? parseFloat(String(t.prix_12h)) : null,
+          prix_9h_coupure: t.prix_9h_coupure != null ? parseFloat(String(t.prix_9h_coupure)) : null,
         })))
         if (resARMAD.data) setTarifsARMAD(resARMAD.data.map((t: any) => ({
           km_min: Number(t.km_min),
           km_max: Number(t.km_max),
-          prix_2j: t.prix_2j ? parseFloat(t.prix_2j) : null,
-          prix_3j: t.prix_3j ? parseFloat(t.prix_3j) : null,
-          prix_4j: t.prix_4j ? parseFloat(t.prix_4j) : null,
-          prix_5j: t.prix_5j ? parseFloat(t.prix_5j) : null,
-          prix_6j: t.prix_6j ? parseFloat(t.prix_6j) : null,
-          supplement_jour: t.supplement_jour ? parseFloat(t.supplement_jour) : null,
+          prix_2j: t.prix_2j != null ? parseFloat(String(t.prix_2j)) : null,
+          prix_3j: t.prix_3j != null ? parseFloat(String(t.prix_3j)) : null,
+          prix_4j: t.prix_4j != null ? parseFloat(String(t.prix_4j)) : null,
+          prix_5j: t.prix_5j != null ? parseFloat(String(t.prix_5j)) : null,
+          prix_6j: t.prix_6j != null ? parseFloat(String(t.prix_6j)) : null,
+          supplement_jour: t.supplement_jour != null ? parseFloat(String(t.supplement_jour)) : null,
         })))
-        if (resARSansMAD.data) setTarifsARSansMAD(resARSansMAD.data.map((t: any) => ({
-          km_min: Number(t.km_min),
-          km_max: Number(t.km_max),
-          prix_2j: t.prix_2j ? parseFloat(t.prix_2j) : null,
-          prix_3j: t.prix_3j ? parseFloat(t.prix_3j) : null,
-          prix_4j: t.prix_4j ? parseFloat(t.prix_4j) : null,
-          prix_5j: t.prix_5j ? parseFloat(t.prix_5j) : null,
-          prix_6j: t.prix_6j ? parseFloat(t.prix_6j) : null,
-          supplement_jour: t.supplement_jour ? parseFloat(t.supplement_jour) : null,
-        })))
+        if (resARSansMAD.data) {
+          // DEBUG: Voir les données brutes de Supabase pour la tranche 200-250km
+          const tranche200_250 = resARSansMAD.data.find((t: any) => Number(t.km_min) <= 224 && Number(t.km_max) >= 224)
+          console.log('🔴 RAW SUPABASE DATA tarifs_ar_sans_mad (tranche 224km):', {
+            tranche: tranche200_250,
+            prix_2j_raw: tranche200_250?.prix_2j,
+            prix_3j_raw: tranche200_250?.prix_3j,
+            prix_3j_type: typeof tranche200_250?.prix_3j,
+            prix_3j_isNull: tranche200_250?.prix_3j === null,
+            prix_3j_isUndefined: tranche200_250?.prix_3j === undefined,
+            allTranches: resARSansMAD.data.map((t: any) => ({ km_min: t.km_min, km_max: t.km_max, prix_3j: t.prix_3j })),
+          })
+
+          setTarifsARSansMAD(resARSansMAD.data.map((t: any) => ({
+            km_min: Number(t.km_min),
+            km_max: Number(t.km_max),
+            // IMPORTANT: Les types numeric de Supabase arrivent en strings
+            // parseFloat("2790") = 2790, parseFloat(null) = NaN, parseFloat(undefined) = NaN
+            prix_2j: t.prix_2j != null ? parseFloat(String(t.prix_2j)) : null,
+            prix_3j: t.prix_3j != null ? parseFloat(String(t.prix_3j)) : null,
+            prix_4j: t.prix_4j != null ? parseFloat(String(t.prix_4j)) : null,
+            prix_5j: t.prix_5j != null ? parseFloat(String(t.prix_5j)) : null,
+            prix_6j: t.prix_6j != null ? parseFloat(String(t.prix_6j)) : null,
+            supplement_jour: t.supplement_jour != null ? parseFloat(String(t.supplement_jour)) : null,
+          })))
+        }
         if (resCoeff.data) setCoefficientsVehicules(resCoeff.data.map((c: any) => ({
           code: c.code,
           label: c.label,
@@ -275,20 +293,64 @@ export function EditDevisModal({
   function calculateDureeJours(dos: DossierWithRelations | null | undefined): number {
     if (!dos?.return_date || !dos?.departure_date) return 1
 
+    // Extraire uniquement la partie date (YYYY-MM-DD) des dates
+    // Les dates peuvent être au format:
+    // - "2026-01-16" (date seule)
+    // - "2026-01-16T08:00:00+00:00" (ISO avec T)
+    // - "2026-01-16 08:00:00+00" (PostgreSQL avec espace)
+    const extractDatePart = (dateStr: string): string => {
+      // Prendre les 10 premiers caractères (YYYY-MM-DD)
+      return dateStr.substring(0, 10)
+    }
+
+    const depDateStr = extractDatePart(dos.departure_date)
+    const retDateStr = extractDatePart(dos.return_date)
+
     // Parser les dates en UTC pour éviter les problèmes de timezone
-    const [depYear, depMonth, depDay] = dos.departure_date.split('-').map(Number)
-    const [retYear, retMonth, retDay] = dos.return_date.split('-').map(Number)
+    const [depYear, depMonth, depDay] = depDateStr.split('-').map(Number)
+    const [retYear, retMonth, retDay] = retDateStr.split('-').map(Number)
+
+    // Vérifier que les valeurs sont valides
+    if (isNaN(depYear) || isNaN(depMonth) || isNaN(depDay) ||
+        isNaN(retYear) || isNaN(retMonth) || isNaN(retDay)) {
+      console.error('Invalid date format:', { departure: dos.departure_date, return: dos.return_date })
+      return 1
+    }
 
     const depDate = new Date(Date.UTC(depYear, depMonth - 1, depDay))
     const retDate = new Date(Date.UTC(retYear, retMonth - 1, retDay))
 
     const diffDays = Math.round((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
+    const result = Math.max(1, diffDays + 1) // +1 car on compte le jour de départ
 
-    return Math.max(1, diffDays + 1) // +1 car on compte le jour de départ
+    // DEBUG EXPLICITE
+    console.log('⭐⭐⭐ CALCUL DUREE:', {
+      departure_raw: dos.departure_date,
+      return_raw: dos.return_date,
+      depDateStr,
+      retDateStr,
+      depYear, depMonth, depDay,
+      retYear, retMonth, retDay,
+      diffDays,
+      result,
+    })
+
+    return result
   }
 
-  // Durée calculée automatiquement
-  const dureeJours = calculateDureeJours(dossier)
+  // Durée calculée automatiquement - utiliser useMemo pour garantir la synchronisation
+  const dureeJours = useMemo(() => {
+    const result = calculateDureeJours(dossier)
+    // DEBUG: Log détaillé du calcul de durée
+    console.log('🔵🔵🔵 CALCUL DUREE JOURS (useMemo):', {
+      departure_date_raw: dossier?.departure_date,
+      return_date_raw: dossier?.return_date,
+      depStr: dossier?.departure_date?.substring(0, 10),
+      retStr: dossier?.return_date?.substring(0, 10),
+      dureeJours: result,
+    })
+    return result
+  }, [dossier?.departure_date, dossier?.return_date])
 
   // Obtenir la ville de départ pour la majoration régionale
   const villeDepartAvecCP = useMemo(() => {
@@ -389,15 +451,44 @@ export function EditDevisModal({
     const km = parseInt(formData.km?.toString() || '0') || 0
     const serviceType = (formData.service_type || 'aller_simple') as ServiceType
     const amplitude = formData.amplitude as AmplitudeType | null
-    const vehicleType = formData.vehicle_type || 'standard'
+    // Utiliser le véhicule du formulaire, ou le premier de la liste des capacités, ou 'standard' par défaut
+    const vehicleType = formData.vehicle_type || (capacitesVehicules.length > 0 ? capacitesVehicules[0].code : 'standard')
     const nombreCars = formData.nombre_cars || 1
 
     if (km <= 0 || !grilles) return null
 
+    // DEBUG: Afficher les données de la grille pour cette distance
+    if (serviceType === 'ar_sans_mad') {
+      const tranche = grilles.tarifsARSansMAD.find(t => km > t.km_min && km <= t.km_max)
+      const trancheRaw = tarifsARSansMAD.find(t => km > t.km_min && km <= t.km_max)
+      console.log('🟢 DEBUG AR_SANS_MAD (calcul tarif):', {
+        km,
+        dureeJours,
+        // Prix pour chaque nb de jours dans la tranche
+        tranche_km: tranche ? `${tranche.km_min}-${tranche.km_max}` : 'non trouvée',
+        prix_2j: tranche?.prix_2j,
+        prix_3j: tranche?.prix_3j,
+        prix_4j: tranche?.prix_4j,
+        // Le prix qui sera utilisé
+        prix_utilisé: tranche ? tranche[`prix_${dureeJours}j` as keyof typeof tranche] : null,
+        // Types pour debug
+        prix_3j_isNull: tranche?.prix_3j === null,
+        prix_3j_isNumber: typeof tranche?.prix_3j === 'number',
+      })
+    }
+
     // Trouver le coefficient véhicule
-    const coeff = capacitesVehicules.find(c => c.code === vehicleType)?.coefficient
-      || coefficientsVehicules.find(c => c.code === vehicleType)?.coefficient
-      || 1
+    const vehiculeFromCapacites = capacitesVehicules.find(c => c.code === vehicleType)
+    const vehiculeFromCoeff = coefficientsVehicules.find(c => c.code === vehicleType)
+    const coeff = vehiculeFromCapacites?.coefficient || vehiculeFromCoeff?.coefficient || 1
+
+    console.log('DEBUG VEHICULE:', {
+      vehicleType,
+      vehiculeFromCapacites,
+      vehiculeFromCoeff,
+      coeff,
+      allCapacitesCodes: capacitesVehicules.map(c => c.code),
+    })
 
     // Déterminer l'amplitude automatiquement si AR 1 jour et non spécifiée
     let amplitudeUtilisee = amplitude
@@ -411,6 +502,20 @@ export function EditDevisModal({
     const heureRetour = (formData as any).return_time_override || dossier?.return_time || null
     const dateDepart = (formData as any).departure_date_override || dossier?.departure_date || null
     const dateRetour = (formData as any).return_date_override || dossier?.return_date || null
+
+    // DEBUG: Vérifier la valeur de dureeJours passée à calculerTarifComplet
+    console.log('🟣 DEBUG dureeJours AVANT calculerTarifComplet:', {
+      dureeJours,
+      dateDepart,
+      dateRetour,
+      dossier_departure_date: dossier?.departure_date,
+      dossier_return_date: dossier?.return_date,
+      departure_date_override: (formData as any).departure_date_override,
+      return_date_override: (formData as any).return_date_override,
+    })
+
+    // DEBUG CRITIQUE: Valeur exacte de dureeJours juste avant l'appel
+    console.log('🟠🟠🟠 APPEL calculerTarifComplet avec nbJours =', dureeJours)
 
     const result = calculerTarifComplet({
       distanceKm: km,
@@ -503,9 +608,18 @@ export function EditDevisModal({
 
     // Si AR, regarder si c'est 1 jour ou plusieurs
     if (dos.return_date && dos.departure_date) {
-      const depDate = new Date(dos.departure_date)
-      const retDate = new Date(dos.return_date)
-      const diffDays = Math.ceil((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
+      // Extraire uniquement la partie date (YYYY-MM-DD) des dates
+      // Les dates peuvent être au format ISO (T) ou PostgreSQL (espace)
+      const depDateStr = dos.departure_date.substring(0, 10)
+      const retDateStr = dos.return_date.substring(0, 10)
+
+      const [depYear, depMonth, depDay] = depDateStr.split('-').map(Number)
+      const [retYear, retMonth, retDay] = retDateStr.split('-').map(Number)
+
+      const depDate = new Date(Date.UTC(depYear, depMonth - 1, depDay))
+      const retDate = new Date(Date.UTC(retYear, retMonth - 1, retDay))
+
+      const diffDays = Math.round((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
 
       if (diffDays === 0) return 'ar_1j'
       // Par défaut AR sans MAD pour les voyages de plusieurs jours
