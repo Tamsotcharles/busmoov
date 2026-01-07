@@ -23,12 +23,12 @@ export function AProposPage() {
     {
       icon: Award,
       title: 'Expertise',
-      description: 'Plus de 10 ans d\'expérience dans le transport de voyageurs en autocar.',
+      description: 'Plus de 5 ans d\'expérience dans le transport de voyageurs en autocar.',
     },
   ]
 
   const stats = [
-    { value: '10+', label: 'Années d\'expérience' },
+    { value: '5+', label: 'Années d\'expérience' },
     { value: '150+', label: 'Transporteurs partenaires' },
     { value: '50 000+', label: 'Passagers transportés' },
     { value: '98%', label: 'Clients satisfaits' },
@@ -73,7 +73,7 @@ export function AProposPage() {
                 </h2>
                 <div className="space-y-4 text-gray-600 leading-relaxed">
                   <p>
-                    Fondée il y a plus de 10 ans, <strong>Centrale Autocar</strong> est née d'un constat simple :
+                    Fondée il y a plus de 5 ans, <strong>Centrale Autocar</strong> est née d'un constat simple :
                     réserver un autocar avec chauffeur était un véritable parcours du combattant.
                     Entre les multiples appels, les devis incomparables et l'incertitude sur la qualité
                     des prestataires, les clients se retrouvaient souvent perdus.
