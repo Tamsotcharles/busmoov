@@ -1,8 +1,16 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://rsxfmokwmwujercgpnfu.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzeGZtb2t3bXd1amVyY2dwbmZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NjU5NTIsImV4cCI6MjA4MjA0MTk1Mn0.OTUBLLy1l92HURVsnk_j6EEb_8UQuH3lSSE3xUGHM1g'
+// Valeurs par defaut hardcodees pour eviter les problemes de variables d'environnement
+const DEFAULT_SUPABASE_URL = 'https://rsxfmokwmwujercgpnfu.supabase.co'
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzeGZtb2t3bXd1amVyY2dwbmZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NjU5NTIsImV4cCI6MjA4MjA0MTk1Mn0.OTUBLLy1l92HURVsnk_j6EEb_8UQuH3lSSE3xUGHM1g'
+
+// Utiliser les variables d'environnement si definies et non vides, sinon fallback
+const envUrl = import.meta.env.VITE_SUPABASE_URL
+const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+const supabaseUrl = (envUrl && envUrl.startsWith('http')) ? envUrl : DEFAULT_SUPABASE_URL
+const supabaseAnonKey = (envKey && envKey.length > 50) ? envKey : DEFAULT_SUPABASE_ANON_KEY
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 
