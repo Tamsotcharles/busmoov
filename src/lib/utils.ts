@@ -136,6 +136,28 @@ export function calculateTTC(priceHT: number, tvaRate: number): number {
   return Math.round(priceHT * (1 + tvaRate / 100))
 }
 
+/**
+ * Retourne l'URL de base du site (production ou localhost en dev)
+ * Utilise VITE_SITE_URL si défini, sinon détecte automatiquement
+ */
+export function getSiteBaseUrl(): string {
+  // Variable d'environnement prioritaire si définie
+  const envUrl = import.meta.env.VITE_SITE_URL
+  if (envUrl) return envUrl
+
+  // En production sur Vercel, utiliser l'URL de production
+  if (typeof window !== 'undefined') {
+    const origin = window.location.origin
+    // Si on est en production (pas localhost), utiliser l'origin
+    if (!origin.includes('localhost') && !origin.includes('127.0.0.1')) {
+      return origin
+    }
+  }
+
+  // URL par défaut en production
+  return 'https://busmoov.fr'
+}
+
 export function calculateTVA(priceHT: number, tvaRate: number): number {
   return Math.round(priceHT * tvaRate / 100)
 }

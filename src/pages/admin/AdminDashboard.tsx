@@ -107,7 +107,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl } from '@/lib/utils'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64 } from '@/lib/pdf'
 import { MessagesPage } from '@/components/admin/MessagesPage'
 import { ServiceClientelePage } from '@/components/admin/ServiceClientelePage'
@@ -8116,18 +8116,36 @@ L'équipe Busmoov`)
               <hr className="my-2" />
               <p>Bonjour,</p>
               <p>Nous avons une demande de transport pour laquelle nous aimerions recevoir votre meilleur tarif.</p>
-              <div className="bg-gray-50 p-3 rounded my-2">
+              <div className="bg-gray-50 p-3 rounded my-2 space-y-1">
                 <p><strong>Trajet :</strong> {dossier.departure} → {dossier.arrival}</p>
+                <p><strong>Type :</strong> {getTripModeLabel(dossier.trip_mode)}</p>
                 <p><strong>Date aller :</strong> {formatDate(dossier.departure_date)} à {dossier.departure_time || '--:--'}</p>
                 {dossier.return_date && (
                   <p><strong>Date retour :</strong> {formatDate(dossier.return_date)} à {dossier.return_time || '--:--'}</p>
                 )}
                 <p><strong>Passagers :</strong> {dossier.passengers} personnes</p>
+                {dossier.vehicle_type && (
+                  <p><strong>Véhicule :</strong> {getVehicleTypeLabel(dossier.vehicle_type)}</p>
+                )}
+                {dossier.nombre_cars && dossier.nombre_cars > 1 && (
+                  <p><strong>Nombre de cars :</strong> {dossier.nombre_cars}</p>
+                )}
+                {/* Détail MAD si circuit */}
+                {dossier.trip_mode === 'circuit' && extractMadDetails(dossier.special_requests) && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <p><strong>Détail mise à disposition :</strong></p>
+                    <p className="text-gray-600 whitespace-pre-wrap text-xs mt-1">{extractMadDetails(dossier.special_requests)}</p>
+                  </div>
+                )}
+                {/* Autres demandes spéciales (hors MAD) */}
+                {dossier.special_requests && !dossier.special_requests.includes('=== DÉTAIL MISE À DISPOSITION ===') && (
+                  <p><strong>Remarques :</strong> {dossier.special_requests}</p>
+                )}
               </div>
               <div className="bg-magenta/10 p-3 rounded border border-magenta/30 text-center">
                 <p className="text-magenta font-semibold">🔗 Lien personnalisé par transporteur</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {window.location.origin}/fournisseur/proposition-tarif?token=XXXX&demande=YYYY
+                  {getSiteBaseUrl()}/fournisseur/proposition-tarif?token=XXXX&demande=YYYY
                 </p>
                 <p className="text-xs text-gray-400 mt-1">(Un lien unique sera généré pour chaque transporteur)</p>
               </div>
@@ -13762,18 +13780,36 @@ L'équipe Busmoov`
                 <hr className="my-2" />
                 <p>Bonjour,</p>
                 <p>Nous avons une demande de transport pour laquelle nous aimerions recevoir votre meilleur tarif.</p>
-                <div className="bg-gray-50 p-3 rounded my-2">
+                <div className="bg-gray-50 p-3 rounded my-2 space-y-1">
                   <p><strong>Trajet :</strong> {selectedDossier.departure} → {selectedDossier.arrival}</p>
+                  <p><strong>Type :</strong> {getTripModeLabel(selectedDossier.trip_mode)}</p>
                   <p><strong>Date aller :</strong> {formatDate(selectedDossier.departure_date)} à {selectedDossier.departure_time || '--:--'}</p>
                   {selectedDossier.return_date && (
                     <p><strong>Date retour :</strong> {formatDate(selectedDossier.return_date)} à {selectedDossier.return_time || '--:--'}</p>
                   )}
                   <p><strong>Passagers :</strong> {selectedDossier.passengers} personnes</p>
+                  {selectedDossier.vehicle_type && (
+                    <p><strong>Véhicule :</strong> {getVehicleTypeLabel(selectedDossier.vehicle_type)}</p>
+                  )}
+                  {selectedDossier.nombre_cars && selectedDossier.nombre_cars > 1 && (
+                    <p><strong>Nombre de cars :</strong> {selectedDossier.nombre_cars}</p>
+                  )}
+                  {/* Détail MAD si circuit */}
+                  {selectedDossier.trip_mode === 'circuit' && extractMadDetails(selectedDossier.special_requests) && (
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <p><strong>Détail mise à disposition :</strong></p>
+                      <p className="text-gray-600 whitespace-pre-wrap text-xs mt-1">{extractMadDetails(selectedDossier.special_requests)}</p>
+                    </div>
+                  )}
+                  {/* Autres demandes spéciales (hors MAD) */}
+                  {selectedDossier.special_requests && !selectedDossier.special_requests.includes('=== DÉTAIL MISE À DISPOSITION ===') && (
+                    <p><strong>Remarques :</strong> {selectedDossier.special_requests}</p>
+                  )}
                 </div>
                 <div className="bg-magenta/10 p-3 rounded border border-magenta/30 text-center">
                   <p className="text-magenta font-semibold">🔗 Lien personnalisé par transporteur</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {window.location.origin}/fournisseur/proposition-tarif?token=XXXX&demande=YYYY
+                    {getSiteBaseUrl()}/fournisseur/proposition-tarif?token=XXXX&demande=YYYY
                   </p>
                   <p className="text-xs text-gray-400 mt-1">(Un lien unique sera généré pour chaque transporteur)</p>
                 </div>

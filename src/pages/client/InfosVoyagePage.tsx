@@ -1,12 +1,36 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Check, Info, Phone, MapPin, Bus, Users, Calendar, Euro, Briefcase, MessageSquare, Loader2 } from 'lucide-react'
+import { ArrowLeft, Check, Info, Phone, MapPin, Bus, Users, Calendar, Euro, Briefcase, MessageSquare, Loader2, Route } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useCreateOrUpdateVoyageInfo, useUpdateDossier } from '@/hooks/useSupabase'
 import { ChatWidget } from '@/components/chat/ChatWidget'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
 import { formatDate, formatDateTime, formatTime, formatPrice, getVehicleTypeLabel } from '@/lib/utils'
 import type { Dossier, VoyageInfo, DossierWithRelations } from '@/types/database'
+
+// Helper pour extraire le détail MAD du special_requests
+function extractMadDetails(specialRequests: string | null | undefined): string {
+  if (!specialRequests) return ''
+  const match = specialRequests.match(/=== DÉTAIL MISE À DISPOSITION ===\n([\s\S]*?)\n==============================/)
+  return match ? match[1].trim() : ''
+}
+
+// Helper pour reconstruire le special_requests avec le nouveau détail MAD
+function updateMadDetailsInSpecialRequests(specialRequests: string | null | undefined, newMadDetails: string): string {
+  if (!specialRequests) {
+    return newMadDetails ? `=== DÉTAIL MISE À DISPOSITION ===\n${newMadDetails}\n==============================` : ''
+  }
+
+  // Remplacer le bloc MAD existant ou l'ajouter
+  const madBlock = `=== DÉTAIL MISE À DISPOSITION ===\n${newMadDetails}\n==============================`
+  if (specialRequests.includes('=== DÉTAIL MISE À DISPOSITION ===')) {
+    return specialRequests.replace(
+      /=== DÉTAIL MISE À DISPOSITION ===\n[\s\S]*?\n==============================/,
+      madBlock
+    )
+  }
+  return specialRequests + '\n\n' + madBlock
+}
 
 export function InfosVoyagePage() {
   const [searchParams] = useSearchParams()
@@ -16,6 +40,7 @@ export function InfosVoyagePage() {
   const [dossier, setDossier] = useState<DossierWithRelations | null>(null)
   const [demande, setDemande] = useState<any>(null)
   const [voyageInfo, setVoyageInfo] = useState<Partial<VoyageInfo & { commentaires?: string; bagages?: string }>>({})
+  const [madDetails, setMadDetails] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [success, setSuccess] = useState(false)
 
@@ -97,6 +122,12 @@ export function InfosVoyagePage() {
         contact_email: existingInfo?.contact_email || typedDossier.client_email || '',
         commentaires: (existingInfo as any)?.commentaires || '',
       })
+
+      // Initialiser le détail MAD depuis special_requests du dossier
+      if (typedDossier.trip_mode === 'circuit') {
+        const existingMadDetails = extractMadDetails(typedDossier.special_requests)
+        setMadDetails(existingMadDetails)
+      }
     } catch (err) {
       console.error('Error loading dossier:', err)
     } finally {
@@ -133,10 +164,17 @@ export function InfosVoyagePage() {
       } as any)
 
       // Update dossier status - passe en "Infos VO reçues" (attente validation service)
-      await updateDossier.mutateAsync({
+      // Pour les circuits MAD, mettre à jour aussi le special_requests avec le détail modifié
+      const updateData: any = {
         id: dossier!.id,
         status: 'pending-info-received',
-      })
+      }
+
+      if (dossier!.trip_mode === 'circuit' && madDetails) {
+        updateData.special_requests = updateMadDetailsInSpecialRequests(dossier!.special_requests, madDetails)
+      }
+
+      await updateDossier.mutateAsync(updateData)
 
       setSuccess(true)
     } catch (err) {
@@ -364,6 +402,21 @@ export function InfosVoyagePage() {
               </div>
             </div>
 
+            {/* Détail Mise à Disposition - pour circuits (lecture seule) */}
+            {dossier?.trip_mode === 'circuit' && extractMadDetails(dossier?.special_requests) && (
+              <div className="card p-6">
+                <h3 className="font-display text-lg font-semibold text-purple-dark mb-4 flex items-center gap-2">
+                  <Route size={20} />
+                  Détail mise à disposition
+                </h3>
+                <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                  <div className="text-gray-800 whitespace-pre-wrap">
+                    {extractMadDetails(dossier?.special_requests)}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Options & Commentaires */}
             <div className="card p-6">
               <h3 className="font-display text-lg font-semibold text-purple-dark mb-4 flex items-center gap-2">
@@ -590,6 +643,21 @@ export function InfosVoyagePage() {
                   </div>
                 )}
 
+                {/* Détail Mise à Disposition - pour circuits */}
+                {dossier.trip_mode === 'circuit' && extractMadDetails(dossier.special_requests) && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-magenta mb-3 flex items-center gap-2">
+                      <Route size={16} />
+                      Détail mise à disposition
+                    </h4>
+                    <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+                      <div className="text-sm text-purple-800 whitespace-pre-wrap">
+                        {extractMadDetails(dossier.special_requests)}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Bagages / Options */}
                 <div>
                   <h4 className="text-sm font-semibold text-magenta mb-3 flex items-center gap-2">
@@ -600,7 +668,7 @@ export function InfosVoyagePage() {
                     <div className="text-sm text-gray-600">
                       {dossier.luggage_type || 'Bagages standard inclus'}
                     </div>
-                    {dossier.special_requests && (
+                    {dossier.special_requests && !dossier.special_requests.includes('=== DÉTAIL MISE À DISPOSITION ===') && (
                       <div className="mt-2 text-sm text-gray-500 italic">
                         "{dossier.special_requests}"
                       </div>
@@ -737,6 +805,28 @@ export function InfosVoyagePage() {
                   </div>
                 )}
 
+                {/* Détail Mise à Disposition - éditable pour circuits */}
+                {dossier.trip_mode === 'circuit' && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-purple-dark mb-3 flex items-center gap-2">
+                      <Route size={16} />
+                      Détail mise à disposition
+                    </h4>
+                    <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                      <p className="text-xs text-purple-600 mb-3">
+                        Modifiez ou complétez le programme de votre mise à disposition (étapes, horaires, adresses précises...)
+                      </p>
+                      <textarea
+                        value={madDetails}
+                        onChange={(e) => setMadDetails(e.target.value)}
+                        placeholder="Décrivez le programme jour par jour, les étapes, les horaires approximatifs...&#10;&#10;Exemple:&#10;Jour 1: Départ Paris 8h → Visite Château de Chambord → Nuit à Tours&#10;Jour 2: Tours → Bordeaux avec arrêt à Cognac&#10;Jour 3: Bordeaux → Retour Paris"
+                        className="input min-h-[180px] text-sm resize-y"
+                        rows={8}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Contact sur place */}
                 <div>
                   <h4 className="text-sm font-semibold text-purple-dark mb-3 flex items-center gap-2">
@@ -800,7 +890,7 @@ export function InfosVoyagePage() {
                         <option value="volumineux">Volumineux (grandes valises, équipements)</option>
                       </select>
                     </div>
-                    {dossier.special_requests && (
+                    {dossier.special_requests && !dossier.special_requests.includes('=== DÉTAIL MISE À DISPOSITION ===') && (
                       <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                         <label className="label text-xs text-gray-500">Demande initiale</label>
                         <p className="text-sm text-gray-600 italic">"{dossier.special_requests}"</p>
