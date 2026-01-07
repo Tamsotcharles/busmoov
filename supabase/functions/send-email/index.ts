@@ -7,6 +7,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const ALLOWED_ORIGINS = [
   'https://busmoov.com',
   'https://www.busmoov.com',
+  'https://busmoov.fr',
+  'https://www.busmoov.fr',
   'http://localhost:5173',
   'http://localhost:3000',
 ]
@@ -27,176 +29,59 @@ interface Attachment {
   contentType: string
 }
 
-// Fonction pour créer un JWT pour l'authentification Google
-async function createJWT(serviceAccountEmail: string, privateKey: string): Promise<string> {
-  const header = {
-    alg: 'RS256',
-    typ: 'JWT',
+// Interface pour la réponse Resend
+interface ResendResponse {
+  id?: string
+  error?: {
+    message: string
+    name: string
   }
-
-  const now = Math.floor(Date.now() / 1000)
-  const payload = {
-    iss: serviceAccountEmail,
-    sub: Deno.env.get('GMAIL_SENDER_EMAIL') || 'infos@busmoov.com',
-    scope: 'https://www.googleapis.com/auth/gmail.send',
-    aud: 'https://oauth2.googleapis.com/token',
-    iat: now,
-    exp: now + 3600,
-  }
-
-  const encoder = new TextEncoder()
-  const headerB64 = btoa(JSON.stringify(header)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
-  const payloadB64 = btoa(JSON.stringify(payload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
-  const signatureInput = `${headerB64}.${payloadB64}`
-
-  // Décoder la clé privée PEM
-  const pemHeader = '-----BEGIN PRIVATE KEY-----'
-  const pemFooter = '-----END PRIVATE KEY-----'
-  let pemContents = privateKey.replace(pemHeader, '').replace(pemFooter, '').replace(/\s/g, '')
-
-  // Convertir de base64 en ArrayBuffer
-  const binaryDer = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0))
-
-  // Importer la clé privée
-  const cryptoKey = await crypto.subtle.importKey(
-    'pkcs8',
-    binaryDer,
-    {
-      name: 'RSASSA-PKCS1-v1_5',
-      hash: 'SHA-256',
-    },
-    false,
-    ['sign']
-  )
-
-  // Signer
-  const signature = await crypto.subtle.sign(
-    'RSASSA-PKCS1-v1_5',
-    cryptoKey,
-    encoder.encode(signatureInput)
-  )
-
-  const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-
-  return `${signatureInput}.${signatureB64}`
 }
 
-// Fonction pour obtenir un access token Google
-async function getGoogleAccessToken(): Promise<string> {
-  const serviceAccountEmail = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')
-  const privateKey = Deno.env.get('GOOGLE_PRIVATE_KEY')?.replace(/\\n/g, '\n')
+// Fonction pour envoyer un email via Resend API
+async function sendEmailViaResend(
+  to: string | string[],
+  subject: string,
+  htmlContent: string,
+  attachments?: Attachment[]
+): Promise<ResendResponse> {
+  const resendApiKey = Deno.env.get('RESEND_API_KEY')
 
-  if (!serviceAccountEmail || !privateKey) {
-    throw new Error('Google credentials not configured')
+  if (!resendApiKey) {
+    throw new Error('RESEND_API_KEY not configured')
   }
 
-  const jwt = await createJWT(serviceAccountEmail, privateKey)
+  const fromEmail = Deno.env.get('EMAIL_FROM') || 'Busmoov <infos@busmoov.com>'
 
-  const response = await fetch('https://oauth2.googleapis.com/token', {
+  // Préparer les pièces jointes pour Resend
+  const resendAttachments = attachments?.map(att => ({
+    filename: att.filename,
+    content: att.content, // Resend accepte le base64 directement
+  }))
+
+  const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': `Bearer ${resendApiKey}`,
+      'Content-Type': 'application/json',
     },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: jwt,
+    body: JSON.stringify({
+      from: fromEmail,
+      to: Array.isArray(to) ? to : [to],
+      subject: subject,
+      html: htmlContent,
+      attachments: resendAttachments,
     }),
   })
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Failed to get access token: ${error}`)
-  }
-
   const data = await response.json()
-  return data.access_token
-}
-
-// Fonction pour créer un email MIME avec pièces jointes
-function createMimeMessage(
-  to: string,
-  subject: string,
-  htmlContent: string,
-  from: string,
-  attachments?: Attachment[]
-): string {
-  const boundary = `boundary_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-  let message = ''
-  message += `From: Busmoov <${from}>\r\n`
-  message += `To: ${to}\r\n`
-  message += `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=\r\n`
-  message += 'MIME-Version: 1.0\r\n'
-
-  if (attachments && attachments.length > 0) {
-    // Email multipart avec pièces jointes
-    message += `Content-Type: multipart/mixed; boundary="${boundary}"\r\n\r\n`
-
-    // Partie HTML
-    message += `--${boundary}\r\n`
-    message += 'Content-Type: text/html; charset=UTF-8\r\n'
-    message += 'Content-Transfer-Encoding: base64\r\n\r\n'
-    message += btoa(unescape(encodeURIComponent(htmlContent))) + '\r\n'
-
-    // Pièces jointes
-    for (const attachment of attachments) {
-      message += `--${boundary}\r\n`
-      message += `Content-Type: ${attachment.contentType}; name="${attachment.filename}"\r\n`
-      message += 'Content-Transfer-Encoding: base64\r\n'
-      message += `Content-Disposition: attachment; filename="${attachment.filename}"\r\n\r\n`
-      message += attachment.content + '\r\n'
-    }
-
-    message += `--${boundary}--\r\n`
-  } else {
-    // Email simple sans pièce jointe
-    message += 'Content-Type: text/html; charset=UTF-8\r\n'
-    message += 'Content-Transfer-Encoding: base64\r\n\r\n'
-    message += btoa(unescape(encodeURIComponent(htmlContent)))
-  }
-
-  return message
-}
-
-// Fonction pour envoyer un email via Gmail API
-async function sendEmail(
-  to: string,
-  subject: string,
-  htmlContent: string,
-  attachments?: Attachment[]
-): Promise<void> {
-  const accessToken = await getGoogleAccessToken()
-  const senderEmail = Deno.env.get('GMAIL_SENDER_EMAIL') || 'infos@busmoov.com'
-
-  const mimeMessage = createMimeMessage(to, subject, htmlContent, senderEmail, attachments)
-
-  // Encoder en base64 URL-safe
-  const encodedMessage = btoa(unescape(encodeURIComponent(mimeMessage)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '')
-
-  const response = await fetch(
-    `https://gmail.googleapis.com/gmail/v1/users/me/messages/send`,
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        raw: encodedMessage,
-      }),
-    }
-  )
 
   if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Failed to send email: ${error}`)
+    console.error('Resend API error:', data)
+    throw new Error(data.error?.message || `Resend API error: ${response.status}`)
   }
+
+  return data
 }
 
 // Fonction pour charger un template depuis la base de données
@@ -205,10 +90,11 @@ async function loadTemplate(supabase: any, templateKey: string): Promise<{ subje
     .from('email_templates')
     .select('subject, body, html_content')
     .eq('key', templateKey)
+    .eq('is_active', true)
     .single()
 
   if (error || !data) {
-    console.error('Template not found:', templateKey)
+    console.error('Template not found:', templateKey, error)
     return null
   }
 
@@ -221,10 +107,32 @@ async function loadTemplate(supabase: any, templateKey: string): Promise<{ subje
 // Fonction pour remplacer les variables dans un template
 function replaceVariables(text: string, variables: Record<string, string>): string {
   let result = text
+
+  // Remplacer les variables simples {{variable}}
   for (const [key, value] of Object.entries(variables)) {
-    result = result.replace(new RegExp(`{{${key}}}`, 'g'), value || '')
-    result = result.replace(new RegExp(`{${key}}`, 'g'), value || '')
+    const safeValue = value ?? ''
+    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), safeValue)
+    result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), safeValue)
   }
+
+  // Gérer les conditions Handlebars simples {{#if variable}}...{{/if}}
+  result = result.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, varName, content) => {
+    const value = variables[varName]
+    if (value && value !== '' && value !== 'false' && value !== 'null' && value !== 'undefined') {
+      return content
+    }
+    return ''
+  })
+
+  // Gérer {{#if variable}}...{{else}}...{{/if}}
+  result = result.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{else\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, varName, ifContent, elseContent) => {
+    const value = variables[varName]
+    if (value && value !== '' && value !== 'false' && value !== 'null' && value !== 'undefined') {
+      return ifContent
+    }
+    return elseContent
+  })
+
   return result
 }
 
@@ -232,7 +140,7 @@ serve(async (req: Request) => {
   const origin = req.headers.get('origin')
   const corsHeaders = getCorsHeaders(origin)
 
-  // Handle CORS
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -259,6 +167,12 @@ serve(async (req: Request) => {
       }
       finalSubject = subject
       finalBody = html_content
+
+      // Remplacer les variables même pour les emails custom
+      if (data) {
+        finalSubject = replaceVariables(finalSubject, data)
+        finalBody = replaceVariables(finalBody, data)
+      }
     } else {
       // Charger le template depuis la base
       const template = await loadTemplate(supabaseClient, type)
@@ -271,13 +185,17 @@ serve(async (req: Request) => {
       finalBody = replaceVariables(template.body, data || {})
     }
 
-    // Envoyer l'email avec pièces jointes si présentes
-    await sendEmail(to, finalSubject, finalBody, attachments)
+    // Envoyer l'email via Resend
+    const result = await sendEmailViaResend(to, finalSubject, finalBody, attachments)
 
-    console.log(`Email sent successfully to ${to}`)
+    console.log(`Email sent successfully to ${to} via Resend (id: ${result.id})`)
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Email sent successfully' }),
+      JSON.stringify({
+        success: true,
+        message: 'Email sent successfully',
+        id: result.id
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
