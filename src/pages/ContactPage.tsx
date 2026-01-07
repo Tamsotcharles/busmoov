@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Phone, Mail, MapPin, Clock, MessageCircle, Send } from 'lucide-react'
+import { ArrowLeft, Phone, Mail, MapPin, Clock, MessageCircle, Send, CheckCircle } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { useState } from 'react'
+import { supabase } from '@/lib/supabase'
 
 export function ContactPage() {
   const [formData, setFormData] = useState({
@@ -13,28 +14,48 @@ export function ContactPage() {
     message: '',
   })
   const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSending(true)
+    setError(null)
 
-    const subject = encodeURIComponent(formData.subject || 'Contact depuis le site Busmoov')
-    const body = encodeURIComponent(`
-Nom: ${formData.name}
-Email: ${formData.email}
-Téléphone: ${formData.phone}
+    try {
+      const htmlContent = `
+        <h2>Nouveau message de contact - Busmoov</h2>
+        <p><strong>Nom :</strong> ${formData.name}</p>
+        <p><strong>Email :</strong> <a href="mailto:${formData.email}">${formData.email}</a></p>
+        <p><strong>Téléphone :</strong> ${formData.phone || 'Non renseigné'}</p>
+        <p><strong>Sujet :</strong> ${formData.subject}</p>
+        <hr/>
+        <h3>Message :</h3>
+        <p>${formData.message.replace(/\n/g, '<br/>')}</p>
+      `
 
-Message:
-${formData.message}
-    `.trim())
+      const { error: sendError } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'custom',
+          to: 'infos@busmoov.com',
+          subject: `[Contact Busmoov] ${formData.subject} - ${formData.name}`,
+          html_content: htmlContent,
+        },
+      })
 
-    window.location.href = `mailto:infos@busmoov.com?subject=${subject}&body=${body}`
+      if (sendError) throw sendError
 
-    setTimeout(() => setSending(false), 1000)
+      setSent(true)
+    } catch (err) {
+      console.error('Error sending contact form:', err)
+      setError('Une erreur est survenue lors de l\'envoi. Veuillez réessayer ou nous contacter par téléphone.')
+    } finally {
+      setSending(false)
+    }
   }
 
   const contactInfo = [
@@ -140,11 +161,11 @@ ${formData.message}
                 <div className="bg-white rounded-2xl shadow-sm p-8 mb-8">
                   <h3 className="font-semibold text-gray-900 mb-4">Informations légales</h3>
                   <div className="space-y-3 text-gray-600">
-                    <p><span className="text-gray-400">Raison sociale :</span> <strong>Centrale Autocar SAS</strong></p>
-                    <p><span className="text-gray-400">Marque commerciale :</span> <strong>Busmoov</strong></p>
+                    <p><span className="text-gray-400">Raison sociale :</span> <strong>BUSMOOV SAS</strong></p>
+                    <p><span className="text-gray-400">Marque du groupe :</span> <strong>Centrale Autocar</strong></p>
                     <p><span className="text-gray-400">Siège social :</span> 41 Rue Barrault, 75013 Paris</p>
-                    <p><span className="text-gray-400">SIRET :</span> XXX XXX XXX XXXXX</p>
-                    <p><span className="text-gray-400">TVA Intracommunautaire :</span> FR XX XXX XXX XXX</p>
+                    <p><span className="text-gray-400">SIRET :</span> 853 867 703 00029</p>
+                    <p><span className="text-gray-400">TVA Intracommunautaire :</span> FR58853867703</p>
                   </div>
                 </div>
 
@@ -173,6 +194,29 @@ ${formData.message}
 
               {/* Contact Form */}
               <div className="bg-white rounded-2xl shadow-lg p-8">
+                {sent ? (
+                  <div className="text-center py-8">
+                    <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <CheckCircle size={40} className="text-emerald-500" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                      Message envoyé !
+                    </h2>
+                    <p className="text-gray-600 mb-6">
+                      Merci pour votre message. Notre équipe vous répondra dans les plus brefs délais.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setSent(false)
+                        setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
+                      }}
+                      className="btn btn-secondary"
+                    >
+                      Envoyer un autre message
+                    </button>
+                  </div>
+                ) : (
+                  <>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
                   Envoyez-nous un message
                 </h2>
@@ -252,6 +296,12 @@ ${formData.message}
                     />
                   </div>
 
+                  {error && (
+                    <div className="bg-red-50 text-red-600 p-4 rounded-lg text-sm">
+                      {error}
+                    </div>
+                  )}
+
                   <button
                     type="submit"
                     disabled={sending}
@@ -270,6 +320,8 @@ ${formData.message}
                     )}
                   </button>
                 </form>
+                  </>
+                )}
               </div>
             </div>
           </div>

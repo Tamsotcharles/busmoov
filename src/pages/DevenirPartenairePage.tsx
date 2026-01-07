@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Send, Building2, Users, TrendingUp, Shield, CheckCircle, Truck } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { supabase } from '@/lib/supabase'
 
 interface FormData {
   company: string
@@ -38,31 +39,53 @@ export function DevenirPartenairePage() {
     setError(null)
 
     try {
-      // Envoyer l'email via mailto (solution simple)
-      const subject = encodeURIComponent(`Demande de partenariat - ${formData.company}`)
-      const body = encodeURIComponent(`
-Nouvelle demande de partenariat Busmoov
+      const htmlContent = `
+        <h2>Nouvelle demande de partenariat - Busmoov</h2>
+        <table style="border-collapse: collapse; width: 100%;">
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Entreprise</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${formData.company}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Contact</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${formData.contact}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Email</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;"><a href="mailto:${formData.email}">${formData.email}</a></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Téléphone</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${formData.phone}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Ville / Département</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${formData.city}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>Taille de flotte</strong></td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${formData.fleetSize} véhicules</td>
+          </tr>
+        </table>
+        ${formData.message ? `<h3>Message :</h3><p>${formData.message.replace(/\n/g, '<br/>')}</p>` : ''}
+      `
 
-Entreprise: ${formData.company}
-Contact: ${formData.contact}
-Email: ${formData.email}
-Téléphone: ${formData.phone}
-Ville: ${formData.city}
-Taille de flotte: ${formData.fleetSize}
+      const { error: sendError } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'custom',
+          to: 'infos@busmoov.com',
+          subject: `[Partenariat Busmoov] ${formData.company} - ${formData.city}`,
+          html_content: htmlContent,
+        },
+      })
 
-Message:
-${formData.message}
-      `.trim())
+      if (sendError) throw sendError
 
-      window.location.href = `mailto:infos@busmoov.com?subject=${subject}&body=${body}`
-
-      // Simuler l'envoi réussi
-      setTimeout(() => {
-        setSent(true)
-        setSending(false)
-      }, 1000)
+      setSent(true)
     } catch (err) {
-      setError('Une erreur est survenue. Veuillez réessayer.')
+      console.error('Error sending partnership form:', err)
+      setError('Une erreur est survenue lors de l\'envoi. Veuillez réessayer ou nous contacter par téléphone.')
+    } finally {
       setSending(false)
     }
   }
