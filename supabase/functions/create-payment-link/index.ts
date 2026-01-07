@@ -5,6 +5,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const ALLOWED_ORIGINS = [
   'https://busmoov.com',
   'https://www.busmoov.com',
+  'https://busmoov.fr',
+  'https://www.busmoov.fr',
   'http://localhost:5173',
   'http://localhost:3000',
 ]
@@ -65,14 +67,13 @@ serve(async (req) => {
   }
 
   try {
-    const PAYTWEAK_API_KEY = Deno.env.get('PAYTWEAK_API_KEY')
-    const PAYTWEAK_API_URL = Deno.env.get('PAYTWEAK_API_URL') || 'https://api.paytweak.com'
+    const MOLLIE_API_KEY = Deno.env.get('MOLLIE_API_KEY')
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const APP_URL = Deno.env.get('APP_URL') || 'https://busmoov.com'
 
-    if (!PAYTWEAK_API_KEY) {
-      throw new Error('PAYTWEAK_API_KEY not configured')
+    if (!MOLLIE_API_KEY) {
+      throw new Error('MOLLIE_API_KEY not configured')
     }
 
     const requestData: PaymentLinkRequest = await req.json()
@@ -155,57 +156,64 @@ serve(async (req) => {
       )
     }
 
-    // Creer le lien de paiement PayTweak
+    // Creer le paiement Mollie
     const paymentData = {
-      amount: Math.round(amount * 100), // PayTweak attend les centimes
-      currency: 'EUR',
-      description: `${type === 'acompte' ? 'Acompte' : 'Solde'} - Dossier ${reference}`,
-      customer: {
-        email: client_email,
-        name: client_name || client_email.split('@')[0],
+      amount: {
+        currency: 'EUR',
+        value: amount.toFixed(2), // Mollie attend un string avec 2 decimales
       },
+      description: `${type === 'acompte' ? 'Acompte' : 'Solde'} - Dossier ${reference}`,
+      redirectUrl: `${APP_URL}/client/espace?ref=${encodeURIComponent(reference)}&email=${encodeURIComponent(client_email)}&payment=success`,
+      cancelUrl: `${APP_URL}/client/espace?ref=${encodeURIComponent(reference)}&email=${encodeURIComponent(client_email)}&payment=cancelled`,
+      webhookUrl: `${SUPABASE_URL}/functions/v1/mollie-webhook`,
       metadata: {
         dossier_id,
         type,
         reference,
+        client_email,
       },
-      success_url: `${APP_URL}/client/espace?ref=${encodeURIComponent(reference)}&email=${encodeURIComponent(client_email)}&payment=success`,
-      cancel_url: `${APP_URL}/client/espace?ref=${encodeURIComponent(reference)}&email=${encodeURIComponent(client_email)}&payment=cancelled`,
-      webhook_url: `${SUPABASE_URL}/functions/v1/paytweak-webhook`,
     }
 
-    console.log('Creating PayTweak payment link for dossier:', dossier_id)
+    console.log('Creating Mollie payment for dossier:', dossier_id)
 
-    const paymentResponse = await fetch(`${PAYTWEAK_API_URL}/v1/payment-links`, {
+    const paymentResponse = await fetch('https://api.mollie.com/v2/payments', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${PAYTWEAK_API_KEY}`,
+        'Authorization': `Bearer ${MOLLIE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(paymentData),
     })
 
     if (!paymentResponse.ok) {
-      const errorText = await paymentResponse.text()
-      console.error('PayTweak API error:', errorText)
-      throw new Error(`Erreur PayTweak: ${paymentResponse.status}`)
+      const errorData = await paymentResponse.json()
+      console.error('Mollie API error:', errorData)
+      throw new Error(`Erreur Mollie: ${errorData.detail || paymentResponse.status}`)
     }
 
     const paymentResult = await paymentResponse.json()
-    console.log('PayTweak link created:', paymentResult.id)
+    console.log('Mollie payment created:', paymentResult.id)
+
+    // Recuperer l'URL de checkout
+    const checkoutUrl = paymentResult._links?.checkout?.href
+
+    if (!checkoutUrl) {
+      console.error('No checkout URL in Mollie response:', paymentResult)
+      throw new Error('Pas de lien de paiement dans la reponse Mollie')
+    }
 
     // Enregistrer le lien de paiement en base
     const { error: insertError } = await supabase
       .from('payment_links')
       .insert({
         dossier_id,
-        provider: 'paytweak',
+        provider: 'mollie',
         provider_link_id: paymentResult.id,
-        payment_url: paymentResult.url || paymentResult.payment_url,
+        payment_url: checkoutUrl,
         amount,
         type,
         status: 'pending',
-        expires_at: paymentResult.expires_at || null,
+        expires_at: paymentResult.expiresAt || null,
       })
 
     if (insertError) {
@@ -217,14 +225,14 @@ serve(async (req) => {
       dossier_id,
       type: 'payment_link_created',
       description: `Lien de paiement ${type} cree (${amount}€)`,
-      metadata: { provider: 'paytweak', link_id: paymentResult.id },
+      metadata: { provider: 'mollie', payment_id: paymentResult.id },
     })
 
     return new Response(
       JSON.stringify({
         success: true,
-        payment_url: paymentResult.url || paymentResult.payment_url,
-        link_id: paymentResult.id,
+        payment_url: checkoutUrl,
+        payment_id: paymentResult.id,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
@@ -232,7 +240,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error creating payment link:', error)
     return new Response(
-      JSON.stringify({ error: 'Erreur lors de la creation du lien de paiement' }),
+      JSON.stringify({ error: error.message || 'Erreur lors de la creation du lien de paiement' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

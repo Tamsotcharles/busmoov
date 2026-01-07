@@ -38,7 +38,9 @@
       "Bash(powershell -Command:*)",
       "Bash(wc:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nFix tarification 0€ et sécurité CORS Edge Functions\n\n- EditDevisModal: Conversion des types numeric Supabase \\(strings\\) en numbers\n  pour le calcul correct des tarifs depuis les grilles tarifaires\n- EditDevisModal: Changement du véhicule par défaut de ''autocar'' vers ''standard''\n- Edge Functions: Ajout CORS restrictif sur tous les endpoints\n  \\(busmoov.com, localhost dev uniquement\\)\n- Edge Functions: Utilisation de GEOAPIFY_API_KEY depuis les secrets Supabase\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nFix calcul durée jours et affichage supplément jours\n\n- EditDevisModal: Fix calcul durée \\(16-18 jan = 3j, pas 4j\\)\n  Utilisation de Date.UTC pour éviter les problèmes de timezone\n- EditDevisModal: Ajout affichage du supplément jours dans les détails\n  \\(bloc vert \"Supplément Xj: +600€\" quand la grille n''a pas le prix direct\\)\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nFix calcul durée jours et affichage supplément jours\n\n- EditDevisModal: Fix calcul durée \\(16-18 jan = 3j, pas 4j\\)\n  Utilisation de Date.UTC pour éviter les problèmes de timezone\n- EditDevisModal: Ajout affichage du supplément jours dans les détails\n  \\(bloc vert \"Supplément Xj: +600€\" quand la grille n''a pas le prix direct\\)\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(npx supabase secrets set:*)",
+      "Bash(nslookup:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
