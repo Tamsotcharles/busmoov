@@ -75,17 +75,18 @@ serve(async (req) => {
       const amount = parseFloat(payment.amount.value)
 
       // 1. Creer l'entree paiement
+      // Note: type doit etre 'cb' pour carte bancaire (contrainte CHECK)
       const { error: paiementError } = await supabase
         .from('paiements')
         .insert({
           dossier_id,
           amount,
-          type: type || 'acompte',
+          type: 'cb', // Paiement par carte via Mollie
           payment_date: new Date().toISOString(),
           reference: `MOLLIE-${paymentId}`,
           provider: 'mollie',
           provider_payment_id: paymentId,
-          status: 'completed',
+          notes: `Paiement ${type || 'acompte'} via Mollie`,
         })
 
       if (paiementError) {

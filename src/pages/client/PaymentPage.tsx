@@ -116,7 +116,7 @@ export function PaymentPage() {
     setPaymentError(null)
 
     try {
-      // Appeler l'Edge Function pour creer le lien PayTweak
+      // Appeler l'Edge Function pour creer le lien de paiement Mollie
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment-link`,
         {
@@ -433,7 +433,7 @@ export function PaymentPage() {
                   )}
                 </div>
                 <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
-                  <span>Paiement securise par PayTweak</span>
+                  <span>Paiement securise par Mollie</span>
                   <Lock size={12} />
                 </div>
               </div>
