@@ -7,6 +7,7 @@ const ALLOWED_ORIGINS = [
   'https://www.busmoov.com',
   'https://busmoov.fr',
   'https://www.busmoov.fr',
+  'https://busmoov.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
 ]
