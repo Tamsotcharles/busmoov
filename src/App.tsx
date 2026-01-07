@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { useEffect } from 'react'
 import { HomePage } from '@/pages/HomePage'
 import { CGVPage } from '@/pages/CGVPage'
+import { MentionsLegalesPage } from '@/pages/MentionsLegalesPage'
+import { ConfidentialitePage } from '@/pages/ConfidentialitePage'
 import { AProposPage } from '@/pages/AProposPage'
 import { ContactPage } from '@/pages/ContactPage'
 import { DevenirPartenairePage } from '@/pages/DevenirPartenairePage'
@@ -72,6 +74,8 @@ export default function App() {
           {/* Public routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/cgv" element={<CGVPage />} />
+          <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
+          <Route path="/confidentialite" element={<ConfidentialitePage />} />
           <Route path="/a-propos" element={<AProposPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/devenir-partenaire" element={<DevenirPartenairePage />} />
