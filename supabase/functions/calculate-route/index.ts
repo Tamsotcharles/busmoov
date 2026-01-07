@@ -1,11 +1,24 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Domaines autorisés pour CORS
+const ALLOWED_ORIGINS = [
+  'https://busmoov.com',
+  'https://www.busmoov.com',
+  'http://localhost:5173', // Dev local
+  'http://localhost:3000',
+]
+
+function getCorsHeaders(origin: string | null) {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  }
 }
 
-const GEOAPIFY_API_KEY = '03be9bc49c6c46a5843e5a27a4f4399b'
+// Clé API depuis les secrets Supabase
+const GEOAPIFY_API_KEY = Deno.env.get('GEOAPIFY_API_KEY') || ''
 
 interface GeoCoords {
   lat: number
@@ -31,11 +44,23 @@ async function geocodeCity(city: string): Promise<GeoCoords | null> {
 }
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get('origin')
+  const corsHeaders = getCorsHeaders(origin)
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    // Vérifier que la clé API est configurée
+    if (!GEOAPIFY_API_KEY) {
+      console.error('GEOAPIFY_API_KEY not configured')
+      return new Response(
+        JSON.stringify({ error: 'Service non configuré' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      )
+    }
+
     const { departure, arrival } = await req.json()
 
     if (!departure || !arrival) {

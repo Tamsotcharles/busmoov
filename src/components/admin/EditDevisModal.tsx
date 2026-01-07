@@ -191,11 +191,45 @@ export function EditDevisModal({
           chargerMajorationsRegions(),
         ])
 
-        if (resAS.data) setTarifsAllerSimple(resAS.data)
-        if (resAR1J.data) setTarifsAR1J(resAR1J.data)
-        if (resARMAD.data) setTarifsARMAD(resARMAD.data)
-        if (resARSansMAD.data) setTarifsARSansMAD(resARSansMAD.data)
-        if (resCoeff.data) setCoefficientsVehicules(resCoeff.data)
+        // Convertir les types numeric de Supabase (strings) en numbers
+        if (resAS.data) setTarifsAllerSimple(resAS.data.map((t: any) => ({
+          km_min: Number(t.km_min),
+          km_max: Number(t.km_max),
+          prix_public: parseFloat(t.prix_public) || 0,
+        })))
+        if (resAR1J.data) setTarifsAR1J(resAR1J.data.map((t: any) => ({
+          km_min: Number(t.km_min),
+          km_max: Number(t.km_max),
+          prix_8h: t.prix_8h ? parseFloat(t.prix_8h) : null,
+          prix_10h: t.prix_10h ? parseFloat(t.prix_10h) : null,
+          prix_12h: t.prix_12h ? parseFloat(t.prix_12h) : null,
+          prix_9h_coupure: t.prix_9h_coupure ? parseFloat(t.prix_9h_coupure) : null,
+        })))
+        if (resARMAD.data) setTarifsARMAD(resARMAD.data.map((t: any) => ({
+          km_min: Number(t.km_min),
+          km_max: Number(t.km_max),
+          prix_2j: t.prix_2j ? parseFloat(t.prix_2j) : null,
+          prix_3j: t.prix_3j ? parseFloat(t.prix_3j) : null,
+          prix_4j: t.prix_4j ? parseFloat(t.prix_4j) : null,
+          prix_5j: t.prix_5j ? parseFloat(t.prix_5j) : null,
+          prix_6j: t.prix_6j ? parseFloat(t.prix_6j) : null,
+          supplement_jour: t.supplement_jour ? parseFloat(t.supplement_jour) : null,
+        })))
+        if (resARSansMAD.data) setTarifsARSansMAD(resARSansMAD.data.map((t: any) => ({
+          km_min: Number(t.km_min),
+          km_max: Number(t.km_max),
+          prix_2j: t.prix_2j ? parseFloat(t.prix_2j) : null,
+          prix_3j: t.prix_3j ? parseFloat(t.prix_3j) : null,
+          prix_4j: t.prix_4j ? parseFloat(t.prix_4j) : null,
+          prix_5j: t.prix_5j ? parseFloat(t.prix_5j) : null,
+          prix_6j: t.prix_6j ? parseFloat(t.prix_6j) : null,
+          supplement_jour: t.supplement_jour ? parseFloat(t.supplement_jour) : null,
+        })))
+        if (resCoeff.data) setCoefficientsVehicules(resCoeff.data.map((c: any) => ({
+          code: c.code,
+          label: c.label,
+          coefficient: parseFloat(c.coefficient) || 1,
+        })))
         if (resCapacites.data) setCapacitesVehicules(resCapacites.data.map((c: any) => ({
           code: c.code,
           label: c.label,
@@ -350,7 +384,7 @@ export function EditDevisModal({
     const km = parseInt(formData.km?.toString() || '0') || 0
     const serviceType = (formData.service_type || 'aller_simple') as ServiceType
     const amplitude = formData.amplitude as AmplitudeType | null
-    const vehicleType = formData.vehicle_type || 'autocar'
+    const vehicleType = formData.vehicle_type || 'standard'
     const nombreCars = formData.nombre_cars || 1
 
     if (km <= 0 || !grilles) return null

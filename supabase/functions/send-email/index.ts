@@ -3,9 +3,21 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 // @ts-ignore
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Domaines autorisés pour CORS
+const ALLOWED_ORIGINS = [
+  'https://busmoov.com',
+  'https://www.busmoov.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+]
+
+function getCorsHeaders(origin: string | null) {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  }
 }
 
 // Interface pour les pièces jointes
@@ -217,6 +229,9 @@ function replaceVariables(text: string, variables: Record<string, string>): stri
 }
 
 serve(async (req: Request) => {
+  const origin = req.headers.get('origin')
+  const corsHeaders = getCorsHeaders(origin)
+
   // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
