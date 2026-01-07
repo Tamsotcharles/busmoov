@@ -117,13 +117,18 @@ export function PaymentPage() {
 
     try {
       // Appeler l'Edge Function pour creer le lien de paiement Mollie
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://rsxfmokwmwujercgpnfu.supabase.co'
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+      console.log('Creating payment link...', { supabaseUrl, dossier_id: dossier.id, amount: montantAPayer })
+
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment-link`,
+        `${supabaseUrl}/functions/v1/create-payment-link`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Authorization': `Bearer ${supabaseKey}`,
           },
           body: JSON.stringify({
             dossier_id: dossier.id,
@@ -136,13 +141,26 @@ export function PaymentPage() {
         }
       )
 
-      const result = await response.json()
+      console.log('Response status:', response.status, response.statusText)
+
+      // Lire le texte brut d'abord pour debug
+      const responseText = await response.text()
+      console.log('Response text:', responseText)
+
+      // Parser le JSON
+      let result
+      try {
+        result = JSON.parse(responseText)
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError)
+        throw new Error(`Erreur de reponse serveur: ${responseText || 'reponse vide'}`)
+      }
 
       if (!response.ok || !result.success) {
         throw new Error(result.error || 'Erreur lors de la creation du lien de paiement')
       }
 
-      // Rediriger vers le lien de paiement PayTweak
+      // Rediriger vers le lien de paiement Mollie
       if (result.payment_url) {
         setPaymentLinkUrl(result.payment_url)
         // Ouvrir dans un nouvel onglet ou rediriger
@@ -153,7 +171,9 @@ export function PaymentPage() {
 
     } catch (err: any) {
       console.error('Error creating payment link:', err)
-      setPaymentError(err.message || 'Une erreur est survenue')
+      // Afficher plus de details sur l'erreur
+      const errorMessage = err.message || 'Une erreur est survenue'
+      setPaymentError(errorMessage)
     } finally {
       setIsCreatingPaymentLink(false)
     }
