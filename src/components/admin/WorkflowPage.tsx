@@ -63,6 +63,8 @@ const TRIGGER_TYPES = [
   { value: 'contrat_signed', label: 'Contrat signé', icon: FileText, color: 'text-purple-600' },
   { value: 'payment_received', label: 'Paiement reçu', icon: CheckCircle, color: 'text-green-600' },
   { value: 'departure_reminder', label: 'Rappel avant départ', icon: Calendar, color: 'text-orange-600' },
+  { value: 'voyage_completed', label: 'Voyage terminé', icon: CheckCircle, color: 'text-emerald-600' },
+  { value: 'chauffeur_received', label: 'Infos chauffeur reçues', icon: Truck, color: 'text-teal-600' },
   { value: 'devis_accepted', label: 'Devis accepté', icon: CheckCircle, color: 'text-green-600' },
   { value: 'dossier_created', label: 'Dossier créé', icon: FileText, color: 'text-blue-600' },
   { value: 'info_submitted', label: 'Infos voyage soumises', icon: Users, color: 'text-cyan-600' },
@@ -101,9 +103,16 @@ interface CronJobRun {
   end_time: string
 }
 
+interface EmailTemplate {
+  key: string
+  name: string
+  is_active: boolean
+}
+
 export function WorkflowPage() {
   const [rules, setRules] = useState<WorkflowRule[]>([])
   const [executions, setExecutions] = useState<WorkflowExecution[]>([])
+  const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedRule, setSelectedRule] = useState<WorkflowRule | null>(null)
   const [isEditing, setIsEditing] = useState(false)
@@ -146,7 +155,22 @@ export function WorkflowPage() {
   useEffect(() => {
     loadRules()
     loadExecutions()
+    loadEmailTemplates()
   }, [])
+
+  const loadEmailTemplates = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('email_templates')
+        .select('key, name')
+        .order('name')
+
+      if (error) throw error
+      setEmailTemplates((data || []).map(t => ({ ...t, is_active: true })) as EmailTemplate[])
+    } catch (err) {
+      console.error('Error loading email templates:', err)
+    }
+  }
 
   useEffect(() => {
     if (activeTab === 'scheduler') {
@@ -901,43 +925,67 @@ export function WorkflowPage() {
             </div>
           )}
 
-          {/* Relances programmées */}
+          {/* Relances programmées - dynamique depuis les rules */}
           <div className="card p-4">
             <h3 className="font-medium text-gray-900 mb-4">Relances automatiques configurées</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
-                <div className="flex items-center gap-2 text-orange-700 font-medium">
-                  <Calendar className="w-4 h-4" />
-                  J-15
+            {(() => {
+              const departureRules = rules
+                .filter(r => r.trigger_event === 'departure_reminder' && r.is_active)
+                .sort((a, b) => {
+                  const daysA = (a.conditions as any)?.days_before || 0
+                  const daysB = (b.conditions as any)?.days_before || 0
+                  return daysB - daysA // Du plus grand au plus petit
+                })
+
+              if (departureRules.length === 0) {
+                return (
+                  <p className="text-gray-500 text-sm">
+                    Aucune relance de type "Rappel avant départ" configurée.
+                    Créez une règle avec le déclencheur "Rappel avant départ" pour la voir ici.
+                  </p>
+                )
+              }
+
+              const colors = [
+                { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', textSm: 'text-orange-600', textXs: 'text-orange-500' },
+                { bg: 'bg-cyan-50', border: 'border-cyan-200', text: 'text-cyan-700', textSm: 'text-cyan-600', textXs: 'text-cyan-500' },
+                { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700', textSm: 'text-indigo-600', textXs: 'text-indigo-500' },
+                { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', textSm: 'text-green-600', textXs: 'text-green-500' },
+                { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', textSm: 'text-purple-600', textXs: 'text-purple-500' },
+                { bg: 'bg-pink-50', border: 'border-pink-200', text: 'text-pink-700', textSm: 'text-pink-600', textXs: 'text-pink-500' },
+              ]
+
+              const getConditionLabel = (conditions: Record<string, unknown> | null) => {
+                if (!conditions) return ''
+                const labels: string[] = []
+                if (conditions.solde_pending) labels.push('Si solde non payé')
+                if (conditions.infos_missing) labels.push('Si infos non validées')
+                if (conditions.chauffeur_missing) labels.push('Si chauffeur manquant')
+                if (conditions.chauffeur_received) labels.push('Si chauffeur reçu')
+                if (conditions.bpa_received) labels.push('Si BPA reçu')
+                if (conditions.no_response) labels.push('Si pas de réponse')
+                return labels.join(', ') || 'Aucune condition'
+              }
+
+              return (
+                <div className={`grid grid-cols-2 md:grid-cols-${Math.min(departureRules.length, 4)} gap-4`}>
+                  {departureRules.map((rule, index) => {
+                    const color = colors[index % colors.length]
+                    const days = (rule.conditions as any)?.days_before || 0
+                    return (
+                      <div key={rule.id} className={`p-3 ${color.bg} rounded-lg border ${color.border}`}>
+                        <div className={`flex items-center gap-2 ${color.text} font-medium`}>
+                          <Calendar className="w-4 h-4" />
+                          J-{days}
+                        </div>
+                        <p className={`text-sm ${color.textSm} mt-1`}>{rule.name}</p>
+                        <p className={`text-xs ${color.textXs} mt-1`}>{getConditionLabel(rule.conditions)}</p>
+                      </div>
+                    )
+                  })}
                 </div>
-                <p className="text-sm text-orange-600 mt-1">Rappel solde</p>
-                <p className="text-xs text-orange-500 mt-1">Si solde non payé</p>
-              </div>
-              <div className="p-3 bg-cyan-50 rounded-lg border border-cyan-200">
-                <div className="flex items-center gap-2 text-cyan-700 font-medium">
-                  <Calendar className="w-4 h-4" />
-                  J-10
-                </div>
-                <p className="text-sm text-cyan-600 mt-1">Infos voyage</p>
-                <p className="text-xs text-cyan-500 mt-1">Si infos non validées</p>
-              </div>
-              <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                <div className="flex items-center gap-2 text-indigo-700 font-medium">
-                  <Calendar className="w-4 h-4" />
-                  J-5
-                </div>
-                <p className="text-sm text-indigo-600 mt-1">Demande chauffeur</p>
-                <p className="text-xs text-indigo-500 mt-1">Si BPA reçu</p>
-              </div>
-              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                <div className="flex items-center gap-2 text-green-700 font-medium">
-                  <Calendar className="w-4 h-4" />
-                  J-2
-                </div>
-                <p className="text-sm text-green-600 mt-1">Feuille de route</p>
-                <p className="text-xs text-green-500 mt-1">Si chauffeur reçu</p>
-              </div>
-            </div>
+              )
+            })()}
           </div>
         </div>
       )}
@@ -1146,14 +1194,11 @@ export function WorkflowPage() {
                     onChange={(e) => setFormData({ ...formData, config_template: e.target.value })}
                   >
                     <option value="">Sélectionner un template</option>
-                    <option value="quote_sent">Devis envoyés</option>
-                    <option value="offre_flash">Offre flash</option>
-                    <option value="payment_reminder">Rappel acompte</option>
-                    <option value="rappel_solde">Rappel solde</option>
-                    <option value="confirmation_reservation">Confirmation réservation</option>
-                    <option value="info_request">Demande infos voyage</option>
-                    <option value="driver_info">Infos chauffeur</option>
-                    <option value="demande_chauffeur">Demande chauffeur (fournisseur)</option>
+                    {emailTemplates.map((template) => (
+                      <option key={template.key} value={template.key}>
+                        {template.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>

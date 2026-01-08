@@ -304,6 +304,11 @@ function detectTriggerEventFromWebhook(
         triggerEvent = "info_submitted";
         dossierId = record.dossier_id as string;
       }
+      // Déclencheur: infos chauffeur reçues
+      if (record.chauffeur_info_recue_at && !oldRecord?.chauffeur_info_recue_at) {
+        triggerEvent = "chauffeur_received";
+        dossierId = record.dossier_id as string;
+      }
       break;
 
     case "demandes_fournisseurs":
@@ -316,9 +321,27 @@ function detectTriggerEventFromWebhook(
         dossierId = record.dossier_id as string;
       }
       break;
+
+    case "dossiers":
+      // Déclencheur: dossier passe en "completed" (voyage terminé)
+      if (record.status === "completed" && oldRecord?.status !== "completed") {
+        triggerEvent = "voyage_completed";
+        dossierId = record.id as string;
+      }
+      break;
   }
 
   return { triggerEvent, dossierId };
+}
+
+// Générer un token unique pour les avis
+function generateReviewToken(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let token = '';
+  for (let i = 0; i < 32; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
 }
 
 Deno.serve(async (req) => {
@@ -454,6 +477,14 @@ Deno.serve(async (req) => {
         case "payment_received":
           // Recent payments - would be triggered directly
           continue; // Skip for scheduled processing
+        case "voyage_completed":
+          // Dossiers qui viennent de passer en "completed"
+          dossiersQuery = dossiersQuery.eq("status", "completed");
+          break;
+        case "chauffeur_received":
+          // Dossiers confirmés avec infos chauffeur reçues
+          dossiersQuery = dossiersQuery.in("status", ["confirmed", "pending-driver"]);
+          break;
         default:
           continue;
       }
@@ -592,16 +623,44 @@ Deno.serve(async (req) => {
           rule.action_type || rule.actions?.[0]?.type || "send_email";
 
         if (actionType === "send_email" && emailTemplate) {
-          const htmlContent = replaceVariables(
-            emailTemplate.html_content,
-            dossier,
-            baseUrl
-          );
-          const subject = replaceVariables(
-            emailTemplate.subject,
-            dossier,
-            baseUrl
-          );
+          let htmlContent = emailTemplate.html_content;
+          let subject = emailTemplate.subject;
+
+          // Pour le trigger voyage_completed, créer le review token et le lien
+          if (rule.trigger_event === "voyage_completed") {
+            // Vérifier si un avis existe déjà pour ce dossier
+            const { data: existingReview } = await supabase
+              .from("reviews")
+              .select("id, token")
+              .eq("dossier_id", dossier.id)
+              .single();
+
+            let reviewToken: string;
+            if (existingReview) {
+              // Utiliser le token existant
+              reviewToken = existingReview.token;
+            } else {
+              // Créer un nouveau review avec token
+              reviewToken = generateReviewToken();
+              await supabase.from("reviews").insert({
+                dossier_id: dossier.id,
+                token: reviewToken,
+                status: "pending",
+              });
+            }
+
+            const reviewUrl = `${baseUrl}/avis?token=${reviewToken}`;
+
+            // Remplacer les variables spécifiques aux avis
+            htmlContent = htmlContent
+              .replace(/\{\{lien_avis\}\}/g, reviewUrl)
+              .replace(/\{\{review_url\}\}/g, reviewUrl);
+            subject = subject.replace(/\{\{lien_avis\}\}/g, reviewUrl);
+          }
+
+          // Remplacer les variables standard
+          htmlContent = replaceVariables(htmlContent, dossier, baseUrl);
+          subject = replaceVariables(subject, dossier, baseUrl);
 
           const emailResult = await sendEmail(
             dossier.client_email,
@@ -617,7 +676,7 @@ Deno.serve(async (req) => {
           }
 
           // Log to timeline
-          await supabase.from("timeline_entries").insert({
+          await supabase.from("timeline").insert({
             dossier_id: dossier.id,
             type: "email_sent",
             content: `Email automatique envoyé: ${rule.name}`,
