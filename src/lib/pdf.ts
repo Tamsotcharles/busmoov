@@ -1900,7 +1900,9 @@ export async function generateFeuilleRoutePDF(data: FeuilleRouteData): Promise<v
   y += 15
 
   // ========== COLONNES ALLER / RETOUR ==========
-  const colWidth = (pageWidth - 40) / 2
+  // Si aller seul ou retour seul: une seule colonne pleine largeur
+  const isSingleColumn = data.type === 'aller' || data.type === 'retour'
+  const colWidth = isSingleColumn ? pageWidth - 30 : (pageWidth - 40) / 2
   const colLeftX = 15
   const colRightX = pageWidth / 2 + 5
 
@@ -1915,14 +1917,15 @@ export async function generateFeuilleRoutePDF(data: FeuilleRouteData): Promise<v
     date: string | null | undefined,
     heure: string | null | undefined,
     depart: string | null | undefined,
-    arrivee: string | null | undefined
+    arrivee: string | null | undefined,
+    columnWidth: number = colWidth
   ) => {
     let colY = startY
 
     // Header avec titre
     const rgb = hexToRgb(titleColor)
     if (rgb) doc.setFillColor(rgb.r, rgb.g, rgb.b)
-    doc.rect(startX, colY, colWidth, 8, 'F')
+    doc.rect(startX, colY, columnWidth, 8, 'F')
     doc.setFontSize(10)
     doc.setTextColor(255, 255, 255)
     doc.setFont('helvetica', 'bold')
@@ -1963,7 +1966,7 @@ export async function generateFeuilleRoutePDF(data: FeuilleRouteData): Promise<v
     doc.text('Lieu de départ', startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
-    const departLines = doc.splitTextToSize(depart || 'Non renseigné', colWidth - 5)
+    const departLines = doc.splitTextToSize(depart || 'Non renseigné', columnWidth - 5)
     doc.text(departLines, startX, colY)
     colY += departLines.length * 4 + 4
 
@@ -1972,51 +1975,52 @@ export async function generateFeuilleRoutePDF(data: FeuilleRouteData): Promise<v
     doc.text('Lieu de destination', startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
-    const arriveeLines = doc.splitTextToSize(arrivee || 'Non renseigné', colWidth - 5)
+    const arriveeLines = doc.splitTextToSize(arrivee || 'Non renseigné', columnWidth - 5)
     doc.text(arriveeLines, startX, colY)
     colY += arriveeLines.length * 4
 
     return colY
   }
 
-  // Dessiner les colonnes
-  // Vérifier si le retour existe vraiment (date de retour renseignée)
-  const hasRetour = data.type === 'aller_retour' && data.retour_date
-  const hasAller = data.type === 'aller' || data.type === 'aller_retour'
-  const isRetourOnly = data.type === 'retour'
-
+  // Dessiner les colonnes selon le type
   let maxY = y
-  if (hasAller || isRetourOnly) {
-    // Si c'est un aller simple ou aller/retour, afficher l'aller
-    // Si c'est retour seul, afficher le retour dans la colonne de gauche
-    if (hasAller) {
-      const endY = drawTrajetColumnWithChauffeur(
-        colLeftX, y, 'Transfert aller', purpleDark,
-        data.chauffeur_aller_nom, data.chauffeur_aller_tel,
-        data.aller_date, data.aller_heure,
-        data.aller_adresse_depart, data.aller_adresse_arrivee
-      )
-      maxY = Math.max(maxY, endY)
-    } else if (isRetourOnly) {
-      const endY = drawTrajetColumnWithChauffeur(
-        colLeftX, y, 'Transfert retour', purpleDark,
-        data.chauffeur_retour_nom, data.chauffeur_retour_tel,
-        data.retour_date, data.retour_heure,
-        data.retour_adresse_depart, data.retour_adresse_arrivee
-      )
-      maxY = Math.max(maxY, endY)
-    }
-  }
-
-  // N'afficher la colonne retour que si c'est un vrai aller/retour avec date de retour
-  if (hasRetour) {
+  if (data.type === 'aller') {
+    // Aller seul - colonne pleine largeur
     const endY = drawTrajetColumnWithChauffeur(
+      colLeftX, y, 'Transfert aller', purpleDark,
+      data.chauffeur_aller_nom, data.chauffeur_aller_tel,
+      data.aller_date, data.aller_heure,
+      data.aller_adresse_depart, data.aller_adresse_arrivee,
+      colWidth
+    )
+    maxY = Math.max(maxY, endY)
+  } else if (data.type === 'retour') {
+    // Retour seul - colonne pleine largeur
+    const endY = drawTrajetColumnWithChauffeur(
+      colLeftX, y, 'Transfert retour', purpleDark,
+      data.chauffeur_retour_nom, data.chauffeur_retour_tel,
+      data.retour_date, data.retour_heure,
+      data.retour_adresse_depart, data.retour_adresse_arrivee,
+      colWidth
+    )
+    maxY = Math.max(maxY, endY)
+  } else if (data.type === 'aller_retour') {
+    // Aller-retour - deux colonnes
+    const endYAller = drawTrajetColumnWithChauffeur(
+      colLeftX, y, 'Transfert aller', purpleDark,
+      data.chauffeur_aller_nom, data.chauffeur_aller_tel,
+      data.aller_date, data.aller_heure,
+      data.aller_adresse_depart, data.aller_adresse_arrivee,
+      colWidth
+    )
+    const endYRetour = drawTrajetColumnWithChauffeur(
       colRightX, y, 'Transfert retour', purpleDark,
       data.chauffeur_retour_nom, data.chauffeur_retour_tel,
       data.retour_date, data.retour_heure,
-      data.retour_adresse_depart, data.retour_adresse_arrivee
+      data.retour_adresse_depart, data.retour_adresse_arrivee,
+      colWidth
     )
-    maxY = Math.max(maxY, endY)
+    maxY = Math.max(maxY, endYAller, endYRetour)
   }
 
   y = maxY + 15
@@ -2204,7 +2208,9 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
 
   y += 15
 
-  const colWidth = (pageWidth - 40) / 2
+  // Si aller seul ou retour seul: une seule colonne pleine largeur
+  const isSingleColumn = data.type === 'aller' || data.type === 'retour'
+  const colWidth = isSingleColumn ? pageWidth - 30 : (pageWidth - 40) / 2
   const colLeftX = 15
   const colRightX = pageWidth / 2 + 5
 
@@ -2212,12 +2218,13 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
     startX: number, startY: number, title: string, titleColor: string,
     chauffeurNom: string | null | undefined, chauffeurTel: string | null | undefined,
     date: string | null | undefined, heure: string | null | undefined,
-    depart: string | null | undefined, arrivee: string | null | undefined
+    depart: string | null | undefined, arrivee: string | null | undefined,
+    columnWidth: number = colWidth
   ) => {
     let colY = startY
     const rgb = hexToRgb(titleColor)
     if (rgb) doc.setFillColor(rgb.r, rgb.g, rgb.b)
-    doc.rect(startX, colY, colWidth, 8, 'F')
+    doc.rect(startX, colY, columnWidth, 8, 'F')
     doc.setFontSize(10)
     doc.setTextColor(255, 255, 255)
     doc.setFont('helvetica', 'bold')
@@ -2253,7 +2260,7 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
     doc.text('Lieu de départ', startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
-    const departLines = doc.splitTextToSize(depart || 'Non renseigné', colWidth - 5)
+    const departLines = doc.splitTextToSize(depart || 'Non renseigné', columnWidth - 5)
     doc.text(departLines, startX, colY)
     colY += departLines.length * 4 + 4
 
@@ -2261,7 +2268,7 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
     doc.text('Lieu de destination', startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
-    const arriveeLines = doc.splitTextToSize(arrivee || 'Non renseigné', colWidth - 5)
+    const arriveeLines = doc.splitTextToSize(arrivee || 'Non renseigné', columnWidth - 5)
     doc.text(arriveeLines, startX, colY)
     colY += arriveeLines.length * 4
 
@@ -2269,24 +2276,43 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
   }
 
   let maxY = y
-  if (data.type === 'aller' || data.type === 'aller_retour') {
+  if (data.type === 'aller') {
+    // Aller seul - colonne pleine largeur
     const endY = drawTrajetColumnWithChauffeur(
       colLeftX, y, 'Transfert aller', purpleDark,
       data.chauffeur_aller_nom, data.chauffeur_aller_tel,
       data.aller_date, data.aller_heure,
-      data.aller_adresse_depart, data.aller_adresse_arrivee
+      data.aller_adresse_depart, data.aller_adresse_arrivee,
+      colWidth
     )
     maxY = Math.max(maxY, endY)
-  }
-
-  if (data.type === 'retour' || data.type === 'aller_retour') {
+  } else if (data.type === 'retour') {
+    // Retour seul - colonne pleine largeur
     const endY = drawTrajetColumnWithChauffeur(
+      colLeftX, y, 'Transfert retour', purpleDark,
+      data.chauffeur_retour_nom, data.chauffeur_retour_tel,
+      data.retour_date, data.retour_heure,
+      data.retour_adresse_depart, data.retour_adresse_arrivee,
+      colWidth
+    )
+    maxY = Math.max(maxY, endY)
+  } else if (data.type === 'aller_retour') {
+    // Aller-retour - deux colonnes
+    const endYAller = drawTrajetColumnWithChauffeur(
+      colLeftX, y, 'Transfert aller', purpleDark,
+      data.chauffeur_aller_nom, data.chauffeur_aller_tel,
+      data.aller_date, data.aller_heure,
+      data.aller_adresse_depart, data.aller_adresse_arrivee,
+      colWidth
+    )
+    const endYRetour = drawTrajetColumnWithChauffeur(
       colRightX, y, 'Transfert retour', purpleDark,
       data.chauffeur_retour_nom, data.chauffeur_retour_tel,
       data.retour_date, data.retour_heure,
-      data.retour_adresse_depart, data.retour_adresse_arrivee
+      data.retour_adresse_depart, data.retour_adresse_arrivee,
+      colWidth
     )
-    maxY = Math.max(maxY, endY)
+    maxY = Math.max(maxY, endYAller, endYRetour)
   }
 
   y = maxY + 15

@@ -337,8 +337,10 @@ export function ChauffeurInfoPage() {
     if (!demande || !validateForm()) return
 
     try {
+      // Vérifier l'existence réelle d'un aller et retour basé sur les dates
       const hasAller = demande.type === 'aller' || demande.type === 'aller_retour'
-      const hasRetour = demande.type === 'retour' || demande.type === 'aller_retour'
+      const hasRetourDate = !!(demande.voyage_info?.retour_date || demande.dossier.return_date)
+      const hasRetour = (demande.type === 'retour' || demande.type === 'aller_retour') && hasRetourDate
 
       // Récupérer les chauffeurs principaux
       const chauffeurAllerPrincipal = hasAller
@@ -385,12 +387,15 @@ export function ChauffeurInfoPage() {
       if (dossierData?.client_email) {
         try {
           // Préparer les données pour le PDF
+          // Déterminer le type réel basé sur l'existence des dates
+          const pdfType = hasAller && hasRetour ? 'aller_retour' : hasAller ? 'aller' : 'retour'
+
           const pdfData = {
             reference: demande.dossier.reference,
             dossier_reference: demande.dossier.reference,
             client_name: dossierData.client_name || demande.dossier.client_name,
             client_phone: dossierData.client_phone || '',
-            type: (hasAller && hasRetour ? 'aller_retour' : hasAller ? 'aller' : 'retour') as 'aller' | 'retour' | 'aller_retour',
+            type: pdfType as 'aller' | 'retour' | 'aller_retour',
             aller_date: demande.voyage_info?.aller_date || demande.dossier.departure_date,
             aller_heure: demande.voyage_info?.aller_heure || '',
             aller_adresse_depart: demande.voyage_info?.aller_adresse_depart || demande.dossier.departure,
