@@ -72,6 +72,7 @@ import { CronSettingsSection } from '@/components/admin/CronSettingsSection'
 import { EditDevisModal } from '@/components/admin/EditDevisModal'
 import { CGVPage } from '@/components/admin/CGVPage'
 import { EmailTemplatesPage } from '@/components/admin/EmailTemplatesPage'
+import { EmailHistoryPage } from '@/components/admin/EmailHistoryPage'
 import { NotificationsPanel } from '@/components/admin/NotificationsPanel'
 import {
   calculerTarifComplet,
@@ -120,7 +121,7 @@ import { ReviewsPage } from '@/components/admin/ReviewsPage'
 import { FlaskConical, TestTube2, Star } from 'lucide-react'
 import type { DossierWithRelations } from '@/types/database'
 
-type Page = 'dashboard' | 'dossiers' | 'devis' | 'exploitation' | 'factures' | 'transporteurs' | 'clients' | 'workflow' | 'templates' | 'messages' | 'service-client' | 'reviews' | 'stats' | 'calendrier' | 'departs' | 'settings'
+type Page = 'dashboard' | 'dossiers' | 'devis' | 'exploitation' | 'factures' | 'transporteurs' | 'clients' | 'workflow' | 'templates' | 'email-history' | 'messages' | 'service-client' | 'reviews' | 'stats' | 'calendrier' | 'departs' | 'settings'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -135,6 +136,7 @@ const navigation = [
   { id: 'clients', label: 'Clients', icon: UsersRound },
   { id: 'workflow', label: 'Workflow', icon: Workflow },
   { id: 'templates', label: 'Templates', icon: FileType },
+  { id: 'email-history', label: 'Emails envoyés', icon: Mail },
   { id: 'messages', label: 'Messages', icon: MessageCircle },
   { id: 'service-client', label: 'Service Client', icon: Headphones },
   { id: 'reviews', label: 'Avis clients', icon: Star },
@@ -1638,6 +1640,11 @@ export function AdminDashboard() {
           {/* Templates View */}
           {currentPage === 'templates' && (
             <EmailTemplatesPage />
+          )}
+
+          {/* Email History View */}
+          {currentPage === 'email-history' && (
+            <EmailHistoryPage />
           )}
 
           {/* Settings View */}

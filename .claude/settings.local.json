@@ -42,7 +42,15 @@
       "Bash(npx supabase secrets set:*)",
       "Bash(nslookup:*)",
       "Bash(npx supabase functions list:*)",
-      "Bash(npx supabase functions delete:*)"
+      "Bash(npx supabase functions delete:*)",
+      "Bash(npx netlify deploy:*)",
+      "Bash(netlify deploy:*)",
+      "Bash(npm cache clean:*)",
+      "Bash(npx netlify-cli:*)",
+      "Bash(./node_modules/.bin/netlify deploy:*)",
+      "Bash(./node_modules/.bin/netlify:*)",
+      "Bash(npx vercel --prod)",
+      "Bash(./node_modules/.bin/vercel:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
