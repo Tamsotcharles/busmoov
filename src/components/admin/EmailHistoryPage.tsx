@@ -56,18 +56,19 @@ export function EmailHistoryPage() {
     setIsLoading(true)
     setError(null)
     try {
-      const { data, error: dbError } = await supabase
-        .from('email_logs')
+      // Cast nécessaire car les types ne sont pas encore générés pour email_logs
+      const { data, error: dbError } = await (supabase
+        .from('email_logs' as any)
         .select(`
           *,
           dossiers (reference)
         `)
         .order('created_at', { ascending: false })
-        .limit(100)
+        .limit(100) as any)
 
       if (dbError) throw dbError
 
-      setEmails(data || [])
+      setEmails((data as EmailLog[]) || [])
     } catch (err) {
       console.error('Erreur chargement emails:', err)
       setError(err instanceof Error ? err.message : 'Erreur de chargement')
