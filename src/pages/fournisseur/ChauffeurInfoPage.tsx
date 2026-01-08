@@ -12,7 +12,10 @@ import {
   Plus,
   Trash2,
   User,
-  Car
+  Car,
+  Clock,
+  Briefcase,
+  MessageSquare
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useSaveVehiculesEtChauffeurs } from '@/hooks/useSupabase'
@@ -66,7 +69,12 @@ interface DemandeChauffeurData {
     retour_adresse_depart: string | null
     retour_adresse_arrivee: string | null
     retour_passagers: number | null
+    contact_nom: string | null
+    contact_prenom: string | null
+    contact_tel: string | null
+    commentaires: string | null
   } | null
+  luggage_type: string | null
 }
 
 // Générer un ID unique
@@ -153,7 +161,7 @@ export function ChauffeurInfoPage() {
         // Récupérer le dossier
         const { data: dossierData, error: dossierError } = await supabase
           .from('dossiers')
-          .select('id, reference, client_name, departure, arrival, departure_date, return_date, passengers')
+          .select('id, reference, client_name, departure, arrival, departure_date, return_date, passengers, luggage_type')
           .eq('id', dossierId)
           .single()
 
@@ -185,6 +193,7 @@ export function ChauffeurInfoPage() {
           dossier: dossierData,
           transporteur: transporteurData || { id: '', name: '', email: null, astreinte_tel: null },
           voyage_info: voyageInfoData,
+          luggage_type: dossierData.luggage_type,
         })
 
         // Pré-remplir l'astreinte si disponible
@@ -581,16 +590,27 @@ L'équipe Busmoov`
                   <span>ALLER</span>
                   <span className="text-sm font-normal text-gray-500 ml-auto">
                     {demande.voyage_info?.aller_date
-                      ? formatDateTime(demande.voyage_info.aller_date)
+                      ? formatDate(demande.voyage_info.aller_date)
                       : formatDate(demande.dossier.departure_date)}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600">
-                  {demande.voyage_info?.aller_adresse_depart || demande.dossier.departure}
-                  {' → '}
-                  {demande.voyage_info?.aller_adresse_arrivee || demande.dossier.arrival}
-                </p>
-                <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                {demande.voyage_info?.aller_heure && (
+                  <p className="text-sm text-purple-600 flex items-center gap-1 mb-2">
+                    <Clock className="w-4 h-4" />
+                    Prise en charge à {demande.voyage_info.aller_heure}
+                  </p>
+                )}
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span><strong>Départ :</strong> {demande.voyage_info?.aller_adresse_depart || demande.dossier.departure}</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                    <span><strong>Arrivée :</strong> {demande.voyage_info?.aller_adresse_arrivee || demande.dossier.arrival}</span>
+                  </p>
+                </div>
+                <p className="text-sm text-gray-500 flex items-center gap-1 mt-2">
                   <Users className="w-4 h-4" />
                   {demande.voyage_info?.aller_passagers || demande.dossier.passengers} passagers
                 </p>
@@ -598,28 +618,75 @@ L'équipe Busmoov`
             )}
 
             {/* Retour */}
-            {hasRetour && demande.dossier.return_date && (
+            {hasRetour && (demande.voyage_info?.retour_date || demande.dossier.return_date) && (
               <div className="bg-magenta/10 rounded-xl p-4">
                 <div className="flex items-center gap-2 text-magenta font-semibold mb-2">
                   <Calendar className="w-4 h-4" />
                   <span>RETOUR</span>
                   <span className="text-sm font-normal text-gray-500 ml-auto">
                     {demande.voyage_info?.retour_date
-                      ? formatDateTime(demande.voyage_info.retour_date)
-                      : formatDate(demande.dossier.return_date)}
+                      ? formatDate(demande.voyage_info.retour_date)
+                      : demande.dossier.return_date ? formatDate(demande.dossier.return_date) : ''}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600">
-                  {demande.voyage_info?.retour_adresse_depart || demande.dossier.arrival}
-                  {' → '}
-                  {demande.voyage_info?.retour_adresse_arrivee || demande.dossier.departure}
-                </p>
-                <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                {demande.voyage_info?.retour_heure && (
+                  <p className="text-sm text-magenta flex items-center gap-1 mb-2">
+                    <Clock className="w-4 h-4" />
+                    Prise en charge à {demande.voyage_info.retour_heure}
+                  </p>
+                )}
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span><strong>Départ :</strong> {demande.voyage_info?.retour_adresse_depart || demande.dossier.arrival}</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                    <span><strong>Arrivée :</strong> {demande.voyage_info?.retour_adresse_arrivee || demande.dossier.departure}</span>
+                  </p>
+                </div>
+                <p className="text-sm text-gray-500 flex items-center gap-1 mt-2">
                   <Users className="w-4 h-4" />
                   {demande.voyage_info?.retour_passagers || demande.dossier.passengers} passagers
                 </p>
               </div>
             )}
+
+            {/* Informations complémentaires */}
+            <div className="border-t pt-4 mt-4 space-y-3">
+              {/* Type de bagages */}
+              {demande.luggage_type && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Briefcase className="w-4 h-4 text-amber-500" />
+                  <span><strong>Bagages :</strong> {demande.luggage_type === 'cabine' ? 'Bagages cabine uniquement' : demande.luggage_type === 'soute' ? 'Bagages en soute' : demande.luggage_type}</span>
+                </div>
+              )}
+
+              {/* Contact sur place */}
+              {(demande.voyage_info?.contact_nom || demande.voyage_info?.contact_prenom || demande.voyage_info?.contact_tel) && (
+                <div className="flex items-start gap-2 text-sm text-gray-600">
+                  <Phone className="w-4 h-4 text-blue-500 mt-0.5" />
+                  <div>
+                    <strong>Contact sur place :</strong>
+                    <span className="ml-1">
+                      {[demande.voyage_info.contact_prenom, demande.voyage_info.contact_nom].filter(Boolean).join(' ')}
+                      {demande.voyage_info.contact_tel && ` - ${demande.voyage_info.contact_tel}`}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Commentaires */}
+              {demande.voyage_info?.commentaires && (
+                <div className="flex items-start gap-2 text-sm text-gray-600">
+                  <MessageSquare className="w-4 h-4 text-gray-400 mt-0.5" />
+                  <div>
+                    <strong>Commentaires :</strong>
+                    <p className="text-gray-500 mt-1 whitespace-pre-wrap">{demande.voyage_info.commentaires}</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -755,7 +822,7 @@ L'équipe Busmoov`
         )}
 
         {/* Formulaire Retour */}
-        {hasRetour && demande.dossier.return_date && (
+        {hasRetour && (demande.voyage_info?.retour_date || demande.dossier.return_date) && (
           <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-magenta flex items-center gap-2">
