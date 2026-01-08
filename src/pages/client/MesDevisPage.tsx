@@ -119,6 +119,19 @@ export function MesDevisPage() {
     full_payment_threshold_days: 30,
   })
 
+  // Calculer le pourcentage d'acompte effectif selon la date de départ
+  const getEffectiveAcomptePercent = (departureDateStr: string | undefined | null): number => {
+    if (!departureDateStr) return paymentSettings.acompte_percent
+    const departureDate = new Date(departureDateStr)
+    const today = new Date()
+    const daysUntilDeparture = Math.ceil((departureDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+    // Si départ proche, demander 100%
+    if (daysUntilDeparture <= paymentSettings.full_payment_threshold_days) {
+      return 100
+    }
+    return paymentSettings.acompte_percent
+  }
+
   // Options sélectionnées par le client lors de la signature
   const [selectedOptions, setSelectedOptions] = useState<{
     peages: boolean
@@ -1428,7 +1441,8 @@ export function MesDevisPage() {
               const paiements = data?.dossier?.paiements || []
               const totalPaye = paiements.reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
               const prixTTC = data.dossier?.price_ttc || 0
-              const acompte = Math.round(prixTTC * 0.3)
+              const currentAcomptePercent = getEffectiveAcomptePercent(data?.dossier?.departure_date)
+              const acompte = Math.round(prixTTC * (currentAcomptePercent / 100))
               const soldeRestant = prixTTC - totalPaye
               const acomptePaye = totalPaye >= acompte
               const soldePaye = soldeRestant <= 0
@@ -1850,7 +1864,8 @@ export function MesDevisPage() {
               const supplierNum = originalIndex + 1
               const passengers = data?.dossier?.passengers || data?.demande?.passengers || 1
               const pricePerPerson = Math.round(devis.price_ttc / Number(passengers))
-              const acompte = Math.round(devis.price_ttc * 0.3)
+              const listAcomptePercent = getEffectiveAcomptePercent(data?.dossier?.departure_date)
+              const acompte = Math.round(devis.price_ttc * (listAcomptePercent / 100))
 
               return (
                 <div
@@ -2061,7 +2076,8 @@ export function MesDevisPage() {
                           // Si promo expirée (et non accepté pendant promo), le prix affiché est le prix original
                           const displayPrice = isPromoExpired ? promoOriginalPrice : devis.price_ttc
                           const displayPricePerPerson = Math.round(displayPrice / Number(passengers))
-                          const displayAcompte = Math.round(displayPrice * 0.3)
+                          const effectiveAcomptePercent = getEffectiveAcomptePercent(data?.dossier?.departure_date)
+                          const displayAcompte = Math.round(displayPrice * (effectiveAcomptePercent / 100))
 
                           return (
                             <div className={cn(
@@ -2114,13 +2130,17 @@ export function MesDevisPage() {
                               {/* Conditions de paiement */}
                               <div className="text-left space-y-2 mb-4 text-sm">
                                 <div className="flex justify-between items-center">
-                                  <span className="text-gray-600">Acompte (30%)</span>
+                                  <span className="text-gray-600">
+                                    {effectiveAcomptePercent === 100 ? 'Paiement total' : `Acompte (${effectiveAcomptePercent}%)`}
+                                  </span>
                                   <span className="font-semibold text-purple-dark">{formatPrice(displayAcompte)}</span>
                                 </div>
-                                <div className="flex justify-between items-center">
-                                  <span className="text-gray-600">Solde avant départ</span>
-                                  <span className="font-semibold text-purple-dark">{formatPrice(displayPrice - displayAcompte)}</span>
-                                </div>
+                                {effectiveAcomptePercent < 100 && (
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-gray-600">Solde avant départ</span>
+                                    <span className="font-semibold text-purple-dark">{formatPrice(displayPrice - displayAcompte)}</span>
+                                  </div>
+                                )}
                               </div>
 
                               {/* Validité */}
@@ -2489,7 +2509,8 @@ export function MesDevisPage() {
           }
 
           const totalTTC = selectedDevis.devis.price_ttc + optionsTotal
-          const acompte = Math.round(totalTTC * 0.3)
+          const modalAcomptePercent = getEffectiveAcomptePercent(data?.dossier?.departure_date)
+          const acompte = Math.round(totalTTC * (modalAcomptePercent / 100))
           const solde = totalTTC - acompte
 
           return (
@@ -2743,13 +2764,15 @@ export function MesDevisPage() {
                     <span className="font-bold text-2xl text-purple-dark">{formatPrice(totalTTC)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-600">
-                    <span>Acompte (30%)</span>
+                    <span>{modalAcomptePercent === 100 ? 'Paiement total' : `Acompte (${modalAcomptePercent}%)`}</span>
                     <span className="font-semibold">{formatPrice(acompte)}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>Solde avant départ</span>
-                    <span>{formatPrice(solde)}</span>
-                  </div>
+                  {modalAcomptePercent < 100 && (
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>Solde avant départ</span>
+                      <span>{formatPrice(solde)}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Checkbox acceptation */}
