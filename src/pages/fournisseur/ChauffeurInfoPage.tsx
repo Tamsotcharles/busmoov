@@ -309,18 +309,20 @@ export function ChauffeurInfoPage() {
   const validateForm = (): boolean => {
     if (!demande) return false
 
-    const hasAller = demande.type === 'aller' || demande.type === 'aller_retour'
-    const hasRetour = demande.type === 'retour' || demande.type === 'aller_retour'
+    // Conditions basées sur l'affichage réel des formulaires
+    const hasAllerForm = demande.type === 'aller' || demande.type === 'aller_retour'
+    const hasRetourForm = (demande.type === 'retour' || demande.type === 'aller_retour') &&
+                          (demande.voyage_info?.retour_date || demande.dossier.return_date)
 
-    // Vérifier qu'il y a au moins un chauffeur avec un nom pour chaque trajet demandé
-    if (hasAller) {
+    // Vérifier qu'il y a au moins un chauffeur avec un nom pour chaque trajet affiché
+    if (hasAllerForm) {
       const hasValidAllerChauffeur = vehiculesAller.some(v =>
         v.chauffeurs.some(c => c.nom.trim() !== '')
       )
       if (!hasValidAllerChauffeur) return false
     }
 
-    if (hasRetour) {
+    if (hasRetourForm) {
       const hasValidRetourChauffeur = vehiculesRetour.some(v =>
         v.chauffeurs.some(c => c.nom.trim() !== '')
       )
