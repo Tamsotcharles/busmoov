@@ -1559,7 +1559,7 @@ export function MesDevisPage() {
                   if (data.dossier) {
                     await generateFeuilleRoutePDF({
                       reference: data.dossier.reference,
-                      type: voyageInfo.feuille_route_type || 'aller_retour',
+                      type: voyageInfo.feuille_route_type || (data.dossier.return_date ? 'aller_retour' : 'aller'),
                       client_name: data.dossier.client_name,
                       client_phone: data.dossier.client_phone,
                       aller_date: voyageInfo.aller_date,

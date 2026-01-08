@@ -57,7 +57,8 @@
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_c5cae48f565a0acec831eb2c8d482f799e40d8e9 npx supabase:*)",
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_53b3219582c75f3bfc46792061ed3af14ba37ebf npx supabase functions deploy:*)",
       "Bash(export SUPABASE_ACCESS_TOKEN=sbp_53b3219582c75f3bfc46792061ed3af14ba37ebf)",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nFix proforma PDF: afficher montant déjà réglé\n\n- Passer les paiements à generateContratPDF dans AdminDashboard\n- Le montant ''Déjà réglé'' s''affiche maintenant correctement\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   },
   "enableAllProjectMcpServers": true,
