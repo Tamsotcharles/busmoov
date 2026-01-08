@@ -47,6 +47,7 @@ interface Dossier {
   acompte_amount: number | null;
   acompte_paid_at: string | null;
   solde_paid_at: string | null;
+  payment_method: string | null;
   created_at: string;
 }
 
@@ -178,6 +179,19 @@ function replaceVariables(
   dossier: Dossier,
   baseUrl: string
 ): string {
+  // Calculer le montant du solde (total - acompte)
+  const soldeAmount = dossier.price_ttc && dossier.acompte_amount
+    ? dossier.price_ttc - dossier.acompte_amount
+    : dossier.price_ttc || 0;
+
+  const formatCurrency = (amount: number | null | undefined): string => {
+    if (!amount) return "";
+    return new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
   const vars: Record<string, string> = {
     client_name: dossier.client_name || "",
     reference: dossier.reference || "",
@@ -187,19 +201,10 @@ function replaceVariables(
       ? new Date(dossier.departure_date).toLocaleDateString("fr-FR")
       : "",
     passengers: String(dossier.passengers || 0),
-    total_ttc: dossier.price_ttc
-      ? new Intl.NumberFormat("fr-FR", {
-          style: "currency",
-          currency: "EUR",
-        }).format(dossier.price_ttc)
-      : "",
-    montant_acompte: dossier.acompte_amount
-      ? new Intl.NumberFormat("fr-FR", {
-          style: "currency",
-          currency: "EUR",
-        }).format(dossier.acompte_amount)
-      : "",
-    lien_espace_client: `${baseUrl}/client/espace/${dossier.id}`,
+    total_ttc: formatCurrency(dossier.price_ttc),
+    montant_acompte: formatCurrency(dossier.acompte_amount),
+    montant_solde: formatCurrency(soldeAmount),
+    lien_espace_client: `${baseUrl}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email || "")}`,
     lien_paiement: `${baseUrl}/client/paiement/${dossier.id}`,
     lien_infos_voyage: `${baseUrl}/client/infos-voyage/${dossier.id}`,
   };
@@ -255,6 +260,12 @@ function checkConditions(
       case "payment_type":
         // Vérifier si le type de paiement correspond
         if (context.paymentType && value !== context.paymentType) {
+          return false;
+        }
+        break;
+      case "payment_method":
+        // Vérifier si la méthode de paiement correspond (virement, cb)
+        if (dossier.payment_method !== value) {
           return false;
         }
         break;

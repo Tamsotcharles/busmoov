@@ -3978,6 +3978,59 @@ L'équipe Busmoov`,
     }
   }
 
+  // Renvoyer un devis déjà envoyé (sans changer le statut)
+  const handleResendDevis = async (devisId: string, devisRef: string) => {
+    try {
+      // Compter le nombre de devis envoyés pour ce dossier
+      const sentDevisCount = devisList?.filter(d => d.status === 'sent').length || 1
+
+      // Envoyer l'email de notification au client via le template quote_sent
+      const clientEmail = dossier.client_email
+      if (!clientEmail) {
+        alert('Aucun email client trouvé')
+        return
+      }
+
+      const lienEspaceClient = `${window.location.origin}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(clientEmail)}`
+
+      const { error: emailError } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'quote_sent',
+          to: clientEmail,
+          data: {
+            client_name: dossier.client_name || 'Client',
+            reference: dossier.reference,
+            departure: dossier.departure_city || 'N/A',
+            arrival: dossier.arrival_city || 'N/A',
+            departure_date: dossier.departure_date ? new Date(dossier.departure_date).toLocaleDateString('fr-FR') : 'N/A',
+            passengers: String(dossier.passengers || 0),
+            nb_devis: String(sentDevisCount),
+            lien_espace_client: lienEspaceClient,
+            dossier_id: dossier.id,
+          },
+        }
+      })
+
+      if (emailError) {
+        console.error('Erreur envoi email:', emailError)
+        alert('Erreur lors de l\'envoi de l\'email')
+        return
+      }
+
+      // Ajouter à la timeline
+      await addTimelineEntry.mutateAsync({
+        dossier_id: dossier.id,
+        type: 'devis_sent',
+        content: `Devis ${devisRef} renvoyé au client`,
+      })
+
+      alert(`Email renvoyé au client !`)
+    } catch (error) {
+      console.error('Erreur:', error)
+      alert('Erreur lors du renvoi du devis')
+    }
+  }
+
   // Annuler un devis programmé
   const handleCancelScheduledDevis = async (devisId: string) => {
     if (!confirm('Annuler l\'envoi programmé de ce devis ?')) return
@@ -7051,6 +7104,14 @@ L'équipe Busmoov`,
                         )}
                         {devis.status === 'sent' && (
                           <>
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              title="Renvoyer l'email au client"
+                              onClick={() => handleResendDevis(devis.id, devis.reference)}
+                            >
+                              <Send size={14} />
+                              Renvoyer
+                            </button>
                             <button
                               className="btn btn-primary btn-sm"
                               title="Signer pour le client (devis tamponné reçu)"
