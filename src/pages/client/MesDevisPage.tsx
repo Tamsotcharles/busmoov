@@ -609,190 +609,59 @@ export function MesDevisPage() {
     }
 
     try {
-      const signedAt = new Date().toISOString()
       const signataireName = `${signataire.firstName} ${signataire.lastName}`
 
-      // Compter les contrats existants pour ce dossier (y compris annulés) pour générer une ref unique
-      const { count: existingContratsCount } = await supabase
-        .from('contrats')
-        .select('*', { count: 'exact', head: true })
-        .eq('dossier_id', data.dossier.id)
-
-      // Générer une référence unique (avec suffixe si renouvellement après annulation)
-      const proformaReference = existingContratsCount && existingContratsCount > 0
-        ? `PRO-${data.dossier.reference}-${existingContratsCount + 1}`
-        : `PRO-${data.dossier.reference}`
-
-      // Utiliser le devis sélectionné par le client
-      const devisChoisi = selectedDevis.devis
-
-      // Vérifier si l'offre flash est expirée - utiliser le prix original si oui
-      const promoExpiresAt = (devisChoisi as any).promo_expires_at
-      const promoOriginalPrice = (devisChoisi as any).promo_original_price
-      const isPromoExpired = promoExpiresAt && promoOriginalPrice && new Date(promoExpiresAt) <= new Date()
-
-      // Prix de base du devis
-      const basePriceTTC = isPromoExpired ? promoOriginalPrice : devisChoisi.price_ttc
-      const tvaRate = devisChoisi.tva_rate || 10
-
-      // Calculer le montant des options sélectionnées
-      const optionsDetails = devisChoisi.options_details as any || {}
-      const nbChauffeurs = devisChoisi.nombre_chauffeurs || 1
-      const nbNuits = optionsDetails.hebergement?.nuits || 0
-
-      // Calculer le nombre de jours pour les repas
-      let dureeJours = devisChoisi.duree_jours || 1
-      if (!devisChoisi.duree_jours && data?.dossier?.return_date && data?.dossier?.departure_date) {
-        const depDate = new Date(data.dossier.departure_date)
-        const retDate = new Date(data.dossier.return_date)
-        dureeJours = Math.max(1, Math.ceil((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
-      }
-      const nbRepas = dureeJours * 2 // 2 repas par jour
-
-      let optionsTotal = 0
-      const optionsSelected: { label: string; montant: number }[] = []
-
-      if (selectedOptions.peages && optionsDetails.peages?.status === 'non_inclus') {
-        const montant = optionsDetails.peages.montant || 0
-        optionsTotal += montant
-        optionsSelected.push({ label: 'Péages', montant })
-      }
-      if (selectedOptions.repas_chauffeur && optionsDetails.repas_chauffeur?.status === 'non_inclus') {
-        // Calcul: jours × 2 repas × prix unitaire × nb chauffeurs
-        const montant = (optionsDetails.repas_chauffeur.montant || 0) * nbRepas * nbChauffeurs
-        optionsTotal += montant
-        optionsSelected.push({ label: `Repas chauffeur (${nbRepas} repas × ${nbChauffeurs} chauff.)`, montant })
-      }
-      if (selectedOptions.parking && optionsDetails.parking?.status === 'non_inclus') {
-        const montant = optionsDetails.parking.montant || 0
-        optionsTotal += montant
-        optionsSelected.push({ label: 'Parking', montant })
-      }
-      if (selectedOptions.hebergement && optionsDetails.hebergement?.status === 'non_inclus') {
-        const montant = (optionsDetails.hebergement.montant || 0) * nbNuits * nbChauffeurs
-        optionsTotal += montant
-        optionsSelected.push({ label: `Hébergement (${nbNuits} nuits × ${nbChauffeurs} chauff.)`, montant })
-      }
-
-      // Prix final = prix de base + options
-      const finalPriceTTC = basePriceTTC + optionsTotal
-      const finalPriceHT = Math.round((finalPriceTTC / (1 + tvaRate / 100)) * 100) / 100
-
-      // Mettre à jour le devis sélectionné avec le statut accepted (auto-validé à la signature)
-      const { error: devisError } = await supabase
-        .from('devis')
-        .update({ status: 'accepted', accepted_at: signedAt })
-        .eq('id', devisChoisi.id)
-
-      if (devisError) {
-        console.error('Erreur mise à jour devis:', devisError)
-        throw devisError
-      }
-
-      // Calculer le délai avant départ pour déterminer acompte vs paiement complet
-      const departureDate = new Date(data.dossier.departure_date)
-      const today = new Date()
-      const daysUntilDeparture = Math.ceil((departureDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-
-      // Si départ proche (< seuil), demander paiement complet, sinon acompte
-      const isFullPaymentRequired = daysUntilDeparture <= paymentSettings.full_payment_threshold_days
-      const acomptePercent = isFullPaymentRequired ? 100 : paymentSettings.acompte_percent
-      const calculatedAcompte = Math.round(finalPriceTTC * (acomptePercent / 100))
-      const calculatedSolde = Math.round(finalPriceTTC - calculatedAcompte)
-
-      // Créer un nouveau contrat (pas upsert car on garde l'historique des annulés)
-      const { error: contratError } = await supabase.from('contrats').insert({
-        dossier_id: data.dossier.id,
-        reference: proformaReference,
-        price_ttc: finalPriceTTC,
-        acompte_amount: calculatedAcompte,
-        solde_amount: calculatedSolde,
-        signed_at: signedAt,
-        signed_by_client: true,
-        signed_by_admin: true, // Auto-validé à la signature
-        client_ip: clientIp || null,
-        user_agent: navigator.userAgent,
-        client_name: signataireName,
-        client_email: data.dossier.client_email,
-        billing_address: billingInfo.address,
-        billing_zip: billingInfo.zip,
-        billing_city: billingInfo.city,
-        billing_country: billingInfo.country || 'France',
-        status: 'active', // Nouveau contrat actif
+      // Appeler l'Edge Function pour la signature (contourne les RLS)
+      const { data: result, error: fnError } = await supabase.functions.invoke('sign-contract', {
+        body: {
+          dossier_id: data.dossier.id,
+          devis_id: selectedDevis.devis.id,
+          signataire_name: signataireName,
+          billing_info: {
+            address: billingInfo.address,
+            zip: billingInfo.zip,
+            city: billingInfo.city,
+            country: billingInfo.country || 'France',
+          },
+          payment_method: paymentMethod,
+          selected_options: selectedOptions,
+          client_ip: clientIp,
+          user_agent: navigator.userAgent,
+        }
       })
 
-      if (contratError) {
-        console.error('Erreur création contrat:', contratError)
-        throw contratError
+      if (fnError) {
+        console.error('Erreur Edge Function:', fnError)
+        throw new Error(fnError.message || 'Erreur lors de la signature')
       }
 
-      // Update dossier with billing info, payment method AND prices from selected devis
-      // Le statut passe à pending-payment SEULEMENT après signature complète
-      // signer_name = nom du signataire, client_name = nom du demandeur original (inchangé)
-      const dossierUpdate: any = {
-        id: data.dossier.id,
-        contract_signed_at: signedAt,
-        status: 'pending-payment',
-        price_ht: finalPriceHT,
-        price_ttc: finalPriceTTC,
-        acompte_amount: calculatedAcompte,
-        solde_amount: calculatedSolde,
-        vehicle_type: devisChoisi.vehicle_type,
-        billing_address: billingInfo.address,
-        billing_zip: billingInfo.zip,
-        billing_city: billingInfo.city,
-        billing_country: billingInfo.country || 'France',
-        payment_method: paymentMethod,
-        signer_name: signataireName, // Nom du signataire (peut être différent du demandeur)
+      if (!result?.success) {
+        throw new Error(result?.error || 'Erreur lors de la signature')
       }
 
-      await updateDossier.mutateAsync(dossierUpdate)
-
-      // Ajouter à la timeline
-      const paymentTypeLabel = isFullPaymentRequired ? 'paiement complet requis' : `acompte ${acomptePercent}%`
-      await supabase.from('timeline').insert({
-        dossier_id: data.dossier.id,
-        type: 'contract_signed',
-        content: `📝 Contrat signé par ${signataireName} - ${formatPrice(finalPriceTTC)} TTC (${paymentTypeLabel}, ${paymentMethod === 'cb' ? 'CB' : 'Virement'})`,
-      })
-
-      // Générer la proforma PDF avec les infos du devis choisi
+      // Générer la proforma PDF avec les données retournées par l'Edge Function
+      const contractData = result.data
       await generateContratPDF({
-        reference: proformaReference,
-        price_ttc: finalPriceTTC,
-        base_price_ttc: basePriceTTC, // Prix de base sans options
-        options_lignes: optionsSelected.length > 0 ? optionsSelected : null, // Lignes d'options
-        acompte_amount: calculatedAcompte,
-        solde_amount: calculatedSolde,
-        signed_at: signedAt,
+        reference: contractData.proforma_reference,
+        price_ttc: contractData.price_ttc,
+        base_price_ttc: contractData.base_price_ttc,
+        options_lignes: contractData.options_lignes,
+        acompte_amount: contractData.acompte_amount,
+        solde_amount: contractData.solde_amount,
+        signed_at: contractData.signed_at,
         client_name: signataireName,
         client_email: data.dossier.client_email,
-        billing_address: billingInfo.address,
-        billing_zip: billingInfo.zip,
-        billing_city: billingInfo.city,
-        billing_country: billingInfo.country,
-        nombre_chauffeurs: nbChauffeurs,
-        nombre_cars: devisChoisi.nombre_cars || 1,
-        tva_rate: tvaRate,
-        service_type: (devisChoisi as any).service_type || data.dossier.trip_mode || undefined,
-        duree_jours: dureeJours > 1 ? dureeJours : undefined,
-        detail_mad: (devisChoisi as any).detail_mad || undefined,
-        dossier: {
-          reference: data.dossier.reference,
-          client_name: signataireName,
-          client_email: data.dossier.client_email,
-          client_phone: data.dossier.client_phone,
-          departure: data.dossier.departure,
-          arrival: data.dossier.arrival,
-          departure_date: data.dossier.departure_date,
-          departure_time: data.dossier.departure_time,
-          return_date: data.dossier.return_date,
-          return_time: data.dossier.return_time,
-          passengers: data.dossier.passengers,
-          vehicle_type: devisChoisi.vehicle_type,
-          trip_mode: data.dossier.trip_mode || undefined,
-          transporteur: devisChoisi.transporteur || undefined,
-        },
+        billing_address: contractData.billing_info.address,
+        billing_zip: contractData.billing_info.zip,
+        billing_city: contractData.billing_info.city,
+        billing_country: contractData.billing_info.country,
+        nombre_chauffeurs: contractData.nombre_chauffeurs,
+        nombre_cars: contractData.nombre_cars,
+        tva_rate: contractData.tva_rate,
+        service_type: contractData.service_type,
+        duree_jours: contractData.duree_jours,
+        detail_mad: contractData.detail_mad,
+        dossier: contractData.dossier,
       })
 
       setContractModalOpen(false)
