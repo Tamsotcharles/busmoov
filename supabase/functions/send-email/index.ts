@@ -190,6 +190,33 @@ serve(async (req: Request) => {
 
     console.log(`Email sent successfully to ${to} via Resend (id: ${result.id})`)
 
+    // Logger l'email dans la table email_logs
+    if (result.id) {
+      try {
+        const recipient = Array.isArray(to) ? to[0] : to
+        const templateKey = type === 'custom' ? null : type
+        const dossierId = data?.dossier_id || null
+
+        await supabaseClient
+          .from('email_logs')
+          .insert({
+            resend_id: result.id,
+            recipient: recipient,
+            sender: Deno.env.get('EMAIL_FROM') || 'infos@busmoov.com',
+            subject: finalSubject,
+            template_key: templateKey,
+            dossier_id: dossierId,
+            status: 'sent',
+            sent_at: new Date().toISOString(),
+          })
+
+        console.log(`Email logged in email_logs table (resend_id: ${result.id})`)
+      } catch (logError) {
+        // Ne pas faire échouer l'envoi si le logging échoue
+        console.error('Failed to log email:', logError)
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
