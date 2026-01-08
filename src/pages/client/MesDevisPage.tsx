@@ -113,6 +113,12 @@ export function MesDevisPage() {
   const [searchingTransporteurs, setSearchingTransporteurs] = useState(false)
   const [transporteursFound, setTransporteursFound] = useState(false)
 
+  // Paramètres de paiement
+  const [paymentSettings, setPaymentSettings] = useState({
+    acompte_percent: 30,
+    full_payment_threshold_days: 30,
+  })
+
   // Options sélectionnées par le client lors de la signature
   const [selectedOptions, setSelectedOptions] = useState<{
     peages: boolean
@@ -140,6 +146,30 @@ export function MesDevisPage() {
       .then(res => res.json())
       .then(data => setClientIp(data.ip))
       .catch(() => setClientIp(''))
+  }, [])
+
+  // Charger les paramètres de paiement
+  useEffect(() => {
+    const loadPaymentSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('app_settings')
+          .select('value')
+          .eq('key', 'payment_settings')
+          .single()
+
+        if (data && !error && data.value) {
+          const value = data.value as { acompte_percent?: number; full_payment_threshold_days?: number }
+          setPaymentSettings({
+            acompte_percent: value.acompte_percent || 30,
+            full_payment_threshold_days: value.full_payment_threshold_days || 30,
+          })
+        }
+      } catch (err) {
+        console.error('Error loading payment settings:', err)
+      }
+    }
+    loadPaymentSettings()
   }, [])
 
   const loadData = async () => {
@@ -646,13 +676,24 @@ export function MesDevisPage() {
         throw devisError
       }
 
+      // Calculer le délai avant départ pour déterminer acompte vs paiement complet
+      const departureDate = new Date(data.dossier.departure_date)
+      const today = new Date()
+      const daysUntilDeparture = Math.ceil((departureDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+      // Si départ proche (< seuil), demander paiement complet, sinon acompte
+      const isFullPaymentRequired = daysUntilDeparture <= paymentSettings.full_payment_threshold_days
+      const acomptePercent = isFullPaymentRequired ? 100 : paymentSettings.acompte_percent
+      const calculatedAcompte = Math.round(finalPriceTTC * (acomptePercent / 100))
+      const calculatedSolde = Math.round(finalPriceTTC - calculatedAcompte)
+
       // Créer un nouveau contrat (pas upsert car on garde l'historique des annulés)
       const { error: contratError } = await supabase.from('contrats').insert({
         dossier_id: data.dossier.id,
         reference: proformaReference,
         price_ttc: finalPriceTTC,
-        acompte_amount: Math.round(finalPriceTTC * 0.3),
-        solde_amount: Math.round(finalPriceTTC * 0.7),
+        acompte_amount: calculatedAcompte,
+        solde_amount: calculatedSolde,
         signed_at: signedAt,
         signed_by_client: true,
         signed_by_admin: true, // Auto-validé à la signature
@@ -681,6 +722,8 @@ export function MesDevisPage() {
         status: 'pending-payment',
         price_ht: finalPriceHT,
         price_ttc: finalPriceTTC,
+        acompte_amount: calculatedAcompte,
+        solde_amount: calculatedSolde,
         vehicle_type: devisChoisi.vehicle_type,
         billing_address: billingInfo.address,
         billing_zip: billingInfo.zip,
@@ -692,14 +735,22 @@ export function MesDevisPage() {
 
       await updateDossier.mutateAsync(dossierUpdate)
 
+      // Ajouter à la timeline
+      const paymentTypeLabel = isFullPaymentRequired ? 'paiement complet requis' : `acompte ${acomptePercent}%`
+      await supabase.from('timeline').insert({
+        dossier_id: data.dossier.id,
+        type: 'contract_signed',
+        content: `📝 Contrat signé par ${signataireName} - ${formatPrice(finalPriceTTC)} TTC (${paymentTypeLabel}, ${paymentMethod === 'cb' ? 'CB' : 'Virement'})`,
+      })
+
       // Générer la proforma PDF avec les infos du devis choisi
       await generateContratPDF({
         reference: proformaReference,
         price_ttc: finalPriceTTC,
         base_price_ttc: basePriceTTC, // Prix de base sans options
         options_lignes: optionsSelected.length > 0 ? optionsSelected : null, // Lignes d'options
-        acompte_amount: Math.round(finalPriceTTC * 0.3),
-        solde_amount: Math.round(finalPriceTTC * 0.7),
+        acompte_amount: calculatedAcompte,
+        solde_amount: calculatedSolde,
         signed_at: signedAt,
         client_name: signataireName,
         client_email: data.dossier.client_email,

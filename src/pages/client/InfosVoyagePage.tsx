@@ -189,6 +189,13 @@ export function InfosVoyagePage() {
           source_name: dossier!.client_name,
         })
 
+      // Ajouter à la timeline
+      await supabase.from('timeline').insert({
+        dossier_id: dossier!.id,
+        type: 'infos_voyage_submitted',
+        content: `📋 Informations voyage soumises par ${dossier!.client_name}`,
+      })
+
       setSuccess(true)
     } catch (err) {
       console.error('Error saving voyage info:', err)

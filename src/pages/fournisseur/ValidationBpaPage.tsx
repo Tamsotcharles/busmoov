@@ -202,8 +202,8 @@ export function ValidationBpaPage() {
           .from('timeline')
           .insert({
             dossier_id: dossierInfo.id,
-            type: 'note',
-            content: timelineContent,
+            type: 'bpa_received',
+            content: `✅ ${timelineContent}`,
           })
       }
 

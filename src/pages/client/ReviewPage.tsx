@@ -13,6 +13,7 @@ interface ReviewData {
   comment: string | null
   client_name: string | null
   status: string
+  dossier_id: string
   dossier: {
     reference: string
     departure: string
@@ -58,6 +59,7 @@ export function ReviewPage() {
           comment,
           client_name,
           status,
+          dossier_id,
           dossier:dossiers(reference, departure, arrival, departure_date, client_name)
         `)
         .eq('token', token as string)
@@ -111,6 +113,15 @@ export function ReviewPage() {
 
       if (updateError) {
         throw updateError
+      }
+
+      // Ajouter à la timeline
+      if (review?.dossier_id) {
+        await supabase.from('timeline').insert({
+          dossier_id: review.dossier_id,
+          type: 'review_received',
+          content: `⭐ Avis client reçu : ${rating}/5${comment ? ` - "${comment.substring(0, 80)}${comment.length > 80 ? '...' : ''}"` : ''}`,
+        })
       }
 
       setSubmitted(true)

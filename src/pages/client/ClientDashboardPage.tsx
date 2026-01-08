@@ -16,9 +16,12 @@ import {
   Star,
   Luggage,
   Route,
-  Info
+  Info,
+  Send,
+  Loader2
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { Modal } from '@/components/ui/Modal'
 
 interface ClientSession {
   id: string
@@ -183,6 +186,13 @@ export function ClientDashboardPage() {
   const [devis, setDevis] = useState<Devis[]>([])
   const [loading, setLoading] = useState(true)
 
+  // États pour la modale de contact support
+  const [supportModalOpen, setSupportModalOpen] = useState(false)
+  const [supportMessage, setSupportMessage] = useState('')
+  const [supportSubject, setSupportSubject] = useState('question')
+  const [sendingSupport, setSendingSupport] = useState(false)
+  const [supportSuccess, setSupportSuccess] = useState(false)
+
   useEffect(() => {
     // Vérifier la session client
     const stored = sessionStorage.getItem('client_dossier')
@@ -328,6 +338,85 @@ export function ClientDashboardPage() {
     } catch (error) {
       console.error('Erreur acceptation devis:', error)
       alert('Une erreur est survenue')
+    }
+  }
+
+  const handleSendSupportMessage = async () => {
+    if (!dossier || !supportMessage.trim()) return
+
+    setSendingSupport(true)
+    try {
+      const subjectLabels: Record<string, string> = {
+        question: 'Question',
+        modification: 'Demande de modification',
+        probleme: 'Signalement de problème',
+        autre: 'Autre demande'
+      }
+
+      const emailSubject = `[${dossier.reference}] ${subjectLabels[supportSubject]} - ${dossier.client_name}`
+      const emailContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #7c3aed;">Nouveau message client</h2>
+
+          <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin: 0 0 15px 0; color: #374151;">Informations du dossier</h3>
+            <p style="margin: 5px 0;"><strong>Référence :</strong> ${dossier.reference}</p>
+            <p style="margin: 5px 0;"><strong>Client :</strong> ${dossier.client_name}</p>
+            <p style="margin: 5px 0;"><strong>Email :</strong> ${dossier.client_email}</p>
+            <p style="margin: 5px 0;"><strong>Trajet :</strong> ${dossier.departure} → ${dossier.arrival}</p>
+            <p style="margin: 5px 0;"><strong>Date :</strong> ${new Date(dossier.departure_date).toLocaleDateString('fr-FR')}</p>
+          </div>
+
+          <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin: 0 0 15px 0; color: #92400e;">Type de demande : ${subjectLabels[supportSubject]}</h3>
+            <p style="margin: 0; white-space: pre-wrap;">${supportMessage}</p>
+          </div>
+
+          <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
+            Ce message a été envoyé depuis l'espace client Busmoov.
+          </p>
+        </div>
+      `
+
+      // Envoyer l'email via Edge Function
+      const { error: emailError } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'custom',
+          to: 'infos@busmoov.com',
+          subject: emailSubject,
+          html_content: emailContent,
+          data: {
+            dossier_id: dossier.id
+          }
+        }
+      })
+
+      if (emailError) {
+        console.error('Erreur envoi email support:', emailError)
+        throw emailError
+      }
+
+      // Insérer dans la timeline
+      await supabase.from('timeline').insert({
+        dossier_id: dossier.id,
+        type: 'client_message',
+        content: `📩 Message client (${subjectLabels[supportSubject]}): "${supportMessage.substring(0, 100)}${supportMessage.length > 100 ? '...' : ''}"`,
+      })
+
+      setSupportSuccess(true)
+      setSupportMessage('')
+
+      // Fermer la modale après un court délai
+      setTimeout(() => {
+        setSupportModalOpen(false)
+        setSupportSuccess(false)
+      }, 2000)
+
+    } catch (error) {
+      console.error('Erreur envoi message support:', error)
+      alert('Une erreur est survenue lors de l\'envoi du message. Veuillez réessayer.')
+    } finally {
+      setSendingSupport(false)
     }
   }
 
@@ -650,7 +739,10 @@ export function ClientDashboardPage() {
                   <FileText size={18} className="mr-2" />
                   Voir tous mes devis
                 </Link>
-                <button className="btn btn-outline w-full justify-start">
+                <button
+                  onClick={() => setSupportModalOpen(true)}
+                  className="btn btn-outline w-full justify-start"
+                >
                   <MessageCircle size={18} className="mr-2" />
                   Contacter le support
                 </button>
@@ -776,16 +868,101 @@ export function ClientDashboardPage() {
               <p className="text-sm text-gray-600 mb-4">
                 Notre équipe est disponible pour répondre à vos questions.
               </p>
-              <a
-                href="mailto:infos@busmoov.com"
+              <button
+                onClick={() => setSupportModalOpen(true)}
                 className="text-magenta font-medium hover:underline"
               >
-                infos@busmoov.com
-              </a>
+                Nous contacter
+              </button>
             </div>
           </div>
         </div>
       </main>
+
+      {/* Modal Contact Support */}
+      <Modal
+        isOpen={supportModalOpen}
+        onClose={() => {
+          setSupportModalOpen(false)
+          setSupportSuccess(false)
+        }}
+        title="Contacter le support"
+        size="md"
+      >
+        {supportSuccess ? (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Message envoyé !</h3>
+            <p className="text-gray-600">
+              Notre équipe vous répondra dans les plus brefs délais.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600">
+                <strong>Dossier :</strong> {dossier.reference}
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>Trajet :</strong> {dossier.departure} → {dossier.arrival}
+              </p>
+            </div>
+
+            <div>
+              <label className="label">Type de demande</label>
+              <select
+                value={supportSubject}
+                onChange={(e) => setSupportSubject(e.target.value)}
+                className="input"
+              >
+                <option value="question">Question sur mon dossier</option>
+                <option value="modification">Demande de modification</option>
+                <option value="probleme">Signaler un problème</option>
+                <option value="autre">Autre demande</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="label">Votre message</label>
+              <textarea
+                value={supportMessage}
+                onChange={(e) => setSupportMessage(e.target.value)}
+                placeholder="Décrivez votre demande en détail..."
+                rows={5}
+                className="input resize-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                onClick={() => setSupportModalOpen(false)}
+                className="btn btn-secondary"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSendSupportMessage}
+                disabled={sendingSupport || !supportMessage.trim()}
+                className="btn btn-primary flex items-center gap-2"
+              >
+                {sendingSupport ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Envoi...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    Envoyer
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }
