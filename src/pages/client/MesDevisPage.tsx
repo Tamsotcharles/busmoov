@@ -9,13 +9,8 @@ import { formatDate, formatPrice, getVehicleTypeLabel, cn, calculateRouteInfo, c
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFeuilleRoutePDF } from '@/lib/pdf'
 import { Truck, Navigation } from 'lucide-react'
 import type { Demande, DevisWithTransporteur, DossierWithRelations } from '@/types/database'
-import {
-  chargerGrillesTarifaires,
-  chargerMajorationsRegions,
-  calculerTarifComplet,
-  extraireDepartement,
-  type ServiceType,
-} from '@/lib/pricing-rules'
+// Types pour l'API de calcul de prix (côté serveur)
+type ServiceType = 'aller_simple' | 'ar_1j' | 'ar_mad' | 'ar_sans_mad'
 
 // Composant compte à rebours pour les offres flash
 function CountdownTimer({ expiresAt }: { expiresAt: string }) {
@@ -207,7 +202,7 @@ export function MesDevisPage() {
     }
   }
 
-  // Fonction pour calculer l'estimation de prix basée sur la grille tarifaire
+  // Fonction pour calculer l'estimation de prix via l'API serveur (sécurisé)
   const calculatePriceEstimate = async (distanceKm?: number) => {
     if (!data) return
 
@@ -215,17 +210,6 @@ export function MesDevisPage() {
     if (!displayData) return
 
     try {
-      // Charger les grilles tarifaires et majorations
-      const [grilles, majorationsRegions] = await Promise.all([
-        chargerGrillesTarifaires(),
-        chargerMajorationsRegions(),
-      ])
-
-      if (!grilles) {
-        console.error('Impossible de charger les grilles tarifaires')
-        return
-      }
-
       // Récupérer les informations du trajet
       const departure = data.dossier?.departure || data.demande?.departure_city || ''
       const arrival = data.dossier?.arrival || data.demande?.arrival_city || ''
@@ -261,81 +245,51 @@ export function MesDevisPage() {
       } else if (hasReturn) {
         const depDate = new Date(departureDate)
         const retDate = new Date(returnDate)
-        // Calcul du nombre de jours : différence en jours entiers + 1 (pour compter les deux bornes)
         nbJours = Math.max(1, Math.floor((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
 
         if (nbJours === 1) {
           typeService = 'ar_1j'
         } else if (tripMode === 'circuit') {
-          typeService = 'ar_mad' // Circuit = mise à disposition
+          typeService = 'ar_mad'
         } else if (nbJours > 5) {
-          // Si l'écart est > 5 jours, calculer comme 2 allers simples
-          // (pas de mise à disposition, le bus rentre entre temps)
           typeService = 'aller_simple'
           calculateAs2AllerSimple = true
         } else {
-          typeService = 'ar_sans_mad' // AR plusieurs jours sans MAD
+          typeService = 'ar_sans_mad'
         }
       }
 
-      // Calculer la majoration région si applicable
-      let majorationRegionPercent = 0
-      let grandeCapaciteDispo = true // Par défaut, grande capacité disponible
-      if (departure) {
-        const dept = extraireDepartement(departure)
-        if (dept) {
-          const region = majorationsRegions.find(m => m.region_code === dept)
-          if (region) {
-            majorationRegionPercent = region.majoration_percent / 100
-            grandeCapaciteDispo = region.grande_capacite_dispo
-          }
+      // Appeler l'API serveur pour le calcul de prix (logique cachée côté serveur)
+      const { data: result, error } = await supabase.functions.invoke('calculate-price', {
+        body: {
+          distanceKm: distance,
+          typeService,
+          nbJours: calculateAs2AllerSimple ? 1 : nbJours,
+          nbPassagers: passengers,
+          villeDepartAvecCP: departure,
+          heureDepart: departureTime,
+          heureRetour: returnTime,
+          dateDepart: departureDate,
+          dateRetour: returnDate,
         }
-      }
-
-      // Déterminer le nombre de cars selon la grande capacité disponible
-      // Si grande capacité dispo : 1 car peut avoir jusqu'à 90 places
-      // Sinon : max 63 places par car
-      let nbCars = 1
-      if (grandeCapaciteDispo) {
-        // Grande capacité : jusqu'à 90 places
-        nbCars = Math.ceil(passengers / 90)
-      } else {
-        // Pas de grande capacité : max 63 places
-        nbCars = Math.ceil(passengers / 63)
-      }
-
-      // Calculer le tarif complet
-      const resultat = calculerTarifComplet({
-        distanceKm: distance,
-        typeService,
-        amplitude: null, // Sera déterminé automatiquement si AR 1 jour
-        nbJours: calculateAs2AllerSimple ? 1 : nbJours, // 1 jour si 2 allers simples
-        coefficientVehicule: 1, // Standard par défaut
-        nombreCars: nbCars,
-        villeDepartAvecCP: departure,
-        majorationRushManuelle: majorationRegionPercent,
-        kmSupplementairesMAD: 0,
-        heureDepart: departureTime,
-        heureRetour: returnTime,
-        dateDepart: departureDate,
-        dateRetour: returnDate,
-        grilles,
       })
 
-      if (resultat && resultat.prixFinal > 0) {
+      if (error) {
+        console.error('Erreur API calcul prix:', error)
+        return
+      }
+
+      if (result && result.prixMin > 0) {
         // Si c'est 2 allers simples, multiplier le prix par 2
-        const prixFinal = calculateAs2AllerSimple ? resultat.prixFinal * 2 : resultat.prixFinal
-        // Les prix de la grille sont déjà TTC
+        const prixFinal = calculateAs2AllerSimple ? result.prixMin * 2 : result.prixMin
         setEstimatedPrice({ min: prixFinal, max: prixFinal })
 
-        // Mettre à jour tripEstimate avec les infos de chauffeurs du calcul tarifaire
-        if (resultat.infosTrajet) {
-          setTripEstimate(prev => ({
-            nbCars: prev?.nbCars || nbCars,
-            nbDrivers: resultat.infosTrajet?.nbChauffeurs || 1,
-            driverReason: resultat.infosTrajet?.raisonDeuxChauffeurs || '',
-          }))
-        }
+        // Mettre à jour tripEstimate avec les infos de chauffeurs
+        setTripEstimate(prev => ({
+          nbCars: result.nbCars || prev?.nbCars || 1,
+          nbDrivers: result.nbChauffeurs || 1,
+          driverReason: '',
+        }))
       }
     } catch (err) {
       console.error('Erreur calcul estimation:', err)
@@ -488,34 +442,18 @@ export function MesDevisPage() {
         const hasReturn = !!(data.dossier?.return_date || data.demande?.return_date)
 
         if (departure && arrival) {
-          // Charger les majorations pour obtenir la grande capacité dispo
-          Promise.all([
-            calculateRouteInfo(departure, arrival),
-            chargerMajorationsRegions()
-          ]).then(([info, majorationsRegions]) => {
+          // Calculer les infos de route
+          calculateRouteInfo(departure, arrival).then((info) => {
             if (info) {
               setRouteInfo(info)
 
               // Calculer l'estimation de prix avec la distance obtenue
+              // L'API serveur retournera aussi nbCars et nbChauffeurs
               calculatePriceEstimate(info.distance)
 
-              // Déterminer si grande capacité disponible dans la région
-              let grandeCapaciteDispo = true
-              const dept = extraireDepartement(departure)
-              if (dept && majorationsRegions) {
-                const region = majorationsRegions.find(m => m.region_code === dept)
-                if (region) {
-                  grandeCapaciteDispo = region.grande_capacite_dispo
-                }
-              }
-
-              // Calculer le nombre de cars selon la grande capacité
-              let nbCars = 1
-              if (grandeCapaciteDispo) {
-                nbCars = Math.ceil(passengers / 90)
-              } else {
-                nbCars = Math.ceil(passengers / 63)
-              }
+              // Calcul local du nombre de cars (estimation avant réponse API)
+              // Par défaut on suppose grande capacité disponible
+              const nbCars = Math.ceil(passengers / 90)
 
               // Déterminer si c'est un AR le même jour
               const departureDate = data.dossier?.departure_date || data.demande?.departure_date
