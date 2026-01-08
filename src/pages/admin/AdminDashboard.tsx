@@ -3930,7 +3930,7 @@ L'équipe Busmoov`,
       })
 
       // Compter le nombre de devis envoyés pour ce dossier
-      const sentDevisCount = devisList?.filter(d => d.status === 'sent' || d.id === devisId).length || 1
+      const sentDevisCount = dossierDevis?.filter(d => d.status === 'sent' || d.id === devisId).length || 1
 
       // Envoyer l'email de notification au client via le template quote_sent
       const clientEmail = dossier.client_email
@@ -3944,8 +3944,8 @@ L'équipe Busmoov`,
             data: {
               client_name: dossier.client_name || 'Client',
               reference: dossier.reference,
-              departure: dossier.departure_city || 'N/A',
-              arrival: dossier.arrival_city || 'N/A',
+              departure: dossier.departure || 'N/A',
+              arrival: dossier.arrival || 'N/A',
               departure_date: dossier.departure_date ? new Date(dossier.departure_date).toLocaleDateString('fr-FR') : 'N/A',
               passengers: String(dossier.passengers || 0),
               nb_devis: String(sentDevisCount),
@@ -3982,7 +3982,7 @@ L'équipe Busmoov`,
   const handleResendDevis = async (devisId: string, devisRef: string) => {
     try {
       // Compter le nombre de devis envoyés pour ce dossier
-      const sentDevisCount = devisList?.filter(d => d.status === 'sent').length || 1
+      const sentDevisCount = dossierDevis?.filter(d => d.status === 'sent').length || 1
 
       // Envoyer l'email de notification au client via le template quote_sent
       const clientEmail = dossier.client_email
@@ -4000,8 +4000,8 @@ L'équipe Busmoov`,
           data: {
             client_name: dossier.client_name || 'Client',
             reference: dossier.reference,
-            departure: dossier.departure_city || 'N/A',
-            arrival: dossier.arrival_city || 'N/A',
+            departure: dossier.departure || 'N/A',
+            arrival: dossier.arrival || 'N/A',
             departure_date: dossier.departure_date ? new Date(dossier.departure_date).toLocaleDateString('fr-FR') : 'N/A',
             passengers: String(dossier.passengers || 0),
             nb_devis: String(sentDevisCount),
