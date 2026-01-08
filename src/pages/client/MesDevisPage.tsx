@@ -807,9 +807,10 @@ export function MesDevisPage() {
         // Rediriger vers la page de paiement CB
         window.location.href = `/paiement?ref=${data.dossier.reference}&email=${encodeURIComponent(data.dossier.client_email)}`
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error signing contract:', err)
-      alert('Une erreur est survenue')
+      const errorMessage = err?.message || err?.toString() || 'Erreur inconnue'
+      alert(`Une erreur est survenue: ${errorMessage}`)
     }
   }
 
