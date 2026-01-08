@@ -666,7 +666,7 @@ export function MesDevisPage() {
 
       setContractModalOpen(false)
       setSelectedDevis(null)
-      loadData()
+      await loadData()
 
       // Message différent selon le moyen de paiement
       if (paymentMethod === 'virement') {

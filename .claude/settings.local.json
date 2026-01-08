@@ -50,7 +50,13 @@
       "Bash(./node_modules/.bin/netlify deploy:*)",
       "Bash(./node_modules/.bin/netlify:*)",
       "Bash(npx vercel --prod)",
-      "Bash(./node_modules/.bin/vercel:*)"
+      "Bash(./node_modules/.bin/vercel:*)",
+      "Bash(npx supabase:*)",
+      "Bash(set SUPABASE_ACCESS_TOKEN=sbp_c5cae48f565a0acec831eb2c8d482f799e40d8e9)",
+      "Bash($env:SUPABASE_ACCESS_TOKEN=\"sbp_c5cae48f565a0acec831eb2c8d482f799e40d8e9\")",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_c5cae48f565a0acec831eb2c8d482f799e40d8e9 npx supabase:*)",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_53b3219582c75f3bfc46792061ed3af14ba37ebf npx supabase functions deploy:*)",
+      "Bash(export SUPABASE_ACCESS_TOKEN=sbp_53b3219582c75f3bfc46792061ed3af14ba37ebf)"
     ]
   },
   "enableAllProjectMcpServers": true,

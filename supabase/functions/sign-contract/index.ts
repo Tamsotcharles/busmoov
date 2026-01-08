@@ -222,6 +222,61 @@ serve(async (req) => {
       content: `📝 Contrat signé par ${signataire_name} - ${finalPriceTTC}€ TTC (${paymentTypeLabel}, ${payment_method === 'cb' ? 'CB' : 'Virement'})`,
     })
 
+    // 5. Envoyer l'email de confirmation
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+      const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+
+      // Formater la date de départ
+      const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr)
+        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+      }
+
+      // Lien vers la page de paiement
+      const baseUrl = 'https://busmoov.com'
+      const lienPaiement = payment_method === 'cb'
+        ? `${baseUrl}/paiement?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`
+        : null
+
+      const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          type: 'confirmation_reservation',
+          to: dossier.client_email,
+          data: {
+            client_name: signataire_name,
+            reference: dossier.reference,
+            departure: dossier.departure,
+            arrival: dossier.arrival,
+            departure_date: formatDate(dossier.departure_date),
+            passengers: String(dossier.passengers),
+            total_ttc: `${finalPriceTTC}€`,
+            montant_acompte: `${calculatedAcompte}€`,
+            montant_solde: `${calculatedSolde}€`,
+            lien_espace_client: `${baseUrl}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`,
+            lien_paiement: lienPaiement || '',
+            payment_method: payment_method === 'cb' ? 'Carte bancaire' : 'Virement bancaire',
+            dossier_id: dossier_id,
+          },
+        }),
+      })
+
+      if (!emailResponse.ok) {
+        const emailError = await emailResponse.text()
+        console.error('Erreur envoi email confirmation:', emailError)
+      } else {
+        console.log('Email de confirmation envoyé à', dossier.client_email)
+      }
+    } catch (emailErr) {
+      // Ne pas bloquer la signature si l'email échoue
+      console.error('Erreur lors de l\'envoi de l\'email:', emailErr)
+    }
+
     // Retourner les données pour la génération du PDF côté client
     return new Response(
       JSON.stringify({
