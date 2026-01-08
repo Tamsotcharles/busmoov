@@ -1339,14 +1339,17 @@ export function MesDevisPage() {
                   </Link>
                 )
               } else {
-                // Acompte non payé
+                // Acompte non payé (ou paiement total si départ proche)
+                const isFullPayment = currentAcomptePercent === 100
                 return (
                   <Link
                     to={`/paiement?ref=${data.dossier?.reference}&email=${encodeURIComponent(email)}`}
                     className="card p-6 text-center cursor-pointer hover:shadow-lg hover:border-magenta transition-all bg-gradient-to-br from-magenta/5 to-purple/5 border-magenta/20"
                   >
                     <div className="text-3xl mb-2">💳</div>
-                    <h4 className="font-semibold text-purple-dark text-sm">Payer l'acompte</h4>
+                    <h4 className="font-semibold text-purple-dark text-sm">
+                      {isFullPayment ? 'Régler la totalité' : "Payer l'acompte"}
+                    </h4>
                     <p className="text-xs text-gray-500">CB ou Virement</p>
                   </Link>
                 )
@@ -1712,17 +1715,29 @@ export function MesDevisPage() {
             )}
 
             {/* Bloc Confirmation fournisseur reçue si bpa-received */}
-            {isBpaReceived && (
-              <div className="card p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200">
-                <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
-                  <CheckCircle2 size={18} />
-                  Réservation confirmée
-                </h4>
-                <p className="text-gray-600">
-                  Votre transporteur a confirmé la réservation. Nous vous contacterons prochainement pour les détails du voyage.
-                </p>
-              </div>
-            )}
+            {isBpaReceived && (() => {
+              const isVirement = (data?.dossier as any)?.payment_method === 'virement'
+              const paiements = data?.dossier?.paiements || []
+              const totalPaye = paiements.reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+              const isPaymentPending = totalPaye === 0 && isVirement
+
+              return (
+                <div className="card p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200">
+                  <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
+                    <CheckCircle2 size={18} />
+                    Réservation confirmée
+                    {isPaymentPending && (
+                      <span className="text-orange-600 text-sm font-normal ml-2">— En attente de votre règlement</span>
+                    )}
+                  </h4>
+                  <p className="text-gray-600">
+                    Votre transporteur a confirmé la réservation. {isPaymentPending
+                      ? "Merci d'effectuer votre virement pour finaliser la réservation."
+                      : "Nous vous contacterons prochainement pour les détails du voyage."}
+                  </p>
+                </div>
+              )
+            })()}
 
             {devisToShow.map((devis, index) => {
               // isConfirmed = devis accepté et paiement reçu (pending-reservation ou au-delà)
@@ -1762,7 +1777,7 @@ export function MesDevisPage() {
                   {isPending && (
                     <div className="bg-orange-400 text-white text-center py-2 text-sm font-semibold flex items-center justify-center gap-2">
                       <Clock size={16} />
-                      En attente de paiement
+                      {(data?.dossier as any)?.payment_method === 'virement' ? 'En attente de votre virement' : 'En attente de paiement'}
                     </div>
                   )}
 

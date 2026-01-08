@@ -2479,6 +2479,7 @@ function CompareField({
   onEditChange,
   type = 'text',
   formatFn,
+  isAddress = false,
 }: {
   label: string
   originalValue: string | number | null | undefined
@@ -2488,6 +2489,7 @@ function CompareField({
   onEditChange: (value: string) => void
   type?: 'text' | 'number' | 'datetime-local' | 'tel'
   formatFn?: (value: any) => string
+  isAddress?: boolean
 }) {
   const originalFormatted = formatFn ? formatFn(originalValue) : (originalValue?.toString() || '-')
   const clientFormatted = formatFn ? formatFn(clientValue) : (clientValue?.toString() || '-')
@@ -2507,12 +2509,21 @@ function CompareField({
         )}
       </div>
       {isEditing ? (
-        <input
-          type={type}
-          className="input mt-1"
-          value={type === 'datetime-local' ? (editValue?.toString()?.slice(0, 16) || '') : editValue}
-          onChange={(e) => onEditChange(e.target.value)}
-        />
+        isAddress ? (
+          <AddressAutocomplete
+            value={editValue?.toString() || ''}
+            onChange={onEditChange}
+            placeholder="Rechercher une adresse..."
+            className="mt-1"
+          />
+        ) : (
+          <input
+            type={type}
+            className="input mt-1"
+            value={type === 'datetime-local' ? (editValue?.toString()?.slice(0, 16) || '') : editValue}
+            onChange={(e) => onEditChange(e.target.value)}
+          />
+        )
       ) : (
         <div className="mt-1">
           {hasChanged ? (
@@ -3173,6 +3184,7 @@ L'équipe Busmoov`,
               isEditing={isEditing}
               editValue={editData.aller_adresse_depart}
               onEditChange={(v) => setEditData({ ...editData, aller_adresse_depart: v })}
+              isAddress={true}
             />
             <CompareField
               label="Adresse d'arrivée"
@@ -3181,6 +3193,7 @@ L'équipe Busmoov`,
               isEditing={isEditing}
               editValue={editData.aller_adresse_arrivee}
               onEditChange={(v) => setEditData({ ...editData, aller_adresse_arrivee: v })}
+              isAddress={true}
             />
           </div>
         </div>
@@ -3220,6 +3233,7 @@ L'équipe Busmoov`,
                 isEditing={isEditing}
                 editValue={editData.retour_adresse_depart}
                 onEditChange={(v) => setEditData({ ...editData, retour_adresse_depart: v })}
+                isAddress={true}
               />
               <CompareField
                 label="Adresse d'arrivée"
@@ -3228,6 +3242,7 @@ L'équipe Busmoov`,
                 isEditing={isEditing}
                 editValue={editData.retour_adresse_arrivee}
                 onEditChange={(v) => setEditData({ ...editData, retour_adresse_arrivee: v })}
+                isAddress={true}
               />
             </div>
           </div>
@@ -3937,7 +3952,13 @@ L'équipe Busmoov`,
       if (clientEmail) {
         const lienEspaceClient = `${window.location.origin}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(clientEmail)}`
 
-        const { error: emailError } = await supabase.functions.invoke('send-email', {
+        console.log('Appel send-email avec:', {
+          type: 'quote_sent',
+          to: clientEmail,
+          dossier_id: dossier.id,
+        })
+
+        const { data: emailData, error: emailError } = await supabase.functions.invoke('send-email', {
           body: {
             type: 'quote_sent',
             to: clientEmail,
@@ -3955,9 +3976,14 @@ L'équipe Busmoov`,
           }
         })
 
+        console.log('Résultat send-email:', { emailData, emailError })
+
         if (emailError) {
           console.error('Erreur envoi email:', emailError)
-          // Ne pas bloquer si l'email échoue, mais le signaler
+          alert(`Email non envoyé: ${emailError.message || JSON.stringify(emailError)}`)
+        } else if (emailData && !emailData.success) {
+          console.error('Échec envoi email:', emailData)
+          alert(`Email non envoyé: ${emailData.error || 'Erreur inconnue'}`)
         }
       }
 
@@ -5147,6 +5173,12 @@ L'équipe Busmoov`
                             service_type: (devisAccepte as any)?.service_type || dossier.trip_mode || undefined,
                             duree_jours: dureeJoursContrat > 1 ? dureeJoursContrat : undefined,
                             detail_mad: (devisAccepte as any)?.detail_mad || undefined,
+                            paiements: paiements.map(p => ({
+                              type: p.type,
+                              amount: p.amount,
+                              payment_date: p.payment_date,
+                              reference: p.reference,
+                            })),
                             dossier: {
                               reference: dossier.reference,
                               client_name: dossier.client_name,

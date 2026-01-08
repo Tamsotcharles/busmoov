@@ -2492,7 +2492,9 @@ export async function generateInfosVoyagePDF(data: InfosVoyageData): Promise<voi
   y += 15
 
   // ========== COLONNES ALLER / RETOUR ==========
-  const colWidth = (pageWidth - 40) / 2
+  // Si aller seul ou retour seul: une seule colonne pleine largeur
+  const isSingleColumn = data.type === 'aller' || data.type === 'retour'
+  const colWidth = isSingleColumn ? pageWidth - 30 : (pageWidth - 40) / 2
   const colLeftX = 15
   const colRightX = pageWidth / 2 + 5
 
@@ -2507,14 +2509,15 @@ export async function generateInfosVoyagePDF(data: InfosVoyageData): Promise<voi
     depart: string | null | undefined,
     arrivee: string | null | undefined,
     contactNom: string | null | undefined,
-    contactTel: string | null | undefined
+    contactTel: string | null | undefined,
+    columnWidth: number
   ) => {
     let colY = startY
 
     // Header avec titre
     const rgb = hexToRgb(titleColor)
     if (rgb) doc.setFillColor(rgb.r, rgb.g, rgb.b)
-    doc.rect(startX, colY, colWidth, 8, 'F')
+    doc.rect(startX, colY, columnWidth, 8, 'F')
     doc.setFontSize(10)
     doc.setTextColor(255, 255, 255)
     doc.setFont('helvetica', 'bold')
@@ -2579,28 +2582,49 @@ export async function generateInfosVoyagePDF(data: InfosVoyageData): Promise<voi
     return colY
   }
 
-  // Dessiner les colonnes
+  // Dessiner les colonnes - seulement celles qui correspondent au type
   let maxY = y
-  if (data.type === 'aller' || data.type === 'aller_retour') {
-    const contactName = [data.contact_prenom, data.contact_nom].filter(Boolean).join(' ')
+  const contactName = [data.contact_prenom, data.contact_nom].filter(Boolean).join(' ')
+
+  if (data.type === 'aller') {
+    // Aller seul - colonne pleine largeur
     const endY = drawTrajetColumn(
       colLeftX, y, 'Transfert aller', purpleDark,
       data.aller_date, data.aller_heure,
       data.aller_adresse_depart, data.aller_adresse_arrivee,
-      contactName, data.contact_tel
+      contactName, data.contact_tel,
+      colWidth
     )
     maxY = Math.max(maxY, endY)
-  }
-
-  if (data.type === 'retour' || data.type === 'aller_retour') {
-    const contactName = [data.contact_prenom, data.contact_nom].filter(Boolean).join(' ')
+  } else if (data.type === 'retour') {
+    // Retour seul - colonne pleine largeur
     const endY = drawTrajetColumn(
+      colLeftX, y, 'Transfert retour', purpleDark,
+      data.retour_date, data.retour_heure,
+      data.retour_adresse_depart, data.retour_adresse_arrivee,
+      contactName, data.contact_tel,
+      colWidth
+    )
+    maxY = Math.max(maxY, endY)
+  } else if (data.type === 'aller_retour') {
+    // Aller-retour - deux colonnes
+    const endYAller = drawTrajetColumn(
+      colLeftX, y, 'Transfert aller', purpleDark,
+      data.aller_date, data.aller_heure,
+      data.aller_adresse_depart, data.aller_adresse_arrivee,
+      contactName, data.contact_tel,
+      colWidth
+    )
+    maxY = Math.max(maxY, endYAller)
+
+    const endYRetour = drawTrajetColumn(
       colRightX, y, 'Transfert retour', purpleDark,
       data.retour_date, data.retour_heure,
       data.retour_adresse_depart, data.retour_adresse_arrivee,
-      contactName, data.contact_tel
+      contactName, data.contact_tel,
+      colWidth
     )
-    maxY = Math.max(maxY, endY)
+    maxY = Math.max(maxY, endYRetour)
   }
 
   y = maxY + 20
@@ -2703,7 +2727,9 @@ export async function generateInfosVoyagePDFBase64(data: InfosVoyageData): Promi
 
   y += 15
 
-  const colWidth = (pageWidth - 40) / 2
+  // Si aller seul ou retour seul: une seule colonne pleine largeur
+  const isSingleColumn = data.type === 'aller' || data.type === 'retour'
+  const colWidth = isSingleColumn ? pageWidth - 30 : (pageWidth - 40) / 2
   const colLeftX = 15
   const colRightX = pageWidth / 2 + 5
 
@@ -2717,13 +2743,14 @@ export async function generateInfosVoyagePDFBase64(data: InfosVoyageData): Promi
     depart: string | null | undefined,
     arrivee: string | null | undefined,
     contactNom: string | null | undefined,
-    contactTel: string | null | undefined
+    contactTel: string | null | undefined,
+    columnWidth: number
   ) => {
     let colY = startY
 
     const rgb = hexToRgb(titleColor)
     if (rgb) doc.setFillColor(rgb.r, rgb.g, rgb.b)
-    doc.rect(startX, colY, colWidth, 8, 'F')
+    doc.rect(startX, colY, columnWidth, 8, 'F')
     doc.setFontSize(10)
     doc.setTextColor(255, 255, 255)
     doc.setFont('helvetica', 'bold')
@@ -2783,27 +2810,49 @@ export async function generateInfosVoyagePDFBase64(data: InfosVoyageData): Promi
     return colY
   }
 
+  // Dessiner les colonnes - seulement celles qui correspondent au type
   let maxY = y
-  if (data.type === 'aller' || data.type === 'aller_retour') {
-    const contactName = [data.contact_prenom, data.contact_nom].filter(Boolean).join(' ')
+  const contactName = [data.contact_prenom, data.contact_nom].filter(Boolean).join(' ')
+
+  if (data.type === 'aller') {
+    // Aller seul - colonne pleine largeur
     const endY = drawTrajetColumn(
       colLeftX, y, 'Transfert aller', purpleDark,
       data.aller_date, data.aller_heure,
       data.aller_adresse_depart, data.aller_adresse_arrivee,
-      contactName, data.contact_tel
+      contactName, data.contact_tel,
+      colWidth
     )
     maxY = Math.max(maxY, endY)
-  }
-
-  if (data.type === 'retour' || data.type === 'aller_retour') {
-    const contactName = [data.contact_prenom, data.contact_nom].filter(Boolean).join(' ')
+  } else if (data.type === 'retour') {
+    // Retour seul - colonne pleine largeur
     const endY = drawTrajetColumn(
+      colLeftX, y, 'Transfert retour', magenta,
+      data.retour_date, data.retour_heure,
+      data.retour_adresse_depart, data.retour_adresse_arrivee,
+      contactName, data.contact_tel,
+      colWidth
+    )
+    maxY = Math.max(maxY, endY)
+  } else if (data.type === 'aller_retour') {
+    // Aller-retour - deux colonnes
+    const endYAller = drawTrajetColumn(
+      colLeftX, y, 'Transfert aller', purpleDark,
+      data.aller_date, data.aller_heure,
+      data.aller_adresse_depart, data.aller_adresse_arrivee,
+      contactName, data.contact_tel,
+      colWidth
+    )
+    maxY = Math.max(maxY, endYAller)
+
+    const endYRetour = drawTrajetColumn(
       colRightX, y, 'Transfert retour', magenta,
       data.retour_date, data.retour_heure,
       data.retour_adresse_depart, data.retour_adresse_arrivee,
-      contactName, data.contact_tel
+      contactName, data.contact_tel,
+      colWidth
     )
-    maxY = Math.max(maxY, endY)
+    maxY = Math.max(maxY, endYRetour)
   }
 
   y = maxY + 20

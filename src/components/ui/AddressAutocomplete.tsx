@@ -62,7 +62,7 @@ export function AddressAutocomplete({
     setIsLoading(true)
     try {
       const response = await fetch(
-        `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(searchQuery)}&lang=fr&limit=5&type=city&filter=countrycode:fr&apiKey=${apiKey}`
+        `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(searchQuery)}&lang=fr&limit=5&filter=countrycode:fr&apiKey=${apiKey}`
       )
       const data = await response.json()
 
@@ -100,7 +100,8 @@ export function AddressAutocomplete({
   }
 
   const handleSelectSuggestion = (suggestion: GeoapifySuggestion) => {
-    const selectedValue = suggestion.city || suggestion.formatted
+    // Toujours utiliser l'adresse complète (formatted) pour les infos voyage
+    const selectedValue = suggestion.formatted
     setQuery(selectedValue)
     onChange(selectedValue)
     setShowSuggestions(false)

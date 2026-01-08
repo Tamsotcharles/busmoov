@@ -409,13 +409,14 @@ export function ChauffeurInfoPage() {
           const { base64: pdfBase64, filename: pdfFilename } = await generateFeuilleRoutePDFBase64(pdfData)
 
           // Envoyer l'email avec le PDF
+          const dateFormatted = formatDate(demande.voyage_info?.aller_date || demande.dossier.departure_date)
           const emailBody = `Bonjour ${dossierData.client_name || ''},
 
 Votre voyage est confirmé ! Veuillez trouver ci-joint votre feuille de route avec toutes les informations nécessaires pour votre déplacement.
 
 Récapitulatif :
 - Référence : ${demande.dossier.reference}
-- Date : ${demande.voyage_info?.aller_date || demande.dossier.departure_date}
+- Date : ${dateFormatted}
 - Trajet : ${demande.voyage_info?.aller_adresse_depart || demande.dossier.departure} → ${demande.voyage_info?.aller_adresse_arrivee || demande.dossier.arrival}
 - Chauffeur : ${chauffeurAllerPrincipal?.nom || 'Non communiqué'}
 - Téléphone chauffeur : ${chauffeurAllerPrincipal?.tel || 'Non communiqué'}

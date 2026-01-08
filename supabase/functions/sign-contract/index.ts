@@ -227,6 +227,11 @@ serve(async (req) => {
       const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
       const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 
+      console.log('=== ENVOI EMAIL CONFIRMATION ===')
+      console.log('supabaseUrl:', supabaseUrl ? 'OK' : 'MANQUANT')
+      console.log('supabaseAnonKey:', supabaseAnonKey ? 'OK (length: ' + supabaseAnonKey.length + ')' : 'MANQUANT')
+      console.log('Email destinataire:', dossier.client_email)
+
       // Formater la date de départ
       const formatDate = (dateStr: string) => {
         const date = new Date(dateStr)
@@ -239,42 +244,54 @@ serve(async (req) => {
         ? `${baseUrl}/paiement?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`
         : null
 
-      const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+      const emailPayload = {
+        type: 'confirmation_reservation',
+        to: dossier.client_email,
+        data: {
+          client_name: signataire_name,
+          reference: dossier.reference,
+          departure: dossier.departure,
+          arrival: dossier.arrival,
+          departure_date: formatDate(dossier.departure_date),
+          passengers: String(dossier.passengers),
+          total_ttc: `${finalPriceTTC}€`,
+          montant_acompte: `${calculatedAcompte}€`,
+          montant_solde: calculatedSolde > 0 ? `${calculatedSolde}€` : '',
+          lien_espace_client: `${baseUrl}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`,
+          lien_paiement: lienPaiement || '',
+          payment_method: payment_method === 'cb' ? 'Carte bancaire' : 'Virement bancaire',
+          is_virement: payment_method === 'virement' ? 'true' : '',
+          dossier_id: dossier_id,
+        },
+      }
+
+      console.log('Payload email:', JSON.stringify(emailPayload, null, 2))
+
+      const emailUrl = `${supabaseUrl}/functions/v1/send-email`
+      console.log('URL appel:', emailUrl)
+
+      const emailResponse = await fetch(emailUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${supabaseAnonKey}`,
         },
-        body: JSON.stringify({
-          type: 'confirmation_reservation',
-          to: dossier.client_email,
-          data: {
-            client_name: signataire_name,
-            reference: dossier.reference,
-            departure: dossier.departure,
-            arrival: dossier.arrival,
-            departure_date: formatDate(dossier.departure_date),
-            passengers: String(dossier.passengers),
-            total_ttc: `${finalPriceTTC}€`,
-            montant_acompte: `${calculatedAcompte}€`,
-            montant_solde: `${calculatedSolde}€`,
-            lien_espace_client: `${baseUrl}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`,
-            lien_paiement: lienPaiement || '',
-            payment_method: payment_method === 'cb' ? 'Carte bancaire' : 'Virement bancaire',
-            dossier_id: dossier_id,
-          },
-        }),
+        body: JSON.stringify(emailPayload),
       })
 
+      console.log('Réponse email - Status:', emailResponse.status)
+
+      const emailResponseText = await emailResponse.text()
+      console.log('Réponse email - Body:', emailResponseText)
+
       if (!emailResponse.ok) {
-        const emailError = await emailResponse.text()
-        console.error('Erreur envoi email confirmation:', emailError)
+        console.error('Erreur envoi email confirmation:', emailResponseText)
       } else {
-        console.log('Email de confirmation envoyé à', dossier.client_email)
+        console.log('Email de confirmation envoyé avec succès à', dossier.client_email)
       }
     } catch (emailErr) {
       // Ne pas bloquer la signature si l'email échoue
-      console.error('Erreur lors de l\'envoi de l\'email:', emailErr)
+      console.error('Exception lors de l\'envoi de l\'email:', emailErr)
     }
 
     // Retourner les données pour la génération du PDF côté client

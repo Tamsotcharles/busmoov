@@ -84,6 +84,20 @@ interface PriceEstimate {
   nbChauffeurs: number;
   nbCars: number;
   detailType: string;
+  grandeCapaciteDispo?: boolean;
+  capaciteMaxParCar?: number;
+}
+
+interface CapaciteVehicule {
+  code: string;
+  coefficient: number;
+  places_min?: number;
+  places_max?: number;
+}
+
+interface MajorationRegion {
+  region_code: string;
+  grande_capacite_dispo: boolean;
 }
 
 // =============================================
@@ -307,13 +321,29 @@ async function calculerTarif(
     return { erreur: 'Distance invalide' };
   }
 
-  // Charger les grilles tarifaires
-  const [resAS, resAR1J, resARMAD, resARSansMAD] = await Promise.all([
+  // Charger les grilles tarifaires + capacités + majorations régionales
+  const [resAS, resAR1J, resARMAD, resARSansMAD, resCapacites, resMajorations] = await Promise.all([
     supabase.from('tarifs_aller_simple').select('*').order('km_min'),
     supabase.from('tarifs_ar_1j').select('*').order('km_min'),
     supabase.from('tarifs_ar_mad').select('*').order('km_min'),
     supabase.from('tarifs_ar_sans_mad').select('*').order('km_min'),
+    supabase.from('capacites_vehicules').select('code, coefficient, places_min, places_max'),
+    supabase.from('majorations_regions').select('region_code, grande_capacite_dispo').eq('is_active', true),
   ]);
+
+  // Capacités véhicules
+  const capacites: CapaciteVehicule[] = (resCapacites.data || []).map((c: Record<string, unknown>) => ({
+    code: c.code as string,
+    coefficient: parseFloat(String(c.coefficient)) || 1,
+    places_min: c.places_min as number | undefined,
+    places_max: c.places_max as number | undefined,
+  }));
+
+  // Majorations régionales
+  const majorationsRegions: MajorationRegion[] = (resMajorations.data || []).map((m: Record<string, unknown>) => ({
+    region_code: m.region_code as string,
+    grande_capacite_dispo: m.grande_capacite_dispo as boolean ?? true,
+  }));
 
   const toNum = (val: unknown): number => parseFloat(String(val)) || 0;
   const toNumOrNull = (val: unknown): number | null => val != null ? parseFloat(String(val)) || null : null;
@@ -364,9 +394,27 @@ async function calculerTarif(
     typeService
   );
 
+  // ============ CALCUL AUTOMATIQUE DU NOMBRE DE CARS ============
+  // Vérifier si la grande capacité est disponible dans la région de départ
+  const departement = extraireDepartement(villeDepartAvecCP);
+  const regionInfo = departement ? majorationsRegions.find(m => m.region_code === departement) : null;
+  const grandeCapaciteDispo = regionInfo?.grande_capacite_dispo ?? true; // Par défaut on suppose que c'est dispo
+
+  // Capacité max par car selon disponibilité grande capacité
+  // Grande capacité = 90 places max, Standard = 57 places max
+  const CAPACITE_GRANDE = 90;
+  const CAPACITE_STANDARD = 57;
+  const capaciteMaxParCar = grandeCapaciteDispo ? CAPACITE_GRANDE : CAPACITE_STANDARD;
+
+  // Calculer le nombre de cars nécessaire si nbPassagers est fourni et nombreCars non spécifié
+  let nombreCarsCalcule = nombreCars;
+  if (params.nbPassagers && params.nbPassagers > 0 && !params.nombreCars) {
+    // Si pas de nombreCars explicite, on le calcule automatiquement
+    nombreCarsCalcule = Math.ceil(params.nbPassagers / capaciteMaxParCar);
+  }
+
   // Majoration département problématique
   let majorationAutoRegion = 0;
-  const departement = extraireDepartement(villeDepartAvecCP);
   if (departement && estDepartementProblematique(departement)) {
     majorationAutoRegion = 0.05;
   }
@@ -561,16 +609,18 @@ async function calculerTarif(
   const prixAvantMajoration = prixVehicule + supplementJoursAvecCoef + infosTrajet.coutRelaisChauffeur;
   const prixFinal = Math.round(prixAvantMajoration * (1 + majorationAutoRegion));
 
-  // Appliquer le nombre de cars
-  const prixTotalMin = prixFinal * nombreCars;
+  // Appliquer le nombre de cars (calculé automatiquement ou fourni)
+  const prixTotalMin = prixFinal * nombreCarsCalcule;
   const prixTotalMax = prixTotalMin; // Pour l'instant min = max
 
   return {
     prixMin: prixTotalMin,
     prixMax: prixTotalMax,
-    nbChauffeurs: infosTrajet.nbChauffeurs * nombreCars,
-    nbCars: nombreCars,
+    nbChauffeurs: infosTrajet.nbChauffeurs * nombreCarsCalcule,
+    nbCars: nombreCarsCalcule,
     detailType,
+    grandeCapaciteDispo,
+    capaciteMaxParCar,
   };
 }
 

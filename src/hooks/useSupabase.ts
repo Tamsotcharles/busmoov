@@ -1,6 +1,21 @@
 // useSupabase hooks - updated
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+
+// Helper pour formater les dates pour les emails
+function formatDateForEmail(dateString: string | null | undefined): string {
+  if (!dateString) return 'Non définie'
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    })
+  } catch {
+    return dateString
+  }
+}
 import type {
   Demande,
   DossierWithRelations,
@@ -174,8 +189,8 @@ export function useCreateDemande() {
                 dossier_reference: dossierData.reference,
                 departure: demandeData.departure_city,
                 arrival: demandeData.arrival_city,
-                departure_date: demandeData.departure_date,
-                passengers: demandeData.passengers,
+                departure_date: formatDateForEmail(demandeData.departure_date),
+                passengers: String(demandeData.passengers),
                 client_email: demandeData.client_email,
                 lien_espace_client: `${window.location.origin}/mes-devis?ref=${demandeData.reference}&email=${encodeURIComponent(demandeData.client_email)}`,
               }
