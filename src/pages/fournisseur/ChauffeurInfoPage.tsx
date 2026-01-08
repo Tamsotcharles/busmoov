@@ -431,6 +431,9 @@ L'équipe Busmoov`
               to: dossierData.client_email,
               subject: `Feuille de route - ${demande.dossier.reference}`,
               html_content: emailBody.replace(/\n/g, '<br>'),
+              data: {
+                dossier_id: demande.dossier.id,
+              },
               attachments: [
                 {
                   filename: pdfFilename,

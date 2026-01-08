@@ -3873,6 +3873,9 @@ L'équipe Busmoov`,
             to: feuilleRouteEmailForm.to,
             subject: feuilleRouteEmailForm.subject,
             html_content: feuilleRouteEmailForm.body.replace(/\n/g, '<br>'),
+            data: {
+              dossier_id: dossier.id,
+            },
             attachments: [
               {
                 filename: pdfFilename,
@@ -3925,6 +3928,38 @@ L'équipe Busmoov`,
         id: dossier.id,
         status: 'pending-client',
       })
+
+      // Compter le nombre de devis envoyés pour ce dossier
+      const sentDevisCount = devisList?.filter(d => d.status === 'sent' || d.id === devisId).length || 1
+
+      // Envoyer l'email de notification au client via le template quote_sent
+      const clientEmail = dossier.client_email
+      if (clientEmail) {
+        const lienEspaceClient = `${window.location.origin}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(clientEmail)}`
+
+        const { error: emailError } = await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'quote_sent',
+            to: clientEmail,
+            data: {
+              client_name: dossier.client_name || 'Client',
+              reference: dossier.reference,
+              departure: dossier.departure_city || 'N/A',
+              arrival: dossier.arrival_city || 'N/A',
+              departure_date: dossier.departure_date ? new Date(dossier.departure_date).toLocaleDateString('fr-FR') : 'N/A',
+              passengers: String(dossier.passengers || 0),
+              nb_devis: String(sentDevisCount),
+              lien_espace_client: lienEspaceClient,
+              dossier_id: dossier.id,
+            },
+          }
+        })
+
+        if (emailError) {
+          console.error('Erreur envoi email:', emailError)
+          // Ne pas bloquer si l'email échoue, mais le signaler
+        }
+      }
 
       // Ajouter à la timeline
       await addTimelineEntry.mutateAsync({
@@ -8215,10 +8250,9 @@ L'équipe Busmoov`)
                     if (transporteur.email) {
                       await supabase.functions.invoke('send-email', {
                         body: {
-                          type: 'template',
-                          template_key: 'demande_tarif_fournisseur',
+                          type: 'demande_tarif_fournisseur',
                           to: transporteur.email,
-                          variables: {
+                          data: {
                             reference: dossier.reference,
                             departure: dossier.departure,
                             arrival: dossier.arrival,
@@ -8230,6 +8264,7 @@ L'équipe Busmoov`)
                             vehicle_type: devisAccepte?.vehicle_type || 'standard',
                             nb_cars: devisAccepte?.nombre_cars?.toString() || '1',
                             lien_proposition_tarif: lienPropositionTarif,
+                            dossier_id: dossier.id,
                           },
                         },
                       })
@@ -12928,10 +12963,9 @@ L'équipe Busmoov`
 
           await supabase.functions.invoke('send-email', {
             body: {
-              type: 'template',
-              template_key: 'demande_tarif_fournisseur',
+              type: 'demande_tarif_fournisseur',
               to: transporteur.email,
-              variables: {
+              data: {
                 reference: selectedDossier.reference,
                 departure: selectedDossier.departure,
                 arrival: selectedDossier.arrival,
@@ -12943,6 +12977,7 @@ L'équipe Busmoov`
                 vehicle_type: devisAccepte?.vehicle_type || 'standard',
                 nb_cars: devisAccepte?.nombre_cars?.toString() || '1',
                 lien_proposition_tarif: lienPropositionTarif,
+                dossier_id: selectedDossier.id,
               },
             },
           })
@@ -14601,23 +14636,38 @@ L'équipe Busmoov`,
 
     setSendingEmail(true)
     try {
-      // Ouvrir le client mail avec les infos pré-remplies
-      const mailtoLink = `mailto:${envoiFactureForm.to}?subject=${encodeURIComponent(envoiFactureForm.subject)}&body=${encodeURIComponent(envoiFactureForm.body)}`
-      window.open(mailtoLink, '_blank')
+      // Envoyer l'email via l'Edge Function
+      const { error: emailError } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'custom',
+          to: envoiFactureForm.to,
+          subject: envoiFactureForm.subject,
+          html_content: envoiFactureForm.body.replace(/\n/g, '<br>'),
+          data: {
+            dossier_id: selectedFactureForEmail?.dossier?.id || null,
+          },
+        }
+      })
+
+      if (emailError) {
+        console.error('Erreur envoi email:', emailError)
+        throw emailError
+      }
 
       // Enregistrer dans la timeline
       if (selectedFactureForEmail?.dossier?.id) {
         await supabase.from('timeline').insert({
           dossier_id: selectedFactureForEmail.dossier.id,
           type: 'email',
-          content: `📧 Facture ${selectedFactureForEmail.reference} envoyée à ${envoiFactureForm.to}`,
+          content: `Facture ${selectedFactureForEmail.reference} envoyée à ${envoiFactureForm.to}`,
         })
       }
 
       setShowEnvoiFactureModal(false)
+      alert('Facture envoyée avec succès !')
     } catch (error) {
       console.error('Error sending email:', error)
-      alert('Erreur lors de l\'envoi')
+      alert('Erreur lors de l\'envoi de l\'email')
     } finally {
       setSendingEmail(false)
     }
