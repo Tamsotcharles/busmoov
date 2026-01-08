@@ -34,7 +34,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
   delivery_delayed: { label: 'Retardé', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
 }
 
-const TEMPLATE_LABELS: Record<string, string> = {
+const TEMPLATE_LABELS: { [key: string]: string } = {
   quote_sent: 'Devis envoyé',
   offre_flash: 'Offre flash',
   payment_reminder: 'Rappel acompte',
