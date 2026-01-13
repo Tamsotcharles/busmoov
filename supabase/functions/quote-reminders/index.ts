@@ -4,15 +4,19 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 /**
  * Edge Function: quote-reminders
  *
- * Envoie automatiquement des relances aux clients:
- * - J+3 après envoi des devis : rappel amical avec récapitulatif des devis
- * - J+7 après envoi des devis : rappel urgent (dernière chance avant expiration)
+ * Envoie automatiquement des relances aux clients après envoi des devis.
+ * Les règles sont configurées dynamiquement via l'interface admin (workflow_rules)
+ * avec le trigger_event = 'quote_reminder'
+ *
+ * Chaque règle définit:
+ * - conditions.days_after_devis: nombre de jours après l'envoi des devis
+ * - action_config.template: clé du template email à utiliser
  *
  * Conditions pour envoyer une relance:
  * - Le dossier a des devis envoyés (status = 'sent')
  * - Aucun devis n'a été accepté
  * - Le client n'a pas encore payé/signé
- * - La relance n'a pas déjà été envoyée
+ * - La relance n'a pas déjà été envoyée (tracké dans quote_reminders)
  */
 
 // Domaines autorisés pour CORS
@@ -31,6 +35,20 @@ function getCorsHeaders(origin: string | null) {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
   }
+}
+
+interface WorkflowRule {
+  id: string
+  name: string
+  trigger_event: string
+  conditions: {
+    days_after_devis?: number
+  } | null
+  action_config: {
+    template?: string
+    subject?: string
+  } | null
+  is_active: boolean
 }
 
 interface Devis {
@@ -248,7 +266,38 @@ Deno.serve(async (req) => {
     const results: any[] = []
     const now = new Date()
 
-    // Récupérer les dossiers avec devis envoyés mais pas encore acceptés
+    // 1. Charger les règles de workflow actives pour les relances devis
+    const { data: workflowRules, error: rulesError } = await supabase
+      .from('workflow_rules')
+      .select('id, name, trigger_event, conditions, action_config, is_active')
+      .eq('trigger_event', 'quote_reminder')
+      .eq('is_active', true)
+
+    if (rulesError) {
+      console.error('Erreur chargement workflow_rules:', rulesError)
+      throw new Error(`Erreur chargement règles: ${rulesError.message}`)
+    }
+
+    if (!workflowRules || workflowRules.length === 0) {
+      console.log('Aucune règle de relance devis active trouvée')
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Aucune règle de relance devis active',
+          processed: 0,
+          results: [],
+          timestamp: now.toISOString(),
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      )
+    }
+
+    console.log(`${workflowRules.length} règle(s) de relance devis actives`)
+
+    // 2. Récupérer les dossiers avec devis envoyés mais pas encore acceptés
     let query = supabase
       .from('dossiers')
       .select(`
@@ -310,7 +359,7 @@ Deno.serve(async (req) => {
       const sentDate = new Date(oldestSentAt)
       const daysSinceSent = Math.floor((now.getTime() - sentDate.getTime()) / (1000 * 60 * 60 * 24))
 
-      // Vérifier les relances déjà envoyées
+      // Vérifier les relances déjà envoyées pour ce dossier
       const { data: existingReminders } = await supabase
         .from('quote_reminders')
         .select('reminder_type')
@@ -318,104 +367,113 @@ Deno.serve(async (req) => {
 
       const remindersSent = new Set((existingReminders || []).map((r: any) => r.reminder_type))
 
-      // Déterminer quelle relance envoyer
-      let reminderToSend: '3d' | '7d' | null = null
-      let templateKey: string | null = null
+      // Pour chaque règle, vérifier si elle doit déclencher une relance
+      for (const rule of workflowRules as WorkflowRule[]) {
+        const daysAfterDevis = rule.conditions?.days_after_devis
+        if (!daysAfterDevis) continue
 
-      // Relance J+7 (prioritaire si on est à J+7 ou plus et pas encore envoyée)
-      if (daysSinceSent >= 7 && !remindersSent.has('7d')) {
-        reminderToSend = '7d'
-        templateKey = 'quote_reminder_7d'
-      }
-      // Relance J+3 (si on est entre J+3 et J+7 et pas encore envoyée)
-      else if (daysSinceSent >= 3 && daysSinceSent < 7 && !remindersSent.has('3d')) {
-        reminderToSend = '3d'
-        templateKey = 'quote_reminder_3d'
-      }
+        // Identifiant unique pour cette règle/délai
+        const reminderType = `${daysAfterDevis}d`
 
-      if (!reminderToSend || !templateKey) {
-        // Pas de relance à envoyer pour ce dossier
-        continue
-      }
+        // Vérifier si cette relance a déjà été envoyée
+        if (remindersSent.has(reminderType)) continue
 
-      console.log(`Dossier ${dossier.reference}: envoi relance ${reminderToSend} (${daysSinceSent} jours depuis envoi devis)`)
+        // Vérifier si le délai est atteint
+        if (daysSinceSent < daysAfterDevis) continue
 
-      // Générer le récapitulatif des devis
-      const devisRecapHtml = generateDevisRecapHtml(devisSent)
+        // Template email à utiliser (défini dans la règle ou par défaut)
+        const templateKey = rule.action_config?.template || `quote_reminder_${daysAfterDevis}d`
 
-      if (dryRun) {
+        console.log(`Dossier ${dossier.reference}: envoi relance J+${daysAfterDevis} via règle "${rule.name}"`)
+
+        // Générer le récapitulatif des devis
+        const devisRecapHtml = generateDevisRecapHtml(devisSent)
+
+        if (dryRun) {
+          results.push({
+            dossier_id: dossier.id,
+            reference: dossier.reference,
+            client_email: dossier.client_email,
+            rule_id: rule.id,
+            rule_name: rule.name,
+            reminder_type: reminderType,
+            template: templateKey,
+            days_since_sent: daysSinceSent,
+            nb_devis: devisSent.length,
+            status: 'dry_run',
+          })
+          continue
+        }
+
+        // Envoyer l'email
+        const emailResult = await sendReminderEmail(
+          supabase,
+          { ...dossier, devis: devisSent },
+          templateKey,
+          devisRecapHtml
+        )
+
+        if (!emailResult.success) {
+          console.error(`Erreur envoi relance J+${daysAfterDevis} pour ${dossier.reference}:`, emailResult.error)
+          results.push({
+            dossier_id: dossier.id,
+            reference: dossier.reference,
+            rule_name: rule.name,
+            reminder_type: reminderType,
+            status: 'error',
+            error: emailResult.error,
+          })
+          continue
+        }
+
+        // Enregistrer la relance envoyée
+        const { data: reminder, error: insertError } = await supabase
+          .from('quote_reminders')
+          .insert({
+            dossier_id: dossier.id,
+            reminder_type: reminderType,
+            sent_at: now.toISOString(),
+          })
+          .select()
+          .single()
+
+        if (insertError) {
+          console.error(`Erreur enregistrement relance:`, insertError)
+        }
+
+        // Ajouter à la timeline
+        await supabase
+          .from('timeline')
+          .insert({
+            dossier_id: dossier.id,
+            type: 'email_sent',
+            content: `Relance automatique J+${daysAfterDevis} envoyée (${rule.name})`,
+          })
+
         results.push({
           dossier_id: dossier.id,
           reference: dossier.reference,
           client_email: dossier.client_email,
-          reminder_type: reminderToSend,
+          rule_id: rule.id,
+          rule_name: rule.name,
+          reminder_type: reminderType,
+          template: templateKey,
           days_since_sent: daysSinceSent,
           nb_devis: devisSent.length,
-          status: 'dry_run',
+          status: 'sent',
+          email_id: emailResult.emailId,
+          reminder_id: reminder?.id,
         })
-        continue
+
+        // Marquer cette relance comme envoyée pour ne pas la renvoyer avec une autre règle
+        remindersSent.add(reminderType)
       }
-
-      // Envoyer l'email
-      const emailResult = await sendReminderEmail(
-        supabase,
-        { ...dossier, devis: devisSent },
-        templateKey,
-        devisRecapHtml
-      )
-
-      if (!emailResult.success) {
-        console.error(`Erreur envoi relance ${reminderToSend} pour ${dossier.reference}:`, emailResult.error)
-        results.push({
-          dossier_id: dossier.id,
-          reference: dossier.reference,
-          reminder_type: reminderToSend,
-          status: 'error',
-          error: emailResult.error,
-        })
-        continue
-      }
-
-      // Enregistrer la relance envoyée
-      const { data: reminder, error: insertError } = await supabase
-        .from('quote_reminders')
-        .insert({
-          dossier_id: dossier.id,
-          reminder_type: reminderToSend,
-          sent_at: now.toISOString(),
-        })
-        .select()
-        .single()
-
-      if (insertError) {
-        console.error(`Erreur enregistrement relance:`, insertError)
-      }
-
-      // Ajouter à la timeline
-      await supabase
-        .from('timeline')
-        .insert({
-          dossier_id: dossier.id,
-          type: 'email_sent',
-          content: `Relance automatique J+${reminderToSend === '3d' ? '3' : '7'} envoyée`,
-        })
-
-      results.push({
-        dossier_id: dossier.id,
-        reference: dossier.reference,
-        client_email: dossier.client_email,
-        reminder_type: reminderToSend,
-        days_since_sent: daysSinceSent,
-        nb_devis: devisSent.length,
-        status: 'sent',
-        email_id: emailResult.emailId,
-        reminder_id: reminder?.id,
-      })
     }
 
     return new Response(
       JSON.stringify({
         success: true,
+        rules_count: workflowRules.length,
         processed: results.length,
         results,
         timestamp: now.toISOString(),

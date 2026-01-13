@@ -60,6 +60,7 @@ interface WorkflowExecution {
 
 const TRIGGER_TYPES = [
   { value: 'devis_sent', label: 'Devis envoyé', icon: FileText, color: 'text-blue-600' },
+  { value: 'quote_reminder', label: 'Relance devis (J+X)', icon: Mail, color: 'text-amber-600' },
   { value: 'contrat_signed', label: 'Contrat signé', icon: FileText, color: 'text-purple-600' },
   { value: 'payment_received', label: 'Paiement reçu', icon: CheckCircle, color: 'text-green-600' },
   { value: 'departure_reminder', label: 'Rappel avant départ', icon: Calendar, color: 'text-orange-600' },
@@ -140,6 +141,7 @@ export function WorkflowPage() {
     is_active: true,
     // Conditions simplifiées
     cond_days_before: '',
+    cond_days_after_devis: '', // Pour les relances devis J+X
     cond_solde_pending: false,
     cond_infos_missing: false,
     cond_chauffeur_missing: false,
@@ -314,6 +316,7 @@ export function WorkflowPage() {
       is_active: rule.is_active ?? true,
       // Extraire les conditions simplifiées
       cond_days_before: (conditions as any).days_before?.toString() || '',
+      cond_days_after_devis: (conditions as any).days_after_devis?.toString() || '',
       cond_solde_pending: !!(conditions as any).solde_pending,
       cond_infos_missing: !!(conditions as any).infos_missing,
       cond_chauffeur_missing: !!(conditions as any).chauffeur_missing,
@@ -343,6 +346,7 @@ export function WorkflowPage() {
       is_active: true,
       // Conditions simplifiées - valeurs par défaut
       cond_days_before: '',
+      cond_days_after_devis: '',
       cond_solde_pending: false,
       cond_infos_missing: false,
       cond_chauffeur_missing: false,
@@ -364,6 +368,9 @@ export function WorkflowPage() {
       const conditions: Record<string, unknown> = {}
       if (formData.cond_days_before) {
         conditions.days_before = parseInt(formData.cond_days_before)
+      }
+      if (formData.cond_days_after_devis) {
+        conditions.days_after_devis = parseInt(formData.cond_days_after_devis)
       }
       if (formData.cond_solde_pending) conditions.solde_pending = true
       if (formData.cond_infos_missing) conditions.infos_missing = true
@@ -592,11 +599,18 @@ export function WorkflowPage() {
                             <Zap className="w-3 h-3" />
                             {triggerInfo.label}
                           </span>
-                          {/* Afficher la condition J-X */}
+                          {/* Afficher la condition J-X (avant départ) */}
                           {(rule.conditions as any)?.days_before && (
                             <span className="flex items-center gap-1 bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
                               <Calendar className="w-3 h-3" />
                               J-{(rule.conditions as any).days_before}
+                            </span>
+                          )}
+                          {/* Afficher la condition J+X (après envoi devis) */}
+                          {(rule.conditions as any)?.days_after_devis && (
+                            <span className="flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                              <Mail className="w-3 h-3" />
+                              J+{(rule.conditions as any).days_after_devis}
                             </span>
                           )}
                           {(rule.delay_hours !== undefined && rule.delay_hours !== null && rule.delay_hours > 0) && (
@@ -1090,6 +1104,24 @@ export function WorkflowPage() {
           {/* Conditions intuitives */}
           <div className="border rounded-lg p-4 bg-gray-50">
             <label className="label mb-3">Conditions</label>
+
+            {/* Condition spécifique pour relance devis J+X */}
+            {formData.trigger_event === 'quote_reminder' && (
+              <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <label className="text-sm font-medium text-amber-800">Jours après envoi des devis (J+X)</label>
+                <input
+                  type="number"
+                  className="input mt-1"
+                  min={1}
+                  placeholder="Ex: 3 pour J+3"
+                  value={formData.cond_days_after_devis}
+                  onChange={(e) => setFormData({ ...formData, cond_days_after_devis: e.target.value })}
+                />
+                <p className="text-xs text-amber-600 mt-1">
+                  {formData.cond_days_after_devis ? `Relance envoyée ${formData.cond_days_after_devis} jours après l'envoi des devis` : 'Obligatoire pour les relances devis'}
+                </p>
+              </div>
+            )}
 
             {/* Condition: Jours avant départ */}
             <div className="grid grid-cols-2 gap-4 mb-3">
