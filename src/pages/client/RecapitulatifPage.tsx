@@ -134,7 +134,7 @@ export function RecapitulatifPage() {
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000))
 
-      // Paiement gere via PayTweak dans PaymentPage.tsx
+      // Paiement géré via Mollie dans PaymentPage.tsx
       alert(t('recapitulatif.paymentSuccess'))
 
       // Redirect to dashboard

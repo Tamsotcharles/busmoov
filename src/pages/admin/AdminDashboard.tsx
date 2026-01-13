@@ -18920,7 +18920,7 @@ function SettingsPage() {
     supabase_url: import.meta.env.VITE_SUPABASE_URL || '',
     supabase_key: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
     geoapify_key: import.meta.env.VITE_GEOAPIFY_API_KEY || '',
-    // PayTweak est configure dans Supabase Secrets
+    // Mollie est configuré dans Supabase Secrets
   })
 
   // Geoapify API key management
@@ -19561,28 +19561,36 @@ function SettingsPage() {
             </div>
           </div>
 
-          {/* PayTweak */}
+          {/* Mollie */}
           <div className="card p-6">
             <h3 className="font-semibold text-purple-dark mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 bg-purple rounded flex items-center justify-center text-white text-xs font-bold">PAY</span>
-              PayTweak (Paiements en ligne)
+              <span className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded flex items-center justify-center text-white text-xs font-bold">M</span>
+              Mollie (Paiements en ligne)
             </h3>
             <div className="space-y-4">
               <div>
                 <label className="label">Configuration</label>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <p className="text-sm text-blue-800 mb-2">
-                    PayTweak est configure via les <strong>Supabase Secrets</strong> pour les Edge Functions.
+                    Mollie est configuré via les <strong>Supabase Secrets</strong> pour les Edge Functions.
                   </p>
                   <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
-                    <li>PAYTWEAK_API_KEY - Cle API PayTweak</li>
-                    <li>PAYTWEAK_WEBHOOK_SECRET - Secret pour les webhooks</li>
-                    <li>APP_URL - URL de l'application</li>
+                    <li>MOLLIE_API_KEY - Clé API Mollie (live_xxx ou test_xxx)</li>
+                    <li>APP_URL - URL de l'application (pour les redirections)</li>
                   </ul>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
                   Configurez ces secrets dans Supabase &gt; Project Settings &gt; Edge Functions &gt; Secrets
                 </p>
+              </div>
+              <div>
+                <label className="label">Edge Functions</label>
+                <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-600">
+                  <ul className="space-y-1">
+                    <li><code className="bg-gray-200 px-1 rounded">create-payment-link</code> - Crée un lien de paiement Mollie</li>
+                    <li><code className="bg-gray-200 px-1 rounded">mollie-webhook</code> - Reçoit les notifications de paiement</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
@@ -19598,8 +19606,8 @@ VITE_SUPABASE_ANON_KEY=votre_cle_anon
 # Geoapify - Autocomplete adresses
 VITE_GEOAPIFY_API_KEY=votre_cle_geoapify
 
-# PayTweak - Configure dans Supabase Secrets
-# PAYTWEAK_API_KEY, PAYTWEAK_WEBHOOK_SECRET, APP_URL`}</pre>
+# Mollie - Configuré dans Supabase Secrets
+# MOLLIE_API_KEY, APP_URL`}</pre>
             </div>
             <p className="text-xs text-gray-500 mt-2">
               Redémarrez le serveur de développement après modification du fichier .env
