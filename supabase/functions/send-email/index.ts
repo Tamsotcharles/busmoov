@@ -39,6 +39,7 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
     returnDate: 'Date de retour',
     passengers: 'Passagers',
     reference: 'Référence',
+    dossier: 'Dossier',
     yourReference: 'Votre référence',
     route: 'Trajet',
 
@@ -188,6 +189,7 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
     returnDate: 'Fecha de regreso',
     passengers: 'Pasajeros',
     reference: 'Referencia',
+    dossier: 'Expediente',
     yourReference: 'Su referencia',
     route: 'Trayecto',
 
@@ -337,6 +339,7 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
     returnDate: 'Rückreisedatum',
     passengers: 'Passagiere',
     reference: 'Referenz',
+    dossier: 'Buchung',
     yourReference: 'Ihre Referenz',
     route: 'Strecke',
 
@@ -486,6 +489,7 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
     returnDate: 'Return date',
     passengers: 'Passengers',
     reference: 'Reference',
+    dossier: 'Booking',
     yourReference: 'Your reference',
     route: 'Route',
 
@@ -847,6 +851,13 @@ function replaceVariables(text: string, variables: Record<string, string>, langu
   return result
 }
 
+// Types d'emails autorisés sans authentification JWT (formulaires publics)
+const PUBLIC_EMAIL_TYPES = [
+  'confirmation_demande',  // Confirmation après soumission formulaire devis
+  'contact_form',          // Formulaire de contact
+  'devenir_partenaire',    // Formulaire devenir partenaire
+]
+
 serve(async (req: Request) => {
   const origin = req.headers.get('origin')
   const corsHeaders = getCorsHeaders(origin)
@@ -866,6 +877,21 @@ serve(async (req: Request) => {
 
     if (!to) {
       throw new Error('Email recipient (to) is required')
+    }
+
+    // Vérification de sécurité : si pas de JWT valide, limiter aux types publics
+    const authHeader = req.headers.get('Authorization')
+    const hasValidAuth = authHeader && authHeader.startsWith('Bearer ') && authHeader.length > 20
+
+    if (!hasValidAuth && !PUBLIC_EMAIL_TYPES.includes(type)) {
+      console.warn(`Unauthorized attempt to send email type: ${type} from origin: ${origin}`)
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized: This email type requires authentication' }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401,
+        }
+      )
     }
 
     let finalSubject = subject

@@ -404,13 +404,23 @@ async function calculerTarif(
   // Grande capacité = 90 places max, Standard = 57 places max
   const CAPACITE_GRANDE = 90;
   const CAPACITE_STANDARD = 57;
-  const capaciteMaxParCar = grandeCapaciteDispo ? CAPACITE_GRANDE : CAPACITE_STANDARD;
+  // Pour les groupes > 90 pax, on utilise des cars de 50 places (il n'existe pas de car > 90 places)
+  const CAPACITE_MULTI_CARS = 50;
 
   // Calculer le nombre de cars nécessaire si nbPassagers est fourni et nombreCars non spécifié
   let nombreCarsCalcule = nombreCars;
+  let capaciteMaxParCar = grandeCapaciteDispo ? CAPACITE_GRANDE : CAPACITE_STANDARD;
+
   if (params.nbPassagers && params.nbPassagers > 0 && !params.nombreCars) {
-    // Si pas de nombreCars explicite, on le calcule automatiquement
-    nombreCarsCalcule = Math.ceil(params.nbPassagers / capaciteMaxParCar);
+    // Pour les groupes > 90 passagers, TOUJOURS utiliser plusieurs cars de 50 places
+    // (Il n'existe pas de car > 90 places en France)
+    if (params.nbPassagers > 90) {
+      nombreCarsCalcule = Math.ceil(params.nbPassagers / CAPACITE_MULTI_CARS);
+      capaciteMaxParCar = CAPACITE_MULTI_CARS;
+    } else {
+      // Si pas de nombreCars explicite, on le calcule automatiquement
+      nombreCarsCalcule = Math.ceil(params.nbPassagers / capaciteMaxParCar);
+    }
   }
 
   // Majoration département problématique

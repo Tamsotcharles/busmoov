@@ -185,8 +185,9 @@ export function MultiStepQuoteForm() {
         country_code: countryCode,
       } as any)
 
-      // Redirection directe vers l'espace client
-      navigate(`/mes-devis?ref=${result.reference}&email=${encodeURIComponent(result.client_email)}`)
+      // Redirection directe vers l'espace client avec le préfixe de langue
+      const langPrefix = i18n.language || 'fr'
+      navigate(`/${langPrefix}/mes-devis?ref=${result.reference}&email=${encodeURIComponent(result.client_email)}`)
     } catch (err) {
       setError(t('common.error'))
       console.error(err)
@@ -236,7 +237,7 @@ export function MultiStepQuoteForm() {
           {t('quoteForm.success.reference')} : <strong className="text-purple">{success.reference}</strong>
         </p>
         <button
-          onClick={() => navigate(`/mes-devis?ref=${success.reference}&email=${encodeURIComponent(success.email)}`)}
+          onClick={() => navigate(`/${i18n.language || 'fr'}/mes-devis?ref=${success.reference}&email=${encodeURIComponent(success.email)}`)}
           className="btn btn-primary"
         >
           {t('quoteForm.success.trackRequest')}

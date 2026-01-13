@@ -369,11 +369,17 @@ export function MesDevisPage() {
           // Vérifier si cette requête est toujours la plus récente
           if (currentRequest !== loadDataRequestRef.current) return
 
-          // First try to find a dossier
+          // Normaliser la référence : si c'est une DEM-, chercher le DOS- correspondant
+          let dossierRef = reference
+          if (reference.startsWith('DEM-')) {
+            dossierRef = reference.replace('DEM-', 'DOS-')
+          }
+
+          // First try to find a dossier (avec la référence normalisée)
           const { data: dossierData } = await supabase
             .from('dossiers')
             .select('*, transporteur:transporteurs(*)')
-            .eq('reference', reference)
+            .eq('reference', dossierRef)
             .eq('client_email', email.toLowerCase())
             .single()
 
@@ -507,8 +513,8 @@ export function MesDevisPage() {
               calculatePriceEstimate(info.distance)
 
               // Calcul local du nombre de cars (estimation avant réponse API)
-              // Par défaut on suppose grande capacité disponible
-              const nbCars = Math.ceil(passengers / 90)
+              // Utilise la fonction utilitaire qui gère la règle > 90 pax
+              const nbCars = calculateNumberOfCars(passengers)
 
               // Déterminer si c'est un AR le même jour
               const departureDate = data.dossier?.departure_date || data.demande?.departure_date
@@ -524,10 +530,13 @@ export function MesDevisPage() {
               // Pour un AR même jour, on estime 2h d'attente sur place
               const driverInfo = calculateNumberOfDrivers(info.duration, isSameDay, isSameDay ? 2 : 0)
 
+              // Multiplier le nombre de chauffeurs par le nombre de cars
+              const totalDrivers = driverInfo.drivers * nbCars
+
               setTripEstimate({
                 nbCars,
-                nbDrivers: driverInfo.drivers,
-                driverReason: driverInfo.reason,
+                nbDrivers: totalDrivers,
+                driverReason: nbCars > 1 ? `${totalDrivers} chauffeurs pour ${nbCars} cars` : driverInfo.reason,
               })
             }
           })
@@ -1899,25 +1908,25 @@ export function MesDevisPage() {
                               <Check size={14} className="text-emerald-500" />
                               {t('mesDevis.quote.insuranceRC')}
                             </div>
-                            {/* Péages - inclus par défaut si pas d'info ou status inclus */}
+                            {/* Péages - n'afficher que si explicitement défini */}
                             {(devis.options_details as any)?.peages?.status === 'non_inclus' ? (
                               <div className="flex items-center gap-1 text-amber-600">
                                 <X size={14} className="text-amber-500" />
                                 {t('mesDevis.quote.tollsNotIncluded')}
                               </div>
-                            ) : (devis.options_details as any)?.peages?.status !== 'cache' && (
+                            ) : (devis.options_details as any)?.peages?.status === 'inclus' && (
                               <div className="flex items-center gap-1">
                                 <Check size={14} className="text-emerald-500" />
                                 {t('mesDevis.quote.tollsIncluded')}
                               </div>
                             )}
-                            {/* Repas chauffeur - inclus par défaut si pas d'info ou status inclus */}
+                            {/* Repas chauffeur - n'afficher que si explicitement défini */}
                             {(devis.options_details as any)?.repas_chauffeur?.status === 'non_inclus' ? (
                               <div className="flex items-center gap-1 text-amber-600">
                                 <X size={14} className="text-amber-500" />
                                 {t('mesDevis.quote.mealsNotIncluded')}
                               </div>
-                            ) : (devis.options_details as any)?.repas_chauffeur?.status !== 'cache' && (
+                            ) : (devis.options_details as any)?.repas_chauffeur?.status === 'inclus' && (
                               <div className="flex items-center gap-1">
                                 <Check size={14} className="text-emerald-500" />
                                 {t('mesDevis.quote.mealsIncluded')}

@@ -196,34 +196,35 @@ export function useCreateDemande() {
           }
         }
 
-        // 4. Envoyer l'email de confirmation avec les identifiants
-        try {
-          // Déterminer la langue à partir du country_code
-          const language = ((demandeData as any).country_code || 'FR').toLowerCase()
+        // 4. Envoyer l'email de confirmation avec les identifiants (en arrière-plan, sans bloquer)
+        // Déterminer la langue à partir du country_code
+        const language = ((demandeData as any).country_code || 'FR').toLowerCase()
 
-          await supabase.functions.invoke('send-email', {
-            body: {
-              type: 'confirmation_demande',
-              to: demandeData.client_email,
-              data: {
-                client_name: demandeData.client_name,
-                reference: demandeData.reference,
-                dossier_reference: dossierData.reference,
-                departure: demandeData.departure_city,
-                arrival: demandeData.arrival_city,
-                departure_date: formatDateForEmail(demandeData.departure_date),
-                passengers: String(demandeData.passengers),
-                client_email: demandeData.client_email,
-                lien_espace_client: generateClientAccessUrl(demandeData.reference, demandeData.client_email, (demandeData as any).country_code),
-                language: language,
-              }
+        // Envoyer l'email de manière asynchrone sans attendre le résultat
+        // Cela évite tout blocage en cas d'erreur 401 ou autre
+        supabase.functions.invoke('send-email', {
+          body: {
+            type: 'confirmation_demande',
+            to: demandeData.client_email,
+            data: {
+              client_name: demandeData.client_name,
+              reference: demandeData.reference,
+              dossier_reference: dossierData.reference,
+              departure: demandeData.departure_city,
+              arrival: demandeData.arrival_city,
+              departure_date: formatDateForEmail(demandeData.departure_date),
+              passengers: String(demandeData.passengers),
+              client_email: demandeData.client_email,
+              lien_espace_client: generateClientAccessUrl(demandeData.reference, demandeData.client_email, (demandeData as any).country_code),
+              language: language,
             }
-          })
+          }
+        }).then(() => {
           console.log(`Email de confirmation envoyé à ${demandeData.client_email} (langue: ${language})`)
-        } catch (emailError) {
+        }).catch((emailError) => {
           console.error('Erreur envoi email confirmation:', emailError)
           // Ne pas bloquer si l'email échoue
-        }
+        })
       }
 
       return demandeData
