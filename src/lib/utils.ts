@@ -1829,10 +1829,28 @@ function formatDuration(minutes: number): string {
 
 /**
  * Calcule le nombre de cars nécessaires selon le nombre de passagers
- * Règle: capacité standard = 53 places par car
+ *
+ * RÈGLES IMPORTANTES:
+ * - Pour ≤ 53 passagers : 1 car standard de 53 places
+ * - Pour 54-90 passagers : selon le type de véhicule choisi (60-63, 70 ou 83-90)
+ * - Pour > 90 passagers : OBLIGATOIREMENT plusieurs cars de 50 places
+ *   (pas de car > 90 places, donc on divise en plusieurs véhicules)
+ *
+ * @returns { cars: number, capacity: number, vehicleType: string }
  */
-export function calculateNumberOfCars(passengers: number, vehicleType?: string): number {
-  // Capacités par type de véhicule
+export function calculateNumberOfCars(
+  passengers: number,
+  vehicleType?: string
+): number {
+  // Pour les groupes > 90 passagers, TOUJOURS utiliser plusieurs cars de 50 places
+  // (Il n'existe pas de car > 90 places en France)
+  if (passengers > 90) {
+    // Capacité optimale pour plusieurs cars = 50 places (standard autocar)
+    const CAPACITE_CAR_MULTI = 50
+    return Math.ceil(passengers / CAPACITE_CAR_MULTI)
+  }
+
+  // Capacités par type de véhicule pour les groupes ≤ 90 passagers
   const capacities: Record<string, number> = {
     minibus: 20,
     standard: 53,
@@ -1847,6 +1865,50 @@ export function calculateNumberOfCars(passengers: number, vehicleType?: string):
 }
 
 /**
+ * Calcule le nombre de cars avec détails complets
+ * Utilisé pour l'affichage et les devis
+ */
+export function calculateCarsDetails(passengers: number, vehicleType?: string): {
+  nombreCars: number
+  capaciteParCar: number
+  vehicleTypeEffectif: string
+  explication: string
+} {
+  // Pour les groupes > 90 passagers, TOUJOURS plusieurs cars de 50 places
+  if (passengers > 90) {
+    const CAPACITE_CAR_MULTI = 50
+    const nombreCars = Math.ceil(passengers / CAPACITE_CAR_MULTI)
+    return {
+      nombreCars,
+      capaciteParCar: CAPACITE_CAR_MULTI,
+      vehicleTypeEffectif: 'standard',
+      explication: `${passengers} passagers → ${nombreCars} cars de ${CAPACITE_CAR_MULTI} places`
+    }
+  }
+
+  // Capacités par type de véhicule pour les groupes ≤ 90 passagers
+  const capacities: Record<string, number> = {
+    minibus: 20,
+    standard: 53,
+    '60-63': 63,
+    '70': 70,
+    '83-90': 90,
+    autocar: 53,
+  }
+
+  const vehicleTypeEffectif = vehicleType || 'autocar'
+  const capacity = capacities[vehicleTypeEffectif] || 53
+  const nombreCars = Math.ceil(passengers / capacity)
+
+  return {
+    nombreCars,
+    capaciteParCar: capacity,
+    vehicleTypeEffectif,
+    explication: `${passengers} passagers → ${nombreCars} car(s) de ${capacity} places`
+  }
+}
+
+/**
  * Calcule le nombre de chauffeurs nécessaires selon les règles légales
  *
  * RÈGLES IMPORTANTES:
@@ -1855,16 +1917,19 @@ export function calculateNumberOfCars(passengers: number, vehicleType?: string):
  * - Repos ≥ 9h sur place = compteur remis à zéro (2 journées distinctes)
  * - Pause obligatoire: 45 min après 4h30 de conduite
  * - Coût relais chauffeur: 500€ par transfert
+ * - MINIMUM 1 chauffeur par car (si plusieurs cars)
  *
  * @param durationMinutes Durée du trajet ALLER en minutes (pas l'AR total)
  * @param isSameDay Si c'est un AR le même jour (amplitude = aller + retour + attente)
  * @param waitingHours Heures d'attente sur place (seulement si same day)
+ * @param nombreCars Nombre de cars (1 chauffeur minimum par car)
  * @returns Nombre de chauffeurs recommandés avec raison détaillée
  */
 export function calculateNumberOfDrivers(
   durationMinutes: number,
   isSameDay: boolean = false,
-  waitingHours: number = 0
+  waitingHours: number = 0,
+  nombreCars: number = 1
 ): { drivers: number; reason: string } {
   // Constantes réglementaires
   const CONDUITE_MAX_JOUR = 9 // heures
@@ -1877,19 +1942,26 @@ export function calculateNumberOfDrivers(
   // Temps de conduite aller en heures
   const tempsConduiteAller = durationMinutes / 60
 
+  // Fonction helper pour calculer le nombre total de chauffeurs
+  // (chauffeurs par car × nombre de cars)
+  const calcDrivers = (driversPerCar: number) => driversPerCar * nombreCars
+  const carsInfo = (total: number) => nombreCars > 1 ? ` (${total} chauffeurs pour ${nombreCars} cars)` : ''
+
   // Si repos ≥ 9h sur place, le compteur est remis à zéro
   // On vérifie chaque trajet séparément
   if (waitingHours >= REPOS_MIN_COMPTEUR_RAZ) {
     // Chaque trajet est vérifié indépendamment
     if (tempsConduiteAller > CONDUITE_MAX_EXTENSION) {
+      const total = calcDrivers(2)
       return {
-        drivers: 2,
-        reason: `Conduite ${tempsConduiteAller.toFixed(1)}h > 10h max/trajet (repos ${waitingHours}h entre)`
+        drivers: total,
+        reason: `Conduite ${tempsConduiteAller.toFixed(1)}h > 10h max/trajet (repos ${waitingHours}h entre)${carsInfo(total)}`
       }
     }
+    const total = calcDrivers(1)
     return {
-      drivers: 1,
-      reason: `Repos ${waitingHours}h ≥ 9h = compteur RAZ (trajets séparés)`
+      drivers: total,
+      reason: `Repos ${waitingHours}h ≥ 9h = compteur RAZ (trajets séparés)${carsInfo(total)}`
     }
   }
 
@@ -1900,61 +1972,78 @@ export function calculateNumberOfDrivers(
 
     // Vérifier temps de conduite total
     if (tempsConduiteAR > CONDUITE_MAX_EXTENSION) {
+      const total = calcDrivers(2)
       return {
-        drivers: 2,
-        reason: `Conduite ${tempsConduiteAR.toFixed(1)}h > 10h max/jour`
+        drivers: total,
+        reason: `Conduite ${tempsConduiteAR.toFixed(1)}h > 10h max/jour${carsInfo(total)}`
       }
     }
 
     // Vérifier amplitude
     if (amplitudeJournee > AMPLITUDE_MAX_AVEC_COUPURE) {
+      const total = calcDrivers(2)
       return {
-        drivers: 2,
-        reason: `Amplitude ${amplitudeJournee.toFixed(1)}h > 14h max`
+        drivers: total,
+        reason: `Amplitude ${amplitudeJournee.toFixed(1)}h > 14h max${carsInfo(total)}`
       }
     }
 
     if (amplitudeJournee > AMPLITUDE_MAX_1_CHAUFFEUR) {
       if (waitingHours >= COUPURE_MIN_POUR_14H) {
+        const total = calcDrivers(1)
         return {
-          drivers: 1,
-          reason: `Amplitude ${amplitudeJournee.toFixed(1)}h avec coupure ${waitingHours}h ≥ 3h ✓`
+          drivers: total,
+          reason: `Amplitude ${amplitudeJournee.toFixed(1)}h avec coupure ${waitingHours}h ≥ 3h ✓${carsInfo(total)}`
         }
       }
+      const total = calcDrivers(2)
       return {
-        drivers: 2,
-        reason: `Amplitude ${amplitudeJournee.toFixed(1)}h et coupure ${waitingHours}h < 3h`
+        drivers: total,
+        reason: `Amplitude ${amplitudeJournee.toFixed(1)}h et coupure ${waitingHours}h < 3h${carsInfo(total)}`
       }
     }
 
     if (amplitudeJournee <= CONDUITE_MAX_JOUR) {
-      return { drivers: 1, reason: `Amplitude ${amplitudeJournee.toFixed(1)}h ≤ 9h` }
+      const total = calcDrivers(1)
+      return { drivers: total, reason: `Amplitude ${amplitudeJournee.toFixed(1)}h ≤ 9h${carsInfo(total)}` }
     }
 
     if (tempsConduiteAR > CONDUITE_MAX_JOUR) {
+      const total = calcDrivers(1)
       return {
-        drivers: 1,
-        reason: `Conduite ${tempsConduiteAR.toFixed(1)}h (extension 10h utilisée)`
+        drivers: total,
+        reason: `Conduite ${tempsConduiteAR.toFixed(1)}h (extension 10h utilisée)${carsInfo(total)}`
       }
     }
 
-    return { drivers: 1, reason: `Amplitude ${amplitudeJournee.toFixed(1)}h ≤ 12h` }
+    const total = calcDrivers(1)
+    return { drivers: total, reason: `Amplitude ${amplitudeJournee.toFixed(1)}h ≤ 12h${carsInfo(total)}` }
   }
 
   // AR sur plusieurs jours - vérifier seulement le trajet aller
   if (tempsConduiteAller > CONDUITE_MAX_EXTENSION) {
+    // 2 chauffeurs par car si amplitude trop longue
+    const driversPerCar = 2
+    const totalDrivers = driversPerCar * nombreCars
     return {
-      drivers: 2,
-      reason: `Conduite ${tempsConduiteAller.toFixed(1)}h > 10h max/jour`
+      drivers: totalDrivers,
+      reason: `Conduite ${tempsConduiteAller.toFixed(1)}h > 10h max/jour${nombreCars > 1 ? ` (${totalDrivers} chauffeurs pour ${nombreCars} cars)` : ''}`
     }
   }
 
   if (tempsConduiteAller > CONDUITE_MAX_JOUR) {
+    // 1 chauffeur par car avec extension horaire
+    const totalDrivers = nombreCars
     return {
-      drivers: 1,
-      reason: `Conduite ${tempsConduiteAller.toFixed(1)}h (extension 10h 2x/sem)`
+      drivers: totalDrivers,
+      reason: `Conduite ${tempsConduiteAller.toFixed(1)}h (extension 10h 2x/sem)${nombreCars > 1 ? ` - ${nombreCars} chauffeurs pour ${nombreCars} cars` : ''}`
     }
   }
 
-  return { drivers: 1, reason: `Conduite ${tempsConduiteAller.toFixed(1)}h ≤ 9h` }
+  // Minimum 1 chauffeur par car
+  const totalDrivers = nombreCars
+  return {
+    drivers: totalDrivers,
+    reason: `Conduite ${tempsConduiteAller.toFixed(1)}h ≤ 9h${nombreCars > 1 ? ` - ${nombreCars} chauffeurs pour ${nombreCars} cars` : ''}`
+  }
 }

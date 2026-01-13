@@ -119,6 +119,50 @@ function determinerTypeVehicule(passengers: number, capacites: CapaciteVehicule[
   return '83-90'
 }
 
+/**
+ * Calcule le nombre de cars nécessaires selon le nombre de passagers
+ *
+ * RÈGLES IMPORTANTES:
+ * - Pour ≤ 90 passagers : selon le type de véhicule
+ * - Pour > 90 passagers : OBLIGATOIREMENT plusieurs cars de 50 places
+ *   (il n'existe pas de car > 90 places en France)
+ */
+function calculateNumberOfCars(passengers: number, vehicleType: string): {
+  nombreCars: number
+  capaciteParCar: number
+  vehicleTypeEffectif: string
+} {
+  // Pour les groupes > 90 passagers, TOUJOURS plusieurs cars de 50 places
+  if (passengers > 90) {
+    const CAPACITE_CAR_MULTI = 50
+    const nombreCars = Math.ceil(passengers / CAPACITE_CAR_MULTI)
+    return {
+      nombreCars,
+      capaciteParCar: CAPACITE_CAR_MULTI,
+      vehicleTypeEffectif: 'standard'
+    }
+  }
+
+  // Capacités par type de véhicule pour les groupes ≤ 90 passagers
+  const capacities: Record<string, number> = {
+    minibus: 20,
+    standard: 53,
+    '60-63': 63,
+    '70': 70,
+    '83-90': 90,
+    autocar: 53,
+  }
+
+  const capacity = capacities[vehicleType] || 53
+  const nombreCars = Math.ceil(passengers / capacity)
+
+  return {
+    nombreCars,
+    capaciteParCar: capacity,
+    vehicleTypeEffectif: vehicleType
+  }
+}
+
 interface GeoCoords {
   lat: number
   lon: number
@@ -214,6 +258,7 @@ interface InfosTrajet {
 /**
  * Calcule toutes les informations du trajet selon la réglementation complète
  * @param tempsConduiteAllerApi - Temps de conduite aller fourni par Geoapify (mode bus), en heures
+ * @param nombreCars - Nombre de cars (minimum 1 chauffeur par car)
  */
 function calculerInfosTrajet(
   distanceKm: number,
@@ -222,7 +267,8 @@ function calculerInfosTrajet(
   dateDepart: string | null = null,
   dateRetour: string | null = null,
   typeService: ServiceType = 'aller_simple',
-  tempsConduiteAllerApi: number | null = null
+  tempsConduiteAllerApi: number | null = null,
+  nombreCars: number = 1
 ): InfosTrajet {
   const R = REGLES_CHAUFFEUR
 
@@ -367,14 +413,29 @@ function calculerInfosTrajet(
 
   const pauseNuitRequise = conduiteNuit && dureeConduiteNuit > 3
 
-  // Coût relais chauffeur
+  // Multiplier par le nombre de cars
+  // nbChauffeurs représente le nombre de chauffeurs PAR CAR
+  // Le total est nbChauffeurs * nombreCars
+  const nbChauffeursParCar = nbChauffeurs
+  const nbChauffeursTotaux = nbChauffeursParCar * nombreCars
+
+  // Mettre à jour la raison si plusieurs cars
+  if (nombreCars > 1) {
+    if (raisonDeuxChauffeurs) {
+      raisonDeuxChauffeurs = `${raisonDeuxChauffeurs} (${nbChauffeursTotaux} chauffeurs pour ${nombreCars} cars)`
+    } else {
+      raisonDeuxChauffeurs = `${nbChauffeursTotaux} chauffeurs pour ${nombreCars} cars`
+    }
+  }
+
+  // Coût relais chauffeur (par car, si 2 chauffeurs par car)
   let coutRelaisChauffeur = 0
   let nbTransferts = 0
-  if (nbChauffeurs === 2) {
+  if (nbChauffeursParCar === 2) {
     if (typeService === 'aller_simple' || typeService === 'ar_1j') {
-      nbTransferts = 1
+      nbTransferts = 1 * nombreCars
     } else {
-      nbTransferts = 2
+      nbTransferts = 2 * nombreCars
     }
     coutRelaisChauffeur = nbTransferts * R.COUT_RELAIS_CHAUFFEUR
   }
@@ -395,7 +456,7 @@ function calculerInfosTrajet(
     conduiteNuit,
     dureeConduiteNuit,
     pauseNuitRequise,
-    nbChauffeurs,
+    nbChauffeurs: nbChauffeursTotaux, // Total pour tous les cars
     raisonDeuxChauffeurs,
     besoinCoupure3h,
     reposCompletSurPlace,
@@ -1000,8 +1061,13 @@ Deno.serve(async (req) => {
       const dureeJours = calculateDureeJours(dossier)
       // Déterminer le type de véhicule automatiquement selon le nombre de passagers
       const passengers = dossier.passengers || 50
-      const vehicleType = dossier.vehicle_type || determinerTypeVehicule(passengers, capacites)
-      const nombreCars = dossier.nombre_cars || 1
+      const vehicleTypeInitial = dossier.vehicle_type || determinerTypeVehicule(passengers, capacites)
+
+      // CALCUL DYNAMIQUE DU NOMBRE DE CARS
+      // Pour > 90 passagers : obligatoirement plusieurs cars de 50 places
+      const carsInfo = calculateNumberOfCars(passengers, vehicleTypeInitial)
+      const nombreCars = carsInfo.nombreCars
+      const vehicleType = carsInfo.vehicleTypeEffectif // Peut changer si > 90 pax
 
       // Récupérer les horaires du dossier (si disponibles)
       const heureDepart = dossier.departure_time || null
@@ -1011,6 +1077,7 @@ Deno.serve(async (req) => {
 
       // Calculer les infos trajet complètes selon la réglementation
       // Utilise le temps de conduite Geoapify (mode bus) au lieu du calcul manuel
+      // PASSE LE NOMBRE DE CARS pour adapter le nombre de chauffeurs
       const infosTrajet = calculerInfosTrajet(
         km,
         heureDepart,
@@ -1018,7 +1085,8 @@ Deno.serve(async (req) => {
         dateDepart,
         dateRetour,
         serviceType,
-        tempsConduiteGeoapify
+        tempsConduiteGeoapify,
+        nombreCars // NOUVEAU: passe le nombre de cars
       )
 
       const nbChauffeurs = infosTrajet.nbChauffeurs
@@ -1035,12 +1103,12 @@ Deno.serve(async (req) => {
       const majorationInfo = getMajorationPourDepartement(departement, majorationsRegions)
       const majorationRegionDecimal = majorationInfo.majorationPercent / 100
 
-      console.log(`Service: ${serviceType}, Durée: ${dureeJours}j, Véhicule: ${vehicleType}, Cars: ${nombreCars}, Chauffeurs: ${nbChauffeurs}`)
+      console.log(`Service: ${serviceType}, Durée: ${dureeJours}j, Véhicule: ${vehicleType}, Passagers: ${passengers}, Cars: ${nombreCars}, Chauffeurs: ${nbChauffeurs}`)
       if (infosTrajet.amplitudeJournee) {
         console.log(`  -> Amplitude journée: ${infosTrajet.amplitudeJournee.toFixed(1)}h, Grille: ${amplitude}`)
       }
-      if (nbChauffeurs === 2) {
-        console.log(`  -> 2 chauffeurs requis: ${infosTrajet.raisonDeuxChauffeurs}, coût relais: ${coutRelaisChauffeur}€`)
+      if (nbChauffeurs > 1 || nombreCars > 1) {
+        console.log(`  -> ${nbChauffeurs} chauffeur(s): ${infosTrajet.raisonDeuxChauffeurs || `${nbChauffeurs} chauffeurs pour ${nombreCars} car(s)`}, coût relais: ${coutRelaisChauffeur}€`)
       }
       if (majorationInfo.majorationPercent > 0) {
         console.log(`  -> Majoration région ${majorationInfo.regionNom}: +${majorationInfo.majorationPercent}%`)
@@ -1114,13 +1182,15 @@ Deno.serve(async (req) => {
           step: currentStep + 1,
           marge: margePercent,
           km,
+          passengers,
           serviceType,
           dureeJours,
           amplitude_journee: infosTrajet.amplitudeJournee,
           amplitude_grille: amplitude,
+          nombre_cars: nombreCars,
           nb_chauffeurs: nbChauffeurs,
           cout_relais_chauffeur: coutRelaisChauffeur,
-          raison_2_chauffeurs: infosTrajet.raisonDeuxChauffeurs || null,
+          raison_chauffeurs: infosTrajet.raisonDeuxChauffeurs || null,
           majoration_region_percent: majorationInfo.majorationPercent,
           majoration_region_nom: majorationInfo.regionNom,
           prix_grille_ttc: prixTTC,
@@ -1151,6 +1221,7 @@ Deno.serve(async (req) => {
           km: km.toString(),
           vehicle_type: vehicleType,
           nombre_cars: nombreCars,
+          nombre_chauffeurs: nbChauffeurs, // Nombre total de chauffeurs pour tous les cars
           service_type: serviceType,
           amplitude: amplitude,
           duree_jours: dureeJours,
@@ -1160,7 +1231,7 @@ Deno.serve(async (req) => {
           auto_workflow_id: workflow.id,
           workflow_step: currentStep + 1,
           validity_days: 7,
-          notes: `Devis auto-généré - Étape ${currentStep + 1}/${steps.length} - Marge ${margePercent}%`,
+          notes: `Devis auto-généré - Étape ${currentStep + 1}/${steps.length} - Marge ${margePercent}%${nombreCars > 1 ? ` - ${nombreCars} cars` : ''}${nbChauffeurs > 1 ? ` - ${nbChauffeurs} chauffeurs` : ''}`,
         })
         .select()
         .single()
