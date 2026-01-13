@@ -198,29 +198,41 @@ export function useCurrentCountryCode() {
  * Hook pour récupérer le contenu spécifique au pays actuel
  * (mentions légales, politique de confidentialité, etc.)
  */
-export function useCurrentCountryContent(contentType: string) {
+export function useCurrentCountryContent(contentType: 'mentions_legales' | 'confidentialite' | 'politique_confidentialite') {
   const countryCode = useCurrentCountryCode()
+  const { i18n } = useTranslation()
+  const language = i18n.language || 'fr'
+
+  // Mapper le contentType vers le nom de table réel
+  const tableMap: Record<string, string> = {
+    'mentions_legales': 'mentions_legales',
+    'confidentialite': 'politique_confidentialite',
+    'politique_confidentialite': 'politique_confidentialite',
+  }
+
+  const tableName = tableMap[contentType] || contentType
 
   return useQuery({
-    queryKey: ['country-content', countryCode, contentType],
+    queryKey: ['country-content', countryCode, language, contentType],
     queryFn: async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
-        .from('country_content')
+        .from(tableName)
         .select('*')
         .eq('country_code', countryCode)
-        .eq('content_type', contentType)
+        .eq('language', language)
+        .eq('is_active', true)
         .single()
 
       if (error) {
-        console.warn('Could not load country content:', error)
+        console.warn(`Could not load ${tableName} content:`, error)
         return null
       }
 
       return {
         id: data.id,
         countryCode: data.country_code,
-        contentType: data.content_type,
+        contentType: contentType,
         title: data.title,
         content: data.content,
         updatedAt: data.updated_at,

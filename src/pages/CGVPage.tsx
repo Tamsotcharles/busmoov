@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
-import { useCurrentCountry } from '@/hooks/useCountrySettings'
+import { useCurrentCountry, useCurrentCountryCode } from '@/hooks/useCountrySettings'
 import { useLocalizedPath } from '@/components/i18n'
 
 interface CGV {
@@ -18,25 +18,60 @@ interface CGV {
 }
 
 export function CGVPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const localizedPath = useLocalizedPath()
   const { data: country } = useCurrentCountry()
+  const countryCode = useCurrentCountryCode()
   const [cgv, setCgv] = useState<CGV | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const language = i18n.language || 'fr'
+
   useEffect(() => {
     loadCGV()
-  }, [])
+  }, [countryCode, language])
 
   const loadCGV = async () => {
     try {
-      const { data, error } = await supabase
+      // D'abord essayer de charger les CGV pour la langue/pays actuel
+      let { data, error } = await supabase
         .from('cgv')
         .select('id, version, title, content, published_at')
+        .eq('country_code', countryCode)
+        .eq('language', language)
         .eq('is_active', true)
         .single()
 
-      if (data && !error) {
+      // Si pas trouvé, essayer avec la langue par défaut (fr) pour ce pays
+      if (error || !data) {
+        const fallback = await supabase
+          .from('cgv')
+          .select('id, version, title, content, published_at')
+          .eq('country_code', countryCode)
+          .eq('is_active', true)
+          .single()
+
+        if (fallback.data && !fallback.error) {
+          data = fallback.data
+          error = null
+        }
+      }
+
+      // Si toujours pas trouvé, prendre les CGV françaises par défaut
+      if (error || !data) {
+        const defaultCgv = await supabase
+          .from('cgv')
+          .select('id, version, title, content, published_at')
+          .eq('country_code', 'FR')
+          .eq('is_active', true)
+          .single()
+
+        if (defaultCgv.data && !defaultCgv.error) {
+          data = defaultCgv.data
+        }
+      }
+
+      if (data) {
         setCgv(data)
       }
     } catch (err) {
