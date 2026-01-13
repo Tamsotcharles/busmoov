@@ -857,7 +857,7 @@ export function InfosVoyagePage() {
                     {t('infosVoyage.contactOnSite')}
                   </h4>
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="label">{t('infosVoyage.lastName')}</label>
                         <input

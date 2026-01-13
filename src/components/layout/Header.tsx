@@ -30,7 +30,7 @@ export function Header({ showAdminLink = false }: HeaderProps) {
   const { data: country } = useCurrentCountry()
 
   // Vérifier si on est sur la page d'accueil (avec préfixe de langue)
-  const isHomePage = location.pathname === '/' || location.pathname.match(/^\/(fr|es|de|en)\/?$/)
+  const isHomePage = location.pathname === '/' || /^\/(fr|es|de|en)\/?$/.test(location.pathname)
 
   // Fermer le menu mobile lors d'un changement de route
   useEffect(() => {
@@ -79,12 +79,21 @@ export function Header({ showAdminLink = false }: HeaderProps) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <Link to={localizedPath('/')} className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
+        <a
+          href={localizedPath('/')}
+          onClick={(e) => {
+            if (isHomePage) {
+              e.preventDefault()
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }
+          }}
+          className="flex items-center gap-2 lg:gap-3 flex-shrink-0"
+        >
           <img src="/logo-icon.svg" alt="Busmoov" className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12" />
           <span className="font-display text-xl lg:text-2xl font-bold gradient-text">
             Busmoov
           </span>
-        </Link>
+        </a>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-3 lg:gap-5">
@@ -149,14 +158,15 @@ export function Header({ showAdminLink = false }: HeaderProps) {
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center gap-2">
+        <div className="md:hidden flex items-center gap-3">
           {/* Language Selector Mobile */}
           <div className="relative" ref={langMenuMobileRef}>
             <button
               onClick={() => setLangMenuOpen(!langMenuOpen)}
-              className="flex items-center gap-1 text-gray-600 p-2"
+              className="flex items-center justify-center w-10 h-10 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Changer de langue"
             >
-              <span>{currentLang.flag}</span>
+              <span className="text-xl">{currentLang.flag}</span>
             </button>
 
             {langMenuOpen && (
@@ -181,8 +191,9 @@ export function Header({ showAdminLink = false }: HeaderProps) {
           </div>
 
           <button
-            className="p-2"
+            className="flex items-center justify-center w-10 h-10 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Menu"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>

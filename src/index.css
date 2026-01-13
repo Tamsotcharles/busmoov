@@ -52,7 +52,22 @@
   }
 
   .input {
-    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl font-sans transition-all duration-200 focus:outline-none focus:border-magenta focus:ring-4 focus:ring-magenta/10;
+    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-xl font-sans transition-all duration-200 focus:outline-none focus:border-magenta focus:ring-4 focus:ring-magenta/10 bg-white text-gray-900 appearance-none;
+    /* Fix iOS input styling */
+    -webkit-appearance: none;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Fix date/time inputs on iOS */
+  input[type="date"],
+  input[type="time"] {
+    @apply bg-white text-gray-900;
+    min-height: 48px;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    @apply opacity-60;
   }
 
   .input-error {
