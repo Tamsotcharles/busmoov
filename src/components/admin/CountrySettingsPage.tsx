@@ -8,8 +8,6 @@ const CONTENT_TYPES = [
   { key: 'cgv', label: 'Conditions Générales de Vente', labelEs: 'CGV', labelDe: 'AGB', labelEn: 'Terms & Conditions' },
   { key: 'mentions_legales', label: 'Mentions légales', labelEs: 'Aviso legal', labelDe: 'Impressum', labelEn: 'Legal Notice' },
   { key: 'confidentialite', label: 'Politique de confidentialité', labelEs: 'Privacidad', labelDe: 'Datenschutz', labelEn: 'Privacy Policy' },
-  { key: 'a_propos', label: 'À propos', labelEs: 'Sobre nosotros', labelDe: 'Über uns', labelEn: 'About Us' },
-  { key: 'devenir_partenaire', label: 'Devenir partenaire', labelEs: 'Ser socio', labelDe: 'Partner werden', labelEn: 'Become a Partner' },
 ]
 
 const FLAG_EMOJI: Record<string, string> = {
