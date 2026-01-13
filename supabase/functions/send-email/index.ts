@@ -874,6 +874,18 @@ serve(async (req: Request) => {
     // Langue pour les traductions
     const language = data?.language || 'fr'
 
+    // Variables par défaut (coordonnées Busmoov) - ajoutées à tous les emails
+    const defaultVariables: Record<string, string> = {
+      phone_display: '01 76 42 05 06',
+      email: 'contact@busmoov.com',
+      company_name: 'Busmoov',
+      company_address: '123 Rue de la République, 75001 Paris',
+      current_year: new Date().getFullYear().toString(),
+    }
+
+    // Fusionner les variables par défaut avec les données passées
+    const mergedData = { ...defaultVariables, ...(data || {}) }
+
     // Si c'est un email custom, utiliser directement subject et html_content
     if (type === 'custom') {
       if (!subject || !html_content) {
@@ -883,10 +895,8 @@ serve(async (req: Request) => {
       finalBody = html_content
 
       // Remplacer les variables même pour les emails custom (avec support traductions {{t:clé}})
-      if (data) {
-        finalSubject = replaceVariables(finalSubject, data, language)
-        finalBody = replaceVariables(finalBody, data, language)
-      }
+      finalSubject = replaceVariables(finalSubject, mergedData, language)
+      finalBody = replaceVariables(finalBody, mergedData, language)
     } else {
       // Charger le template depuis la base (avec support multilingue)
       const template = await loadTemplate(supabaseClient, type, language)
@@ -895,8 +905,8 @@ serve(async (req: Request) => {
       }
 
       // Remplacer les variables (avec support traductions {{t:clé}})
-      finalSubject = replaceVariables(template.subject, data || {}, language)
-      finalBody = replaceVariables(template.body, data || {}, language)
+      finalSubject = replaceVariables(template.subject, mergedData, language)
+      finalBody = replaceVariables(template.body, mergedData, language)
     }
 
     // Envoyer l'email via Resend
