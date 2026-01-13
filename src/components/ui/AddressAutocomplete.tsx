@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { MapPin, Loader2 } from 'lucide-react'
 import { useGeoapifyKey } from '@/hooks/useSupabase'
+import { useTranslation } from 'react-i18next'
 
 interface AddressAutocompleteProps {
   value: string
@@ -23,7 +24,11 @@ export function AddressAutocomplete({
   placeholder = 'Rechercher une adresse...',
   className = '',
 }: AddressAutocompleteProps) {
+  const { i18n } = useTranslation()
   const { data: apiKey } = useGeoapifyKey()
+
+  const currentLang = i18n.language || 'fr'
+
   const [query, setQuery] = useState(value)
   const [suggestions, setSuggestions] = useState<GeoapifySuggestion[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -62,7 +67,7 @@ export function AddressAutocomplete({
     setIsLoading(true)
     try {
       const response = await fetch(
-        `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(searchQuery)}&lang=fr&limit=5&filter=countrycode:fr&apiKey=${apiKey}`
+        `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(searchQuery)}&lang=${currentLang}&limit=5&apiKey=${apiKey}`
       )
       const data = await response.json()
 

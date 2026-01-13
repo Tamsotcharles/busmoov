@@ -438,6 +438,7 @@ export interface Database {
           client_id: string | null
           client_name: string | null
           client_phone: string | null
+          country_code: string | null
           created_at: string | null
           departure_address: string | null
           departure_city: string
@@ -472,6 +473,7 @@ export interface Database {
           client_id?: string | null
           client_name?: string | null
           client_phone?: string | null
+          country_code?: string | null
           created_at?: string | null
           departure_address?: string | null
           departure_city: string
@@ -506,6 +508,7 @@ export interface Database {
           client_id?: string | null
           client_name?: string | null
           client_phone?: string | null
+          country_code?: string | null
           created_at?: string | null
           departure_address?: string | null
           departure_city?: string
@@ -820,11 +823,16 @@ export interface Database {
           chauffeur_phone: string | null
           chauffeur_vehicle: string | null
           client_company: string | null
+          client_dir3_code: string | null
           client_email: string
           client_id: string | null
+          client_leitweg_id: string | null
           client_name: string
+          client_order_reference: string | null
           client_phone: string | null
+          client_vat_number: string | null
           contract_signed_at: string | null
+          country_code: string | null
           created_at: string | null
           demande_id: string | null
           departure: string
@@ -877,11 +885,16 @@ export interface Database {
           chauffeur_phone?: string | null
           chauffeur_vehicle?: string | null
           client_company?: string | null
+          client_dir3_code?: string | null
           client_email: string
           client_id?: string | null
+          client_leitweg_id?: string | null
           client_name: string
+          client_order_reference?: string | null
           client_phone?: string | null
+          client_vat_number?: string | null
           contract_signed_at?: string | null
+          country_code?: string | null
           created_at?: string | null
           demande_id?: string | null
           departure: string
@@ -934,11 +947,16 @@ export interface Database {
           chauffeur_phone?: string | null
           chauffeur_vehicle?: string | null
           client_company?: string | null
+          client_dir3_code?: string | null
           client_email?: string
           client_id?: string | null
+          client_leitweg_id?: string | null
           client_name?: string
+          client_order_reference?: string | null
           client_phone?: string | null
+          client_vat_number?: string | null
           contract_signed_at?: string | null
+          country_code?: string | null
           created_at?: string | null
           demande_id?: string | null
           departure?: string
@@ -1200,6 +1218,7 @@ export interface Database {
           contrat_id: string | null
           created_at: string | null
           dossier_id: string | null
+          facture_id: string | null
           id: string
           notes: string | null
           payment_date: string
@@ -1212,6 +1231,7 @@ export interface Database {
           contrat_id?: string | null
           created_at?: string | null
           dossier_id?: string | null
+          facture_id?: string | null
           id?: string
           notes?: string | null
           payment_date?: string
@@ -1224,6 +1244,7 @@ export interface Database {
           contrat_id?: string | null
           created_at?: string | null
           dossier_id?: string | null
+          facture_id?: string | null
           id?: string
           notes?: string | null
           payment_date?: string
@@ -1479,6 +1500,7 @@ export interface Database {
           astreinte_tel: string | null
           categories: string[] | null
           city: string | null
+          country_code: string | null
           created_at: string | null
           email: string | null
           id: string
@@ -1497,6 +1519,7 @@ export interface Database {
           astreinte_tel?: string | null
           categories?: string[] | null
           city?: string | null
+          country_code?: string | null
           created_at?: string | null
           email?: string | null
           id?: string
@@ -1515,6 +1538,7 @@ export interface Database {
           astreinte_tel?: string | null
           categories?: string[] | null
           city?: string | null
+          country_code?: string | null
           created_at?: string | null
           email?: string | null
           id?: string

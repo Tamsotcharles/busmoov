@@ -3,6 +3,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Truck, Calendar, MapPin, Users, Send, Loader2, Copy, CheckCircle, AlertCircle, Mail, FileText, Paperclip } from 'lucide-react'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import { useCreateDemandeChauffeur, generateChauffeurToken } from '@/hooks/useSupabase'
+import { supabase } from '@/lib/supabase'
 import type { DossierWithRelations, Transporteur, VoyageInfo } from '@/types/database'
 
 interface DemandeContactChauffeurModalProps {
@@ -107,21 +108,59 @@ export function DemandeContactChauffeurModal({
     }
   }
 
-  // Simuler l'envoi de l'email
+  // Envoyer l'email via la fonction send-email
   const handleSendEmail = async () => {
+    if (!transporteur?.email) {
+      alert('Le transporteur n\'a pas d\'email configuré.')
+      return
+    }
+
     setSending(true)
     try {
-      // Simulation envoi email - à remplacer par une vraie API
-      console.log('Email envoyé à:', transporteur?.email, { subject: emailSubject, body: emailBody })
+      // Convertir le body texte en HTML
+      const htmlBody = emailBody.replace(/\n/g, '<br>')
 
-      // Pour l'instant on simule un délai
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const { error: emailError } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'custom',
+          to: transporteur.email,
+          subject: emailSubject,
+          html_content: htmlBody,
+          data: {
+            dossier_id: dossier.id,
+            language: 'fr', // Les emails aux transporteurs sont toujours en français
+          },
+        },
+      })
 
-      alert(`Email envoyé avec succès à ${transporteur?.email || 'le transporteur'}`)
+      if (emailError) {
+        throw emailError
+      }
+
+      // Mettre à jour la demande avec la date d'envoi
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any)
+        .from('demandes_chauffeur')
+        .update({
+          email_sent_at: new Date().toISOString(),
+        })
+        .eq('dossier_id', dossier.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      // Ajouter une entrée dans la timeline
+      await supabase.from('timeline').insert({
+        dossier_id: dossier.id,
+        type: 'email_sent',
+        content: `Demande de contact chauffeur envoyée à ${transporteur.name} (${transporteur.email})`,
+      })
+
+      alert(`Email envoyé avec succès à ${transporteur.email}`)
       handleClose()
     } catch (error) {
       console.error('Erreur envoi email:', error)
-      alert('Erreur lors de l\'envoi de l\'email')
+      alert('Erreur lors de l\'envoi de l\'email: ' + (error instanceof Error ? error.message : 'Erreur inconnue'))
     } finally {
       setSending(false)
     }

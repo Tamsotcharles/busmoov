@@ -29,7 +29,7 @@ import {
   Truck,
   Paperclip,
 } from 'lucide-react'
-import { formatDate, formatPrice, cn } from '@/lib/utils'
+import { formatDate, formatPrice, cn, generateInfosVoyageUrl, generatePaymentUrl, generateClientAccessUrl, getLanguageFromCountry } from '@/lib/utils'
 import { Modal } from '@/components/ui/Modal'
 
 // Types
@@ -49,6 +49,7 @@ interface DossierRelance {
   contract_signed_at: string | null
   created_at: string
   transporteur_id: string | null
+  country_code: string | null
   // Computed fields
   jours_avant_depart: number
   total_paye: number
@@ -459,6 +460,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
             contract_signed_at: d.contract_signed_at,
             created_at: d.created_at || new Date().toISOString(),
             transporteur_id: d.transporteur_id,
+            country_code: d.country_code || null,
             jours_avant_depart: joursAvant,
             total_paye: totalPaye,
             solde_restant: soldeRestant,
@@ -679,9 +681,39 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
           .replace(/{passengers}/g, String(dossier.passengers))
           .replace(/{solde_restant}/g, formatPrice(dossier.solde_restant))
           .replace(/{acompte}/g, formatPrice(acompte))
-          .replace(/{lien_infos_voyage}/g, `${window.location.origin}/infos-voyage?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`)
-          .replace(/{lien_paiement}/g, `${window.location.origin}/paiement?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`)
+          .replace(/{lien_infos_voyage}/g, generateInfosVoyageUrl(dossier.reference, dossier.client_email, dossier.country_code))
+          .replace(/{lien_paiement}/g, generatePaymentUrl(dossier.reference, dossier.client_email, dossier.country_code))
           .replace(/{lien_chauffeur}/g, `${window.location.origin}/fournisseur/chauffeur?token=LIEN_A_GENERER`)
+
+        // Déterminer la langue à partir du pays
+        const emailLanguage = getLanguageFromCountry(dossier.country_code)
+
+        // Envoyer l'email via Edge Function
+        const { error: emailError } = await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'custom',
+            to: dossier.client_email,
+            subject: subject,
+            html_content: body.replace(/\n/g, '<br>'),
+            data: {
+              client_name: dossier.client_name,
+              reference: dossier.reference,
+              departure: dossier.departure,
+              arrival: dossier.arrival,
+              departure_date: formatDate(dossier.departure_date),
+              lien_espace_client: generateClientAccessUrl(dossier.reference, dossier.client_email, dossier.country_code),
+              lien_paiement: generatePaymentUrl(dossier.reference, dossier.client_email, dossier.country_code),
+              lien_infos_voyage: generateInfosVoyageUrl(dossier.reference, dossier.client_email, dossier.country_code),
+              dossier_id: dossier.id,
+              language: emailLanguage,
+            },
+          },
+        })
+
+        if (emailError) {
+          console.error('Erreur envoi email:', emailError)
+          throw emailError
+        }
 
         // Enregistrer la relance dans la timeline
         await supabase.from('timeline').insert({
@@ -690,8 +722,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
           content: `📧 Relance envoyée: "${subject.substring(0, 50)}..."`,
         })
 
-        // Ici vous pourriez intégrer l'envoi réel d'email via une API
-        console.log('Relance envoyée à:', dossier.client_email, { subject, body })
+        console.log('Relance envoyée à:', dossier.client_email)
       }
 
       // Recharger les données

@@ -3,18 +3,22 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Check, Shield } from 'lucide-react'
 import { useCreateDemande } from '@/hooks/useSupabase'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
+import { useLocalizedPath } from '@/components/i18n'
 
 type TripType = 'round-trip' | 'one-way' | 'circuit'
 
-const tripTypeLabels: Record<TripType, string> = {
-  'round-trip': 'Aller-retour',
-  'one-way': 'Aller simple',
-  'circuit': 'Circuit',
-}
-
 export function QuoteForm() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
+  const localizedPath = useLocalizedPath()
   const createDemande = useCreateDemande()
+
+  const tripTypeLabels: Record<TripType, string> = {
+    'round-trip': t('quoteForm.roundTrip'),
+    'one-way': t('quoteForm.oneWay'),
+    'circuit': t('quoteForm.circuit'),
+  }
 
   const [tripType, setTripType] = useState<TripType>('round-trip')
   const [formData, setFormData] = useState({
@@ -61,7 +65,7 @@ export function QuoteForm() {
         email: result.client_email,
       })
     } catch (err) {
-      setError('Une erreur est survenue. Veuillez réessayer.')
+      setError(t('common.error'))
       console.error(err)
     }
   }
@@ -80,19 +84,19 @@ export function QuoteForm() {
           <Check size={40} className="text-white" />
         </div>
         <h3 className="font-display text-2xl font-bold text-purple-dark mb-2">
-          Demande envoyée !
+          {t('quoteForm.success.title')}
         </h3>
         <p className="text-gray-500 mb-4">
-          Vous recevrez vos devis personnalisés sous 24h par email.
+          {t('quoteForm.success.subtitle')}
         </p>
         <p className="text-sm text-gray-400 mb-6">
-          Votre numéro de demande : <strong className="text-purple">{success.reference}</strong>
+          {t('quoteForm.success.reference')} : <strong className="text-purple">{success.reference}</strong>
         </p>
         <button
-          onClick={() => navigate(`/mes-devis?ref=${success.reference}&email=${encodeURIComponent(success.email)}`)}
+          onClick={() => navigate(localizedPath(`/mes-devis?ref=${success.reference}&email=${encodeURIComponent(success.email)}`))}
           className="btn btn-secondary"
         >
-          Suivre ma demande
+          {t('quoteForm.success.trackRequest')}
         </button>
       </div>
     )
@@ -102,9 +106,9 @@ export function QuoteForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="text-center mb-6">
         <h2 className="font-display text-xl font-bold text-purple-dark mb-1">
-          Recevez vos devis gratuits
+          {t('quoteForm.getQuotes', 'Recevez vos devis gratuits')}
         </h2>
-        <p className="text-gray-500 text-sm">Réponse sous 24h garantie</p>
+        <p className="text-gray-500 text-sm">{t('quoteForm.responseTime', 'Réponse sous 24h garantie')}</p>
       </div>
 
       {/* Trip Type Toggle */}
@@ -128,26 +132,26 @@ export function QuoteForm() {
 
       {/* Location Fields */}
       <div>
-        <label className="label">Ville de départ</label>
+        <label className="label">{t('quoteForm.departure')}</label>
         <input
           type="text"
           name="departure"
           value={formData.departure}
           onChange={handleChange}
-          placeholder="Ex: Paris, Lyon, Marseille..."
+          placeholder={t('quoteForm.departurePlaceholder')}
           className="input"
           required
         />
       </div>
 
       <div>
-        <label className="label">Ville d'arrivée</label>
+        <label className="label">{t('quoteForm.arrival')}</label>
         <input
           type="text"
           name="arrival"
           value={formData.arrival}
           onChange={handleChange}
-          placeholder="Ex: Bordeaux, Nice, Strasbourg..."
+          placeholder={t('quoteForm.arrivalPlaceholder')}
           className="input"
           required
         />
@@ -156,7 +160,7 @@ export function QuoteForm() {
       {/* Dates */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="label">Date de départ</label>
+          <label className="label">{t('quoteForm.departureDate')}</label>
           <input
             type="date"
             name="departureDate"
@@ -169,7 +173,7 @@ export function QuoteForm() {
         </div>
         {tripType !== 'one-way' && (
           <div>
-            <label className="label">Date de retour</label>
+            <label className="label">{t('quoteForm.returnDate')}</label>
             <input
               type="date"
               name="returnDate"
@@ -185,18 +189,18 @@ export function QuoteForm() {
       {/* Circuit Details - only shown when circuit is selected */}
       {tripType === 'circuit' && (
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-          <label className="label text-purple-dark">Détail de la mise à disposition *</label>
+          <label className="label text-purple-dark">{t('quoteForm.circuitDetails')} *</label>
           <textarea
             name="circuitDetails"
             value={formData.circuitDetails}
             onChange={handleChange}
-            placeholder="Décrivez le programme jour par jour, les étapes, les horaires..."
+            placeholder={t('quoteForm.circuitDetailsPlaceholder')}
             className="input min-h-[100px] text-sm"
             rows={4}
             required
           />
           <p className="text-xs text-purple-600 mt-1">
-            Plus vous détaillez, plus les devis seront précis.
+            {t('quoteForm.circuitDetailsHelp')}
           </p>
         </div>
       )}
@@ -204,13 +208,13 @@ export function QuoteForm() {
       {/* Passengers & Type */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="label">Nombre de passagers</label>
+          <label className="label">{t('quoteForm.passengers')}</label>
           <input
             type="number"
             name="passengers"
             value={formData.passengers}
             onChange={handleChange}
-            placeholder="Ex: 45"
+            placeholder={t('quoteForm.passengersPlaceholder')}
             min="1"
             max="500"
             className="input"
@@ -218,7 +222,7 @@ export function QuoteForm() {
           />
         </div>
         <div>
-          <label className="label">Type de voyage</label>
+          <label className="label">{t('quoteForm.voyageType')}</label>
           <select
             name="voyageType"
             value={formData.voyageType}
@@ -226,13 +230,13 @@ export function QuoteForm() {
             className="input"
             required
           >
-            <option value="">Sélectionner</option>
-            <option value="scolaire">Sortie scolaire</option>
-            <option value="entreprise">Séminaire entreprise</option>
-            <option value="mariage">Mariage / Événement</option>
-            <option value="sportif">Déplacement sportif</option>
-            <option value="touristique">Voyage touristique</option>
-            <option value="autre">Autre</option>
+            <option value="">{t('quoteForm.select')}</option>
+            <option value="scolaire">{t('quoteForm.voyageTypeScolaire')}</option>
+            <option value="entreprise">{t('quoteForm.voyageTypeEntreprise')}</option>
+            <option value="mariage">{t('quoteForm.voyageTypeMariage')}</option>
+            <option value="sportif">{t('quoteForm.voyageTypeSportif')}</option>
+            <option value="touristique">{t('quoteForm.voyageTypeTouristique')}</option>
+            <option value="autre">{t('quoteForm.voyageTypeAutre')}</option>
           </select>
         </div>
       </div>
@@ -240,25 +244,25 @@ export function QuoteForm() {
       {/* Contact Info */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="label">Votre nom</label>
+          <label className="label">{t('quoteForm.name')}</label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            placeholder="Nom complet"
+            placeholder={t('quoteForm.namePlaceholder')}
             className="input"
             required
           />
         </div>
         <div>
-          <label className="label">Téléphone</label>
+          <label className="label">{t('quoteForm.phone')}</label>
           <input
             type="tel"
             name="phone"
             value={formData.phone}
             onChange={handleChange}
-            placeholder="06 XX XX XX XX"
+            placeholder={t('quoteForm.phonePlaceholder')}
             className="input"
             required
           />
@@ -266,13 +270,13 @@ export function QuoteForm() {
       </div>
 
       <div>
-        <label className="label">Email</label>
+        <label className="label">{t('quoteForm.email')}</label>
         <input
           type="email"
           name="email"
           value={formData.email}
           onChange={handleChange}
-          placeholder="votre@email.com"
+          placeholder={t('quoteForm.emailPlaceholder')}
           className="input"
           required
         />
@@ -290,10 +294,10 @@ export function QuoteForm() {
         className="btn btn-primary w-full btn-lg"
       >
         {createDemande.isPending ? (
-          'Envoi en cours...'
+          t('quoteForm.submitting')
         ) : (
           <>
-            Recevoir mes 3 devis gratuits
+            {t('quoteForm.submit')}
             <ArrowRight size={20} />
           </>
         )}
@@ -301,7 +305,7 @@ export function QuoteForm() {
 
       <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
         <Shield size={16} className="text-emerald-500" />
-        Gratuit et sans engagement • Données sécurisées
+        {t('quoteForm.freeNoCommitment')}
       </div>
     </form>
   )

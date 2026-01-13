@@ -7,6 +7,24 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper pour obtenir le préfixe de langue à partir du code pays
+function getLanguageFromCountry(countryCode: string | null | undefined): string {
+  switch (countryCode?.toUpperCase()) {
+    case 'ES': return 'es';
+    case 'DE': return 'de';
+    case 'GB': return 'en';
+    case 'FR':
+    default: return 'fr';
+  }
+}
+
+// Helper pour générer une URL localisée
+function generateLocalizedUrl(baseUrl: string, path: string, countryCode: string | null | undefined, params: Record<string, string>): string {
+  const lang = getLanguageFromCountry(countryCode);
+  const queryString = new URLSearchParams(params).toString();
+  return `${baseUrl}/${lang}${path}?${queryString}`;
+}
+
 interface WorkflowRule {
   id: string;
   name: string;
@@ -48,172 +66,49 @@ interface Dossier {
   acompte_paid_at: string | null;
   solde_paid_at: string | null;
   payment_method: string | null;
+  country_code: string | null;
   created_at: string;
 }
 
-// Fonction pour envoyer un email via Gmail API (comme dans send-email)
-async function sendEmail(
+// Fonction pour envoyer un email via la fonction send-email centralisée
+// Cette fonction gère automatiquement la traduction selon la langue
+async function sendEmailViaCentralFunction(
+  templateKey: string,
   to: string,
-  subject: string,
-  htmlContent: string
+  data: Record<string, string>,
+  language: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const serviceAccountEmail = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_EMAIL");
-    const privateKeyPem = Deno.env.get("GOOGLE_PRIVATE_KEY");
-    const senderEmail = Deno.env.get("GMAIL_SENDER_EMAIL") || "infos@busmoov.com";
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-    if (!serviceAccountEmail || !privateKeyPem) {
-      console.log("Gmail API credentials not configured, skipping email");
-      return { success: true }; // Return success to not block workflow
-    }
-
-    // Import crypto for JWT signing
-    const encoder = new TextEncoder();
-
-    // Create JWT header and claims
-    const header = { alg: "RS256", typ: "JWT" };
-    const now = Math.floor(Date.now() / 1000);
-    const claims = {
-      iss: serviceAccountEmail,
-      sub: senderEmail,
-      scope: "https://www.googleapis.com/auth/gmail.send",
-      aud: "https://oauth2.googleapis.com/token",
-      iat: now,
-      exp: now + 3600,
-    };
-
-    // Base64URL encode
-    const base64url = (str: string) =>
-      btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-
-    const headerB64 = base64url(JSON.stringify(header));
-    const claimsB64 = base64url(JSON.stringify(claims));
-    const signatureInput = `${headerB64}.${claimsB64}`;
-
-    // Parse PEM private key
-    const pemContents = privateKeyPem
-      .replace(/-----BEGIN PRIVATE KEY-----/g, "")
-      .replace(/-----END PRIVATE KEY-----/g, "")
-      .replace(/\s/g, "");
-
-    const binaryKey = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
-
-    const cryptoKey = await crypto.subtle.importKey(
-      "pkcs8",
-      binaryKey,
-      { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-      false,
-      ["sign"]
-    );
-
-    const signature = await crypto.subtle.sign(
-      "RSASSA-PKCS1-v1_5",
-      cryptoKey,
-      encoder.encode(signatureInput)
-    );
-
-    const signatureB64 = base64url(
-      String.fromCharCode(...new Uint8Array(signature))
-    );
-    const jwt = `${signatureInput}.${signatureB64}`;
-
-    // Get access token
-    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+    const response = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        assertion: jwt,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${supabaseKey}`,
+      },
+      body: JSON.stringify({
+        type: templateKey,
+        to: to,
+        data: {
+          ...data,
+          language: language,
+        },
       }),
     });
 
-    const tokenData = await tokenResponse.json();
-    if (!tokenData.access_token) {
-      throw new Error("Failed to get access token");
-    }
+    const result = await response.json();
 
-    // Create email message
-    const message = [
-      `From: Busmoov <${senderEmail}>`,
-      `To: ${to}`,
-      `Subject: ${subject}`,
-      "MIME-Version: 1.0",
-      'Content-Type: text/html; charset="UTF-8"',
-      "",
-      htmlContent,
-    ].join("\r\n");
-
-    const encodedMessage = btoa(unescape(encodeURIComponent(message)))
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "");
-
-    // Send email
-    const sendResponse = await fetch(
-      "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${tokenData.access_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ raw: encodedMessage }),
-      }
-    );
-
-    if (!sendResponse.ok) {
-      const errorText = await sendResponse.text();
-      throw new Error(`Gmail API error: ${errorText}`);
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || `HTTP ${response.status}`);
     }
 
     return { success: true };
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("Error sending email via central function:", error);
     return { success: false, error: error.message };
   }
-}
-
-// Remplacer les variables dans un template
-function replaceVariables(
-  template: string,
-  dossier: Dossier,
-  baseUrl: string
-): string {
-  // Calculer le montant du solde (total - acompte)
-  const soldeAmount = dossier.price_ttc && dossier.acompte_amount
-    ? dossier.price_ttc - dossier.acompte_amount
-    : dossier.price_ttc || 0;
-
-  const formatCurrency = (amount: number | null | undefined): string => {
-    if (!amount) return "";
-    return new Intl.NumberFormat("fr-FR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
-
-  const vars: Record<string, string> = {
-    client_name: dossier.client_name || "",
-    reference: dossier.reference || "",
-    departure: dossier.departure || "",
-    arrival: dossier.arrival || "",
-    departure_date: dossier.departure_date
-      ? new Date(dossier.departure_date).toLocaleDateString("fr-FR")
-      : "",
-    passengers: String(dossier.passengers || 0),
-    total_ttc: formatCurrency(dossier.price_ttc),
-    montant_acompte: formatCurrency(dossier.acompte_amount),
-    montant_solde: formatCurrency(soldeAmount),
-    lien_espace_client: `${baseUrl}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email || "")}`,
-    lien_paiement: `${baseUrl}/client/paiement/${dossier.id}`,
-    lien_infos_voyage: `${baseUrl}/client/infos-voyage/${dossier.id}`,
-  };
-
-  let result = template;
-  for (const [key, value] of Object.entries(vars)) {
-    result = result.replace(new RegExp(`{{${key}}}`, "g"), value);
-  }
-  return result;
 }
 
 // Vérifier si un dossier satisfait les conditions d'une règle
@@ -546,29 +441,10 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Get email template
+      // Get email template key (le template sera chargé par send-email)
       const templateKey =
         (rule.action_config as { template?: string })?.template ||
         (rule.actions?.[0]?.params as { template?: string })?.template;
-
-      let emailTemplate: { subject: string; html_content: string } | null =
-        null;
-      if (templateKey) {
-        const { data: template } = await supabase
-          .from("email_templates")
-          .select("subject, html_content, body")
-          .eq("key", templateKey)
-          .single();
-
-        if (template) {
-          emailTemplate = {
-            subject:
-              (rule.action_config as { subject?: string })?.subject ||
-              template.subject,
-            html_content: template.html_content || template.body || "",
-          };
-        }
-      }
 
       // Process each dossier
       for (const dossier of dossiers as Dossier[]) {
@@ -633,9 +509,41 @@ Deno.serve(async (req) => {
         const actionType =
           rule.action_type || rule.actions?.[0]?.type || "send_email";
 
-        if (actionType === "send_email" && emailTemplate) {
-          let htmlContent = emailTemplate.html_content;
-          let subject = emailTemplate.subject;
+        if (actionType === "send_email" && templateKey) {
+          // Déterminer la langue du dossier
+          const language = getLanguageFromCountry(dossier.country_code);
+
+          // Calculer le montant du solde (total - acompte)
+          const soldeAmount = dossier.price_ttc && dossier.acompte_amount
+            ? dossier.price_ttc - dossier.acompte_amount
+            : dossier.price_ttc || 0;
+
+          const formatCurrency = (amount: number | null | undefined): string => {
+            if (!amount) return "";
+            return new Intl.NumberFormat("fr-FR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(amount);
+          };
+
+          // Préparer les données pour le template
+          const emailData: Record<string, string> = {
+            client_name: dossier.client_name || "",
+            reference: dossier.reference || "",
+            departure: dossier.departure || "",
+            arrival: dossier.arrival || "",
+            departure_date: dossier.departure_date
+              ? new Date(dossier.departure_date).toLocaleDateString("fr-FR")
+              : "",
+            passengers: String(dossier.passengers || 0),
+            total_ttc: formatCurrency(dossier.price_ttc),
+            montant_acompte: formatCurrency(dossier.acompte_amount),
+            montant_solde: formatCurrency(soldeAmount),
+            lien_espace_client: generateLocalizedUrl(baseUrl, '/mes-devis', dossier.country_code, { ref: dossier.reference, email: dossier.client_email || "" }),
+            lien_paiement: generateLocalizedUrl(baseUrl, '/paiement', dossier.country_code, { ref: dossier.reference, email: dossier.client_email || "" }),
+            lien_infos_voyage: generateLocalizedUrl(baseUrl, '/infos-voyage', dossier.country_code, { ref: dossier.reference, email: dossier.client_email || "" }),
+            dossier_id: dossier.id,
+          };
 
           // Pour le trigger voyage_completed, créer le review token et le lien
           if (rule.trigger_event === "voyage_completed") {
@@ -661,22 +569,16 @@ Deno.serve(async (req) => {
             }
 
             const reviewUrl = `${baseUrl}/avis?token=${reviewToken}`;
-
-            // Remplacer les variables spécifiques aux avis
-            htmlContent = htmlContent
-              .replace(/\{\{lien_avis\}\}/g, reviewUrl)
-              .replace(/\{\{review_url\}\}/g, reviewUrl);
-            subject = subject.replace(/\{\{lien_avis\}\}/g, reviewUrl);
+            emailData.lien_avis = reviewUrl;
+            emailData.review_url = reviewUrl;
           }
 
-          // Remplacer les variables standard
-          htmlContent = replaceVariables(htmlContent, dossier, baseUrl);
-          subject = replaceVariables(subject, dossier, baseUrl);
-
-          const emailResult = await sendEmail(
+          // Envoyer l'email via la fonction centralisée (gère la traduction automatiquement)
+          const emailResult = await sendEmailViaCentralFunction(
+            templateKey,
             dossier.client_email,
-            subject,
-            htmlContent
+            emailData,
+            language
           );
 
           if (!emailResult.success) {

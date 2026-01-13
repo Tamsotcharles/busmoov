@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   LayoutDashboard,
   UsersRound,
@@ -73,6 +73,7 @@ import { EditDevisModal } from '@/components/admin/EditDevisModal'
 import { CGVPage } from '@/components/admin/CGVPage'
 import { EmailTemplatesPage } from '@/components/admin/EmailTemplatesPage'
 import { EmailHistoryPage } from '@/components/admin/EmailHistoryPage'
+import { CountrySettingsPage } from '@/components/admin/CountrySettingsPage'
 import { NotificationsPanel } from '@/components/admin/NotificationsPanel'
 import {
   calculerTarifComplet,
@@ -87,6 +88,21 @@ import {
   TARIFS_HORS_GRILLE,
 } from '@/lib/pricing-rules'
 import type { Transporteur, FeuilleRouteType, Devis } from '@/types/database'
+
+// Taux de TVA par pays pour le transport de passagers
+const COUNTRY_TVA_RATES: Record<string, number> = {
+  FR: 10,
+  ES: 10,
+  DE: 7,
+  GB: 0,
+  EN: 0, // Alias pour GB (langue EN)
+}
+
+// Fonction helper pour obtenir le taux de TVA selon le pays
+function getTvaRateByCountry(countryCode?: string | null): number {
+  if (!countryCode) return 10 // Défaut France
+  return COUNTRY_TVA_RATES[countryCode] ?? 10
+}
 
 // Types locaux pour workflows
 interface WorkflowStep {
@@ -107,10 +123,11 @@ interface WorkflowDevisAuto {
 import { supabase } from '@/lib/supabase'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
-import { EmailPreviewModal, useEmailPreview } from '@/components/ui/EmailPreviewModal'
+import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl } from '@/lib/utils'
-import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64 } from '@/lib/pdf'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS } from '@/lib/utils'
+import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
+import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
 import { ServiceClientelePage } from '@/components/admin/ServiceClientelePage'
 import { WorkflowPage } from '@/components/admin/WorkflowPage'
@@ -118,7 +135,7 @@ import { DepartsPage } from '@/components/admin/DepartsPage'
 import { ExperimentsPage } from '@/components/admin/ExperimentsPage'
 import { TestRunnerPage } from '@/components/admin/TestRunnerPage'
 import { ReviewsPage } from '@/components/admin/ReviewsPage'
-import { FlaskConical, TestTube2, Star } from 'lucide-react'
+import { FlaskConical, TestTube2, Star, Globe, FileCode } from 'lucide-react'
 import type { DossierWithRelations } from '@/types/database'
 
 type Page = 'dashboard' | 'dossiers' | 'devis' | 'exploitation' | 'factures' | 'transporteurs' | 'clients' | 'workflow' | 'templates' | 'email-history' | 'messages' | 'service-client' | 'reviews' | 'stats' | 'calendrier' | 'departs' | 'settings'
@@ -226,8 +243,8 @@ function OffreFlashModal({
           ? { remise_percent: config.value, remise_montant: null }
           : { remise_montant: config.value, remise_percent: null }
 
-        // Calculer le nouveau prix HT à partir du TTC
-        const tvaRate = devis.tva_rate || 10
+        // Calculer le nouveau prix HT à partir du TTC selon le taux TVA du pays
+        const tvaRate = devis.tva_rate || getTvaRateByCountry(dossier.country_code)
         const newPriceHT = Math.round((newPrice / (1 + tvaRate / 100)) * 100) / 100
 
         await updateDevis.mutateAsync({
@@ -239,35 +256,33 @@ function OffreFlashModal({
           price_ht: newPriceHT,
         })
 
-        // 2. Envoyer l'email avec offre flash
-        const emailBody = `
-Bonjour ${dossier.client_name},
+        // 2. Envoyer l'email avec offre flash via Edge Function
+        const emailLanguage = (dossier.country_code || 'FR').toLowerCase()
 
-OFFRE FLASH - Réduction exceptionnelle sur votre devis !
-
-Pour votre trajet ${dossier.departure} → ${dossier.arrival} le ${formatDate(dossier.departure_date)}, nous vous proposons une offre exclusive :
-
-Prix initial : ${formatPrice(originalPrice)}
-Votre remise : -${formatPrice(savings)}${config.type === 'percent' ? ` (${config.value}%)` : ''}
-NOUVEAU PRIX : ${formatPrice(newPrice)}
-
-ATTENTION : Cette offre expire dans ${config.validityHours}h !
-
-Pour en profiter, rendez-vous sur votre espace client :
-${window.location.origin}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email || '')}
-
-À très bientôt,
-L'équipe Busmoov
-        `.trim()
-
-        await supabase.from('emails').insert({
-          to: dossier.client_email,
-          subject: `OFFRE FLASH -${config.type === 'percent' ? `${config.value}%` : formatPrice(config.value)} sur votre devis #${dossier.reference}`,
-          body: emailBody,
-          template: 'offre_flash',
-          dossier_id: dossier.id,
-          status: 'pending',
+        const { error: emailError } = await supabase.functions.invoke('send-email', {
+          body: {
+            type: 'offre_flash',
+            to: dossier.client_email,
+            data: {
+              client_name: dossier.client_name,
+              reference: dossier.reference,
+              departure: dossier.departure,
+              arrival: dossier.arrival,
+              departure_date: formatDate(dossier.departure_date),
+              passengers: String(dossier.passengers),
+              prix_barre: originalPrice.toFixed(2).replace('.', ','),
+              prix_ttc: newPrice.toFixed(2).replace('.', ','),
+              validite_heures: String(config.validityHours),
+              lien_espace_client: generateClientAccessUrl(dossier.reference, dossier.client_email || '', dossier.country_code),
+              dossier_id: dossier.id,
+              language: emailLanguage,
+            },
+          },
         })
+
+        if (emailError) {
+          console.error('Erreur envoi email offre flash:', emailError)
+        }
 
         // 3. Ajouter une entrée timeline
         await supabase.from('timeline').insert({
@@ -445,6 +460,7 @@ L'équipe Busmoov
 
 export function AdminDashboard() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { signOut, user } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('dossiers')
   const [searchQuery, setSearchQuery] = useState('')
@@ -510,6 +526,38 @@ export function AdminDashboard() {
     })
     return map
   }, [allDossiersAutoDevis])
+
+  // Synchroniser selectedDossier avec les données actualisées
+  useEffect(() => {
+    if (selectedDossier && dossiers.length > 0) {
+      const updatedDossier = dossiers.find(d => d.id === selectedDossier.id)
+      if (updatedDossier && JSON.stringify(updatedDossier) !== JSON.stringify(selectedDossier)) {
+        setSelectedDossier(updatedDossier)
+      }
+    }
+  }, [dossiers, selectedDossier])
+
+  // Gérer l'ouverture automatique d'un dossier depuis l'URL
+  useEffect(() => {
+    const dossierId = searchParams.get('dossierId')
+    const page = searchParams.get('page')
+
+    // Changer de page si spécifié dans l'URL
+    if (page && ['dashboard', 'dossiers', 'devis', 'exploitation', 'factures', 'transporteurs', 'clients', 'workflow', 'templates', 'email-history', 'messages', 'service-client', 'reviews', 'stats', 'calendrier', 'departs', 'settings'].includes(page)) {
+      setCurrentPage(page as Page)
+    }
+
+    // Ouvrir le dossier si spécifié dans l'URL
+    if (dossierId && dossiers.length > 0) {
+      const dossier = dossiers.find(d => d.id === dossierId)
+      if (dossier) {
+        setSelectedDossier(dossier)
+        setCurrentPage('dossiers')
+        // Nettoyer l'URL après ouverture
+        setSearchParams({})
+      }
+    }
+  }, [searchParams, dossiers, setSearchParams])
 
   // Compteur des nouveaux tarifs reçus (non traités)
   const nouveauxTarifsCount = useMemo(() => {
@@ -586,7 +634,7 @@ export function AdminDashboard() {
 
       // Calculer la marge si on a un prix de vente (marge calculée en HT)
       const prixFournisseurHT = meilleureDemande.prix_propose || 0
-      const tvaRate = dossier.tva_rate || 10
+      const tvaRate = dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
       const prixFournisseurTTC = prixFournisseurHT * (1 + tvaRate / 100)
 
       if (dossier.price_ht && dossier.price_ht > 0 && prixFournisseurHT > 0) {
@@ -1405,7 +1453,7 @@ export function AdminDashboard() {
                 setEditingDevis({
                   ...devis,
                   dossier: selectedDossier,
-                  tva_rate: devis.tva_rate || 10,
+                  tva_rate: devis.tva_rate || selectedDossier?.tva_rate || getTvaRateByCountry(selectedDossier?.country_code),
                   nombre_cars: devis.nombre_cars || 1,
                   nombre_chauffeurs: devis.nombre_chauffeurs || 1,
                 })
@@ -1576,7 +1624,7 @@ export function AdminDashboard() {
                                       validity_days: devis.validity_days || 30,
                                       options: devis.options || '',
                                       notes: devis.notes || '',
-                                      tva_rate: devis.tva_rate || 10,
+                                      tva_rate: devis.tva_rate || (devis.dossier as any)?.tva_rate || getTvaRateByCountry((devis.dossier as any)?.country_code),
                                     })
                                     setShowEditDevisModal(true)
                                   }}
@@ -1775,6 +1823,9 @@ export function AdminDashboard() {
         to={emailData?.to || ''}
         subject={emailData?.subject || ''}
         body={emailData?.body || ''}
+        html={emailData?.html}
+        dossierId={emailData?.dossierId}
+        templateKey={emailData?.templateKey}
         onSend={onSendCallback}
       />
     </div>
@@ -1792,6 +1843,9 @@ function DossierRow({ dossier, onView }: { dossier: DossierWithRelations; onView
     )} onClick={onView}>
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
+          <span title={COUNTRY_NAMES[dossier.country_code || 'FR']}>
+            {COUNTRY_FLAGS[dossier.country_code || 'FR']}
+          </span>
           <span className="font-semibold">#{dossier.reference}</span>
           {isSigned && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
@@ -1908,6 +1962,9 @@ function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAut
         {/* Info principale */}
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
+            <span title={COUNTRY_NAMES[dossier.country_code || 'FR']}>
+              {COUNTRY_FLAGS[dossier.country_code || 'FR']}
+            </span>
             <span className="font-display font-bold text-purple-dark">
               #{dossier.reference}
             </span>
@@ -2091,6 +2148,7 @@ function CreateDossierModal({
     client_company: '',
     client_email: '',
     client_phone: '',
+    country_code: 'FR',
     departure: '',
     arrival: '',
     departure_date: '',
@@ -2098,7 +2156,7 @@ function CreateDossierModal({
     return_date: '',
     return_time: '',
     passengers: 1,
-    tva_rate: 10,
+    tva_rate: getTvaRateByCountry('FR'),
     transporteur_id: '',
     price_ht: 0,
     price_achat_ht: 0,
@@ -2114,21 +2172,23 @@ function CreateDossierModal({
   // Calculate TTC
   const price_ttc = Math.round(formData.price_ht * (1 + formData.tva_rate / 100) * 100) / 100
 
-  // Handler pour calculer TTC à partir de HT (prix achat)
+  // Handler pour calculer TTC à partir de HT (prix achat) selon le taux TVA du formulaire
   const handlePriceAchatHTChange = (value: number) => {
+    const tvaRate = formData.tva_rate || getTvaRateByCountry(formData.country_code)
     setFormData({
       ...formData,
       price_achat_ht: value,
-      price_achat_ttc: Math.round(value * 1.1 * 100) / 100,
+      price_achat_ttc: Math.round(value * (1 + tvaRate / 100) * 100) / 100,
     })
   }
 
-  // Handler pour calculer HT à partir de TTC (prix achat)
+  // Handler pour calculer HT à partir de TTC (prix achat) selon le taux TVA du formulaire
   const handlePriceAchatTTCChange = (value: number) => {
+    const tvaRate = formData.tva_rate || getTvaRateByCountry(formData.country_code)
     setFormData({
       ...formData,
       price_achat_ttc: value,
-      price_achat_ht: Math.round((value / 1.1) * 100) / 100,
+      price_achat_ht: Math.round((value / (1 + tvaRate / 100)) * 100) / 100,
     })
   }
 
@@ -2159,6 +2219,7 @@ function CreateDossierModal({
         return_time: formData.return_time || null,
         passengers: formData.passengers,
         tva_rate: formData.tva_rate,
+        country_code: formData.country_code,
         transporteur_id: formData.transporteur_id || null,
         price_ht: formData.price_ht || null,
         price_ttc: price_ttc || null,
@@ -2193,6 +2254,7 @@ function CreateDossierModal({
         client_company: '',
         client_email: '',
         client_phone: '',
+        country_code: 'FR',
         departure: '',
         arrival: '',
         departure_date: '',
@@ -2200,7 +2262,7 @@ function CreateDossierModal({
         return_date: '',
         return_time: '',
         passengers: 1,
-        tva_rate: 10,
+        tva_rate: getTvaRateByCountry('FR'),
         transporteur_id: '',
         price_ht: 0,
         price_achat_ht: 0,
@@ -2275,6 +2337,28 @@ function CreateDossierModal({
                 value={formData.client_phone}
                 onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
               />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <div>
+              <label className="label">Pays</label>
+              <select
+                className="input"
+                value={formData.country_code}
+                onChange={(e) => {
+                  const newCountryCode = e.target.value
+                  setFormData({
+                    ...formData,
+                    country_code: newCountryCode,
+                    tva_rate: getTvaRateByCountry(newCountryCode),
+                  })
+                }}
+              >
+                <option value="FR">France</option>
+                <option value="ES">Espagne</option>
+                <option value="DE">Allemagne</option>
+                <option value="GB">United Kingdom</option>
+              </select>
             </div>
           </div>
         </div>
@@ -2660,6 +2744,14 @@ function VoyageInfoAdminSection({
     const contactTel = editData.contact_tel || voyageInfo.contact_tel || ''
     const commentaires = editData.commentaires || voyageInfo.commentaires || ''
 
+    // Utiliser UNIQUEMENT les données voyageInfo validées par le client, pas les données du devis
+    const allerDepart = editData.aller_adresse_depart || voyageInfo.aller_adresse_depart || 'Non défini'
+    const allerArrivee = editData.aller_adresse_arrivee || voyageInfo.aller_adresse_arrivee || 'Non défini'
+    const allerPassagers = editData.aller_passagers || voyageInfo.aller_passagers || 'Non défini'
+    const retourDepart = editData.retour_adresse_depart || voyageInfo.retour_adresse_depart || ''
+    const retourArrivee = editData.retour_adresse_arrivee || voyageInfo.retour_adresse_arrivee || ''
+    const retourPassagers = editData.retour_passagers || voyageInfo.retour_passagers || ''
+
     if (type === 'infos_voyage') {
       setEmailForm({
         to: transporteur.email || '',
@@ -2671,16 +2763,16 @@ Veuillez trouver ci-dessous les informations pour le dossier ${dossier.reference
 📅 ALLER
 Date : ${allerDate ? new Date(allerDate).toLocaleDateString('fr-FR') : 'Non définie'}
 Heure : ${allerHeure || 'Non définie'}
-Départ : ${editData.aller_adresse_depart || voyageInfo.aller_adresse_depart || dossier.departure_address || dossier.departure}
-Arrivée : ${editData.aller_adresse_arrivee || voyageInfo.aller_adresse_arrivee || dossier.arrival_address || dossier.arrival}
-Passagers : ${editData.aller_passagers || voyageInfo.aller_passagers || dossier.passengers}
+Départ : ${allerDepart}
+Arrivée : ${allerArrivee}
+Passagers : ${allerPassagers}
 ${retourDate ? `
 📅 RETOUR
 Date : ${new Date(retourDate).toLocaleDateString('fr-FR')}
 Heure : ${retourHeure || 'Non définie'}
-Départ : ${editData.retour_adresse_depart || voyageInfo.retour_adresse_depart || ''}
-Arrivée : ${editData.retour_adresse_arrivee || voyageInfo.retour_adresse_arrivee || ''}
-Passagers : ${editData.retour_passagers || voyageInfo.retour_passagers || dossier.passengers}
+Départ : ${retourDepart || 'Non défini'}
+Arrivée : ${retourArrivee || 'Non défini'}
+Passagers : ${retourPassagers || 'Non défini'}
 ` : ''}
 👤 CONTACT SUR PLACE
 ${contactNom || 'Non défini'}
@@ -2703,8 +2795,8 @@ L'équipe Busmoov`,
 
 Concernant le dossier ${dossier.reference} prévu le ${allerDate ? new Date(allerDate).toLocaleDateString('fr-FR') : ''} :
 
-Trajet : ${editData.aller_adresse_depart || voyageInfo.aller_adresse_depart || dossier.departure_address || dossier.departure} → ${editData.aller_adresse_arrivee || voyageInfo.aller_adresse_arrivee || dossier.arrival_address || dossier.arrival}
-Passagers : ${editData.aller_passagers || voyageInfo.aller_passagers || dossier.passengers}
+Trajet : ${allerDepart} → ${allerArrivee}
+Passagers : ${allerPassagers}
 
 Merci de nous transmettre les coordonnées du chauffeur assigné à cette mission :
 - Nom et prénom du chauffeur
@@ -2739,21 +2831,22 @@ L'équipe Busmoov`,
       const tripType = dossier.return_date ? 'aller_retour' : 'aller'
       console.log('Type trajet:', tripType)
 
+      // Utiliser UNIQUEMENT les données voyageInfo validées par le client, pas les données du devis
       const pdfData = {
         reference: dossier.reference || '',
         dossier_reference: dossier.reference || '',
         client_name: dossier.client_name || '',
         type: tripType as 'aller' | 'retour' | 'aller_retour',
         aller_date: editData.aller_date || voyageInfo.aller_date,
-        aller_heure: voyageInfo.aller_heure || dossier.departure_time,
-        aller_adresse_depart: editData.aller_adresse_depart || voyageInfo.aller_adresse_depart || dossier.departure_address || dossier.departure,
-        aller_adresse_arrivee: editData.aller_adresse_arrivee || voyageInfo.aller_adresse_arrivee || dossier.arrival_address || dossier.arrival,
-        aller_passagers: editData.aller_passagers || voyageInfo.aller_passagers || dossier.passengers,
+        aller_heure: voyageInfo.aller_heure,
+        aller_adresse_depart: editData.aller_adresse_depart || voyageInfo.aller_adresse_depart,
+        aller_adresse_arrivee: editData.aller_adresse_arrivee || voyageInfo.aller_adresse_arrivee,
+        aller_passagers: editData.aller_passagers || voyageInfo.aller_passagers,
         retour_date: editData.retour_date || voyageInfo.retour_date,
-        retour_heure: voyageInfo.retour_heure || dossier.return_time,
+        retour_heure: voyageInfo.retour_heure,
         retour_adresse_depart: editData.retour_adresse_depart || voyageInfo.retour_adresse_depart,
         retour_adresse_arrivee: editData.retour_adresse_arrivee || voyageInfo.retour_adresse_arrivee,
-        retour_passagers: editData.retour_passagers || voyageInfo.retour_passagers || dossier.passengers,
+        retour_passagers: editData.retour_passagers || voyageInfo.retour_passagers,
         contact_nom: editData.contact_nom || voyageInfo.contact_nom,
         contact_prenom: editData.contact_prenom || voyageInfo.contact_prenom,
         contact_tel: editData.contact_tel || voyageInfo.contact_tel,
@@ -2764,7 +2857,10 @@ L'équipe Busmoov`,
       console.log('PDF Data:', pdfData)
       console.log('Génération du PDF...')
 
-      const { base64: pdfBase64, filename: pdfFilename } = await generateInfosVoyagePDFBase64(pdfData)
+      // Déterminer la langue du PDF selon le pays du dossier
+      const countryCodeInfosVoyage = dossier.country_code || 'FR'
+      const pdfLangInfosVoyage = countryCodeInfosVoyage === 'DE' ? 'de' : countryCodeInfosVoyage === 'ES' ? 'es' : countryCodeInfosVoyage === 'GB' ? 'en' : 'fr'
+      const { base64: pdfBase64, filename: pdfFilename } = await generateInfosVoyagePDFBase64(pdfData, pdfLangInfosVoyage)
 
       console.log('PDF généré avec succès:', pdfFilename, '(', Math.round(pdfBase64.length / 1024), 'Ko)')
 
@@ -3328,6 +3424,8 @@ L'équipe Busmoov`,
         <button
           onClick={async () => {
             const hasRetour = !!dossier.return_date || !!voyageInfo.retour_date
+            const countryCodeIV2 = dossier.country_code || 'FR'
+            const pdfLangIV2 = countryCodeIV2 === 'DE' ? 'de' : countryCodeIV2 === 'ES' ? 'es' : countryCodeIV2 === 'GB' ? 'en' : 'fr'
             await generateInfosVoyagePDF({
               reference: dossier.reference,
               client_name: dossier.client_name,
@@ -3349,7 +3447,7 @@ L'équipe Busmoov`,
               commentaires: voyageInfo.commentaires,
               luggage_type: dossier.luggage_type,
               validated_at: voyageInfo.validated_at,
-            })
+            }, pdfLangIV2)
           }}
           className="btn btn-outline flex items-center gap-2"
         >
@@ -3513,7 +3611,7 @@ function DossierDetailView({
   transporteurs: any[]
   onClose: () => void
   onViewDevis: () => void
-  openEmailPreview: (data: { to: string; subject: string; body: string }, onSend?: () => void | Promise<void>) => void
+  openEmailPreview: (data: EmailData, onSend?: () => void | Promise<void>) => void
   onEditDevis: (devis: any) => void
 }) {
   const queryClient = useQueryClient()
@@ -3533,6 +3631,7 @@ function DossierDetailView({
   const [selectedTransporteursDF, setSelectedTransporteursDF] = useState<string[]>([])
   const [categoryFilterDF, setCategoryFilterDF] = useState('')
   const [searchDF, setSearchDF] = useState('')
+  const [countryFilterDF, setCountryFilterDF] = useState('')
   const [messageTemplateDF, setMessageTemplateDF] = useState('')
   const [showPreviewDF, setShowPreviewDF] = useState(false)
   const createDemandeFournisseur = useCreateDemandeFournisseur()
@@ -3541,6 +3640,10 @@ function DossierDetailView({
     client_email: dossier.client_email || '',
     client_phone: dossier.client_phone || '',
     client_company: dossier.client_company || '',
+    client_vat_number: dossier.client_vat_number || '',
+    client_leitweg_id: dossier.client_leitweg_id || '',
+    client_dir3_code: dossier.client_dir3_code || '',
+    client_order_reference: dossier.client_order_reference || '',
     billing_address: dossier.billing_address || '',
     billing_zip: dossier.billing_zip || '',
     billing_city: dossier.billing_city || '',
@@ -3617,6 +3720,7 @@ function DossierDetailView({
     payment_date: new Date().toISOString().slice(0, 16),
     reference: '',
     notes: '',
+    facture_id: '' as string,
   })
   const [factureForm, setFactureForm] = useState({
     type: 'acompte' as 'acompte' | 'solde' | 'avoir',
@@ -3643,6 +3747,9 @@ function DossierDetailView({
     reference: '',
     notes: '',
   })
+
+  // État pour lier facture à paiement existant (dans le modal combiné)
+  const [selectedPaiementForLink, setSelectedPaiementForLink] = useState<string>('')
 
   // Modal pour générer un avoir
   const [showAvoirModal, setShowAvoirModal] = useState(false)
@@ -3747,7 +3854,19 @@ function DossierDetailView({
   const totalPaiements = paiements.reduce((sum, p) => sum + (p.amount || 0), 0)
   const resteAPayer = (contrat?.price_ttc || 0) - totalPaiements
   const totalPaiementsFournisseur = paiementsFournisseur.reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
-  const resteAPayerFournisseur = (dossier.price_achat || 0) - totalPaiementsFournisseur
+  // Prix achat: dossier.price_achat est le prix HT, on calcule le TTC
+  const prixAchatHT = (() => {
+    const devisAccepte = (dossier.devis || []).find((d: any) => d.status === 'accepted')
+    return devisAccepte?.price_achat_ht || dossier.price_achat || 0
+  })()
+  const tvaRateFournisseur = dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
+  const prixAchatTTC = (() => {
+    const devisAccepte = (dossier.devis || []).find((d: any) => d.status === 'accepted')
+    if (devisAccepte?.price_achat_ttc) return devisAccepte.price_achat_ttc
+    // Calculer TTC depuis HT (dossier.price_achat est HT)
+    return prixAchatHT ? Math.round(prixAchatHT * (1 + tvaRateFournisseur / 100) * 100) / 100 : 0
+  })()
+  const resteAPayerFournisseur = prixAchatTTC - totalPaiementsFournisseur
 
   // Auto-devis hooks
   const { data: autoDevisStatus } = useDossierAutoDevis(dossier.id)
@@ -3859,7 +3978,10 @@ L'équipe Busmoov`,
         luggage_type: dossier.luggage_type,
       }
 
-      const { base64: pdfBase64, filename: pdfFilename } = await generateFeuilleRoutePDFBase64(pdfData)
+      // Déterminer la langue du PDF selon le pays du dossier
+      const countryCodeFeuilleRoute = dossier.country_code || 'FR'
+      const pdfLangFeuilleRoute = countryCodeFeuilleRoute === 'DE' ? 'de' : countryCodeFeuilleRoute === 'ES' ? 'es' : countryCodeFeuilleRoute === 'GB' ? 'en' : 'fr'
+      const { base64: pdfBase64, filename: pdfFilename } = await generateFeuilleRoutePDFBase64(pdfData, pdfLangFeuilleRoute)
 
       // Mode simulation en développement (localhost)
       const isDevMode = window.location.hostname === 'localhost'
@@ -3950,12 +4072,13 @@ L'équipe Busmoov`,
       // Envoyer l'email de notification au client via le template quote_sent
       const clientEmail = dossier.client_email
       if (clientEmail) {
-        const lienEspaceClient = `${window.location.origin}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(clientEmail)}`
+        const emailLanguage = (dossier.country_code || 'FR').toLowerCase()
 
         console.log('Appel send-email avec:', {
           type: 'quote_sent',
           to: clientEmail,
           dossier_id: dossier.id,
+          language: emailLanguage,
         })
 
         const { data: emailData, error: emailError } = await supabase.functions.invoke('send-email', {
@@ -3970,8 +4093,9 @@ L'équipe Busmoov`,
               departure_date: dossier.departure_date ? new Date(dossier.departure_date).toLocaleDateString('fr-FR') : 'N/A',
               passengers: String(dossier.passengers || 0),
               nb_devis: String(sentDevisCount),
-              lien_espace_client: lienEspaceClient,
+              lien_espace_client: generateClientAccessUrl(dossier.reference, clientEmail, dossier.country_code),
               dossier_id: dossier.id,
+              language: emailLanguage,
             },
           }
         })
@@ -4017,7 +4141,7 @@ L'équipe Busmoov`,
         return
       }
 
-      const lienEspaceClient = `${window.location.origin}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(clientEmail)}`
+      const emailLanguage = (dossier.country_code || 'FR').toLowerCase()
 
       const { error: emailError } = await supabase.functions.invoke('send-email', {
         body: {
@@ -4031,8 +4155,9 @@ L'équipe Busmoov`,
             departure_date: dossier.departure_date ? new Date(dossier.departure_date).toLocaleDateString('fr-FR') : 'N/A',
             passengers: String(dossier.passengers || 0),
             nb_devis: String(sentDevisCount),
-            lien_espace_client: lienEspaceClient,
+            lien_espace_client: generateClientAccessUrl(dossier.reference, clientEmail, dossier.country_code),
             dossier_id: dossier.id,
+            language: emailLanguage,
           },
         }
       })
@@ -4154,14 +4279,14 @@ Nous sommes au regret de vous informer que le transporteur initialement sélecti
 
 Nous vous invitons à vous reconnecter sur votre espace client pour choisir une autre offre parmi celles disponibles.
 
-Lien vers votre espace : ${window.location.origin}/mes-devis?ref=${dossierRef}&email=${encodeURIComponent(clientEmail)}
+Lien vers votre espace : ${generateClientAccessUrl(dossierRef, clientEmail, dossier.country_code)}
 
 Nous vous prions de nous excuser pour la gêne occasionnée.
 
 Cordialement,
 L'équipe Busmoov`
 
-      openEmailPreview({ to: clientEmail, subject, body })
+      openEmailPreview({ to: clientEmail, subject, body, dossierId: dossier.id, templateKey: 'annulation_transporteur' })
 
       queryClient.invalidateQueries({ queryKey: ['dossiers'] })
       queryClient.invalidateQueries({ queryKey: ['devis', 'dossier', dossier.id] })
@@ -4247,7 +4372,7 @@ L'équipe Busmoov`
           devis_id: devisId,
           price_ht: devisToSign.price_ht,
           price_ttc: devisToSign.price_ttc,
-          tva_rate: devisToSign.tva_rate || 10,
+          tva_rate: devisToSign.tva_rate || dossier.tva_rate || getTvaRateByCountry(dossier.country_code),
           acompte_amount: acompteAmount,
           solde_amount: soldeAmount,
           status: 'active',
@@ -4327,7 +4452,7 @@ L'équipe Busmoov`
           client_email: dossier.client_email,
           price_ht: devisToConfirm.price_ht,
           price_ttc: prixTTC,
-          tva_rate: devisToConfirm.tva_rate || 10,
+          tva_rate: devisToConfirm.tva_rate || dossier.tva_rate || getTvaRateByCountry(dossier.country_code),
           acompte_amount: acompteAmount,
           solde_amount: soldeAmount,
           status: 'active',
@@ -4362,18 +4487,16 @@ L'équipe Busmoov`
     }
   }
 
-  // Générer lien de paiement
+  // Générer lien de paiement (avec préfixe langue)
   const generatePaymentLink = () => {
-    const baseUrl = window.location.origin
-    const link = `${baseUrl}/paiement?ref=${encodeURIComponent(dossier.reference)}&email=${encodeURIComponent(dossier.client_email)}`
+    const link = generatePaymentUrl(dossier.reference, dossier.client_email, dossier.country_code)
     navigator.clipboard.writeText(link)
     alert('Lien de paiement copié dans le presse-papiers !')
   }
 
-  // Générer lien infos voyage
+  // Générer lien infos voyage (avec préfixe langue)
   const generateInfosVoyageLink = () => {
-    const baseUrl = window.location.origin
-    const link = `${baseUrl}/infos-voyage?ref=${encodeURIComponent(dossier.reference)}&email=${encodeURIComponent(dossier.client_email)}`
+    const link = generateInfosVoyageUrl(dossier.reference, dossier.client_email, dossier.country_code)
     navigator.clipboard.writeText(link)
     alert('Lien infos voyage copié dans le presse-papiers !')
   }
@@ -4415,10 +4538,37 @@ L'équipe Busmoov`
         payment_date: new Date(paiementForm.payment_date).toISOString(),
         reference: paiementForm.reference || undefined,
         notes: paiementForm.notes || undefined,
+        facture_id: paiementForm.facture_id || undefined,
       })
 
-      // Chercher une facture non payée correspondant au montant pour la marquer comme payée
-      if (newAmount > 0 && factures) {
+      // Ajouter entrée timeline
+      const typeLabels: Record<string, string> = {
+        virement: 'Virement',
+        cb: 'Carte bancaire',
+        especes: 'Espèces',
+        cheque: 'Chèque',
+        remboursement: 'Remboursement',
+      }
+      const typeLabel = typeLabels[paiementForm.type] || paiementForm.type
+      const refStr = paiementForm.reference ? ` (réf: ${paiementForm.reference})` : ''
+      await addTimelineEntry.mutateAsync({
+        dossier_id: dossier.id,
+        type: newAmount > 0 ? 'payment' : 'note',
+        content: newAmount > 0
+          ? `💰 Paiement reçu : ${Math.abs(newAmount).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€ (${typeLabel})${refStr}`
+          : `↩️ Remboursement effectué : ${Math.abs(newAmount).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€${refStr}`,
+      })
+
+      // Si une facture a été sélectionnée, la marquer comme payée
+      if (paiementForm.facture_id && newAmount > 0) {
+        await supabase
+          .from('factures')
+          .update({ status: 'paid', paid_at: new Date().toISOString() })
+          .eq('id', paiementForm.facture_id)
+        queryClient.invalidateQueries({ queryKey: ['factures', 'dossier', dossier.id] })
+      }
+      // Sinon, chercher une facture non payée correspondant au montant pour la marquer comme payée
+      else if (newAmount > 0 && factures) {
         const factureCorrespondante = factures.find(
           (f: any) => f.status !== 'paid' && f.status !== 'cancelled' && f.type !== 'avoir' && Math.abs(f.amount_ttc - newAmount) < 0.01
         )
@@ -4440,6 +4590,50 @@ L'équipe Busmoov`
         })
       }
 
+      // Envoyer email de confirmation de paiement au client (sauf remboursement)
+      if (newAmount > 0 && dossier.client_email) {
+        try {
+          // Calculer le total des paiements après ce nouveau paiement
+          const totalPaiements = (paiements || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0) + newAmount
+          const prixTTC = contrat.price_ttc || dossier.price_ttc || 0
+          const resteAPayer = Math.max(0, prixTTC - totalPaiements)
+
+          // Formater la date de départ
+          const formatDate = (dateStr: string) => {
+            const d = new Date(dateStr)
+            return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+          }
+
+          // Langue du client basée sur le country_code
+          const countryToLang: Record<string, string> = { FR: 'fr', ES: 'es', DE: 'de', GB: 'en' }
+          const clientLang = countryToLang[dossier.country_code || 'FR'] || 'fr'
+
+          const emailPayload = {
+            type: 'confirmation_paiement',
+            to: dossier.client_email,
+            data: {
+              language: clientLang,
+              client_name: dossier.client_name || dossier.signer_name || 'Client',
+              reference: dossier.reference,
+              departure: dossier.departure,
+              arrival: dossier.arrival,
+              departure_date: formatDate(dossier.departure_date),
+              montant_recu: `${newAmount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€`,
+              payment_method: typeLabel,
+              reste_a_payer: resteAPayer > 0 ? `${resteAPayer.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€` : '',
+              lien_espace_client: generateClientAccessUrl(dossier.reference, dossier.client_email, dossier.country_code),
+              dossier_id: dossier.id,
+            },
+          }
+
+          await supabase.functions.invoke('send-email', { body: emailPayload })
+          console.log('Email de confirmation de paiement envoyé à', dossier.client_email)
+        } catch (emailErr) {
+          // Ne pas bloquer si l'email échoue
+          console.error('Erreur envoi email confirmation paiement:', emailErr)
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['paiements', 'contrat', contrat.id] })
       queryClient.invalidateQueries({ queryKey: ['dossiers'] })
 
@@ -4449,6 +4643,7 @@ L'équipe Busmoov`
         payment_date: new Date().toISOString().slice(0, 16),
         reference: '',
         notes: '',
+        facture_id: '',
       })
       setShowPaiementModal(false)
     } catch (error) {
@@ -4472,10 +4667,10 @@ L'équipe Busmoov`
     if (!contrat) return
 
     try {
-      const tvaRate = dossier.tva_rate || 10
+      const tvaRate = dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
       const prixTTC = contrat.price_ttc || 0
       const acompteContrat = contrat.acompte_amount || 0
-      const soldeContrat = contrat.solde_amount || (prixTTC - acompteContrat)
+      const soldeContrat = contrat.solde_amount ?? (prixTTC - acompteContrat)
 
       let amountTTC: number
       if (factureForm.useAutoAmount && factureForm.type !== 'avoir') {
@@ -4554,8 +4749,8 @@ L'équipe Busmoov`
 
     setCreatingAvoir(true)
     try {
-      // Calculer les montants de l'avoir
-      const tvaRate = selectedFactureForAvoir.tva_rate || 10
+      // Calculer les montants de l'avoir selon le taux TVA de la facture ou du dossier
+      const tvaRate = selectedFactureForAvoir.tva_rate || dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
       let montantTTC: number
       let montantHT: number
       let montantTVA: number
@@ -4657,7 +4852,7 @@ L'équipe Busmoov`
     if (!selectedFactureForPaid || !contrat) return
 
     try {
-      // 1. Créer le paiement
+      // 1. Créer le paiement avec le facture_id
       await createPaiement.mutateAsync({
         contrat_id: contrat.id,
         dossier_id: dossier.id,
@@ -4666,6 +4861,22 @@ L'équipe Busmoov`
         payment_date: new Date(markPaidForm.payment_date).toISOString(),
         reference: markPaidForm.reference || undefined,
         notes: markPaidForm.notes || `Paiement facture ${selectedFactureForPaid.reference}`,
+        facture_id: selectedFactureForPaid.id,
+      })
+
+      // Ajouter entrée timeline
+      const typeLabels2: Record<string, string> = {
+        virement: 'Virement',
+        cb: 'Carte bancaire',
+        especes: 'Espèces',
+        cheque: 'Chèque',
+      }
+      const typeLabel2 = typeLabels2[markPaidForm.type] || markPaidForm.type
+      const refStr2 = markPaidForm.reference ? ` (réf: ${markPaidForm.reference})` : ''
+      await addTimelineEntry.mutateAsync({
+        dossier_id: dossier.id,
+        type: 'payment',
+        content: `💰 Paiement reçu : ${selectedFactureForPaid.amount_ttc.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€ (${typeLabel2}) - Facture ${selectedFactureForPaid.reference}${refStr2}`,
       })
 
       // 2. Marquer la facture comme payée
@@ -4680,6 +4891,51 @@ L'équipe Busmoov`
           id: dossier.id,
           status: 'pending-reservation',
         })
+      }
+
+      // 4. Envoyer email de confirmation de paiement au client
+      if (dossier.client_email) {
+        try {
+          const newAmount = selectedFactureForPaid.amount_ttc
+          // Calculer le total des paiements après ce nouveau paiement
+          const totalPaiements = (paiements || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0) + newAmount
+          const prixTTC = contrat.price_ttc || dossier.price_ttc || 0
+          const resteAPayer = Math.max(0, prixTTC - totalPaiements)
+
+          // Formater la date de départ
+          const formatDate = (dateStr: string) => {
+            const d = new Date(dateStr)
+            return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+          }
+
+          // Langue du client basée sur le country_code
+          const countryToLang: Record<string, string> = { FR: 'fr', ES: 'es', DE: 'de', GB: 'en' }
+          const clientLang = countryToLang[dossier.country_code || 'FR'] || 'fr'
+
+          const emailPayload = {
+            type: 'confirmation_paiement',
+            to: dossier.client_email,
+            data: {
+              language: clientLang,
+              client_name: dossier.client_name || dossier.signer_name || 'Client',
+              reference: dossier.reference,
+              departure: dossier.departure,
+              arrival: dossier.arrival,
+              departure_date: formatDate(dossier.departure_date),
+              montant_recu: `${newAmount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€`,
+              payment_method: typeLabel2,
+              reste_a_payer: resteAPayer > 0 ? `${resteAPayer.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}€` : '',
+              lien_espace_client: generateClientAccessUrl(dossier.reference, dossier.client_email, dossier.country_code),
+              dossier_id: dossier.id,
+            },
+          }
+
+          await supabase.functions.invoke('send-email', { body: emailPayload })
+          console.log('Email de confirmation de paiement envoyé à', dossier.client_email)
+        } catch (emailErr) {
+          // Ne pas bloquer si l'email échoue
+          console.error('Erreur envoi email confirmation paiement:', emailErr)
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: ['factures', 'dossier', dossier.id] })
@@ -5031,6 +5287,73 @@ L'équipe Busmoov`
               </div>
             </div>
           </div>
+
+          {/* Informations facturation électronique */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-500 mb-3">Facturation électronique (B2B / B2G)</h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="label">N° TVA client</label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="FR12345678901"
+                    value={formData.client_vat_number}
+                    onChange={(e) => setFormData({ ...formData, client_vat_number: e.target.value })}
+                  />
+                ) : (
+                  <p className="font-medium">{dossier.client_vat_number || '-'}</p>
+                )}
+              </div>
+              <div>
+                <label className="label">Réf. commande client</label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="BC-2024-001"
+                    value={formData.client_order_reference}
+                    onChange={(e) => setFormData({ ...formData, client_order_reference: e.target.value })}
+                  />
+                ) : (
+                  <p className="font-medium">{dossier.client_order_reference || '-'}</p>
+                )}
+              </div>
+              {dossier.country_code === 'DE' && (
+                <div>
+                  <label className="label">Leitweg-ID (DE)</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="04011000-1234512345-12"
+                      value={formData.client_leitweg_id}
+                      onChange={(e) => setFormData({ ...formData, client_leitweg_id: e.target.value })}
+                    />
+                  ) : (
+                    <p className="font-medium">{dossier.client_leitweg_id || '-'}</p>
+                  )}
+                </div>
+              )}
+              {dossier.country_code === 'ES' && (
+                <div>
+                  <label className="label">Code DIR3 (ES)</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      className="input"
+                      placeholder="A12345678"
+                      value={formData.client_dir3_code}
+                      onChange={(e) => setFormData({ ...formData, client_dir3_code: e.target.value })}
+                    />
+                  ) : (
+                    <p className="font-medium">{dossier.client_dir3_code || '-'}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Section Contrat & Finances - visible si contrat existe */}
@@ -5151,6 +5474,10 @@ L'équipe Busmoov`
                             }
                           }
 
+                          // Taux TVA pour le calcul du HT
+                          const tvaRateContrat = devisAccepte?.tva_rate || dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
+                          const countryCodeContrat = dossier.country_code || 'FR'
+                          const pdfLangContrat = countryCodeContrat === 'DE' ? 'de' : countryCodeContrat === 'ES' ? 'es' : countryCodeContrat === 'GB' ? 'en' : 'fr'
                           generateContratPDF({
                             reference: contrat.reference,
                             client_name: contrat.client_name || dossier.client_name,
@@ -5160,13 +5487,14 @@ L'équipe Busmoov`
                             billing_address: dossier.billing_address || '',
                             billing_zip: dossier.billing_zip || '',
                             billing_city: dossier.billing_city || '',
-                            price_ht: contrat.price_ttc ? Math.round(contrat.price_ttc / 1.1) : 0,
+                            country_code: countryCodeContrat,
+                            price_ht: contrat.price_ttc ? Math.round(contrat.price_ttc / (1 + tvaRateContrat / 100)) : 0,
                             price_ttc: contrat.price_ttc || 0,
                             base_price_ttc: basePriceTTC,
                             options_lignes: optionsLignes.length > 0 ? optionsLignes : undefined,
-                            tva_rate: devisAccepte?.tva_rate || 10,
+                            tva_rate: tvaRateContrat,
                             acompte_amount: contrat.acompte_amount || 0,
-                            solde_amount: contrat.solde_amount || 0,
+                            solde_amount: contrat.solde_amount ?? 0,
                             signed_at: contrat.signed_at || undefined,
                             nombre_cars: devisAccepte?.nombre_cars || 1,
                             nombre_chauffeurs: nbChauffeurs,
@@ -5195,7 +5523,7 @@ L'équipe Busmoov`
                               vehicle_type: dossier.vehicle_type || 'autocar',
                               trip_mode: dossier.trip_mode || undefined,
                             },
-                          })
+                          }, pdfLangContrat)
                         }}
                         className="btn btn-secondary text-sm flex items-center gap-2"
                       >
@@ -5226,7 +5554,7 @@ L'équipe Busmoov`
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                       <label className="label text-xs text-gray-500">Solde</label>
-                      <p className="text-xl font-semibold text-gray-700">{formatPrice(contrat.solde_amount || ((contrat.price_ttc || 0) - (contrat.acompte_amount || 0)))}</p>
+                      <p className="text-xl font-semibold text-gray-700">{formatPrice(contrat.solde_amount ?? ((contrat.price_ttc || 0) - (contrat.acompte_amount || 0)))}</p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                       <label className="label text-xs text-gray-500">Reste à payer</label>
@@ -5421,6 +5749,12 @@ L'équipe Busmoov`
                               {paiement.reference && (
                                 <p className="text-xs text-gray-400">Réf: {paiement.reference}</p>
                               )}
+                              {paiement.facture_id && (
+                                <p className="text-xs text-indigo-600 flex items-center gap-1 mt-1">
+                                  <FileText size={12} />
+                                  Facture: {factures?.find((f: any) => f.id === paiement.facture_id)?.reference || 'N/A'}
+                                </p>
+                              )}
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -5495,24 +5829,13 @@ L'équipe Busmoov`
                       <div>
                         <label className="label text-xs">Prix achat HT</label>
                         <p className="text-xl font-bold text-gray-600">
-                          {formatPrice((() => {
-                            // Chercher le devis accepté pour récupérer le prix HT
-                            const devisAccepte = (dossier.devis || []).find((d: any) => d.status === 'accepted')
-                            if (devisAccepte?.price_achat_ht) return devisAccepte.price_achat_ht
-                            // Fallback: calculer HT depuis TTC
-                            const tva = dossier.tva_rate || 10
-                            return dossier.price_achat ? Math.round(dossier.price_achat / (1 + tva / 100)) : 0
-                          })())}
+                          {formatPrice(prixAchatHT)}
                         </p>
                       </div>
                       <div>
                         <label className="label text-xs">Prix achat TTC</label>
                         <p className="text-xl font-bold text-gray-600">
-                          {formatPrice((() => {
-                            // Chercher le devis accepté pour récupérer le prix TTC
-                            const devisAccepte = (dossier.devis || []).find((d: any) => d.status === 'accepted')
-                            return devisAccepte?.price_achat_ttc || dossier.price_achat || 0
-                          })())}
+                          {formatPrice(prixAchatTTC)}
                         </p>
                       </div>
                     </div>
@@ -5716,7 +6039,7 @@ L'équipe Busmoov`
                     <button
                       onClick={() => {
                         const acompte = contrat.acompte_amount || 0
-                        const solde = contrat.solde_amount || ((contrat.price_ttc || 0) - acompte)
+                        const solde = contrat.solde_amount ?? ((contrat.price_ttc || 0) - acompte)
                         const hasAcompteFacture = factures.some(f => f.type === 'acompte')
                         setFactureForm({
                           type: hasAcompteFacture ? 'solde' : 'acompte',
@@ -5813,7 +6136,7 @@ L'équipe Busmoov`
                               <button
                                 onClick={() => {
                                   const devisAccepte = dossierDevis.find((d: any) => d.status === 'accepted')
-                                  const tvaRate = devisAccepte?.tva_rate || 10
+                                  const tvaRate = devisAccepte?.tva_rate || dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
                                   // Récupérer la facture d'acompte si c'est une facture de solde
                                   const factureAcompte = facture.type === 'solde'
                                     ? factures.find((f: any) => f.type === 'acompte')
@@ -5850,6 +6173,8 @@ L'équipe Busmoov`
                                     }
                                   }
 
+                                  const countryCodeFacture = dossier.country_code || 'FR'
+                                  const pdfLangFacture = countryCodeFacture === 'DE' ? 'de' : countryCodeFacture === 'ES' ? 'es' : countryCodeFacture === 'GB' ? 'en' : 'fr'
                                   generateFacturePDF({
                                     reference: facture.reference,
                                     type: facture.type as 'acompte' | 'solde' | 'avoir',
@@ -5857,6 +6182,7 @@ L'équipe Busmoov`
                                     client_address: dossier.billing_address || '',
                                     client_zip: dossier.billing_zip || '',
                                     client_city: dossier.billing_city || '',
+                                    country_code: countryCodeFacture,
                                     amount_ht: facture.amount_ht || Math.round(facture.amount_ttc / (1 + tvaRate / 100)),
                                     amount_ttc: facture.amount_ttc,
                                     tva_rate: tvaRate,
@@ -5876,13 +6202,52 @@ L'équipe Busmoov`
                                       total_ttc: totalPriceTTCFacture,
                                     },
                                     facture_acompte: factureAcompte ? { reference: factureAcompte.reference, amount_ttc: factureAcompte.amount_ttc } : null,
-                                  })
+                                  }, pdfLangFacture)
                                 }}
                                 className="p-2 rounded hover:bg-purple-100 text-purple-600"
                                 title="Télécharger PDF"
                               >
                                 <Download size={16} />
                               </button>
+                              {/* Bouton téléchargement XML (Factur-X / ZUGFeRD / FacturaE) */}
+                              {(dossier.country_code === 'FR' || dossier.country_code === 'DE' || dossier.country_code === 'ES') && (
+                                <button
+                                  onClick={async () => {
+                                    const countryCode = (dossier.country_code || 'FR') as 'FR' | 'DE' | 'ES' | 'GB'
+                                    const devisAccepteXml = dossierDevis.find((d: any) => d.status === 'accepted')
+                                    const tvaRateXml = devisAccepteXml?.tva_rate || (countryCode === 'DE' ? 7 : countryCode === 'GB' ? 0 : 10)
+                                    const companyInfo = await getCompanyInfo(countryCode)
+                                    const eInvoiceData = convertToEInvoiceData(
+                                      {
+                                        reference: facture.reference,
+                                        type: facture.type as 'acompte' | 'solde' | 'avoir',
+                                        amount_ht: facture.amount_ht || Math.round(facture.amount_ttc / (1 + tvaRateXml / 100)),
+                                        amount_ttc: facture.amount_ttc,
+                                        tva_rate: tvaRateXml,
+                                        client_name: dossier.client_name,
+                                        client_address: dossier.billing_address,
+                                        client_zip: dossier.billing_zip,
+                                        client_city: dossier.billing_city,
+                                        created_at: facture.created_at,
+                                        dossier: {
+                                          reference: dossier.reference,
+                                          departure: dossier.departure,
+                                          arrival: dossier.arrival,
+                                          departure_date: dossier.departure_date,
+                                          passengers: dossier.passengers,
+                                        },
+                                      },
+                                      companyInfo,
+                                      countryCode
+                                    )
+                                    downloadEInvoiceXML(eInvoiceData)
+                                  }}
+                                  className="p-2 rounded hover:bg-orange-100 text-orange-600"
+                                  title={`Télécharger XML (${dossier.country_code === 'ES' ? 'FacturaE' : dossier.country_code === 'DE' ? 'ZUGFeRD' : 'Factur-X'})`}
+                                >
+                                  <FileCode size={16} />
+                                </button>
+                              )}
                               <button
                                 onClick={() => {
                                   const typeFacture = facture.type === 'acompte' ? "d'acompte" : facture.type === 'solde' ? 'de solde' : "d'avoir"
@@ -5964,6 +6329,8 @@ L'équipe Busmoov`,
                       {voyageInfo && ((voyageInfo as any)?.client_validated_at || voyageInfo.validated_at) && (
                         <button
                           onClick={() => {
+                            const countryCodeIV = dossier.country_code || 'FR'
+                            const pdfLangIV = countryCodeIV === 'DE' ? 'de' : countryCodeIV === 'ES' ? 'es' : countryCodeIV === 'GB' ? 'en' : 'fr'
                             generateInfosVoyagePDF({
                               reference: dossier.reference,
                               client_name: dossier.client_name,
@@ -5985,7 +6352,7 @@ L'équipe Busmoov`,
                               commentaires: voyageInfo.commentaires,
                               luggage_type: dossier.luggage_type,
                               validated_at: voyageInfo.validated_at || (voyageInfo as any).client_validated_at,
-                            })
+                            }, pdfLangIV)
                           }}
                           className="btn btn-secondary text-sm flex items-center gap-2"
                         >
@@ -6046,6 +6413,8 @@ L'équipe Busmoov`,
                               <button
                                 onClick={async () => {
                                   const transporteur = transporteurs.find(t => t.id === dossier.transporteur_id)
+                                  const countryCodeFR = dossier.country_code || 'FR'
+                                  const pdfLangFR = countryCodeFR === 'DE' ? 'de' : countryCodeFR === 'ES' ? 'es' : countryCodeFR === 'GB' ? 'en' : 'fr'
                                   await generateFeuilleRoutePDF({
                                     reference: dossier.reference,
                                     type: (voyageInfo.feuille_route_type || (dossier.return_date ? 'aller_retour' : 'aller')) as FeuilleRouteType,
@@ -6073,7 +6442,7 @@ L'équipe Busmoov`,
                                     astreinte_tel: voyageInfo.astreinte_tel || transporteur?.astreinte_tel,
                                     luggage_type: dossier.luggage_type,
                                     commentaires: voyageInfo.commentaires,
-                                  })
+                                  }, pdfLangFR)
                                 }}
                                 className="btn btn-secondary flex items-center gap-2"
                               >
@@ -6526,7 +6895,7 @@ L'équipe Busmoov`,
             </div>
             <div>
               <label className="label">TVA</label>
-              <p className="font-medium">{dossier.tva_rate ? `${dossier.tva_rate}%` : '10%'}</p>
+              <p className="font-medium">{dossier.tva_rate ? `${dossier.tva_rate}%` : `${getTvaRateByCountry(dossier.country_code)}%`}</p>
             </div>
           </div>
 
@@ -6537,9 +6906,10 @@ L'équipe Busmoov`,
             const meilleureDemande = demandesAvecPrix.reduce((best, current) =>
               (current.prix_propose || 0) < (best.prix_propose || Infinity) ? current : best
             )
-            // prix_propose est en TTC, on calcule le HT pour la marge
+            // prix_propose est en TTC, on calcule le HT pour la marge selon le pays
+            const tvaRateDossier = dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
             const prixAchatTTC = meilleureDemande.prix_propose || 0
-            const prixAchatHT = Math.round((prixAchatTTC / 1.1) * 100) / 100
+            const prixAchatHT = Math.round((prixAchatTTC / (1 + tvaRateDossier / 100)) * 100) / 100
             const margeEstimee = (dossier.price_ht || 0) - prixAchatHT
             return (
               <div className="mt-4 p-3 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-lg border border-emerald-200">
@@ -6607,6 +6977,9 @@ L'équipe Busmoov`,
                   let prixAchatHT: number | null = null
                   let prixAchatTTC: number | null = null
 
+                  // Taux TVA du dossier pour les conversions HT/TTC
+                  const tvaRateDossier = dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
+
                   if (devisAccepte?.price_achat_ht && devisAccepte?.price_achat_ttc) {
                     // Données du devis validé
                     prixAchatHT = devisAccepte.price_achat_ht
@@ -6614,11 +6987,11 @@ L'équipe Busmoov`,
                   } else if (dossier.price_achat) {
                     // Fallback sur price_achat du dossier (en HT)
                     prixAchatHT = dossier.price_achat
-                    prixAchatTTC = Math.round(dossier.price_achat * 1.1 * 100) / 100
+                    prixAchatTTC = Math.round(dossier.price_achat * (1 + tvaRateDossier / 100) * 100) / 100
                   } else if (demande.prix_propose) {
                     // Dernier recours: prix_propose (considéré comme TTC pour les nouveaux)
                     prixAchatTTC = demande.prix_propose
-                    prixAchatHT = Math.round((demande.prix_propose / 1.1) * 100) / 100
+                    prixAchatHT = Math.round((demande.prix_propose / (1 + tvaRateDossier / 100)) * 100) / 100
                   }
 
                   const marge = prixVenteHT && prixAchatHT ? Math.round((prixVenteHT - prixAchatHT) * 100) / 100 : null
@@ -6689,7 +7062,7 @@ L'équipe Busmoov`,
                                   {formatPrice(demande.prix_propose)} <span className="text-xs font-normal text-gray-500">TTC</span>
                                 </p>
                                 <p className="text-xs text-gray-500">
-                                  {formatPrice(Math.round((demande.prix_propose / 1.1) * 100) / 100)} HT
+                                  {formatPrice(Math.round((demande.prix_propose / (1 + tvaRateDossier / 100)) * 100) / 100)} HT
                                 </p>
                               </>
                             ) : (
@@ -6751,11 +7124,11 @@ L'équipe Busmoov`,
                                 <button
                                   onClick={async () => {
                                     try {
-                                      // prix_propose est en TTC
+                                      // prix_propose est en TTC - utiliser le taux TVA du pays
+                                      const tvaRate = dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
                                       const prixAchatTTC = demande.prix_propose!
-                                      const prixAchatHT = Math.round((prixAchatTTC / 1.1) * 100) / 100
+                                      const prixAchatHT = Math.round((prixAchatTTC / (1 + tvaRate / 100)) * 100) / 100
                                       const margePercent = 18 // 18% de marge
-                                      const tvaRate = 10 // TVA 10%
 
                                       // Calculer prix de vente avec 18% de marge sur le HT
                                       const prixVenteHT = Math.round(prixAchatHT * (1 + margePercent / 100))
@@ -6848,6 +7221,7 @@ L'équipe Busmoov`,
                                     const emailData = await generateValidationFournisseurEmailFromTemplate({
                                       transporteurEmail,
                                       transporteurName: demande.transporteur?.name || 'Transporteur',
+                                      transporteurCountryCode: demande.transporteur?.country_code,
                                       dossierReference: dossier.reference,
                                       departureCity: dossier.departure,
                                       arrivalCity: dossier.arrival,
@@ -6868,15 +7242,20 @@ L'équipe Busmoov`,
                                     })
 
                                     // Ouvrir la modal d'email avec callback pour valider après envoi
-                                    openEmailPreview(emailData, async () => {
+                                    openEmailPreview({
+                                      ...emailData,
+                                      dossierId: dossier.id,
+                                      templateKey: 'demande_fournisseur',
+                                    }, async () => {
                                       await updateDemandeFournisseur.mutateAsync({
                                         id: demande.id,
                                         status: 'validated',
                                       })
 
                                       // Mettre à jour le dossier avec le transporteur choisi
-                                      // prix_propose est en TTC, on stocke le HT dans price_achat
-                                      const prixAchatHT = Math.round((demande.prix_propose / 1.1) * 100) / 100
+                                      // prix_propose est en TTC, on stocke le HT dans price_achat (selon TVA du pays)
+                                      const tvaRateForCalc = dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
+                                      const prixAchatHT = Math.round((demande.prix_propose / (1 + tvaRateForCalc / 100)) * 100) / 100
                                       await updateDossier.mutateAsync({
                                         id: dossier.id,
                                         price_achat: prixAchatHT,
@@ -6902,15 +7281,26 @@ L'équipe Busmoov`,
                               {demande.status === 'validated' && (
                                 <button
                                   onClick={async () => {
+                                    // Mettre à jour la demande fournisseur
                                     await updateDemandeFournisseur.mutateAsync({
                                       id: demande.id,
                                       status: 'bpa_received',
+                                      bpa_received_at: new Date().toISOString(),
                                     })
+
+                                    // Mettre à jour le statut du dossier vers pending-info
+                                    await supabase
+                                      .from('dossiers')
+                                      .update({ status: 'pending-info' })
+                                      .eq('id', dossier.id)
+
+                                    // Invalider les queries pour rafraîchir
+                                    queryClient.invalidateQueries({ queryKey: ['dossiers'] })
 
                                     addTimelineEntry.mutate({
                                       dossier_id: dossier.id,
                                       type: 'note',
-                                      content: `BPA reçu de ${demande.transporteur?.name} - Prestation confirmée`,
+                                      content: `BPA reçu de ${demande.transporteur?.name} - Prestation confirmée - Dossier passé en attente d'infos voyage`,
                                     })
                                   }}
                                   className="btn btn-sm bg-green-600 text-white hover:bg-green-700"
@@ -7070,40 +7460,45 @@ L'équipe Busmoov`,
                         <button
                           className="btn btn-secondary btn-sm"
                           title="Télécharger PDF"
-                          onClick={async () => await generateDevisPDF({
-                            reference: devis.reference,
-                            dossier: {
-                              reference: dossier.reference,
-                              client_name: dossier.client_name,
-                              client_email: dossier.client_email,
-                              client_phone: dossier.client_phone,
-                              departure: dossier.departure,
-                              arrival: dossier.arrival,
-                              departure_date: dossier.departure_date,
-                              departure_time: dossier.departure_time || undefined,
-                              return_date: dossier.return_date,
-                              return_time: dossier.return_time || undefined,
-                              passengers: dossier.passengers,
-                              trip_mode: dossier.trip_mode || undefined,
-                            },
-                            transporteur: devis.transporteur,
-                            vehicle_type: devis.vehicle_type,
-                            price_ht: devis.price_ht,
-                            price_ttc: devis.price_ttc,
-                            tva_rate: devis.tva_rate,
-                            km: devis.km,
-                            options: devis.options,
-                            notes: devis.notes,
-                            created_at: devis.created_at,
-                            validity_days: devis.validity_days,
-                            nombre_cars: devis.nombre_cars,
-                            nombre_chauffeurs: devis.nombre_chauffeurs,
-                            service_type: devis.service_type || undefined,
-                            duree_jours: devis.duree_jours || undefined,
-                            detail_mad: devis.detail_mad || undefined,
-                            options_details: devis.options_details as any || undefined,
-                            commentaires: devis.options || devis.notes || undefined,
-                          })}
+                          onClick={async () => {
+                            const countryCode = dossier.country_code || 'FR'
+                            const pdfLang = countryCode === 'DE' ? 'de' : countryCode === 'ES' ? 'es' : countryCode === 'GB' ? 'en' : 'fr'
+                            await generateDevisPDF({
+                              reference: devis.reference,
+                              dossier: {
+                                reference: dossier.reference,
+                                client_name: dossier.client_name,
+                                client_email: dossier.client_email,
+                                client_phone: dossier.client_phone,
+                                departure: dossier.departure,
+                                arrival: dossier.arrival,
+                                departure_date: dossier.departure_date,
+                                departure_time: dossier.departure_time || undefined,
+                                return_date: dossier.return_date,
+                                return_time: dossier.return_time || undefined,
+                                passengers: dossier.passengers,
+                                trip_mode: dossier.trip_mode || undefined,
+                                country_code: countryCode,
+                              },
+                              transporteur: devis.transporteur,
+                              vehicle_type: devis.vehicle_type,
+                              price_ht: devis.price_ht,
+                              price_ttc: devis.price_ttc,
+                              tva_rate: devis.tva_rate ?? getTvaRateByCountry(dossier.country_code),
+                              km: devis.km,
+                              options: devis.options,
+                              notes: devis.notes,
+                              created_at: devis.created_at,
+                              validity_days: devis.validity_days,
+                              nombre_cars: devis.nombre_cars,
+                              nombre_chauffeurs: devis.nombre_chauffeurs,
+                              service_type: devis.service_type || undefined,
+                              duree_jours: devis.duree_jours || undefined,
+                              detail_mad: devis.detail_mad || undefined,
+                              options_details: devis.options_details as any || undefined,
+                              commentaires: devis.options || devis.notes || undefined,
+                            }, pdfLang)
+                          }}
                         >
                           <Download size={14} />
                         </button>
@@ -7763,14 +8158,16 @@ L'équipe Busmoov`,
         </div>
       </Modal>
 
-      {/* Modal Marquer Facture comme Payée */}
+      {/* Modal Marquer Facture comme Payée (combiné: nouveau paiement ou rattacher) */}
       <Modal
         isOpen={showMarkFacturePaidModal}
         onClose={() => {
           setShowMarkFacturePaidModal(false)
           setSelectedFactureForPaid(null)
+          setSelectedPaiementForLink('')
         }}
-        title="Enregistrer le paiement"
+        title="Marquer la facture comme payée"
+        size="lg"
       >
         <div className="space-y-4">
           {/* Info facture */}
@@ -7789,89 +8186,194 @@ L'équipe Busmoov`,
                 <p className="text-gray-600">
                   {selectedFactureForPaid?.type === 'acompte' ? "Facture d'acompte" :
                    selectedFactureForPaid?.type === 'avoir' ? "Avoir" : "Facture de solde"}
+                  {' - '}{formatPrice(selectedFactureForPaid?.amount_ttc || 0)}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Montant total */}
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex justify-between items-center">
-              <span className="text-green-700 font-medium">Montant total</span>
-              <span className="text-2xl font-bold text-green-700">
-                {formatPrice(selectedFactureForPaid?.amount_ttc || 0)}
-              </span>
+          {/* Choix: rattacher à existant ou créer nouveau */}
+          {paiements.filter((p: any) => !p.facture_id && p.amount > 0).length > 0 && (
+            <div className="border rounded-lg overflow-hidden">
+              <div className="flex">
+                <button
+                  type="button"
+                  onClick={() => setSelectedPaiementForLink('')}
+                  className={cn(
+                    "flex-1 px-4 py-3 text-sm font-medium transition",
+                    !selectedPaiementForLink
+                      ? "bg-purple-100 text-purple-700 border-b-2 border-purple-500"
+                      : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                  )}
+                >
+                  <Plus size={16} className="inline mr-1" />
+                  Créer un paiement
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedPaiementForLink('select')}
+                  className={cn(
+                    "flex-1 px-4 py-3 text-sm font-medium transition",
+                    selectedPaiementForLink
+                      ? "bg-indigo-100 text-indigo-700 border-b-2 border-indigo-500"
+                      : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                  )}
+                >
+                  <Link2 size={16} className="inline mr-1" />
+                  Rattacher à existant
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Type de paiement */}
-          <div>
-            <label className="label">Type de paiement *</label>
-            <select
-              className="input"
-              value={markPaidForm.type}
-              onChange={(e) => setMarkPaidForm(prev => ({ ...prev, type: e.target.value as any }))}
-            >
-              <option value="virement">Virement bancaire</option>
-              <option value="cb">Carte bancaire</option>
-              <option value="cheque">Chèque</option>
-              <option value="especes">Espèces</option>
-            </select>
-          </div>
+          {/* Option 1: Créer un nouveau paiement */}
+          {!selectedPaiementForLink && (
+            <>
+              {/* Type de paiement */}
+              <div>
+                <label className="label">Type de paiement *</label>
+                <select
+                  className="input"
+                  value={markPaidForm.type}
+                  onChange={(e) => setMarkPaidForm(prev => ({ ...prev, type: e.target.value as any }))}
+                >
+                  <option value="virement">Virement bancaire</option>
+                  <option value="cb">Carte bancaire</option>
+                  <option value="cheque">Chèque</option>
+                  <option value="especes">Espèces</option>
+                </select>
+              </div>
 
-          {/* Date de paiement */}
-          <div>
-            <label className="label">Date du paiement *</label>
-            <input
-              type="date"
-              className="input"
-              value={markPaidForm.payment_date}
-              onChange={(e) => setMarkPaidForm(prev => ({ ...prev, payment_date: e.target.value }))}
-            />
-          </div>
+              {/* Date de paiement */}
+              <div>
+                <label className="label">Date du paiement *</label>
+                <input
+                  type="date"
+                  className="input"
+                  value={markPaidForm.payment_date}
+                  onChange={(e) => setMarkPaidForm(prev => ({ ...prev, payment_date: e.target.value }))}
+                />
+              </div>
 
-          {/* Référence */}
-          <div>
-            <label className="label">Référence (optionnel)</label>
-            <input
-              type="text"
-              className="input"
-              value={markPaidForm.reference}
-              onChange={(e) => setMarkPaidForm(prev => ({ ...prev, reference: e.target.value }))}
-              placeholder="Ex: VIR-12345, CHQ-67890..."
-            />
-          </div>
+              {/* Référence */}
+              <div>
+                <label className="label">Référence (optionnel)</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={markPaidForm.reference}
+                  onChange={(e) => setMarkPaidForm(prev => ({ ...prev, reference: e.target.value }))}
+                  placeholder="Ex: VIR-12345, CHQ-67890..."
+                />
+              </div>
 
-          {/* Notes */}
-          <div>
-            <label className="label">Notes (optionnel)</label>
-            <textarea
-              className="input min-h-[80px]"
-              value={markPaidForm.notes}
-              onChange={(e) => setMarkPaidForm(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="Informations complémentaires..."
-            />
-          </div>
+              {/* Notes */}
+              <div>
+                <label className="label">Notes (optionnel)</label>
+                <textarea
+                  className="input min-h-[60px]"
+                  value={markPaidForm.notes}
+                  onChange={(e) => setMarkPaidForm(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Informations complémentaires..."
+                />
+              </div>
 
-          {/* Actions */}
-          <div className="flex gap-2 pt-2">
-            <button
-              onClick={() => {
-                setShowMarkFacturePaidModal(false)
-                setSelectedFactureForPaid(null)
-              }}
-              className="btn btn-secondary flex-1"
-            >
-              Annuler
-            </button>
-            <button
-              onClick={handleMarkFacturePaid}
-              className="btn btn-success flex-1"
-            >
-              <CheckCircle size={16} />
-              Valider le paiement
-            </button>
-          </div>
+              {/* Actions */}
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => {
+                    setShowMarkFacturePaidModal(false)
+                    setSelectedFactureForPaid(null)
+                  }}
+                  className="btn btn-secondary flex-1"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleMarkFacturePaid}
+                  className="btn btn-success flex-1"
+                >
+                  <CheckCircle size={16} />
+                  Créer le paiement
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Option 2: Rattacher à un paiement existant */}
+          {selectedPaiementForLink && (
+            <>
+              {/* Sélection du paiement */}
+              <div>
+                <label className="label">Sélectionner un paiement *</label>
+                <select
+                  className="input"
+                  value={selectedPaiementForLink === 'select' ? '' : selectedPaiementForLink}
+                  onChange={(e) => setSelectedPaiementForLink(e.target.value || 'select')}
+                >
+                  <option value="">-- Choisir un paiement --</option>
+                  {paiements.filter((p: any) => !p.facture_id && p.amount > 0).map((p: any) => (
+                    <option key={p.id} value={p.id}>
+                      {formatDate(p.payment_date)} - {p.type === 'virement' ? 'Virement' : p.type === 'cb' ? 'CB' : p.type === 'cheque' ? 'Chèque' : 'Espèces'} - {formatPrice(p.amount)}
+                      {p.reference && ` (${p.reference})`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedPaiementForLink && selectedPaiementForLink !== 'select' && (
+                <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-lg text-sm text-indigo-700">
+                  <p>En rattachant cette facture au paiement sélectionné :</p>
+                  <ul className="list-disc ml-5 mt-1">
+                    <li>La facture sera marquée comme payée</li>
+                    <li>Le paiement sera lié à cette facture</li>
+                  </ul>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => {
+                    setShowMarkFacturePaidModal(false)
+                    setSelectedFactureForPaid(null)
+                    setSelectedPaiementForLink('')
+                  }}
+                  className="btn btn-secondary flex-1"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!selectedFactureForPaid || !selectedPaiementForLink || selectedPaiementForLink === 'select') return
+                    try {
+                      await supabase
+                        .from('paiements')
+                        .update({ facture_id: selectedFactureForPaid.id })
+                        .eq('id', selectedPaiementForLink)
+                      await supabase
+                        .from('factures')
+                        .update({ status: 'paid', paid_at: new Date().toISOString() })
+                        .eq('id', selectedFactureForPaid.id)
+                      queryClient.invalidateQueries({ queryKey: ['factures', 'dossier', dossier.id] })
+                      queryClient.invalidateQueries({ queryKey: ['paiements', 'contrat', contrat?.id] })
+                      setShowMarkFacturePaidModal(false)
+                      setSelectedFactureForPaid(null)
+                      setSelectedPaiementForLink('')
+                    } catch (error) {
+                      console.error('Error linking:', error)
+                      alert('Erreur lors de la liaison')
+                    }
+                  }}
+                  disabled={!selectedPaiementForLink || selectedPaiementForLink === 'select'}
+                  className="btn btn-primary flex-1 disabled:opacity-50"
+                >
+                  <Link2 size={16} />
+                  Rattacher
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </Modal>
 
@@ -8041,6 +8543,7 @@ L'équipe Busmoov`,
           setSelectedTransporteursDF([])
           setCategoryFilterDF('')
           setSearchDF('')
+          setCountryFilterDF('')
         }}
         title="Demande Fournisseur"
         size="lg"
@@ -8057,8 +8560,8 @@ L'équipe Busmoov`,
             </p>
           </div>
 
-          {/* Recherche et filtre */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Recherche et filtres */}
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="label">Rechercher</label>
               <input
@@ -8070,7 +8573,21 @@ L'équipe Busmoov`,
               />
             </div>
             <div>
-              <label className="label">Filtrer par tag</label>
+              <label className="label">Pays</label>
+              <select
+                value={countryFilterDF}
+                onChange={(e) => setCountryFilterDF(e.target.value)}
+                className="input"
+              >
+                <option value="">Tous les pays</option>
+                <option value="FR">🇫🇷 France</option>
+                <option value="ES">🇪🇸 Espagne</option>
+                <option value="DE">🇩🇪 Allemagne</option>
+                <option value="GB">🇬🇧 Royaume-Uni</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">Tag</label>
               <select
                 value={categoryFilterDF}
                 onChange={(e) => setCategoryFilterDF(e.target.value)}
@@ -8091,6 +8608,8 @@ L'équipe Busmoov`,
               {transporteurs
                 .filter((t: any) => {
                   if (t.active === false || t.is_active === false) return false
+                  // Filtre par pays
+                  if (countryFilterDF && t.country_code !== countryFilterDF) return false
                   // Filtre par catégorie/tag
                   if (categoryFilterDF && !t.categories?.includes(categoryFilterDF) && !t.tags?.includes(categoryFilterDF)) return false
                   // Filtre par recherche textuelle
@@ -8158,6 +8677,7 @@ L'équipe Busmoov`,
                     specialRequests: d.special_requests,
                     luggageType: d.luggage_type,
                     madDetails: extractMadDetails(d.special_requests),
+                    language: getLanguageFromCountry(d.country_code),
                   })
                   setMessageTemplateDF(emailData.body)
                 } catch (error) {
@@ -8214,6 +8734,7 @@ L'équipe Busmoov`)
                 setSelectedTransporteursDF([])
                 setCategoryFilterDF('')
                 setSearchDF('')
+                setCountryFilterDF('')
               }}
               className="btn btn-outline"
             >
@@ -8680,6 +9201,34 @@ L'équipe Busmoov`)
             />
           </div>
           <div>
+            <label className="label">Rattacher à une facture (optionnel)</label>
+            <select
+              className="input"
+              value={paiementForm.facture_id}
+              onChange={(e) => {
+                const selectedFacture = factures?.find((f: any) => f.id === e.target.value)
+                setPaiementForm({
+                  ...paiementForm,
+                  facture_id: e.target.value,
+                  // Pré-remplir le montant si une facture est sélectionnée
+                  ...(selectedFacture ? { amount: selectedFacture.amount_ttc } : {}),
+                })
+              }}
+            >
+              <option value="">-- Aucune facture --</option>
+              {factures?.filter((f: any) => f.status !== 'paid' && f.type !== 'avoir').map((f: any) => (
+                <option key={f.id} value={f.id}>
+                  {f.reference} - {f.type === 'acompte' ? 'Acompte' : 'Solde'} ({formatPrice(f.amount_ttc)})
+                </option>
+              ))}
+            </select>
+            {paiementForm.facture_id && (
+              <p className="text-xs text-green-600 mt-1">
+                ✓ Ce paiement sera lié à la facture sélectionnée et elle sera marquée comme payée.
+              </p>
+            )}
+          </div>
+          <div>
             <label className="label">Date du paiement *</label>
             <input
               type="datetime-local"
@@ -8762,7 +9311,7 @@ L'équipe Busmoov`)
               <button
                 type="button"
                 onClick={() => {
-                  const solde = contrat?.solde_amount || ((contrat?.price_ttc || 0) - (contrat?.acompte_amount || 0))
+                  const solde = contrat?.solde_amount ?? ((contrat?.price_ttc || 0) - (contrat?.acompte_amount || 0))
                   setFactureForm({ ...factureForm, type: 'solde', amount_ttc: solde, useAutoAmount: true })
                 }}
                 className={cn(
@@ -8779,7 +9328,7 @@ L'équipe Busmoov`)
                   <div>
                     <p className="font-medium text-sm">Solde</p>
                     <p className="text-xs text-gray-500">
-                      {formatPrice(contrat?.solde_amount || ((contrat?.price_ttc || 0) - (contrat?.acompte_amount || 0)))}
+                      {formatPrice(contrat?.solde_amount ?? ((contrat?.price_ttc || 0) - (contrat?.acompte_amount || 0)))}
                     </p>
                   </div>
                 </div>
@@ -8826,7 +9375,7 @@ L'équipe Busmoov`)
                       {formatPrice(
                         factureForm.type === 'acompte'
                           ? (contrat?.acompte_amount || 0)
-                          : (contrat?.solde_amount || ((contrat?.price_ttc || 0) - (contrat?.acompte_amount || 0)))
+                          : (contrat?.solde_amount ?? ((contrat?.price_ttc || 0) - (contrat?.acompte_amount || 0)))
                       )}
                     </strong>
                   </span>
@@ -8854,7 +9403,7 @@ L'équipe Busmoov`)
                     step="0.01"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    HT : {formatPrice(factureForm.amount_ttc / (1 + (dossier.tva_rate || 10) / 100))} (TVA {dossier.tva_rate || 10}%)
+                    HT : {formatPrice(factureForm.amount_ttc / (1 + (dossier.tva_rate || getTvaRateByCountry(dossier.country_code)) / 100))} (TVA {dossier.tva_rate || getTvaRateByCountry(dossier.country_code)}%)
                   </p>
                 </div>
               )}
@@ -8922,7 +9471,7 @@ L'équipe Busmoov`)
                     (factureForm.useAutoAmount && factureForm.type !== 'avoir')
                       ? (factureForm.type === 'acompte'
                           ? (contrat?.acompte_amount || 0)
-                          : (contrat?.solde_amount || ((contrat?.price_ttc || 0) - (contrat?.acompte_amount || 0))))
+                          : (contrat?.solde_amount ?? ((contrat?.price_ttc || 0) - (contrat?.acompte_amount || 0))))
                       : factureForm.amount_ttc
                   )}
                 </span>
@@ -9268,6 +9817,9 @@ function SendEmailForm({
         '{{arrival}}': dossier.arrival,
         '{{departure_date}}': formatDate(dossier.departure_date),
         '{{price_ttc}}': formatPrice(dossier.price_ttc || 0),
+        '{{lien_espace_client}}': generateClientAccessUrl(dossier.reference, dossier.client_email, dossier.country_code),
+        '{{lien_paiement}}': generatePaymentUrl(dossier.reference, dossier.client_email, dossier.country_code),
+        '{{lien_infos_voyage}}': generateInfosVoyageUrl(dossier.reference, dossier.client_email, dossier.country_code),
       }
 
       Object.entries(vars).forEach(([key, value]) => {
@@ -9287,15 +9839,66 @@ function SendEmailForm({
     }
 
     setSending(true)
-    // TODO: Implémenter l'envoi réel via Edge Function
-    // Pour l'instant, on simule l'envoi
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setSending(false)
-    onSent()
+    try {
+      // Déterminer la langue à partir du pays
+      const emailLanguage = (dossier.country_code || 'FR').toLowerCase()
+
+      // Envoyer via Edge Function send-email
+      const { error } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: selectedTemplate || 'custom',
+          to: dossier.client_email,
+          subject: subject,
+          html_content: body.replace(/\n/g, '<br>'),
+          data: {
+            client_name: dossier.client_name,
+            reference: dossier.reference,
+            departure: dossier.departure,
+            arrival: dossier.arrival,
+            departure_date: formatDate(dossier.departure_date),
+            lien_espace_client: generateClientAccessUrl(dossier.reference, dossier.client_email, dossier.country_code),
+            lien_paiement: generatePaymentUrl(dossier.reference, dossier.client_email, dossier.country_code),
+            lien_infos_voyage: generateInfosVoyageUrl(dossier.reference, dossier.client_email, dossier.country_code),
+            dossier_id: dossier.id,
+            language: emailLanguage,
+          },
+        },
+      })
+
+      if (error) {
+        throw error
+      }
+
+      onSent()
+    } catch (error) {
+      console.error('Erreur envoi email:', error)
+      alert('Erreur lors de l\'envoi de l\'email')
+    } finally {
+      setSending(false)
+    }
   }
+
+  // Déterminer la langue du dossier
+  const dossierLang = (dossier.country_code || 'FR').toUpperCase()
+  const langLabels: Record<string, string> = {
+    'FR': 'Français',
+    'DE': 'Allemand',
+    'ES': 'Espagnol',
+    'GB': 'Anglais',
+  }
+  const langLabel = langLabels[dossierLang] || 'Français'
+  const isNonFrench = dossierLang !== 'FR'
 
   return (
     <div className="space-y-4">
+      {/* Indicateur de langue du dossier */}
+      {isNonFrench && (
+        <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <span className="text-amber-600 font-medium">⚠️ Langue : {langLabel}</span>
+          <span className="text-amber-600 text-sm">- L'email sera traduit automatiquement</span>
+        </div>
+      )}
+
       <div>
         <label className="label">Destinataire</label>
         <input
@@ -9476,7 +10079,7 @@ function NewDevisModal({
     detail_mad: '',
     pax_aller: 0,
     pax_retour: 0,
-    tva_rate: 10,
+    tva_rate: getTvaRateByCountry(dossier.country_code),
     // Champs override pour surcharger les données du dossier
     departure_override: '',
     arrival_override: '',
@@ -9843,9 +10446,10 @@ function NewDevisModal({
 
   const applyEstimatedPrice = () => {
     if (tarifEstime) {
-      // Les prix de la grille tarifaire sont TTC
+      // Les prix de la grille tarifaire sont TTC - utiliser le taux TVA du dossier
+      const tvaRate = dossier?.tva_rate || getTvaRateByCountry(dossier?.country_code)
       const prixTTC = tarifEstime.prixFinal
-      const prixHT = Math.round(prixTTC / 1.1 * 100) / 100
+      const prixHT = Math.round(prixTTC / (1 + tvaRate / 100) * 100) / 100
       setFormData(prev => ({
         ...prev,
         price_ht: prixHT,
@@ -9913,7 +10517,7 @@ function NewDevisModal({
         detail_mad: '',
         pax_aller: 0,
         pax_retour: 0,
-        tva_rate: 10,
+        tva_rate: getTvaRateByCountry(dossier.country_code),
         departure_override: '',
         arrival_override: '',
         departure_date_override: '',
@@ -9926,18 +10530,19 @@ function NewDevisModal({
     }
   }
 
-  // Auto-calculate TTC (assuming 10% VAT)
+  // Auto-calculate TTC selon le taux TVA du dossier
   const handlePriceHTChange = (value: number) => {
+    const tvaRate = dossier?.tva_rate || getTvaRateByCountry(dossier?.country_code)
     setFormData({
       ...formData,
       price_ht: value,
-      price_ttc: Math.round(value * 1.1 * 100) / 100,
+      price_ttc: Math.round(value * (1 + tvaRate / 100) * 100) / 100,
     })
   }
 
-  // Auto-calculate Prix achat TTC from HT (using form TVA rate)
+  // Auto-calculate Prix achat TTC from HT (using dossier TVA rate)
   const handlePriceAchatHTChange = (value: number) => {
-    const tvaRate = formData.tva_rate || 10
+    const tvaRate = dossier?.tva_rate || getTvaRateByCountry(dossier?.country_code)
     setFormData({
       ...formData,
       price_achat_ht: value,
@@ -9945,9 +10550,9 @@ function NewDevisModal({
     })
   }
 
-  // Auto-calculate Prix achat HT from TTC (using form TVA rate)
+  // Auto-calculate Prix achat HT from TTC (using dossier TVA rate)
   const handlePriceAchatTTCChange = (value: number) => {
-    const tvaRate = formData.tva_rate || 10
+    const tvaRate = dossier?.tva_rate || getTvaRateByCountry(dossier?.country_code)
     setFormData({
       ...formData,
       price_achat_ttc: value,
@@ -10371,10 +10976,15 @@ function NewDevisModal({
 
         {/* Prix de vente */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-medium text-blue-800 mb-3 flex items-center gap-2">
-            <Euro size={16} />
-            Prix de vente
-          </h4>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-medium text-blue-800 flex items-center gap-2">
+              <Euro size={16} />
+              Prix de vente
+            </h4>
+            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              {dossier.country_code === 'DE' ? 'MwSt.' : dossier.country_code === 'ES' ? 'IVA' : dossier.country_code === 'GB' ? 'VAT' : 'TVA'} {formData.tva_rate || getTvaRateByCountry(dossier.country_code)}%
+            </span>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label text-blue-700">Prix HT *</label>
@@ -10652,6 +11262,7 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
   const [filterType, setFilterType] = useState<string | null>(null)
+  const [expandedTransporteurs, setExpandedTransporteurs] = useState<Set<string>>(new Set())
   const [showPaiementFournisseurModal, setShowPaiementFournisseurModal] = useState(false)
   const [selectedTransporteurForPayment, setSelectedTransporteurForPayment] = useState<any>(null)
   const [paiementFournisseurForm, setPaiementFournisseurForm] = useState({
@@ -10873,6 +11484,7 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
       totalCA: number
       totalVenteHT: number
       totalAchat: number
+      totalAchatTTC: number
       totalMarge: number
       margePercent: number
       totalPaye: number
@@ -10891,6 +11503,7 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
             totalCA: 0,
             totalVenteHT: 0,
             totalAchat: 0,
+            totalAchatTTC: 0,
             totalMarge: 0,
             margePercent: 0,
             totalPaye: 0,
@@ -10901,6 +11514,10 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
         byTransporteur[tid].totalCA += d.price_ttc || 0
         byTransporteur[tid].totalVenteHT += d.price_ht || 0
         byTransporteur[tid].totalAchat += d.price_achat || 0
+        // Calculer le prix achat TTC (HT + TVA selon le pays)
+        const tvaRate = d.tva_rate || getTvaRateByCountry(d.country_code)
+        const priceAchatTTC = (d.price_achat || 0) * (1 + tvaRate / 100)
+        byTransporteur[tid].totalAchatTTC += priceAchatTTC
         byTransporteur[tid].totalMarge += (d.price_ht || 0) - (d.price_achat || 0)
       }
     })
@@ -10912,14 +11529,40 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
       }
     })
 
-    // Calculer reste à payer et % marge (marge / prix vente HT)
+    // Calculer reste à payer (basé sur TTC) et % marge (marge / prix vente HT)
     Object.values(byTransporteur).forEach(t => {
-      t.resteAPayer = t.totalAchat - t.totalPaye
+      t.resteAPayer = t.totalAchatTTC - t.totalPaye
       t.margePercent = t.totalVenteHT > 0 ? (t.totalMarge / t.totalVenteHT) * 100 : 0
     })
 
     return Object.values(byTransporteur).sort((a, b) => b.totalCA - a.totalCA)
   }, [filteredDossiers, paiementsFournisseurs])
+
+  // Dossiers détaillés par transporteur (pour la section "Détail des dossiers vendus")
+  const dossiersByTransporteur = useMemo(() => {
+    const grouped: Record<string, typeof filteredDossiers> = {}
+
+    filteredDossiers.forEach(d => {
+      if (d.transporteur_id && d.transporteur) {
+        const tid = d.transporteur_id
+        if (!grouped[tid]) {
+          grouped[tid] = []
+        }
+        grouped[tid].push(d)
+      }
+    })
+
+    // Trier les dossiers par date de départ
+    Object.values(grouped).forEach(dossiersList => {
+      dossiersList.sort((a, b) => {
+        const dateA = a.departure_date ? new Date(a.departure_date).getTime() : 0
+        const dateB = b.departure_date ? new Date(b.departure_date).getTime() : 0
+        return dateA - dateB
+      })
+    })
+
+    return grouped
+  }, [filteredDossiers])
 
   // Stats par mois (pour le graphique) - basé sur la date de signature ou de départ
   const statsByMonth = useMemo(() => {
@@ -11661,6 +12304,161 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
         )}
       </div>
 
+      {/* Détail des dossiers vendus par transporteur */}
+      <div className="card p-6">
+        <h2 className="text-lg font-semibold text-purple-dark mb-4 flex items-center gap-2">
+          <FileText size={20} />
+          Détail des dossiers vendus par transporteur
+        </h2>
+
+        {statsTransporteurs.length === 0 ? (
+          <p className="text-gray-500 text-center py-8">Aucune donnée pour cette période</p>
+        ) : (
+          <div className="space-y-4">
+            {statsTransporteurs.map(t => {
+              const dossiersDuTransporteur = dossiersByTransporteur[t.id] || []
+              const isExpanded = expandedTransporteurs.has(t.id)
+
+              return (
+                <div key={t.id} className="border rounded-lg overflow-hidden">
+                  {/* En-tête du transporteur (cliquable) */}
+                  <button
+                    className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition-colors"
+                    onClick={() => {
+                      const newSet = new Set(expandedTransporteurs)
+                      if (isExpanded) {
+                        newSet.delete(t.id)
+                      } else {
+                        newSet.add(t.id)
+                      }
+                      setExpandedTransporteurs(newSet)
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="bg-purple text-white text-xs font-bold px-2 py-0.5 rounded">
+                        {t.number}
+                      </span>
+                      <span className="font-semibold">{t.name}</span>
+                      <span className="text-sm text-gray-500">({t.nbDossiers} dossier{t.nbDossiers > 1 ? 's' : ''})</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-blue-600 font-medium">CA: {formatPrice(t.totalCA)}</span>
+                      <span className={cn("text-sm font-medium", t.totalMarge >= 0 ? "text-green-600" : "text-red-600")}>
+                        Marge: {formatPrice(t.totalMarge)}
+                      </span>
+                      {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    </div>
+                  </button>
+
+                  {/* Détail des dossiers (affiché si expanded) */}
+                  {isExpanded && dossiersDuTransporteur.length > 0 && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b bg-gray-50 text-left">
+                            <th className="px-4 py-2 font-semibold text-gray-600">Réf.</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600">Client</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600">Date départ</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600 text-right">CA TTC</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600 text-right">Prix achat HT</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600 text-right">Marge HT</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600 text-center">% Marge</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600 text-right">Payé</th>
+                            <th className="px-4 py-2 font-semibold text-gray-600 text-right">Reste</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {dossiersDuTransporteur.map(d => {
+                            const paiements = Array.isArray(d.paiements) ? d.paiements : []
+                            const totalPaye = paiements.reduce((s: number, p: any) => s + (Number(p.amount) || 0), 0)
+                            const priceTTC = d.price_ttc || 0
+                            const priceHT = d.price_ht || 0
+                            const priceAchat = d.price_achat || 0
+                            const margeHT = priceHT - priceAchat
+                            const margePercent = priceHT > 0 ? (margeHT / priceHT) * 100 : 0
+                            const resteAPayer = priceTTC - totalPaye
+
+                            return (
+                              <tr key={d.id} className="border-b hover:bg-gray-50">
+                                <td className="px-4 py-2">
+                                  <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">
+                                    {d.reference}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-2">
+                                  <span className="font-medium">{d.client_name}</span>
+                                </td>
+                                <td className="px-4 py-2">
+                                  {d.departure_date ? formatDate(d.departure_date) : '-'}
+                                </td>
+                                <td className="px-4 py-2 text-right font-medium text-blue-600">
+                                  {formatPrice(priceTTC)}
+                                </td>
+                                <td className="px-4 py-2 text-right font-medium">
+                                  {formatPrice(priceAchat)}
+                                </td>
+                                <td className={cn("px-4 py-2 text-right font-medium", margeHT >= 0 ? "text-green-600" : "text-red-600")}>
+                                  {formatPrice(margeHT)}
+                                </td>
+                                <td className="px-4 py-2 text-center">
+                                  <span className={cn(
+                                    "px-2 py-0.5 rounded-full text-xs font-bold",
+                                    margePercent >= 20 ? "bg-green-100 text-green-700" :
+                                    margePercent >= 10 ? "bg-yellow-100 text-yellow-700" :
+                                    "bg-red-100 text-red-700"
+                                  )}>
+                                    {margePercent.toFixed(1)}%
+                                  </span>
+                                </td>
+                                <td className="px-4 py-2 text-right text-green-600 font-medium">
+                                  {formatPrice(totalPaye)}
+                                </td>
+                                <td className="px-4 py-2 text-right">
+                                  <span className={cn(
+                                    "font-bold",
+                                    resteAPayer > 0 ? "text-red-600" : "text-green-600"
+                                  )}>
+                                    {resteAPayer <= 0 ? 'Soldé' : formatPrice(resteAPayer)}
+                                  </span>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr className="bg-gray-100 font-semibold">
+                            <td colSpan={3} className="px-4 py-2">Sous-total {t.name}</td>
+                            <td className="px-4 py-2 text-right text-blue-600">{formatPrice(t.totalCA)}</td>
+                            <td className="px-4 py-2 text-right">{formatPrice(t.totalAchat)}</td>
+                            <td className="px-4 py-2 text-right text-green-600">{formatPrice(t.totalMarge)}</td>
+                            <td className="px-4 py-2 text-center">
+                              <span className="font-bold">{t.margePercent.toFixed(1)}%</span>
+                            </td>
+                            <td className="px-4 py-2 text-right text-green-600">
+                              {formatPrice(dossiersDuTransporteur.reduce((s, d) => {
+                                const paiements = Array.isArray(d.paiements) ? d.paiements : []
+                                return s + paiements.reduce((ps: number, p: any) => ps + (Number(p.amount) || 0), 0)
+                              }, 0))}
+                            </td>
+                            <td className="px-4 py-2 text-right text-red-600">
+                              {formatPrice(dossiersDuTransporteur.reduce((s, d) => {
+                                const paiements = Array.isArray(d.paiements) ? d.paiements : []
+                                const totalPaye = paiements.reduce((ps: number, p: any) => ps + (Number(p.amount) || 0), 0)
+                                return s + ((d.price_ttc || 0) - totalPaye)
+                              }, 0))}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Modal paiement fournisseur depuis stats */}
       <Modal
         isOpen={showPaiementFournisseurModal}
@@ -12280,8 +13078,26 @@ function CalendrierPage({ dossiers, onSelectDossier }: {
 // ============================================
 // TRANSPORTEURS PAGE
 // ============================================
+// Constantes pour les drapeaux pays
+const COUNTRY_FLAGS: Record<string, string> = {
+  FR: '🇫🇷',
+  ES: '🇪🇸',
+  DE: '🇩🇪',
+  GB: '🇬🇧',
+  EN: '🇬🇧', // Alias pour GB (langue EN)
+}
+
+const COUNTRY_NAMES: Record<string, string> = {
+  FR: 'France',
+  ES: 'Espagne',
+  DE: 'Allemagne',
+  GB: 'United Kingdom',
+  EN: 'United Kingdom', // Alias pour GB
+}
+
 function TransporteursPage({ transporteurs }: { transporteurs: any[] }) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [countryFilter, setCountryFilter] = useState<string>('')
   const [selectedTransporteur, setSelectedTransporteur] = useState<any | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -12292,6 +13108,7 @@ function TransporteursPage({ transporteurs }: { transporteurs: any[] }) {
     phone: '',
     astreinte_tel: '',
     city: '',
+    country_code: 'FR',
     tags: '',
     categories: '',
     regions: '',
@@ -12304,6 +13121,10 @@ function TransporteursPage({ transporteurs }: { transporteurs: any[] }) {
   const deleteTransporteur = useDeleteTransporteur()
 
   const filteredTransporteurs = transporteurs.filter((t) => {
+    // Filtre par pays
+    if (countryFilter && (t.country_code || 'FR') !== countryFilter) return false
+
+    // Filtre par recherche
     if (!searchQuery) return true
     const query = searchQuery.toLowerCase()
     return (
@@ -12316,6 +13137,13 @@ function TransporteursPage({ transporteurs }: { transporteurs: any[] }) {
     )
   })
 
+  // Stats par pays
+  const countByCountry = transporteurs.reduce((acc, t) => {
+    const country = t.country_code || 'FR'
+    acc[country] = (acc[country] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
   const handleEdit = (t: any) => {
     setSelectedTransporteur(t)
     setEditForm({
@@ -12325,6 +13153,7 @@ function TransporteursPage({ transporteurs }: { transporteurs: any[] }) {
       phone: t.phone || '',
       astreinte_tel: t.astreinte_tel || '',
       city: t.city || '',
+      country_code: t.country_code || 'FR',
       tags: t.tags?.join(', ') || '',
       categories: t.categories?.join(', ') || '',
       regions: t.regions?.join(', ') || '',
@@ -12342,6 +13171,7 @@ function TransporteursPage({ transporteurs }: { transporteurs: any[] }) {
       phone: '',
       astreinte_tel: '',
       city: '',
+      country_code: 'FR',
       tags: '',
       categories: '',
       regions: '',
@@ -12362,6 +13192,7 @@ function TransporteursPage({ transporteurs }: { transporteurs: any[] }) {
         phone: editForm.phone || null,
         astreinte_tel: editForm.astreinte_tel || null,
         city: editForm.city || null,
+        country_code: editForm.country_code || 'FR',
         tags: editForm.tags ? editForm.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
         categories: editForm.categories ? editForm.categories.split(',').map((c) => c.trim()).filter(Boolean) : [],
         regions: editForm.regions ? editForm.regions.split(',').map((r) => r.trim()).filter(Boolean) : [],
@@ -12389,6 +13220,7 @@ function TransporteursPage({ transporteurs }: { transporteurs: any[] }) {
         phone: editForm.phone || null,
         astreinte_tel: editForm.astreinte_tel || null,
         city: editForm.city || null,
+        country_code: editForm.country_code || 'FR',
         tags: editForm.tags ? editForm.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
         categories: editForm.categories ? editForm.categories.split(',').map((c) => c.trim()).filter(Boolean) : [],
         regions: editForm.regions ? editForm.regions.split(',').map((r) => r.trim()).filter(Boolean) : [],
@@ -12421,7 +13253,7 @@ function TransporteursPage({ transporteurs }: { transporteurs: any[] }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -12432,6 +13264,32 @@ function TransporteursPage({ transporteurs }: { transporteurs: any[] }) {
             className="input pl-10"
           />
         </div>
+
+        {/* Filtre par pays */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCountryFilter('')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              !countryFilter ? 'bg-purple text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            }`}
+          >
+            Tous ({transporteurs.length})
+          </button>
+          {Object.entries(COUNTRY_FLAGS).map(([code, flag]) => (
+            <button
+              key={code}
+              onClick={() => setCountryFilter(countryFilter === code ? '' : code)}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                countryFilter === code ? 'bg-purple text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+              }`}
+              title={COUNTRY_NAMES[code]}
+            >
+              <span>{flag}</span>
+              <span>{countByCountry[code] || 0}</span>
+            </button>
+          ))}
+        </div>
+
         <button onClick={handleCreate} className="btn btn-primary">
           <Plus size={16} />
           Nouveau transporteur
@@ -12522,6 +13380,9 @@ function TransporteursPage({ transporteurs }: { transporteurs: any[] }) {
                 {t.number}
               </span>
               <span className="font-semibold text-purple-dark">{t.name}</span>
+              <span title={COUNTRY_NAMES[t.country_code || 'FR']} className="text-lg">
+                {COUNTRY_FLAGS[t.country_code || 'FR']}
+              </span>
             </div>
 
             <div className="text-sm text-gray-500 space-y-1">
@@ -12623,15 +13484,31 @@ function TransporteursPage({ transporteurs }: { transporteurs: any[] }) {
             <p className="text-xs text-gray-400 mt-1">Numéro d'urgence/astreinte pour les chauffeurs</p>
           </div>
 
-          <div>
-            <label className="label">Ville</label>
-            <input
-              type="text"
-              value={editForm.city}
-              onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-              className="input"
-              placeholder="Paris"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Ville</label>
+              <input
+                type="text"
+                value={editForm.city}
+                onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                className="input"
+                placeholder="Paris"
+              />
+            </div>
+            <div>
+              <label className="label">Pays</label>
+              <select
+                value={editForm.country_code}
+                onChange={(e) => setEditForm({ ...editForm, country_code: e.target.value })}
+                className="input"
+              >
+                {Object.entries(COUNTRY_FLAGS).map(([code, flag]) => (
+                  <option key={code} value={code}>
+                    {flag} {COUNTRY_NAMES[code]}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div>
@@ -12767,15 +13644,31 @@ function TransporteursPage({ transporteurs }: { transporteurs: any[] }) {
             <p className="text-xs text-gray-400 mt-1">Numéro d'urgence/astreinte pour les chauffeurs</p>
           </div>
 
-          <div>
-            <label className="label">Ville</label>
-            <input
-              type="text"
-              value={editForm.city}
-              onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-              className="input"
-              placeholder="Paris"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Ville</label>
+              <input
+                type="text"
+                value={editForm.city}
+                onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                className="input"
+                placeholder="Paris"
+              />
+            </div>
+            <div>
+              <label className="label">Pays</label>
+              <select
+                value={editForm.country_code}
+                onChange={(e) => setEditForm({ ...editForm, country_code: e.target.value })}
+                className="input"
+              >
+                {Object.entries(COUNTRY_FLAGS).map(([code, flag]) => (
+                  <option key={code} value={code}>
+                    {flag} {COUNTRY_NAMES[code]}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div>
@@ -12849,7 +13742,7 @@ function ExploitationPage({
   transporteurs: any[]
   setCurrentPage: (p: Page) => void
   setSearchQuery: (q: string) => void
-  openEmailPreview: (data: { to: string; subject: string; body: string }, onSend?: () => void | Promise<void>) => void
+  openEmailPreview: (data: EmailData, onSend?: () => void | Promise<void>) => void
 }) {
   const [dateDebut, setDateDebut] = useState(() => {
     const today = new Date()
@@ -12875,6 +13768,133 @@ function ExploitationPage({
   const deleteDemandeFournisseur = useDeleteDemandeFournisseur()
   const createDevis = useCreateDevis()
   const addTimelineEntry = useAddTimelineEntry()
+
+  // Traductions pour l'aperçu email selon le pays du dossier
+  const emailPreviewLabels = useMemo(() => {
+    const lang = getLanguageFromCountry(selectedDossier?.country_code)
+    const translations: Record<string, Record<string, string>> = {
+      fr: {
+        subject: 'Demande de tarif',
+        greeting: 'Bonjour,',
+        intro: 'Nous avons une demande de transport pour laquelle nous aimerions recevoir votre meilleur tarif.',
+        route: 'Trajet',
+        type: 'Type',
+        departureDate: 'Date aller',
+        returnDate: 'Date retour',
+        passengers: 'Passagers',
+        persons: 'personnes',
+        vehicle: 'Véhicule',
+        numberOfBuses: 'Nombre de cars',
+        madDetails: 'Détail mise à disposition',
+        remarks: 'Remarques',
+        customLink: 'Lien personnalisé par transporteur',
+        uniqueLinkNote: '(Un lien unique sera généré pour chaque transporteur)',
+        // Trip modes
+        oneWay: 'Aller simple',
+        roundTrip: 'Aller-Retour',
+        roundTrip1Day: 'Aller-Retour 1 jour',
+        roundTripNoMad: 'AR sans mise à disposition',
+        roundTripWithMad: 'AR + Mise à disposition',
+        circuit: 'Circuit',
+        disposal: 'Mise à disposition',
+      },
+      de: {
+        subject: 'Preisanfrage',
+        greeting: 'Guten Tag,',
+        intro: 'Wir haben eine Transportanfrage, für die wir gerne Ihr bestes Angebot erhalten würden.',
+        route: 'Strecke',
+        type: 'Art',
+        departureDate: 'Hinfahrt',
+        returnDate: 'Rückfahrt',
+        passengers: 'Passagiere',
+        persons: 'Personen',
+        vehicle: 'Fahrzeug',
+        numberOfBuses: 'Anzahl Busse',
+        madDetails: 'Details zur Disposition',
+        remarks: 'Bemerkungen',
+        customLink: 'Personalisierter Link pro Transporteur',
+        uniqueLinkNote: '(Ein eindeutiger Link wird für jeden Transporteur generiert)',
+        // Trip modes
+        oneWay: 'Einfache Fahrt',
+        roundTrip: 'Hin- und Rückfahrt',
+        roundTrip1Day: 'Hin- und Rückfahrt (1 Tag)',
+        roundTripNoMad: 'Hin- und Rückfahrt ohne Disposition',
+        roundTripWithMad: 'Hin- und Rückfahrt mit Disposition',
+        circuit: 'Rundfahrt',
+        disposal: 'Disposition',
+      },
+      es: {
+        subject: 'Solicitud de precio',
+        greeting: 'Buenos días,',
+        intro: 'Tenemos una solicitud de transporte para la cual nos gustaría recibir su mejor tarifa.',
+        route: 'Trayecto',
+        type: 'Tipo',
+        departureDate: 'Fecha de ida',
+        returnDate: 'Fecha de regreso',
+        passengers: 'Pasajeros',
+        persons: 'personas',
+        vehicle: 'Vehículo',
+        numberOfBuses: 'Número de autocares',
+        madDetails: 'Detalle de disposición',
+        remarks: 'Observaciones',
+        customLink: 'Enlace personalizado por transportista',
+        uniqueLinkNote: '(Se generará un enlace único para cada transportista)',
+        // Trip modes
+        oneWay: 'Solo ida',
+        roundTrip: 'Ida y vuelta',
+        roundTrip1Day: 'Ida y vuelta (1 día)',
+        roundTripNoMad: 'Ida y vuelta sin disposición',
+        roundTripWithMad: 'Ida y vuelta con disposición',
+        circuit: 'Circuito',
+        disposal: 'Disposición',
+      },
+      en: {
+        subject: 'Price request',
+        greeting: 'Hello,',
+        intro: 'We have a transport request for which we would like to receive your best rate.',
+        route: 'Route',
+        type: 'Type',
+        departureDate: 'Departure date',
+        returnDate: 'Return date',
+        passengers: 'Passengers',
+        persons: 'people',
+        vehicle: 'Vehicle',
+        numberOfBuses: 'Number of coaches',
+        madDetails: 'Disposal details',
+        remarks: 'Remarks',
+        customLink: 'Custom link per carrier',
+        uniqueLinkNote: '(A unique link will be generated for each carrier)',
+        // Trip modes
+        oneWay: 'One way',
+        roundTrip: 'Round trip',
+        roundTrip1Day: 'Round trip (1 day)',
+        roundTripNoMad: 'Round trip without disposal',
+        roundTripWithMad: 'Round trip with disposal',
+        circuit: 'Circuit',
+        disposal: 'Disposal',
+      },
+    }
+    return translations[lang] || translations['fr']
+  }, [selectedDossier?.country_code])
+
+  // Helper pour obtenir le label du mode de trajet traduit
+  const getTranslatedTripMode = (tripMode: string | null | undefined) => {
+    if (!tripMode) return '-'
+    const mapping: Record<string, string> = {
+      'aller_simple': 'oneWay',
+      'one-way': 'oneWay',
+      'aller_retour': 'roundTrip',
+      'round-trip': 'roundTrip',
+      'circuit': 'circuit',
+      'mise-a-dispo': 'disposal',
+      'Aller simple': 'oneWay',
+      'Aller-Retour 1 jour': 'roundTrip1Day',
+      'Aller-Retour sans mise à disposition': 'roundTripNoMad',
+      'Aller-Retour avec mise à disposition': 'roundTripWithMad',
+    }
+    const key = mapping[tripMode]
+    return key ? (emailPreviewLabels[key] || tripMode) : tripMode
+  }
 
   // Group demandes by dossier
   const demandesParDossier = useMemo(() => {
@@ -12936,21 +13956,39 @@ function ExploitationPage({
     return Array.from(cats).sort()
   }, [transporteurs])
 
-  // Filter transporteurs by category
+  // Filter transporteurs by category and country
   const filteredTransporteurs = useMemo(() => {
-    if (!categoryFilter) return transporteurs.filter((t: any) => t.active !== false && t.is_active !== false)
     return transporteurs.filter((t: any) => {
+      // Filtre actif
       if (t.active === false || t.is_active === false) return false
-      return t.categories?.includes(categoryFilter) || t.tags?.includes(categoryFilter)
+
+      // Filtre par pays du dossier sélectionné
+      if (selectedDossier?.country_code) {
+        // Si le transporteur a un country_code, il doit correspondre au pays du dossier
+        // Sinon (legacy), on l'affiche seulement si le dossier est français
+        if (t.country_code) {
+          if (t.country_code !== selectedDossier.country_code) return false
+        } else {
+          // Transporteurs sans country_code = transporteurs français legacy
+          if (selectedDossier.country_code !== 'FR') return false
+        }
+      }
+
+      // Filtre par catégorie
+      if (categoryFilter) {
+        return t.categories?.includes(categoryFilter) || t.tags?.includes(categoryFilter)
+      }
+
+      return true
     })
-  }, [transporteurs, categoryFilter])
+  }, [transporteurs, categoryFilter, selectedDossier?.country_code])
 
   // Générer le template de message depuis la BDD
   const generateMessageTemplateAsync = async (dossier: any): Promise<string> => {
     if (!dossier) return ''
     const d = dossier
 
-    // Utiliser le template depuis la base de données
+    // Utiliser le template depuis la base de données avec la langue du pays
     try {
       const emailData = await generateDemandePrixEmailFromTemplate({
         transporteurEmail: '', // Pas utilisé pour le template, juste pour le body
@@ -12969,6 +14007,7 @@ function ExploitationPage({
         specialRequests: d.special_requests,
         luggageType: d.luggage_type,
         madDetails: extractMadDetails(d.special_requests),
+        language: getLanguageFromCountry(d.country_code),
       })
       return emailData.body
     } catch (error) {
@@ -13035,6 +14074,29 @@ L'équipe Busmoov`
       const devisAccepte = selectedDossier.devis?.find((d: any) => d.status === 'accepted') || selectedDossier.devis?.[0]
 
       const baseUrl = window.location.origin
+      const d = selectedDossier
+      const language = getLanguageFromCountry(d.country_code)
+
+      // Générer le sujet traduit une seule fois
+      const emailData = await generateDemandePrixEmailFromTemplate({
+        transporteurEmail: '',
+        dossierReference: d.reference || '',
+        departureCity: d.departure,
+        arrivalCity: d.arrival,
+        departureDate: d.departure_date,
+        returnDate: d.return_date,
+        departureTime: d.departure_time,
+        returnTime: d.return_time,
+        tripMode: d.trip_mode,
+        passengers: d.passengers,
+        vehicleType: d.vehicle_type,
+        departureAddress: d.departure_address,
+        arrivalAddress: d.arrival_address,
+        specialRequests: d.special_requests,
+        luggageType: d.luggage_type,
+        madDetails: extractMadDetails(d.special_requests),
+        language,
+      })
 
       for (const transporteur of transporteursInfos) {
         // Générer un token unique pour chaque demande
@@ -13054,23 +14116,48 @@ L'équipe Busmoov`
         if (withEmail && transporteur.email) {
           const lienPropositionTarif = `${baseUrl}/fournisseur/proposition-tarif?token=${token}&demande=${demande.id}`
 
+          // Utiliser le HTML du template s'il existe, sinon fallback sur le texte
+          let htmlContent: string
+          if (emailData.html) {
+            // Remplacer le placeholder du lien dans le template HTML
+            htmlContent = emailData.html.replace(
+              /{{lien_proposition}}/g,
+              lienPropositionTarif
+            )
+          } else {
+            // Fallback: convertir le texte en HTML basique avec traductions
+            const t = TEMPLATE_TRANSLATIONS[language] || TEMPLATE_TRANSLATIONS['fr']
+            htmlContent = `
+              <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #4A1A6B 0%, #E91E63 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                  <h1 style="color: white; margin: 0; font-size: 24px;">${emailData.subject}</h1>
+                </div>
+                <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+                  ${emailData.body.replace(/\n/g, '<br>')}
+                  <div style="text-align: center; margin: 30px 0;">
+                    <a href="${lienPropositionTarif}" style="display: inline-block; background: linear-gradient(135deg, #4A1A6B 0%, #E91E63 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                      ${t.submitProposal}
+                    </a>
+                  </div>
+                </div>
+                <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+                  <p>Busmoov SAS - 41 Rue Barrault, 75013 Paris</p>
+                </div>
+              </div>
+            `
+          }
+
+          // Envoyer en mode custom avec le contenu traduit
           await supabase.functions.invoke('send-email', {
             body: {
-              type: 'demande_tarif_fournisseur',
+              type: 'custom',
               to: transporteur.email,
+              subject: emailData.subject,
+              html_content: htmlContent,
               data: {
-                reference: selectedDossier.reference,
-                departure: selectedDossier.departure,
-                arrival: selectedDossier.arrival,
-                departure_date: formatDate(selectedDossier.departure_date),
-                departure_time: selectedDossier.departure_time || '--:--',
-                return_date: selectedDossier.return_date ? formatDate(selectedDossier.return_date) : 'Non défini',
-                return_time: selectedDossier.return_time || '--:--',
-                passengers: selectedDossier.passengers?.toString() || '0',
-                vehicle_type: devisAccepte?.vehicle_type || 'standard',
-                nb_cars: devisAccepte?.nombre_cars?.toString() || '1',
-                lien_proposition_tarif: lienPropositionTarif,
                 dossier_id: selectedDossier.id,
+                language,
+                template_key: 'demande_prix_fournisseur', // Pour identifier dans l'historique
               },
             },
           })
@@ -13145,6 +14232,7 @@ L'équipe Busmoov`
     const emailData = await generateValidationFournisseurEmailFromTemplate({
       transporteurEmail,
       transporteurName: demande.transporteur?.name || 'Transporteur',
+      transporteurCountryCode: demande.transporteur?.country_code,
       dossierReference: dossier.reference,
       departureCity: dossier.departure,
       arrivalCity: dossier.arrival,
@@ -13165,7 +14253,11 @@ L'équipe Busmoov`
     })
 
     // Ouvrir la modal d'email avec callback pour valider après envoi
-    openEmailPreview(emailData, async () => {
+    openEmailPreview({
+      ...emailData,
+      dossierId: demande.dossier_id || undefined,
+      templateKey: 'demande_fournisseur',
+    }, async () => {
       try {
         await updateDemandeFournisseur.mutateAsync({
           id: demandeId,
@@ -13187,16 +14279,28 @@ L'équipe Busmoov`
 
   const handleBpaRecu = async (demandeId: string, demande: any) => {
     try {
+      // Mettre à jour la demande fournisseur
       await updateDemandeFournisseur.mutateAsync({
         id: demandeId,
         status: 'bpa_received',
+        bpa_received_at: new Date().toISOString(),
       })
-      // Ajouter timeline
+
+      // Mettre à jour le statut du dossier vers pending-info
       if (demande.dossier_id) {
+        await supabase
+          .from('dossiers')
+          .update({ status: 'pending-info' })
+          .eq('id', demande.dossier_id)
+
+        // Invalider les queries pour rafraîchir
+        queryClient.invalidateQueries({ queryKey: ['dossiers'] })
+
+        // Ajouter timeline
         addTimelineEntry.mutate({
           dossier_id: demande.dossier_id,
           type: 'note',
-          content: `BPA reçu de ${demande.transporteur?.name} - Prestation confirmée`,
+          content: `BPA reçu de ${demande.transporteur?.name} - Prestation confirmée - Dossier passé en attente d'infos voyage`,
         })
       }
     } catch (error) {
@@ -13239,11 +14343,11 @@ L'équipe Busmoov`
     }
 
     try {
-      // prix_propose est en TTC
+      // prix_propose est en TTC - utiliser le taux TVA du pays
+      const tvaRate = dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
       const prixAchatTTC = demande.prix_propose
-      const prixAchatHT = Math.round((prixAchatTTC / 1.1) * 100) / 100
+      const prixAchatHT = Math.round((prixAchatTTC / (1 + tvaRate / 100)) * 100) / 100
       const margePercent = 18 // 18% de marge
-      const tvaRate = 10 // TVA 10%
 
       // Calculer prix de vente avec 18% de marge sur le HT
       const prixVenteHT = Math.round(prixAchatHT * (1 + margePercent / 100))
@@ -13321,11 +14425,12 @@ L'équipe Busmoov`
     )
   }
 
-  const calculMarge = (prixVenteTTC: number, prixAchatTTC: number) => {
+  const calculMarge = (prixVenteTTC: number, prixAchatTTC: number, tvaRate: number = 10) => {
     if (!prixAchatTTC || prixAchatTTC === 0) return null
-    // Convertir en HT pour le calcul de marge
-    const prixVenteHT = prixVenteTTC / 1.1
-    const prixAchatHT = prixAchatTTC / 1.1
+    // Convertir en HT pour le calcul de marge selon le taux TVA du pays
+    const diviseur = 1 + tvaRate / 100
+    const prixVenteHT = prixVenteTTC / diviseur
+    const prixAchatHT = prixAchatTTC / diviseur
     const marge = Math.round((prixVenteHT - prixAchatHT) * 100) / 100
     const margePercent = (marge / prixAchatHT) * 100
     return { marge, margePercent }
@@ -13460,12 +14565,16 @@ ${dossier.special_requests ? '\n' + dossier.special_requests : ''}`
                 {/* Dossier row */}
                 <div className="bg-blue-50 p-3 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <span
-                      className="font-bold text-purple-dark cursor-help border-b border-dashed border-purple-dark"
+                    <a
+                      href={`/admin?dossierId=${dossier.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-bold text-purple-dark hover:text-magenta cursor-pointer border-b border-dashed border-purple-dark hover:border-magenta transition-colors"
                       title={tooltipRecap}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       Dossier {dossier.reference}
-                    </span>
+                    </a>
                     <span className="text-sm text-gray-500">|</span>
                     <span className="text-sm flex items-center gap-1">
                       Devis {devisValide?.reference || '-'} à {formatPrice(prixTotal)}
@@ -13542,6 +14651,8 @@ L'équipe Busmoov`
                             to: transporteurAssigne.email || '',
                             subject,
                             body,
+                            dossierId: dossier.id,
+                            templateKey: 'confirmation_reservation_fournisseur',
                           },
                           async () => {
                             await createDemandeFournisseur.mutateAsync({
@@ -13637,7 +14748,8 @@ L'équipe Busmoov`
                       return true
                     })
                     .map((df: any) => {
-                      const margeInfo = calculMarge(prixTotal, df.prix_propose)
+                      const tvaRateForMarge = dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
+                      const margeInfo = calculMarge(prixTotal, df.prix_propose, tvaRateForMarge)
                       const isSelected = df.status === 'accepted'
 
                       const isBpaReceived = df.status === 'bpa_received'
@@ -13930,42 +15042,42 @@ L'équipe Busmoov`
                 Aperçu de l'email envoyé aux transporteurs :
               </p>
               <div className="bg-white p-4 rounded border text-sm space-y-2">
-                <p><strong>Objet :</strong> Demande de tarif - {selectedDossier.departure} → {selectedDossier.arrival} le {formatDate(selectedDossier.departure_date)}</p>
+                <p><strong>Objet :</strong> {emailPreviewLabels.subject} - {selectedDossier.departure} → {selectedDossier.arrival} le {formatDate(selectedDossier.departure_date)}</p>
                 <hr className="my-2" />
-                <p>Bonjour,</p>
-                <p>Nous avons une demande de transport pour laquelle nous aimerions recevoir votre meilleur tarif.</p>
+                <p>{emailPreviewLabels.greeting}</p>
+                <p>{emailPreviewLabels.intro}</p>
                 <div className="bg-gray-50 p-3 rounded my-2 space-y-1">
-                  <p><strong>Trajet :</strong> {selectedDossier.departure} → {selectedDossier.arrival}</p>
-                  <p><strong>Type :</strong> {getTripModeLabel(selectedDossier.trip_mode)}</p>
-                  <p><strong>Date aller :</strong> {formatDate(selectedDossier.departure_date)} à {selectedDossier.departure_time || '--:--'}</p>
+                  <p><strong>{emailPreviewLabels.route} :</strong> {selectedDossier.departure} → {selectedDossier.arrival}</p>
+                  <p><strong>{emailPreviewLabels.type} :</strong> {getTranslatedTripMode(selectedDossier.trip_mode)}</p>
+                  <p><strong>{emailPreviewLabels.departureDate} :</strong> {formatDate(selectedDossier.departure_date)} à {selectedDossier.departure_time || '--:--'}</p>
                   {selectedDossier.return_date && (
-                    <p><strong>Date retour :</strong> {formatDate(selectedDossier.return_date)} à {selectedDossier.return_time || '--:--'}</p>
+                    <p><strong>{emailPreviewLabels.returnDate} :</strong> {formatDate(selectedDossier.return_date)} à {selectedDossier.return_time || '--:--'}</p>
                   )}
-                  <p><strong>Passagers :</strong> {selectedDossier.passengers} personnes</p>
+                  <p><strong>{emailPreviewLabels.passengers} :</strong> {selectedDossier.passengers} {emailPreviewLabels.persons}</p>
                   {selectedDossier.vehicle_type && (
-                    <p><strong>Véhicule :</strong> {getVehicleTypeLabel(selectedDossier.vehicle_type)}</p>
+                    <p><strong>{emailPreviewLabels.vehicle} :</strong> {getVehicleTypeLabel(selectedDossier.vehicle_type)}</p>
                   )}
                   {selectedDossier.nombre_cars && selectedDossier.nombre_cars > 1 && (
-                    <p><strong>Nombre de cars :</strong> {selectedDossier.nombre_cars}</p>
+                    <p><strong>{emailPreviewLabels.numberOfBuses} :</strong> {selectedDossier.nombre_cars}</p>
                   )}
                   {/* Détail MAD si circuit */}
                   {selectedDossier.trip_mode === 'circuit' && extractMadDetails(selectedDossier.special_requests) && (
                     <div className="mt-2 pt-2 border-t border-gray-200">
-                      <p><strong>Détail mise à disposition :</strong></p>
+                      <p><strong>{emailPreviewLabels.madDetails} :</strong></p>
                       <p className="text-gray-600 whitespace-pre-wrap text-xs mt-1">{extractMadDetails(selectedDossier.special_requests)}</p>
                     </div>
                   )}
                   {/* Autres demandes spéciales (hors MAD) */}
                   {selectedDossier.special_requests && !selectedDossier.special_requests.includes('=== DÉTAIL MISE À DISPOSITION ===') && (
-                    <p><strong>Remarques :</strong> {selectedDossier.special_requests}</p>
+                    <p><strong>{emailPreviewLabels.remarks} :</strong> {selectedDossier.special_requests}</p>
                   )}
                 </div>
                 <div className="bg-magenta/10 p-3 rounded border border-magenta/30 text-center">
-                  <p className="text-magenta font-semibold">🔗 Lien personnalisé par transporteur</p>
+                  <p className="text-magenta font-semibold">🔗 {emailPreviewLabels.customLink}</p>
                   <p className="text-xs text-gray-500 mt-1">
                     {getSiteBaseUrl()}/fournisseur/proposition-tarif?token=XXXX&demande=YYYY
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">(Un lien unique sera généré pour chaque transporteur)</p>
+                  <p className="text-xs text-gray-400 mt-1">{emailPreviewLabels.uniqueLinkNote}</p>
                 </div>
               </div>
             </div>
@@ -14135,6 +15247,8 @@ function FacturesPage() {
   const [factures, setFactures] = useState<any[]>([])
   const [dossiersAFacturer, setDossiersAFacturer] = useState<any[]>([])
   const [dossiersPartiels, setDossiersPartiels] = useState<any[]>([])
+  const [paiementsClients, setPaiementsClients] = useState<any[]>([])
+  const [paiementsFournisseurs, setPaiementsFournisseurs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
@@ -14186,7 +15300,35 @@ function FacturesPage() {
   useEffect(() => {
     loadFactures()
     loadDossiersAFacturer()
+    loadPaiements()
   }, [])
+
+  // Charger les paiements clients et fournisseurs pour la TVA
+  const loadPaiements = async () => {
+    try {
+      // Paiements clients (encaissements)
+      const { data: paiementsData } = await supabase
+        .from('paiements')
+        .select('*, dossier:dossiers(tva_rate)')
+        .order('payment_date', { ascending: false })
+
+      if (paiementsData) {
+        setPaiementsClients(paiementsData)
+      }
+
+      // Paiements fournisseurs (décaissements)
+      const { data: paiementsFrsData } = await supabase
+        .from('paiements_fournisseurs')
+        .select('*, dossier:dossiers(tva_rate)')
+        .order('payment_date', { ascending: false })
+
+      if (paiementsFrsData) {
+        setPaiementsFournisseurs(paiementsFrsData)
+      }
+    } catch (err) {
+      console.error('Error loading paiements:', err)
+    }
+  }
 
   const loadFactures = async () => {
     setLoading(true)
@@ -14449,10 +15591,10 @@ function FacturesPage() {
     setGenerating(true)
     try {
       const contrat = selectedDossier.contrat
-      const tvaRate = selectedDossier.tva_rate || 10
+      const tvaRate = selectedDossier.tva_rate || getTvaRateByCountry(selectedDossier.country_code)
       const prixTTC = contrat?.price_ttc || selectedDossier.price_ttc || 0
       const acompteContrat = contrat?.acompte_amount || Math.round(prixTTC * 0.3)
-      const soldeContrat = contrat?.solde_amount || (prixTTC - acompteContrat)
+      const soldeContrat = contrat?.solde_amount ?? (prixTTC - acompteContrat)
 
       // Calculer le montant automatique ou utiliser le montant personnalisé
       let amountTTC: number
@@ -14556,6 +15698,8 @@ function FacturesPage() {
       }
 
       // Générer et télécharger le PDF
+      const countryCodeNewFacture = selectedDossier.country_code || 'FR'
+      const pdfLangNewFacture = countryCodeNewFacture === 'DE' ? 'de' : countryCodeNewFacture === 'ES' ? 'es' : countryCodeNewFacture === 'GB' ? 'en' : 'fr'
       await generateFacturePDF({
         reference,
         type: factureForm.type,
@@ -14566,6 +15710,7 @@ function FacturesPage() {
         client_address: clientAddress,
         client_zip: clientZip,
         client_city: clientCity,
+        country_code: countryCodeNewFacture,
         created_at: new Date().toISOString(),
         base_price_ttc: basePriceTTCFactureNew,
         options_lignes: optionsLignesFactureNew.length > 0 ? optionsLignesFactureNew : undefined,
@@ -14582,7 +15727,7 @@ function FacturesPage() {
           total_ttc: prixTTC,
         },
         facture_acompte: factureAcompte,
-      })
+      }, pdfLangNewFacture)
 
       // Envoyer par email si demandé
       if (factureForm.sendEmail && selectedDossier.client_email) {
@@ -14664,6 +15809,8 @@ function FacturesPage() {
         }
       }
 
+      const countryCodeDL = facture.dossier?.country_code || 'FR'
+      const pdfLangDL = countryCodeDL === 'DE' ? 'de' : countryCodeDL === 'ES' ? 'es' : countryCodeDL === 'GB' ? 'en' : 'fr'
       await generateFacturePDF({
         reference: facture.reference,
         type: facture.type,
@@ -14674,6 +15821,7 @@ function FacturesPage() {
         client_address: facture.client_address,
         client_zip: facture.client_zip,
         client_city: facture.client_city,
+        country_code: countryCodeDL,
         created_at: facture.created_at,
         base_price_ttc: basePriceTTCDL,
         options_lignes: optionsLignesDL.length > 0 ? optionsLignesDL : undefined,
@@ -14690,7 +15838,7 @@ function FacturesPage() {
           total_ttc: totalPriceTTCDL,
         } : undefined,
         facture_acompte: factureAcompte,
-      })
+      }, pdfLangDL)
     } catch (error) {
       console.error('Error downloading PDF:', error)
       alert('Erreur lors du téléchargement du PDF')
@@ -14824,7 +15972,7 @@ L'équipe Busmoov`,
       f.client_name || f.dossier?.client_name || '',
       f.dossier?.reference || '',
       (f.amount_ht || 0).toFixed(2).replace('.', ','),
-      (f.tva_rate || 10) + '%',
+      (f.tva_rate || (f.dossier as any)?.tva_rate || getTvaRateByCountry((f.dossier as any)?.country_code)) + '%',
       (f.amount_ttc || 0).toFixed(2).replace('.', ',')
     ])
 
@@ -14863,6 +16011,38 @@ L'équipe Busmoov`,
   // À encaisser = factures non payées et non annulées (minimum 0, jamais négatif)
   const facturesNonPayees = factures.filter(f => f.status !== 'paid' && f.status !== 'cancelled' && f.type !== 'avoir').reduce((sum, f) => sum + (f.amount_ttc || 0), 0)
   const totalNonPayees = Math.max(0, facturesNonPayees) // Jamais négatif
+
+  // Calcul TVA encaissée (sur les paiements clients reçus, filtrés par période)
+  const paiementsClientsFiltres = paiementsClients.filter(p => {
+    if (!p.payment_date) return false
+    const pDate = new Date(p.payment_date)
+    if (dateFrom && pDate < new Date(dateFrom)) return false
+    if (dateTo && pDate > new Date(dateTo + 'T23:59:59')) return false
+    return true
+  })
+  const tvaEncaissee = paiementsClientsFiltres.reduce((sum, p) => {
+    const tvaRate = p.dossier?.tva_rate || getTvaRateByCountry(p.dossier?.country_code)
+    const montantTTC = p.amount || 0
+    const montantHT = montantTTC / (1 + tvaRate / 100)
+    const tva = montantTTC - montantHT
+    return sum + tva
+  }, 0)
+
+  // Calcul TVA décaissée (sur les paiements fournisseurs effectués, filtrés par période)
+  const paiementsFournisseursFiltres = paiementsFournisseurs.filter(p => {
+    if (!p.payment_date) return false
+    const pDate = new Date(p.payment_date)
+    if (dateFrom && pDate < new Date(dateFrom)) return false
+    if (dateTo && pDate > new Date(dateTo + 'T23:59:59')) return false
+    return true
+  })
+  const tvaDecaissee = paiementsFournisseursFiltres.reduce((sum, p) => {
+    const tvaRate = p.dossier?.tva_rate || getTvaRateByCountry(p.dossier?.country_code)
+    const montantTTC = p.amount || 0
+    const montantHT = montantTTC / (1 + tvaRate / 100)
+    const tva = montantTTC - montantHT
+    return sum + tva
+  }, 0)
 
   if (loading) {
     return (
@@ -14921,6 +16101,35 @@ L'équipe Busmoov`,
         <div className="card p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide">À encaisser</p>
           <p className="text-2xl font-bold text-green-600">{formatPrice(totalNonPayees)}</p>
+        </div>
+      </div>
+
+      {/* Stats TVA */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="card p-4 border-l-4 border-green-500">
+          <p className="text-xs text-gray-500 uppercase tracking-wide">TVA Encaissée (clients)</p>
+          <p className="text-2xl font-bold text-green-600">{formatPrice(tvaEncaissee)}</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Sur {paiementsClientsFiltres.length} paiement{paiementsClientsFiltres.length > 1 ? 's' : ''} reçu{paiementsClientsFiltres.length > 1 ? 's' : ''}
+            {(dateFrom || dateTo) && ' (période filtrée)'}
+          </p>
+        </div>
+        <div className="card p-4 border-l-4 border-orange-500">
+          <p className="text-xs text-gray-500 uppercase tracking-wide">TVA Décaissée (fournisseurs)</p>
+          <p className="text-2xl font-bold text-orange-600">{formatPrice(tvaDecaissee)}</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Sur {paiementsFournisseursFiltres.length} paiement{paiementsFournisseursFiltres.length > 1 ? 's' : ''} effectué{paiementsFournisseursFiltres.length > 1 ? 's' : ''}
+            {(dateFrom || dateTo) && ' (période filtrée)'}
+          </p>
+        </div>
+        <div className="card p-4 border-l-4 border-purple-500">
+          <p className="text-xs text-gray-500 uppercase tracking-wide">TVA Nette (à reverser)</p>
+          <p className={cn("text-2xl font-bold", (tvaEncaissee - tvaDecaissee) >= 0 ? "text-purple-600" : "text-red-600")}>
+            {formatPrice(tvaEncaissee - tvaDecaissee)}
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            Encaissée - Décaissée
+          </p>
         </div>
       </div>
 
@@ -15315,6 +16524,44 @@ L'équipe Busmoov`,
                       >
                         <Download size={16} />
                       </button>
+                      {/* Bouton XML (Factur-X / ZUGFeRD / FacturaE) */}
+                      {facture.dossier && (facture.dossier.country_code === 'FR' || facture.dossier.country_code === 'DE' || facture.dossier.country_code === 'ES' || !facture.dossier.country_code) && (
+                        <button
+                          onClick={async () => {
+                            const countryCode = (facture.dossier?.country_code || 'FR') as 'FR' | 'DE' | 'ES' | 'GB'
+                            const tvaRateXml = facture.tva_rate || (countryCode === 'DE' ? 7 : countryCode === 'GB' ? 0 : 10)
+                            const companyInfo = await getCompanyInfo(countryCode)
+                            const eInvoiceData = convertToEInvoiceData(
+                              {
+                                reference: facture.reference,
+                                type: facture.type as 'acompte' | 'solde' | 'avoir',
+                                amount_ht: facture.amount_ht || Math.round(facture.amount_ttc / (1 + tvaRateXml / 100)),
+                                amount_ttc: facture.amount_ttc,
+                                tva_rate: tvaRateXml,
+                                client_name: facture.client_name || facture.dossier?.client_name,
+                                client_address: facture.client_address || facture.dossier?.billing_address,
+                                client_zip: facture.client_zip || facture.dossier?.billing_zip,
+                                client_city: facture.client_city || facture.dossier?.billing_city,
+                                created_at: facture.created_at,
+                                dossier: facture.dossier ? {
+                                  reference: facture.dossier.reference,
+                                  departure: facture.dossier.departure,
+                                  arrival: facture.dossier.arrival,
+                                  departure_date: facture.dossier.departure_date,
+                                  passengers: facture.dossier.passengers,
+                                } : null,
+                              },
+                              companyInfo,
+                              countryCode
+                            )
+                            downloadEInvoiceXML(eInvoiceData)
+                          }}
+                          className="p-1.5 rounded hover:bg-orange-100 text-orange-600"
+                          title={`Télécharger XML (${facture.dossier?.country_code === 'ES' ? 'FacturaE' : facture.dossier?.country_code === 'DE' ? 'ZUGFeRD' : 'Factur-X'})`}
+                        >
+                          <FileCode size={16} />
+                        </button>
+                      )}
                       <button
                         onClick={() => openEnvoiFactureModal(facture)}
                         className="p-1.5 rounded hover:bg-blue-100 text-blue-600"
@@ -15477,7 +16724,7 @@ L'équipe Busmoov`,
                     <CheckCircle size={24} className="mx-auto mb-1" />
                     <div className="font-semibold">Solde</div>
                     <div className="text-xs text-gray-500">
-                      {formatPrice(selectedDossier.contrat?.solde_amount || ((selectedDossier.contrat?.price_ttc || selectedDossier.price_ttc) - (selectedDossier.contrat?.acompte_amount || Math.round((selectedDossier.contrat?.price_ttc || selectedDossier.price_ttc) * 0.3))))}
+                      {formatPrice(selectedDossier.contrat?.solde_amount ?? ((selectedDossier.contrat?.price_ttc || selectedDossier.price_ttc) - (selectedDossier.contrat?.acompte_amount || Math.round((selectedDossier.contrat?.price_ttc || selectedDossier.price_ttc) * 0.3))))}
                     </div>
                   </button>
                   <button
@@ -17446,9 +18693,233 @@ function SecurityTab() {
   )
 }
 
+// Onglet Historique des actions
+function HistorySettingsTab() {
+  const [dateFrom, setDateFrom] = useState(() => {
+    const d = new Date()
+    d.setDate(d.getDate() - 7)
+    return d.toISOString().split('T')[0]
+  })
+  const [dateTo, setDateTo] = useState(() => new Date().toISOString().split('T')[0])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [allTimelines, setAllTimelines] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Charger toutes les entrées timeline
+  useEffect(() => {
+    const loadTimelines = async () => {
+      setIsLoading(true)
+      try {
+        let query = supabase
+          .from('timeline')
+          .select('*, dossier:dossiers(id, reference, client_name, departure, arrival)')
+          .order('created_at', { ascending: false })
+          .limit(500)
+
+        if (dateFrom) {
+          query = query.gte('created_at', `${dateFrom}T00:00:00`)
+        }
+        if (dateTo) {
+          query = query.lte('created_at', `${dateTo}T23:59:59`)
+        }
+
+        const { data, error } = await query
+        if (error) throw error
+        setAllTimelines(data || [])
+      } catch (error) {
+        console.error('Erreur chargement historique:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadTimelines()
+  }, [dateFrom, dateTo])
+
+  // Filtrer les timelines
+  const filteredTimelines = useMemo(() => {
+    return allTimelines.filter(t => {
+      // Filtre par type
+      if (typeFilter !== 'all' && t.type !== typeFilter) return false
+      // Filtre par recherche
+      if (searchTerm) {
+        const search = searchTerm.toLowerCase()
+        const content = (t.content || '').toLowerCase()
+        const reference = (t.dossier?.reference || '').toLowerCase()
+        const client = (t.dossier?.client_name || '').toLowerCase()
+        if (!content.includes(search) && !reference.includes(search) && !client.includes(search)) {
+          return false
+        }
+      }
+      return true
+    })
+  }, [allTimelines, typeFilter, searchTerm])
+
+  // Types d'entrées uniques
+  const uniqueTypes = useMemo(() => {
+    const types = new Set(allTimelines.map(t => t.type))
+    return Array.from(types).sort()
+  }, [allTimelines])
+
+  const typeLabels: Record<string, string> = {
+    note: 'Note',
+    status_change: 'Changement statut',
+    payment: 'Paiement',
+    email_sent: 'Email envoyé',
+    paiement: 'Paiement',
+    devis_created: 'Devis créé',
+    devis_sent: 'Devis envoyé',
+    contrat_signed: 'Contrat signé',
+    facture_created: 'Facture créée',
+    chauffeur_info: 'Info chauffeur',
+  }
+
+  const typeColors: Record<string, string> = {
+    note: 'bg-gray-100 text-gray-700',
+    status_change: 'bg-blue-100 text-blue-700',
+    payment: 'bg-green-100 text-green-700',
+    paiement: 'bg-green-100 text-green-700',
+    email_sent: 'bg-purple-100 text-purple-700',
+    devis_created: 'bg-amber-100 text-amber-700',
+    devis_sent: 'bg-amber-100 text-amber-700',
+    contrat_signed: 'bg-emerald-100 text-emerald-700',
+    facture_created: 'bg-indigo-100 text-indigo-700',
+    chauffeur_info: 'bg-cyan-100 text-cyan-700',
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="card p-6">
+        <h3 className="font-semibold text-purple-dark mb-4 flex items-center gap-2">
+          <History size={20} />
+          Historique des actions
+        </h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Consultez l'historique chronologique de toutes les actions effectuées sur les dossiers.
+        </p>
+
+        {/* Filtres */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div>
+            <label className="label">Du</label>
+            <input
+              type="date"
+              className="input"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="label">Au</label>
+            <input
+              type="date"
+              className="input"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="label">Type</label>
+            <select
+              className="input"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+            >
+              <option value="all">Tous les types</option>
+              {uniqueTypes.map(type => (
+                <option key={type} value={type}>{typeLabels[type] || type}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">Recherche</label>
+            <input
+              type="text"
+              className="input"
+              placeholder="Dossier, client, contenu..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="flex items-center gap-4 mb-4 text-sm text-gray-500">
+          <span>{filteredTimelines.length} entrées</span>
+          {searchTerm && <span>• Recherche: "{searchTerm}"</span>}
+        </div>
+
+        {/* Liste chronologique */}
+        {isLoading ? (
+          <div className="text-center py-8 text-gray-500">Chargement...</div>
+        ) : filteredTimelines.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">Aucune entrée trouvée</div>
+        ) : (
+          <div className="space-y-2 max-h-[600px] overflow-y-auto">
+            {filteredTimelines.map((entry) => {
+              const date = new Date(entry.created_at)
+              const dateStr = date.toLocaleDateString('fr-FR')
+              const timeStr = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+
+              return (
+                <div
+                  key={entry.id}
+                  className="flex items-start gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  {/* Date/Heure */}
+                  <div className="flex-shrink-0 text-right w-32">
+                    <div className="text-sm font-medium text-gray-700">{dateStr}</div>
+                    <div className="text-xs text-gray-500">{timeStr}</div>
+                  </div>
+
+                  {/* Timeline dot */}
+                  <div className="flex-shrink-0 w-3 h-3 rounded-full bg-magenta mt-1.5" />
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={cn(
+                        'px-2 py-0.5 rounded text-xs font-medium',
+                        typeColors[entry.type] || 'bg-gray-100 text-gray-700'
+                      )}>
+                        {typeLabels[entry.type] || entry.type}
+                      </span>
+                      {entry.dossier?.reference && (
+                        <a
+                          href={`/admin?dossierId=${entry.dossier_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-magenta hover:underline font-medium"
+                        >
+                          {entry.dossier.reference}
+                        </a>
+                      )}
+                      {entry.dossier?.client_name && (
+                        <span className="text-xs text-gray-500">
+                          • {entry.dossier.client_name}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-700">{entry.content}</p>
+                    {entry.dossier && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        {entry.dossier.departure} → {entry.dossier.arrival}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function SettingsPage() {
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<'company' | 'api' | 'workflows' | 'tarifs' | 'automation' | 'payments' | 'cgv' | 'experiments' | 'test-runner' | 'security'>('company')
+  const [activeTab, setActiveTab] = useState<'company' | 'api' | 'workflows' | 'tarifs' | 'automation' | 'payments' | 'countries' | 'cgv' | 'experiments' | 'test-runner' | 'security' | 'history'>('company')
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
 
@@ -17703,6 +19174,18 @@ function SettingsPage() {
           Paiements
         </button>
         <button
+          onClick={() => setActiveTab('countries')}
+          className={cn(
+            'px-4 py-2 rounded-lg font-medium transition-all',
+            activeTab === 'countries'
+              ? 'bg-purple text-white'
+              : 'bg-white text-gray-600 hover:bg-gray-50'
+          )}
+        >
+          <Globe size={16} className="inline mr-2" />
+          Pays
+        </button>
+        <button
           onClick={() => setActiveTab('cgv')}
           className={cn(
             'px-4 py-2 rounded-lg font-medium transition-all',
@@ -17749,6 +19232,18 @@ function SettingsPage() {
         >
           <Lock size={16} className="inline mr-2" />
           Sécurité
+        </button>
+        <button
+          onClick={() => setActiveTab('history')}
+          className={cn(
+            'px-4 py-2 rounded-lg font-medium transition-all',
+            activeTab === 'history'
+              ? 'bg-purple text-white'
+              : 'bg-white text-gray-600 hover:bg-gray-50'
+          )}
+        >
+          <History size={16} className="inline mr-2" />
+          Historique
         </button>
       </div>
 
@@ -18160,6 +19655,11 @@ VITE_GEOAPIFY_API_KEY=votre_cle_geoapify
         <PaymentSettingsTab />
       )}
 
+      {/* Countries Tab */}
+      {activeTab === 'countries' && (
+        <CountrySettingsPage />
+      )}
+
       {/* CGV Tab */}
       {activeTab === 'cgv' && (
         <CGVPage />
@@ -18178,6 +19678,11 @@ VITE_GEOAPIFY_API_KEY=votre_cle_geoapify
       {/* Security Tab */}
       {activeTab === 'security' && (
         <SecurityTab />
+      )}
+
+      {/* History Tab */}
+      {activeTab === 'history' && (
+        <HistorySettingsTab />
       )}
     </div>
   )

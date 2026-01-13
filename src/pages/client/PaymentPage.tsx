@@ -3,6 +3,9 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, CreditCard, Building2, Copy, Check, Lock, Shield, Loader2, ExternalLink } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { formatPrice, formatDate } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
+import { useLocalizedPath } from '@/components/i18n'
+import { useCurrentCountry } from '@/hooks/useCountrySettings'
 import type { DossierWithRelations, Contrat } from '@/types/database'
 
 type PaymentMethod = 'card' | 'transfer' | null
@@ -15,6 +18,10 @@ interface Paiement {
 }
 
 export function PaymentPage() {
+  const { t, i18n } = useTranslation()
+  const localizedPath = useLocalizedPath()
+  const { data: country } = useCurrentCountry()
+  const dateLocale = i18n.language === 'de' ? 'de-DE' : i18n.language === 'es' ? 'es-ES' : i18n.language === 'en' ? 'en-GB' : 'fr-FR'
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const refParam = searchParams.get('ref')
@@ -32,22 +39,22 @@ export function PaymentPage() {
   const [paymentLinkUrl, setPaymentLinkUrl] = useState<string | null>(null)
   const [paymentError, setPaymentError] = useState<string | null>(null)
 
-  // Bank transfer details (would come from settings in production)
+  // Bank transfer details - localized per country
   const bankDetails = {
-    iban: 'FR76 3000 4000 0500 0012 3456 789',
-    bic: 'BNPAFRPP',
-    bank: 'BNP Paribas',
-    beneficiary: 'BUSMOOV SAS',
+    iban: country?.bankIban || 'FR76 3000 4015 9600 0101 0820 195',
+    bic: country?.bankBic || 'BNPAFRPPXXX',
+    bank: country?.bankName || 'BNP Paribas',
+    beneficiary: country?.bankBeneficiary || 'BUSMOOV SAS',
   }
 
   useEffect(() => {
     if (refParam && emailParam) {
       loadData()
     } else {
-      setError('Paramètres manquants')
+      setError(t('payment.missingParams'))
       setLoading(false)
     }
-  }, [refParam, emailParam])
+  }, [refParam, emailParam, t])
 
   const loadData = async () => {
     try {
@@ -60,7 +67,7 @@ export function PaymentPage() {
         .single()
 
       if (dossierError || !dossierData) {
-        setError('Dossier introuvable')
+        setError(t('payment.dossierNotFound'))
         setLoading(false)
         return
       }
@@ -97,7 +104,7 @@ export function PaymentPage() {
       }
     } catch (err) {
       console.error('Error loading data:', err)
-      setError('Une erreur est survenue')
+      setError(t('payment.genericError'))
     } finally {
       setLoading(false)
     }
@@ -184,7 +191,7 @@ export function PaymentPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-magenta border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">Chargement...</p>
+          <p className="text-gray-500">{t('payment.loading')}</p>
         </div>
       </div>
     )
@@ -196,11 +203,11 @@ export function PaymentPage() {
         <div className="max-w-md mx-auto text-center">
           <div className="text-6xl mb-6">❌</div>
           <h2 className="font-display text-2xl font-bold text-purple-dark mb-2">
-            Erreur
+            {t('payment.error')}
           </h2>
           <p className="text-gray-500 mb-6">{error}</p>
-          <Link to="/" className="btn btn-primary">
-            Retour a l'accueil
+          <Link to={localizedPath('/')} className="btn btn-primary">
+            {t('payment.backHome')}
           </Link>
         </div>
       </div>
@@ -225,16 +232,16 @@ export function PaymentPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 py-4 px-6">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to={localizedPath('/')} className="flex items-center gap-3">
             <img src="/logo-icon.svg" alt="Busmoov" className="w-10 h-10" />
             <span className="font-display text-xl font-bold gradient-text">Busmoov</span>
           </Link>
           <Link
-            to={`/mes-devis?ref=${refParam}&email=${encodeURIComponent(emailParam || '')}`}
+            to={`${localizedPath('/mes-devis')}?ref=${refParam}&email=${encodeURIComponent(emailParam || '')}`}
             className="btn btn-secondary btn-sm"
           >
             <ArrowLeft size={16} />
-            Retour
+            {t('payment.back')}
           </Link>
         </div>
       </header>
@@ -243,9 +250,9 @@ export function PaymentPage() {
         {/* Page Header */}
         <div className="text-center mb-8">
           <h1 className="font-display text-3xl font-bold text-purple-dark mb-2">
-            {soldePaye ? 'Paiement complet' : isPayingSolde ? 'Paiement du solde' : 'Paiement de l\'acompte'}
+            {soldePaye ? t('payment.fullPayment') : isPayingSolde ? t('payment.balancePayment') : t('payment.depositPayment')}
           </h1>
-          <p className="text-gray-500">Dossier {dossier.reference}</p>
+          <p className="text-gray-500">{t('payment.dossier')} {dossier.reference}</p>
         </div>
 
         {/* Si tout est payé, afficher un message de succès */}
@@ -253,10 +260,10 @@ export function PaymentPage() {
           <div className="card p-8 text-center mb-8 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200">
             <div className="text-6xl mb-4">✅</div>
             <h2 className="font-display text-2xl font-bold text-green-700 mb-2">
-              Paiement complet
+              {t('payment.paymentComplete')}
             </h2>
             <p className="text-green-600 mb-4">
-              Votre réservation est entièrement réglée. Merci !
+              {t('payment.reservationPaid')}
             </p>
             <p className="text-2xl font-bold text-green-700">{formatPrice(totalPaye)}</p>
           </div>
@@ -266,11 +273,11 @@ export function PaymentPage() {
             <div className="flex items-center justify-center gap-6 mb-8">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Lock size={16} className="text-green-600" />
-                Paiement securise
+                {t('payment.securePayment')}
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Shield size={16} className="text-green-600" />
-                Protection des donnees
+                {t('payment.dataProtection')}
               </div>
             </div>
           </>
@@ -279,50 +286,50 @@ export function PaymentPage() {
         {/* Summary Card */}
         <div className="card p-6 mb-8">
           <h2 className="font-display text-lg font-semibold text-purple-dark mb-4">
-            Recapitulatif
+            {t('payment.summary')}
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <div className="text-sm text-gray-500 mb-1">Trajet</div>
+              <div className="text-sm text-gray-500 mb-1">{t('payment.route')}</div>
               <div className="font-medium">{dossier.departure} → {dossier.arrival}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 mb-1">Date</div>
+              <div className="text-sm text-gray-500 mb-1">{t('payment.date')}</div>
               <div className="font-medium">{formatDate(dossier.departure_date)}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 mb-1">Passagers</div>
-              <div className="font-medium">{dossier.passengers} personnes</div>
+              <div className="text-sm text-gray-500 mb-1">{t('payment.passengers')}</div>
+              <div className="font-medium">{dossier.passengers} {t('payment.persons')}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 mb-1">Transporteur</div>
-              <div className="font-medium">{(dossier as any).transporteur?.number || 'Fournisseur sélectionné'}</div>
+              <div className="text-sm text-gray-500 mb-1">{t('payment.carrier')}</div>
+              <div className="font-medium">{(dossier as any).transporteur?.number || t('payment.selectedSupplier')}</div>
             </div>
           </div>
 
           <div className="border-t border-gray-200 mt-6 pt-6 space-y-3">
             {/* Total TTC */}
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total TTC</span>
+              <span className="text-gray-600">{t('payment.totalTTC')}</span>
               <span className="font-semibold">{formatPrice(prixTTC)}</span>
             </div>
 
             {/* Paiements déjà effectués */}
             {paiements.length > 0 && (
               <div className="bg-green-50 rounded-lg p-4 space-y-2">
-                <div className="text-sm font-medium text-green-700 mb-2">Paiements reçus</div>
+                <div className="text-sm font-medium text-green-700 mb-2">{t('payment.paymentsReceived')}</div>
                 {paiements.map((p) => (
                   <div key={p.id} className="flex justify-between items-center text-sm">
                     <span className="text-green-600">
-                      {p.type === 'virement' ? 'Virement' : p.type === 'cb' ? 'Carte bancaire' : p.type === 'especes' ? 'Espèces' : p.type === 'cheque' ? 'Chèque' : p.type}
+                      {p.type === 'virement' ? t('payment.transfer') : p.type === 'cb' ? t('payment.creditCard') : p.type === 'especes' ? t('payment.cash') : p.type === 'cheque' ? t('payment.check') : p.type}
                       {' - '}
-                      {new Date(p.payment_date).toLocaleDateString('fr-FR')}
+                      {new Date(p.payment_date).toLocaleDateString(dateLocale)}
                     </span>
                     <span className="font-semibold text-green-700">+{formatPrice(p.amount)}</span>
                   </div>
                 ))}
                 <div className="flex justify-between items-center pt-2 border-t border-green-200">
-                  <span className="font-medium text-green-700">Total payé</span>
+                  <span className="font-medium text-green-700">{t('payment.totalPaid')}</span>
                   <span className="font-bold text-green-700">{formatPrice(totalPaye)}</span>
                 </div>
               </div>
@@ -332,7 +339,7 @@ export function PaymentPage() {
             {!soldePaye && (
               <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                 <span className="font-medium text-purple-dark">
-                  {isPayingSolde ? 'Solde restant' : 'Acompte à régler'}
+                  {isPayingSolde ? t('payment.balanceRemaining') : t('payment.depositToPayLabel')}
                 </span>
                 <span className="font-bold text-xl text-magenta">{formatPrice(montantAPayer)}</span>
               </div>
@@ -344,7 +351,7 @@ export function PaymentPage() {
         {!soldePaye && (
           <>
             <h2 className="font-display text-xl font-semibold text-purple-dark mb-6">
-              Choisissez votre mode de paiement
+              {t('payment.choosePaymentMethod')}
             </h2>
 
             <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -364,8 +371,8 @@ export function PaymentPage() {
                     <CreditCard size={24} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-purple-dark">Carte bancaire</h3>
-                    <p className="text-sm text-gray-500">Paiement immediat et securise</p>
+                    <h3 className="font-semibold text-purple-dark">{t('payment.cardPayment')}</h3>
+                    <p className="text-sm text-gray-500">{t('payment.immediateSecure')}</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -391,12 +398,12 @@ export function PaymentPage() {
                     <Building2 size={24} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-purple-dark">Virement bancaire</h3>
-                    <p className="text-sm text-gray-500">Delai de traitement : 2-3 jours</p>
+                    <h3 className="font-semibold text-purple-dark">{t('payment.bankTransfer')}</h3>
+                    <p className="text-sm text-gray-500">{t('payment.processingTime')}</p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-400">
-                  Recommande pour les montants superieurs a 5 000 EUR
+                  {t('payment.recommendedLargeAmount')}
                 </p>
               </div>
             </div>
@@ -404,13 +411,13 @@ export function PaymentPage() {
             {/* Payment Details */}
             {paymentMethod === 'card' && (
               <div className="card p-6 mb-8">
-                <h3 className="font-semibold text-purple-dark mb-4">Paiement par carte</h3>
+                <h3 className="font-semibold text-purple-dark mb-4">{t('payment.cardPaymentTitle')}</h3>
                 <div className="bg-gray-50 rounded-xl p-6 text-center mb-6">
                   <p className="text-gray-600 mb-4">
-                    Montant a payer : <span className="font-bold text-2xl text-purple-dark">{formatPrice(montantAPayer)}</span>
+                    {t('payment.amountToPay')} <span className="font-bold text-2xl text-purple-dark">{formatPrice(montantAPayer)}</span>
                   </p>
                   <p className="text-sm text-gray-500 mb-6">
-                    Vous serez redirige vers notre plateforme de paiement securisee
+                    {t('payment.redirectToPayment')}
                   </p>
 
                   {paymentError && (
@@ -421,7 +428,7 @@ export function PaymentPage() {
 
                   {paymentLinkUrl ? (
                     <div className="space-y-4">
-                      <p className="text-green-600 font-medium">Lien de paiement cree !</p>
+                      <p className="text-green-600 font-medium">{t('payment.paymentLinkCreated')}</p>
                       <a
                         href={paymentLinkUrl}
                         target="_blank"
@@ -429,7 +436,7 @@ export function PaymentPage() {
                         className="btn btn-primary btn-lg"
                       >
                         <ExternalLink size={20} />
-                        Acceder au paiement
+                        {t('payment.accessPayment')}
                       </a>
                     </div>
                   ) : (
@@ -441,19 +448,19 @@ export function PaymentPage() {
                       {isCreatingPaymentLink ? (
                         <>
                           <Loader2 size={20} className="animate-spin" />
-                          Creation du lien...
+                          {t('payment.creatingLink')}
                         </>
                       ) : (
                         <>
                           <CreditCard size={20} />
-                          Payer {formatPrice(montantAPayer)}
+                          {t('payment.pay')} {formatPrice(montantAPayer)}
                         </>
                       )}
                     </button>
                   )}
                 </div>
                 <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
-                  <span>Paiement securise par Mollie</span>
+                  <span>{t('payment.securedByMollie')}</span>
                   <Lock size={12} />
                 </div>
               </div>
@@ -461,12 +468,12 @@ export function PaymentPage() {
 
             {paymentMethod === 'transfer' && (
               <div className="card p-6 mb-8">
-                <h3 className="font-semibold text-purple-dark mb-4">Coordonnees bancaires</h3>
+                <h3 className="font-semibold text-purple-dark mb-4">{t('payment.bankDetails')}</h3>
                 <div className="bg-gray-50 rounded-xl p-6 mb-6">
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <div>
-                        <div className="text-sm text-gray-500">Beneficiaire</div>
+                        <div className="text-sm text-gray-500">{t('payment.beneficiary')}</div>
                         <div className="font-medium">{bankDetails.beneficiary}</div>
                       </div>
                       <button
@@ -505,7 +512,7 @@ export function PaymentPage() {
 
                     <div className="flex justify-between items-center">
                       <div>
-                        <div className="text-sm text-gray-500">Banque</div>
+                        <div className="text-sm text-gray-500">{t('payment.bank')}</div>
                         <div className="font-medium">{bankDetails.bank}</div>
                       </div>
                     </div>
@@ -513,25 +520,25 @@ export function PaymentPage() {
                 </div>
 
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-                  <h4 className="font-semibold text-amber-800 mb-2">Important</h4>
+                  <h4 className="font-semibold text-amber-800 mb-2">{t('payment.important')}</h4>
                   <ul className="text-sm text-amber-700 space-y-1">
-                    <li>• Montant a virer : <strong>{formatPrice(montantAPayer)}</strong></li>
-                    <li>• Reference a indiquer : <strong>{dossier.reference}</strong></li>
-                    <li>• Delai de traitement : 2-3 jours ouvrés</li>
+                    <li>• {t('payment.amountToTransfer')} <strong>{formatPrice(montantAPayer)}</strong></li>
+                    <li>• {t('payment.referenceToIndicate')} <strong>{dossier.reference}</strong></li>
+                    <li>• {t('payment.processingDays')}</li>
                   </ul>
                 </div>
 
                 <button
                   onClick={() => {
                     copyToClipboard(
-                      `Beneficiaire: ${bankDetails.beneficiary}\nIBAN: ${bankDetails.iban}\nBIC: ${bankDetails.bic}\nMontant: ${formatPrice(montantAPayer)}\nReference: ${dossier.reference}`,
+                      `${t('payment.beneficiary')}: ${bankDetails.beneficiary}\nIBAN: ${bankDetails.iban}\nBIC: ${bankDetails.bic}\nMontant: ${formatPrice(montantAPayer)}\nReference: ${dossier.reference}`,
                       'all'
                     )
                   }}
                   className="btn btn-secondary w-full"
                 >
                   <Copy size={16} />
-                  {copied === 'all' ? 'Copie !' : 'Copier toutes les informations'}
+                  {copied === 'all' ? t('payment.copied') : t('payment.copyAllInfo')}
                 </button>
               </div>
             )}
@@ -540,9 +547,9 @@ export function PaymentPage() {
 
         {/* Help Section */}
         <div className="text-center text-gray-500 text-sm">
-          <p>Une question sur le paiement ?</p>
-          <a href="tel:+33176311283" className="text-magenta font-semibold hover:underline">
-            01 76 31 12 83
+          <p>{t('payment.paymentQuestion')}</p>
+          <a href={`tel:${country?.phone || '+33176311283'}`} className="text-magenta font-semibold hover:underline">
+            {country?.phoneDisplay || '01 76 31 12 83'}
           </a>
         </div>
       </div>

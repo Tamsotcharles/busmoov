@@ -5,6 +5,8 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
+import { useLocalizedPath } from '@/components/i18n'
 
 interface ReviewData {
   id: string
@@ -24,6 +26,9 @@ interface ReviewData {
 }
 
 export function ReviewPage() {
+  const { t, i18n } = useTranslation()
+  const localizedPath = useLocalizedPath()
+  const dateLocale = i18n.language === 'de' ? 'de-DE' : i18n.language === 'es' ? 'es-ES' : i18n.language === 'en' ? 'en-GB' : 'fr-FR'
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
 
@@ -40,7 +45,7 @@ export function ReviewPage() {
 
   useEffect(() => {
     if (!token) {
-      setError('Lien invalide. Veuillez utiliser le lien reçu par email.')
+      setError(t('review.invalidLink'))
       setLoading(false)
       return
     }
@@ -66,7 +71,7 @@ export function ReviewPage() {
         .single()
 
       if (fetchError || !data) {
-        setError('Avis introuvable. Le lien est peut-être expiré ou invalide.')
+        setError(t('review.notFound'))
         return
       }
 
@@ -81,7 +86,7 @@ export function ReviewPage() {
       setClientName(reviewData.dossier?.client_name || '')
     } catch (err) {
       console.error('Error loading review:', err)
-      setError('Une erreur est survenue lors du chargement.')
+      setError(t('review.loadError'))
     } finally {
       setLoading(false)
     }
@@ -91,7 +96,7 @@ export function ReviewPage() {
     e.preventDefault()
 
     if (rating === 0) {
-      setError('Veuillez sélectionner une note.')
+      setError(t('review.selectRating'))
       return
     }
 
@@ -127,14 +132,14 @@ export function ReviewPage() {
       setSubmitted(true)
     } catch (err) {
       console.error('Error submitting review:', err)
-      setError('Une erreur est survenue lors de l\'envoi. Veuillez réessayer.')
+      setError(t('review.submitError'))
     } finally {
       setSubmitting(false)
     }
   }
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('fr-FR', {
+    return new Date(dateStr).toLocaleDateString(dateLocale, {
       day: 'numeric',
       month: 'long',
       year: 'numeric'
@@ -168,10 +173,10 @@ export function ReviewPage() {
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertCircle size={32} className="text-red-500" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">Lien invalide</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('review.invalidLinkTitle')}</h1>
               <p className="text-gray-600 mb-6">{error}</p>
-              <Link to="/" className="btn btn-primary">
-                Retour à l'accueil
+              <Link to={localizedPath('/')} className="btn btn-primary">
+                {t('review.backToHome')}
               </Link>
             </div>
           </div>
@@ -192,12 +197,12 @@ export function ReviewPage() {
                 <CheckCircle size={40} className="text-emerald-500" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                Merci pour votre avis !
+                {t('review.thankYou')}
               </h1>
               <p className="text-gray-600 mb-6">
-                Votre retour est précieux et nous aide à améliorer nos services.
+                {t('review.feedbackImportant')}
                 {rating >= 4 && (
-                  <> Nous sommes ravis que votre expérience vous ait satisfait !</>
+                  <> {t('review.happyExperience')}</>
                 )}
               </p>
 
@@ -222,8 +227,8 @@ export function ReviewPage() {
                 </div>
               )}
 
-              <Link to="/" className="btn btn-primary">
-                Retour à l'accueil
+              <Link to={localizedPath('/')} className="btn btn-primary">
+                {t('review.backToHome')}
               </Link>
             </div>
           </div>
@@ -240,31 +245,31 @@ export function ReviewPage() {
       <main className="pt-24 pb-16">
         <div className="max-w-2xl mx-auto px-4">
           <Link
-            to="/"
+            to={localizedPath('/')}
             className="inline-flex items-center gap-2 text-gray-500 hover:text-magenta mb-6 transition-colors"
           >
             <ArrowLeft size={18} />
-            Retour à l'accueil
+            {t('review.backToHome')}
           </Link>
 
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-purple to-magenta px-8 py-6 text-white">
-              <h1 className="text-2xl font-bold mb-2">Donnez votre avis</h1>
+              <h1 className="text-2xl font-bold mb-2">{t('review.giveYourReview')}</h1>
               <p className="text-white/80">
-                Votre retour nous aide à améliorer nos services
+                {t('review.helpUsImprove')}
               </p>
             </div>
 
             {/* Voyage info */}
             {review?.dossier && (
               <div className="bg-gray-50 px-8 py-4 border-b border-gray-100">
-                <p className="text-sm text-gray-500">Votre voyage</p>
+                <p className="text-sm text-gray-500">{t('review.yourTrip')}</p>
                 <p className="font-medium text-gray-900">
                   {review.dossier.departure} → {review.dossier.arrival}
                 </p>
                 <p className="text-sm text-gray-600">
-                  {formatDate(review.dossier.departure_date)} • Réf. {review.dossier.reference}
+                  {formatDate(review.dossier.departure_date)} • {t('review.reference')} {review.dossier.reference}
                 </p>
               </div>
             )}
@@ -274,7 +279,7 @@ export function ReviewPage() {
               {/* Rating */}
               <div>
                 <label className="label mb-3">
-                  Comment évaluez-vous votre expérience ? *
+                  {t('review.ratingQuestion')} *
                 </label>
                 <div className="flex justify-center gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -299,46 +304,46 @@ export function ReviewPage() {
                   ))}
                 </div>
                 <p className="text-center text-sm text-gray-500 mt-2">
-                  {rating === 0 && 'Cliquez sur les étoiles pour noter'}
-                  {rating === 1 && 'Très insatisfait'}
-                  {rating === 2 && 'Insatisfait'}
-                  {rating === 3 && 'Correct'}
-                  {rating === 4 && 'Satisfait'}
-                  {rating === 5 && 'Très satisfait'}
+                  {rating === 0 && t('review.clickToRate')}
+                  {rating === 1 && t('review.veryUnsatisfied')}
+                  {rating === 2 && t('review.unsatisfied')}
+                  {rating === 3 && t('review.average')}
+                  {rating === 4 && t('review.satisfied')}
+                  {rating === 5 && t('review.verySatisfied')}
                 </p>
               </div>
 
               {/* Comment */}
               <div>
                 <label className="label">
-                  Partagez votre expérience (optionnel)
+                  {t('review.shareExperience')}
                 </label>
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   rows={4}
                   className="input"
-                  placeholder="Qu'avez-vous apprécié ? Que pourrions-nous améliorer ?"
+                  placeholder={t('review.commentPlaceholder')}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Votre commentaire pourra être publié sur notre site (de façon anonyme si vous le souhaitez)
+                  {t('review.commentNote')}
                 </p>
               </div>
 
               {/* Name */}
               <div>
                 <label className="label">
-                  Votre nom (pour le témoignage)
+                  {t('review.yourName')}
                 </label>
                 <input
                   type="text"
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
                   className="input"
-                  placeholder={review?.dossier?.client_name || 'Votre nom'}
+                  placeholder={review?.dossier?.client_name || t('review.yourNamePlaceholder')}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Laissez vide pour rester anonyme
+                  {t('review.anonymousNote')}
                 </p>
               </div>
 
@@ -356,12 +361,12 @@ export function ReviewPage() {
                 {submitting ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Envoi en cours...
+                    {t('review.sending')}
                   </>
                 ) : (
                   <>
                     <Send size={20} />
-                    Envoyer mon avis
+                    {t('review.sendReview')}
                   </>
                 )}
               </button>

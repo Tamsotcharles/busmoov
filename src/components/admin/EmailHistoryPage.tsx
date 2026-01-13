@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Mail, RefreshCw, CheckCircle, Clock, AlertCircle, Send, Eye, XCircle, ExternalLink } from 'lucide-react'
+import { Mail, RefreshCw, CheckCircle, Clock, AlertCircle, Send, Eye, XCircle, X } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
 interface EmailLog {
@@ -19,6 +19,7 @@ interface EmailLog {
   bounced_at: string | null
   complained_at: string | null
   created_at: string
+  html_content: string | null
   dossiers?: {
     reference: string
   } | null
@@ -40,9 +41,14 @@ const TEMPLATE_LABELS: { [key: string]: string } = {
   payment_reminder: 'Rappel acompte',
   rappel_solde: 'Rappel solde',
   confirmation_reservation: 'Confirmation résa',
+  confirmation_paiement: 'Confirmation paiement',
   info_request: 'Demande infos',
   driver_info: 'Infos chauffeur',
   review_request: 'Demande avis',
+  demande_chauffeur: 'Demande chauffeur',
+  demande_fournisseur: 'Confirmation fournisseur',
+  demande_prix_fournisseur: 'Demande prix',
+  demande_tarif_fournisseur: 'Demande tarif',
   custom: 'Email manuel',
 }
 
@@ -51,6 +57,7 @@ export function EmailHistoryPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<string>('all')
+  const [previewEmail, setPreviewEmail] = useState<EmailLog | null>(null)
 
   const loadEmails = async () => {
     setIsLoading(true)
@@ -250,6 +257,9 @@ export function EmailHistoryPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Statut
                 </th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -292,6 +302,19 @@ export function EmailHistoryPage() {
                         {statusConfig.label}
                       </span>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      {email.html_content ? (
+                        <button
+                          onClick={() => setPreviewEmail(email)}
+                          className="p-1.5 text-gray-400 hover:text-magenta hover:bg-magenta/10 rounded-lg transition-colors"
+                          title="Voir le contenu de l'email"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                      ) : (
+                        <span className="text-gray-300 text-xs">-</span>
+                      )}
+                    </td>
                   </tr>
                 )
               })}
@@ -299,6 +322,81 @@ export function EmailHistoryPage() {
           </table>
         )}
       </div>
+
+      {/* Modal de prévisualisation */}
+      {previewEmail && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Prévisualisation de l'email</h2>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  Envoyé le {formatDate(previewEmail.created_at)} à {previewEmail.recipient}
+                </p>
+              </div>
+              <button
+                onClick={() => setPreviewEmail(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Infos email */}
+            <div className="p-4 bg-gray-50 border-b grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-gray-500">De :</span>{' '}
+                <span className="font-medium text-gray-900">{previewEmail.sender}</span>
+              </div>
+              <div>
+                <span className="text-gray-500">À :</span>{' '}
+                <span className="font-medium text-gray-900">{previewEmail.recipient}</span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-gray-500">Sujet :</span>{' '}
+                <span className="font-medium text-gray-900">{previewEmail.subject}</span>
+              </div>
+              {previewEmail.dossiers?.reference && (
+                <div>
+                  <span className="text-gray-500">Dossier :</span>{' '}
+                  <span className="font-medium text-magenta">{previewEmail.dossiers.reference}</span>
+                </div>
+              )}
+              {previewEmail.template_key && (
+                <div>
+                  <span className="text-gray-500">Template :</span>{' '}
+                  <span className="font-medium text-gray-900">
+                    {TEMPLATE_LABELS[previewEmail.template_key] || previewEmail.template_key}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Contenu HTML */}
+            <div className="flex-1 overflow-auto p-4">
+              <div className="bg-white border border-gray-200 rounded-lg shadow-inner">
+                <iframe
+                  srcDoc={previewEmail.html_content || ''}
+                  className="w-full h-[500px] border-0"
+                  title="Prévisualisation de l'email"
+                  sandbox="allow-same-origin"
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t flex justify-end">
+              <button
+                onClick={() => setPreviewEmail(null)}
+                className="btn btn-secondary"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

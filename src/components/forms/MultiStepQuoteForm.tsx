@@ -1,29 +1,42 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ArrowRight, ArrowLeft, Check, Shield, MapPin, Calendar, Users, Info, User, Briefcase } from 'lucide-react'
-import { useCreateDemande, useCompanySettings } from '@/hooks/useSupabase'
+import { useCreateDemande } from '@/hooks/useSupabase'
+import { useCurrentCountry } from '@/hooks/useCountrySettings'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
 import { cn } from '@/lib/utils'
 
 type TripType = 'round-trip' | 'one-way' | 'circuit'
 
-const tripTypeLabels: Record<TripType, string> = {
-  'round-trip': 'Aller-retour',
-  'one-way': 'Aller simple',
-  'circuit': 'Circuit',
-}
-
-const steps = [
-  { id: 1, title: 'Trajets, dates, passagers', icon: MapPin },
-  { id: 2, title: 'Infos complémentaires', icon: Info },
-  { id: 3, title: 'Coordonnées et compte', icon: User },
-]
-
 export function MultiStepQuoteForm() {
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const createDemande = useCreateDemande()
-  const { data: companySettings } = useCompanySettings()
+  const { data: country } = useCurrentCountry()
   const formRef = useRef<HTMLDivElement>(null)
+
+  // Translated labels
+  const tripTypeLabels: Record<TripType, string> = {
+    'round-trip': t('quoteForm.roundTrip'),
+    'one-way': t('quoteForm.oneWay'),
+    'circuit': t('quoteForm.circuit'),
+  }
+
+  const steps = [
+    { id: 1, title: t('quoteForm.step1'), icon: MapPin },
+    { id: 2, title: t('quoteForm.step2'), icon: Info },
+    { id: 3, title: t('quoteForm.step3'), icon: User },
+  ]
+
+  const equipementLabels: Record<string, string> = {
+    'WiFi': t('quoteForm.wifi'),
+    'Prises USB': t('quoteForm.prises'),
+    'Toilettes': t('quoteForm.wc'),
+    'Climatisation': t('quoteForm.clim'),
+    'Écrans': t('quoteForm.ecrans'),
+    'Micro': t('quoteForm.micro'),
+  }
 
   const [currentStep, setCurrentStep] = useState(1)
   const [tripType, setTripType] = useState<TripType>('round-trip')
@@ -108,7 +121,7 @@ export function MultiStepQuoteForm() {
       setCurrentStep(prev => Math.min(prev + 1, 3))
       scrollToForm()
     } else {
-      setError('Veuillez remplir tous les champs obligatoires')
+      setError(t('validation.required'))
       setTimeout(() => setError(null), 3000)
     }
   }
@@ -123,7 +136,7 @@ export function MultiStepQuoteForm() {
     setError(null)
 
     if (!validateStep(3)) {
-      setError('Veuillez remplir tous les champs obligatoires')
+      setError(t('validation.required'))
       return
     }
 
@@ -148,6 +161,10 @@ export function MultiStepQuoteForm() {
         tripMode = isSameDay ? 'Aller-Retour 1 jour' : 'Aller-Retour sans mise à disposition'
       }
 
+      // Déterminer le country_code à partir de la langue
+      const langToCountry: Record<string, string> = { fr: 'FR', es: 'ES', de: 'DE', en: 'GB' }
+      const countryCode = langToCountry[i18n.language] || 'FR'
+
       const result = await createDemande.mutateAsync({
         client_name: formData.name,
         client_email: formData.email,
@@ -165,12 +182,13 @@ export function MultiStepQuoteForm() {
         voyage_type: formData.voyageType,
         luggage_type: formData.luggageType || null,
         special_requests: notes || null,
+        country_code: countryCode,
       } as any)
 
       // Redirection directe vers l'espace client
       navigate(`/mes-devis?ref=${result.reference}&email=${encodeURIComponent(result.client_email)}`)
     } catch (err) {
-      setError('Une erreur est survenue. Veuillez réessayer.')
+      setError(t('common.error'))
       console.error(err)
     }
   }
@@ -183,45 +201,45 @@ export function MultiStepQuoteForm() {
           <Check size={40} className="text-white" />
         </div>
         <h3 className="font-display text-2xl font-bold text-purple-dark mb-2">
-          Demande envoyée !
+          {t('quoteForm.success.title')}
         </h3>
         <p className="text-gray-500 mb-4">
-          Vous recevrez vos devis personnalisés sous 24h par email.
+          {t('quoteForm.success.subtitle')}
         </p>
 
         {/* Estimation prix indicatif */}
         <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 rounded-2xl p-6 mb-6">
-          <p className="text-sm text-orange-600 mb-2">Prix moyen estimé</p>
+          <p className="text-sm text-orange-600 mb-2">{t('quoteForm.success.estimatedPrice')}</p>
           <p className="text-4xl font-bold text-orange-500 mb-1">
-            À partir de 350 €
+            {t('quoteForm.success.from')} 350 €
           </p>
           <p className="text-xs text-orange-400">
-            (soit 6.1 € par personne)
+            (6.1 € {t('quoteForm.success.perPerson')})
           </p>
           <div className="flex items-center justify-center gap-2 mt-3">
             <span className="text-yellow-500">{'★★★★☆'}</span>
-            <span className="text-sm text-gray-500">Indice de confiance</span>
+            <span className="text-sm text-gray-500">{t('quoteForm.success.confidenceIndex')}</span>
           </div>
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
           <p className="text-sm text-blue-700 flex items-center justify-center gap-2">
             <Info size={16} />
-            Gagnez du temps et économisez !
+            {t('quoteForm.success.tip')}
           </p>
           <p className="text-xs text-blue-600 mt-1">
-            Profitez de notre réseau de +1000 transporteurs pour recevoir rapidement jusqu'à 6 devis
+            {t('quoteForm.success.tipDetails')}
           </p>
         </div>
 
         <p className="text-sm text-gray-400 mb-6">
-          Votre numéro de demande : <strong className="text-purple">{success.reference}</strong>
+          {t('quoteForm.success.reference')} : <strong className="text-purple">{success.reference}</strong>
         </p>
         <button
           onClick={() => navigate(`/mes-devis?ref=${success.reference}&email=${encodeURIComponent(success.email)}`)}
           className="btn btn-primary"
         >
-          Suivre ma demande
+          {t('quoteForm.success.trackRequest')}
           <ArrowRight size={18} />
         </button>
       </div>
@@ -279,7 +297,7 @@ export function MultiStepQuoteForm() {
         {currentStep === 1 && (
           <div className="space-y-4 animate-fadeIn">
             <h3 className="font-display text-lg font-bold text-purple-dark mb-4">
-              Votre voyage
+              {t('quoteForm.title')}
             </h3>
 
             {/* Trip Type Toggle */}
@@ -303,28 +321,28 @@ export function MultiStepQuoteForm() {
 
             {/* Departure */}
             <div>
-              <label className="label">Ville de départ *</label>
+              <label className="label">{t('quoteForm.departure')} *</label>
               <AddressAutocomplete
                 value={formData.departure}
                 onChange={(value) => setFormData(prev => ({ ...prev, departure: value }))}
-                placeholder="Ex: Paris, Lyon, Marseille..."
+                placeholder={t('quoteForm.departurePlaceholder')}
               />
             </div>
 
             {/* Arrival */}
             <div>
-              <label className="label">Ville d'arrivée *</label>
+              <label className="label">{t('quoteForm.arrival')} *</label>
               <AddressAutocomplete
                 value={formData.arrival}
                 onChange={(value) => setFormData(prev => ({ ...prev, arrival: value }))}
-                placeholder="Ex: Bordeaux, Nice, Strasbourg..."
+                placeholder={t('quoteForm.arrivalPlaceholder')}
               />
             </div>
 
             {/* Dates & Times */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="label">Date de départ *</label>
+                <label className="label">{t('quoteForm.departureDate')} *</label>
                 <input
                   type="date"
                   name="departureDate"
@@ -336,7 +354,7 @@ export function MultiStepQuoteForm() {
                 />
               </div>
               <div>
-                <label className="label">Heure de départ</label>
+                <label className="label">{t('quoteForm.departureTime')}</label>
                 <input
                   type="time"
                   name="departureTime"
@@ -350,7 +368,7 @@ export function MultiStepQuoteForm() {
             {tripType !== 'one-way' && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="label">Date de retour</label>
+                  <label className="label">{t('quoteForm.returnDate')}</label>
                   <input
                     type="date"
                     name="returnDate"
@@ -361,7 +379,7 @@ export function MultiStepQuoteForm() {
                   />
                 </div>
                 <div>
-                  <label className="label">Heure de retour</label>
+                  <label className="label">{t('quoteForm.returnTime')}</label>
                   <input
                     type="time"
                     name="returnTime"
@@ -377,31 +395,31 @@ export function MultiStepQuoteForm() {
             {tripType === 'circuit' && (
               <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
                 <label className="label text-purple-dark">
-                  Détail de la mise à disposition *
+                  {t('quoteForm.circuitDetails')} *
                 </label>
                 <textarea
                   name="circuitDetails"
                   value={formData.circuitDetails}
                   onChange={handleChange}
-                  placeholder="Décrivez le programme jour par jour, les étapes, les horaires approximatifs...&#10;&#10;Exemple:&#10;Jour 1: Départ Paris 8h → Visite Château de Chambord → Nuit à Tours&#10;Jour 2: Tours → Bordeaux avec arrêt à Cognac&#10;Jour 3: Bordeaux → Retour Paris"
+                  placeholder={t('quoteForm.circuitDetailsPlaceholder')}
                   className="input min-h-[140px] text-sm"
                   rows={6}
                 />
                 <p className="text-xs text-purple-600 mt-2">
-                  Plus vous détaillez votre programme, plus les devis seront précis.
+                  {t('quoteForm.circuitDetailsHelp')}
                 </p>
               </div>
             )}
 
             {/* Passengers */}
             <div>
-              <label className="label">Nombre de passagers *</label>
+              <label className="label">{t('quoteForm.passengers')} *</label>
               <input
                 type="number"
                 name="passengers"
                 value={formData.passengers}
                 onChange={handleChange}
-                placeholder="Ex: 45"
+                placeholder={t('quoteForm.passengersPlaceholder')}
                 min="1"
                 max="500"
                 className="input"
@@ -415,13 +433,13 @@ export function MultiStepQuoteForm() {
         {currentStep === 2 && (
           <div className="space-y-6 animate-fadeIn">
             <h3 className="font-display text-lg font-bold text-purple-dark mb-4">
-              Infos complémentaires
+              {t('quoteForm.step2')}
             </h3>
 
             {/* Need vehicle at destination */}
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="font-medium text-purple-dark mb-3">
-                Une fois arrivé à destination, avez-vous besoin d'utiliser le véhicule ?
+                {t('quoteForm.needVehicle')}
               </p>
               <div className="flex gap-4">
                 <button
@@ -434,7 +452,7 @@ export function MultiStepQuoteForm() {
                       : 'border-gray-200 text-gray-500'
                   )}
                 >
-                  Non
+                  {t('quoteForm.no')}
                 </button>
                 <button
                   type="button"
@@ -446,63 +464,63 @@ export function MultiStepQuoteForm() {
                       : 'border-gray-200 text-gray-500'
                   )}
                 >
-                  Oui
+                  {t('quoteForm.yes')}
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Le chauffeur vous déposera à destination et reviendra vous chercher pour vous ramener à votre adresse de départ. Le véhicule non immobilisé.
+                {t('quoteForm.needVehicleHelp')}
               </p>
             </div>
 
             {/* Étapes */}
             <div>
-              <label className="label">Étapes, arrêts, précisions sur votre voyage</label>
+              <label className="label">{t('quoteForm.etapes')}</label>
               <p className="text-xs text-gray-500 mb-2">
-                Si votre voyage est composé, indiquez les étapes que vous souhaitez, le temps d'arrêts, les pauses repas, les kilométrages... Plus les détails seront précis, plus les devis seront justes.
+                {t('quoteForm.etapesHelp')}
               </p>
               <textarea
                 name="etapes"
                 value={formData.etapes}
                 onChange={handleChange}
-                placeholder="Ne pas indiquer de coordonnées personnelles (email, téléphone, nom, prénom...)"
+                placeholder={t('quoteForm.etapesPlaceholder')}
                 className="input min-h-24"
               />
             </div>
 
             {/* Type de bagages */}
             <div>
-              <label className="label">Volume des bagages</label>
+              <label className="label">{t('quoteForm.luggage')}</label>
               <select
                 name="luggageType"
                 value={formData.luggageType}
                 onChange={handleChange}
                 className="input"
               >
-                <option value="">Sélectionner</option>
-                <option value="aucun">Aucun bagage</option>
-                <option value="leger">Léger (sacs à main, petits sacs)</option>
-                <option value="moyen">Moyen (valises cabine, sacs de sport)</option>
-                <option value="volumineux">Volumineux (grosses valises, équipements)</option>
+                <option value="">{t('quoteForm.select')}</option>
+                <option value="aucun">{t('quoteForm.luggageNone')}</option>
+                <option value="leger">{t('quoteForm.luggageLight')}</option>
+                <option value="moyen">{t('quoteForm.luggageMedium')}</option>
+                <option value="volumineux">{t('quoteForm.luggageHeavy')}</option>
               </select>
             </div>
 
             {/* Équipements souhaités */}
             <div>
-              <label className="label">Équipements souhaités</label>
+              <label className="label">{t('quoteForm.equipements')}</label>
               <div className="flex flex-wrap gap-2">
-                {['WiFi', 'Prises USB', 'Toilettes', 'Climatisation', 'Écrans', 'Micro'].map((item) => (
+                {Object.entries(equipementLabels).map(([key, label]) => (
                   <button
-                    key={item}
+                    key={key}
                     type="button"
-                    onClick={() => handleCheckboxArray('equipements', item)}
+                    onClick={() => handleCheckboxArray('equipements', key)}
                     className={cn(
                       'px-4 py-2 rounded-lg border text-sm transition-all',
-                      formData.equipements.includes(item)
+                      formData.equipements.includes(key)
                         ? 'border-purple bg-purple/5 text-purple'
                         : 'border-gray-200 text-gray-600 hover:border-gray-300'
                     )}
                   >
-                    {item}
+                    {label}
                   </button>
                 ))}
               </div>
@@ -514,12 +532,12 @@ export function MultiStepQuoteForm() {
         {currentStep === 3 && (
           <div className="space-y-4 animate-fadeIn">
             <h3 className="font-display text-lg font-bold text-purple-dark mb-4">
-              Vos coordonnées
+              {t('quoteForm.step3')}
             </h3>
 
             {/* Type de voyage */}
             <div>
-              <label className="label">Type de voyage *</label>
+              <label className="label">{t('quoteForm.voyageType')} *</label>
               <select
                 name="voyageType"
                 value={formData.voyageType}
@@ -527,63 +545,63 @@ export function MultiStepQuoteForm() {
                 className="input"
                 required
               >
-                <option value="">Sélectionner</option>
-                <option value="scolaire">Sortie scolaire</option>
-                <option value="entreprise">Séminaire entreprise</option>
-                <option value="mariage">Mariage / Événement</option>
-                <option value="sportif">Déplacement sportif</option>
-                <option value="touristique">Voyage touristique</option>
-                <option value="autre">Autre</option>
+                <option value="">{t('quoteForm.select')}</option>
+                <option value="scolaire">{t('quoteForm.voyageTypeScolaire')}</option>
+                <option value="entreprise">{t('quoteForm.voyageTypeEntreprise')}</option>
+                <option value="mariage">{t('quoteForm.voyageTypeMariage')}</option>
+                <option value="sportif">{t('quoteForm.voyageTypeSportif')}</option>
+                <option value="touristique">{t('quoteForm.voyageTypeTouristique')}</option>
+                <option value="autre">{t('quoteForm.voyageTypeAutre')}</option>
               </select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="label">Votre nom *</label>
+                <label className="label">{t('quoteForm.name')} *</label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="Nom complet"
+                  placeholder={t('quoteForm.namePlaceholder')}
                   className="input"
                   required
                 />
               </div>
               <div>
-                <label className="label">Société (optionnel)</label>
+                <label className="label">{t('quoteForm.company')}</label>
                 <input
                   type="text"
                   name="company"
                   value={formData.company}
                   onChange={handleChange}
-                  placeholder="Nom de votre société"
+                  placeholder={t('quoteForm.companyPlaceholder')}
                   className="input"
                 />
               </div>
             </div>
 
             <div>
-              <label className="label">Email *</label>
+              <label className="label">{t('quoteForm.email')} *</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="votre@email.com"
+                placeholder={t('quoteForm.emailPlaceholder')}
                 className="input"
                 required
               />
             </div>
 
             <div>
-              <label className="label">Téléphone *</label>
+              <label className="label">{t('quoteForm.phone')} *</label>
               <input
                 type="tel"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="06 XX XX XX XX"
+                placeholder={t('quoteForm.phonePlaceholder')}
                 className="input"
                 required
               />
@@ -594,13 +612,13 @@ export function MultiStepQuoteForm() {
                 <Info size={20} className="text-blue-500 mt-0.5" />
                 <div>
                   <p className="text-sm text-blue-700 font-medium">
-                    Nos conseillers sont disponibles par téléphone
+                    {t('quoteForm.advisorsAvailable')}
                   </p>
                   <p className="text-sm text-blue-600 mt-1">
-                    Pour vous aider à planifier votre voyage et à finaliser votre réservation.
+                    {t('quoteForm.advisorsHelp')}
                   </p>
                   <p className="text-sm font-semibold text-blue-700 mt-2">
-                    {companySettings?.phone || '01 76 31 12 83'}
+                    {country?.phoneDisplay || '01 76 31 12 83'}
                   </p>
                 </div>
               </div>
@@ -623,7 +641,7 @@ export function MultiStepQuoteForm() {
               className="btn btn-secondary flex-1"
             >
               <ArrowLeft size={18} />
-              Retour
+              {t('quoteForm.previous')}
             </button>
           )}
 
@@ -633,7 +651,7 @@ export function MultiStepQuoteForm() {
               onClick={handleNext}
               className="btn btn-primary flex-1"
             >
-              Étape suivante
+              {t('quoteForm.next')}
               <ArrowRight size={18} />
             </button>
           ) : (
@@ -643,10 +661,10 @@ export function MultiStepQuoteForm() {
               className="btn btn-primary flex-1"
             >
               {createDemande.isPending ? (
-                'Envoi en cours...'
+                t('quoteForm.submitting')
               ) : (
                 <>
-                  Recevoir mes devis gratuits
+                  {t('quoteForm.submit')}
                   <ArrowRight size={18} />
                 </>
               )}
@@ -656,7 +674,7 @@ export function MultiStepQuoteForm() {
 
         <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-4">
           <Shield size={16} className="text-emerald-500" />
-          Gratuit et sans engagement
+          {t('quoteForm.freeNoCommitment')}
         </div>
       </form>
     </div>

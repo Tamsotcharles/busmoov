@@ -2,8 +2,14 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Mail, FileText, ArrowRight, Bus, Menu, X, Phone } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useTranslation } from 'react-i18next'
+import { useLocalizedPath } from '@/components/i18n'
+import { useCurrentCountry } from '@/hooks/useCountrySettings'
 
 export function EspaceClientPage() {
+  const { t } = useTranslation()
+  const localizedPath = useLocalizedPath()
+  const { data: country } = useCurrentCountry()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [reference, setReference] = useState('')
@@ -23,7 +29,7 @@ export function EspaceClientPage() {
       })
 
       if (fnError || !data?.success) {
-        setError(data?.error || 'Aucun dossier trouvé avec ces informations. Vérifiez votre email et référence.')
+        setError(data?.error || t('espaceClient.errorNotFound'))
         return
       }
 
@@ -37,9 +43,9 @@ export function EspaceClientPage() {
       }))
 
       // Rediriger directement vers la page des devis
-      navigate(`/mes-devis?ref=${data.dossier.reference}&email=${encodeURIComponent(data.dossier.email)}`)
+      navigate(localizedPath(`/mes-devis?ref=${data.dossier.reference}&email=${encodeURIComponent(data.dossier.email)}`))
     } catch (err: any) {
-      setError('Une erreur est survenue. Veuillez réessayer.')
+      setError(t('espaceClient.errorGeneric'))
     } finally {
       setLoading(false)
     }
@@ -50,19 +56,19 @@ export function EspaceClientPage() {
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to={localizedPath('/')} className="flex items-center gap-3">
             <img src="/logo-icon.svg" alt="Busmoov" className="w-10 h-10" />
             <span className="font-display text-xl font-bold gradient-text">Busmoov</span>
           </Link>
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-6">
-            <a href="tel:+33176311283" className="flex items-center gap-2 text-purple font-semibold">
+            <a href={`tel:${country?.phone || '+33176311283'}`} className="flex items-center gap-2 text-purple font-semibold">
               <Phone size={18} />
-              01 76 31 12 83
+              {country?.phoneDisplay || '01 76 31 12 83'}
             </a>
-            <Link to="/" className="btn btn-primary btn-sm">
-              Demander un devis
+            <Link to={localizedPath('/')} className="btn btn-primary btn-sm">
+              {t('espaceClient.requestQuote')}
             </Link>
           </div>
 
@@ -78,15 +84,15 @@ export function EspaceClientPage() {
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-gray-100 py-4 px-4 space-y-4">
-            <Link to="/" onClick={() => setMobileMenuOpen(false)} className="block text-gray-600 hover:text-magenta font-medium">
-              Accueil
+            <Link to={localizedPath('/')} onClick={() => setMobileMenuOpen(false)} className="block text-gray-600 hover:text-magenta font-medium">
+              {t('espaceClient.home')}
             </Link>
-            <a href="tel:+33176311283" className="flex items-center gap-2 text-purple font-semibold">
+            <a href={`tel:${country?.phone || '+33176311283'}`} className="flex items-center gap-2 text-purple font-semibold">
               <Phone size={18} />
-              01 76 31 12 83
+              {country?.phoneDisplay || '01 76 31 12 83'}
             </a>
-            <Link to="/" onClick={() => setMobileMenuOpen(false)} className="block btn btn-primary w-full text-center">
-              Demander un devis
+            <Link to={localizedPath('/')} onClick={() => setMobileMenuOpen(false)} className="block btn btn-primary w-full text-center">
+              {t('espaceClient.requestQuote')}
             </Link>
           </div>
         )}
@@ -101,10 +107,10 @@ export function EspaceClientPage() {
               <Bus size={40} className="text-white" />
             </div>
             <h1 className="font-display text-3xl font-bold text-purple-dark mb-2">
-              Espace Client
+              {t('espaceClient.title')}
             </h1>
             <p className="text-gray-600">
-              Accédez à votre dossier pour suivre vos devis et gérer votre voyage
+              {t('espaceClient.subtitle')}
             </p>
           </div>
 
@@ -118,38 +124,38 @@ export function EspaceClientPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="label">Adresse email</label>
+                <label className="label">{t('espaceClient.emailLabel')}</label>
                 <div className="relative">
                   <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="votre@email.com"
+                    placeholder={t('espaceClient.emailPlaceholder')}
                     className="input pl-12"
                     required
                   />
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  L'email utilisé lors de votre demande de devis
+                  {t('espaceClient.emailHelp')}
                 </p>
               </div>
 
               <div>
-                <label className="label">Référence dossier</label>
+                <label className="label">{t('espaceClient.referenceLabel')}</label>
                 <div className="relative">
                   <FileText size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
                     value={reference}
                     onChange={(e) => setReference(e.target.value.toUpperCase())}
-                    placeholder="DOS-XXXXXX"
+                    placeholder={t('espaceClient.referencePlaceholder')}
                     className="input pl-12 uppercase"
                     required
                   />
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  Référence reçue par email (ex: DOS-ABC123)
+                  {t('espaceClient.referenceHelp')}
                 </p>
               </div>
 
@@ -159,10 +165,10 @@ export function EspaceClientPage() {
                 className="btn btn-primary w-full group"
               >
                 {loading ? (
-                  'Connexion...'
+                  t('espaceClient.connecting')
                 ) : (
                   <>
-                    Accéder à mon dossier
+                    {t('espaceClient.accessDossier')}
                     <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
@@ -171,13 +177,13 @@ export function EspaceClientPage() {
 
             <div className="mt-6 pt-6 border-t border-gray-100">
               <p className="text-center text-sm text-gray-500">
-                Vous n'avez pas encore de dossier ?
+                {t('espaceClient.noDossier')}
               </p>
               <Link
-                to="/"
+                to={localizedPath('/')}
                 className="block text-center text-magenta font-medium mt-2 hover:underline"
               >
-                Demander un devis gratuit
+                {t('espaceClient.requestFreeQuote')}
               </Link>
             </div>
           </div>
@@ -185,7 +191,7 @@ export function EspaceClientPage() {
           {/* Help section */}
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-500">
-              Besoin d'aide ? Contactez-nous à{' '}
+              {t('espaceClient.needHelp')}{' '}
               <a href="mailto:infos@busmoov.com" className="text-magenta hover:underline">
                 infos@busmoov.com
               </a>

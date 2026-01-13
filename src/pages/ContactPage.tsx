@@ -3,9 +3,15 @@ import { ArrowLeft, Phone, Mail, MapPin, Clock, MessageCircle, Send, CheckCircle
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
+import { useLocalizedPath } from '@/components/i18n'
+import { useCurrentCountry } from '@/hooks/useCountrySettings'
 
 export function ContactPage() {
+  const { t } = useTranslation()
+  const localizedPath = useLocalizedPath()
+  const { data: country } = useCurrentCountry()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -41,8 +47,8 @@ export function ContactPage() {
       const { error: sendError } = await supabase.functions.invoke('send-email', {
         body: {
           type: 'custom',
-          to: 'infos@busmoov.com',
-          subject: `[Contact Busmoov] ${formData.subject} - ${formData.name}`,
+          to: country?.email || 'infos@busmoov.com',
+          subject: `[Contact ${country?.companyName || 'Busmoov'}] ${formData.subject} - ${formData.name}`,
           html_content: htmlContent,
         },
       })
@@ -52,38 +58,41 @@ export function ContactPage() {
       setSent(true)
     } catch (err) {
       console.error('Error sending contact form:', err)
-      setError('Une erreur est survenue lors de l\'envoi. Veuillez réessayer ou nous contacter par téléphone.')
+      setError(t('contact.sendError'))
     } finally {
       setSending(false)
     }
   }
 
+  const fullAddress = `${country?.address || '41 Rue Barrault'}, ${country?.city || '75013 Paris'}`
+  const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(fullAddress)}`
+
   const contactInfo = [
     {
       icon: Phone,
-      label: 'Téléphone',
-      value: '01 76 31 12 83',
-      href: 'tel:+33176311283',
+      label: t('contact.phone'),
+      value: country?.phoneDisplay || '01 76 31 12 83',
+      href: `tel:${country?.phone || '+33176311283'}`,
       color: 'bg-emerald-500',
     },
     {
       icon: Mail,
-      label: 'Email',
-      value: 'infos@busmoov.com',
-      href: 'mailto:infos@busmoov.com',
+      label: t('contact.email'),
+      value: country?.email || 'infos@busmoov.com',
+      href: `mailto:${country?.email || 'infos@busmoov.com'}`,
       color: 'bg-purple',
     },
     {
       icon: MapPin,
-      label: 'Adresse',
-      value: '41 Rue Barrault, 75013 Paris',
-      href: 'https://maps.google.com/?q=41+Rue+Barrault+75013+Paris',
+      label: t('contact.address'),
+      value: fullAddress,
+      href: mapsUrl,
       color: 'bg-magenta',
     },
     {
       icon: Clock,
-      label: 'Horaires',
-      value: 'Lun - Sam : 9h00 - 19h00',
+      label: t('contact.hours'),
+      value: t('contact.hoursValue'),
       href: null,
       color: 'bg-orange-500',
     },
@@ -98,20 +107,19 @@ export function ContactPage() {
         <section className="bg-gradient-to-br from-purple to-magenta text-white py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Link
-              to="/"
+              to={localizedPath('/')}
               className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-8 transition-colors"
             >
               <ArrowLeft size={18} />
-              Retour à l'accueil
+              {t('contact.backHome')}
             </Link>
 
             <div className="max-w-3xl">
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                Contactez-nous
+                {t('contact.title')}
               </h1>
               <p className="text-xl text-white/90">
-                Une question ? Un projet de voyage ? Notre équipe est à votre écoute
-                pour vous accompagner dans votre réservation d'autocar.
+                {t('contact.subtitle')}
               </p>
             </div>
           </div>
@@ -155,17 +163,17 @@ export function ContactPage() {
               {/* Company Info */}
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  Busmoov - Groupe Centrale Autocar
+                  {country?.companyName || 'Busmoov'} - Groupe Centrale Autocar
                 </h2>
 
                 <div className="bg-white rounded-2xl shadow-sm p-8 mb-8">
-                  <h3 className="font-semibold text-gray-900 mb-4">Informations légales</h3>
+                  <h3 className="font-semibold text-gray-900 mb-4">{t('contact.legalInfo')}</h3>
                   <div className="space-y-3 text-gray-600">
-                    <p><span className="text-gray-400">Raison sociale :</span> <strong>BUSMOOV SAS</strong></p>
-                    <p><span className="text-gray-400">Marque du groupe :</span> <strong>Centrale Autocar</strong></p>
-                    <p><span className="text-gray-400">Siège social :</span> 41 Rue Barrault, 75013 Paris</p>
-                    <p><span className="text-gray-400">SIRET :</span> 853 867 703 00029</p>
-                    <p><span className="text-gray-400">TVA Intracommunautaire :</span> FR58853867703</p>
+                    <p><span className="text-gray-400">{t('contact.companyName')} :</span> <strong>{country?.companyName || 'BUSMOOV SAS'}</strong></p>
+                    <p><span className="text-gray-400">{t('contact.groupBrand')} :</span> <strong>Centrale Autocar</strong></p>
+                    <p><span className="text-gray-400">{t('contact.headquarters')} :</span> {fullAddress}</p>
+                    <p><span className="text-gray-400">{t('contact.siret')} :</span> {country?.siret || '853 867 703 00029'}</p>
+                    <p><span className="text-gray-400">{t('contact.vatNumber')} :</span> {country?.tvaIntra || 'FR58853867703'}</p>
                   </div>
                 </div>
 
@@ -175,17 +183,17 @@ export function ContactPage() {
                       <MessageCircle size={24} className="text-white" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-2">Besoin d'une réponse rapide ?</h3>
+                      <h3 className="font-semibold text-gray-900 mb-2">{t('contact.needQuickAnswer')}</h3>
                       <p className="text-gray-600 text-sm mb-4">
-                        Appelez-nous directement au <strong>01 76 31 12 83</strong>.
-                        Notre équipe est disponible du lundi au samedi de 9h à 19h.
+                        {t('contact.callUsAt')} <strong>{country?.phoneDisplay || '01 76 31 12 83'}</strong>.
+                        {t('contact.teamAvailable')}
                       </p>
                       <a
-                        href="tel:+33176311283"
+                        href={`tel:${country?.phone || '+33176311283'}`}
                         className="btn btn-primary btn-sm"
                       >
                         <Phone size={16} />
-                        Appeler maintenant
+                        {t('contact.callNow')}
                       </a>
                     </div>
                   </div>
@@ -200,10 +208,10 @@ export function ContactPage() {
                       <CheckCircle size={40} className="text-emerald-500" />
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                      Message envoyé !
+                      {t('contact.messageSent')}
                     </h2>
                     <p className="text-gray-600 mb-6">
-                      Merci pour votre message. Notre équipe vous répondra dans les plus brefs délais.
+                      {t('contact.thankYou')}
                     </p>
                     <button
                       onClick={() => {
@@ -212,22 +220,22 @@ export function ContactPage() {
                       }}
                       className="btn btn-secondary"
                     >
-                      Envoyer un autre message
+                      {t('contact.sendAnother')}
                     </button>
                   </div>
                 ) : (
                   <>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Envoyez-nous un message
+                  {t('contact.sendMessage')}
                 </h2>
                 <p className="text-gray-600 mb-6">
-                  Nous vous répondrons dans les plus brefs délais.
+                  {t('contact.willReply')}
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="label">Nom complet *</label>
+                      <label className="label">{t('contact.fullName')} *</label>
                       <input
                         type="text"
                         name="name"
@@ -235,11 +243,11 @@ export function ContactPage() {
                         onChange={handleChange}
                         required
                         className="input"
-                        placeholder="Jean Dupont"
+                        placeholder={t('quoteForm.namePlaceholder')}
                       />
                     </div>
                     <div>
-                      <label className="label">Email *</label>
+                      <label className="label">{t('contact.email')} *</label>
                       <input
                         type="email"
                         name="email"
@@ -247,25 +255,25 @@ export function ContactPage() {
                         onChange={handleChange}
                         required
                         className="input"
-                        placeholder="jean@exemple.fr"
+                        placeholder={t('quoteForm.emailPlaceholder')}
                       />
                     </div>
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="label">Téléphone</label>
+                      <label className="label">{t('contact.phoneOptional')}</label>
                       <input
                         type="tel"
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
                         className="input"
-                        placeholder="06 12 34 56 78"
+                        placeholder={t('quoteForm.phonePlaceholder')}
                       />
                     </div>
                     <div>
-                      <label className="label">Sujet *</label>
+                      <label className="label">{t('contact.subject')} *</label>
                       <select
                         name="subject"
                         value={formData.subject}
@@ -273,18 +281,18 @@ export function ContactPage() {
                         required
                         className="input"
                       >
-                        <option value="">Sélectionnez</option>
-                        <option value="Demande de devis">Demande de devis</option>
-                        <option value="Question sur une réservation">Question sur une réservation</option>
-                        <option value="Réclamation">Réclamation</option>
-                        <option value="Partenariat">Partenariat</option>
-                        <option value="Autre">Autre</option>
+                        <option value="">{t('contact.selectSubject')}</option>
+                        <option value="Demande de devis">{t('contact.subjectQuote')}</option>
+                        <option value="Question sur une réservation">{t('contact.subjectReservation')}</option>
+                        <option value="Réclamation">{t('contact.subjectComplaint')}</option>
+                        <option value="Partenariat">{t('contact.subjectPartnership')}</option>
+                        <option value="Autre">{t('contact.subjectOther')}</option>
                       </select>
                     </div>
                   </div>
 
                   <div>
-                    <label className="label">Message *</label>
+                    <label className="label">{t('contact.message')} *</label>
                     <textarea
                       name="message"
                       value={formData.message}
@@ -292,7 +300,7 @@ export function ContactPage() {
                       required
                       rows={5}
                       className="input"
-                      placeholder="Décrivez votre demande..."
+                      placeholder={t('contact.messagePlaceholder')}
                     />
                   </div>
 
@@ -310,12 +318,12 @@ export function ContactPage() {
                     {sending ? (
                       <>
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Envoi...
+                        {t('contact.sending')}
                       </>
                     ) : (
                       <>
                         <Send size={20} />
-                        Envoyer le message
+                        {t('contact.send')}
                       </>
                     )}
                   </button>
@@ -333,14 +341,14 @@ export function ContactPage() {
             <div className="bg-gray-200 rounded-2xl h-80 flex items-center justify-center">
               <div className="text-center text-gray-500">
                 <MapPin size={48} className="mx-auto mb-4 opacity-50" />
-                <p className="font-medium">41 Rue Barrault, 75013 Paris</p>
+                <p className="font-medium">{fullAddress}</p>
                 <a
-                  href="https://maps.google.com/?q=41+Rue+Barrault+75013+Paris"
+                  href={mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-purple hover:underline text-sm mt-2 inline-block"
                 >
-                  Voir sur Google Maps
+                  {t('contact.viewOnMaps')}
                 </a>
               </div>
             </div>

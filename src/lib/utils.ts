@@ -1,11 +1,19 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { format, parseISO } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { fr, es, de, enGB } from 'date-fns/locale'
 import { supabase } from './supabase'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+// Mapping langue -> locale date-fns
+const dateLocales: Record<string, typeof fr> = {
+  fr: fr,
+  es: es,
+  de: de,
+  en: enGB,
 }
 
 export function formatDate(date: string | Date | null | undefined): string {
@@ -14,10 +22,30 @@ export function formatDate(date: string | Date | null | undefined): string {
   return format(d, 'd MMM yyyy', { locale: fr })
 }
 
+// Version localisée pour les PDFs
+export function formatDateLocalized(date: string | Date | null | undefined, lang: string = 'fr'): string {
+  if (!date) return '-'
+  const d = typeof date === 'string' ? parseISO(date) : date
+  const locale = dateLocales[lang] || fr
+  // Format adapté à la langue
+  if (lang === 'de') {
+    return format(d, 'd. MMMM yyyy', { locale })
+  }
+  return format(d, 'd MMMM yyyy', { locale })
+}
+
 export function formatDateTime(date: string | Date | null | undefined): string {
   if (!date) return '-'
   const d = typeof date === 'string' ? parseISO(date) : date
   return format(d, 'd MMM yyyy HH:mm', { locale: fr })
+}
+
+// Version localisée pour les PDFs
+export function formatDateTimeLocalized(date: string | Date | null | undefined, lang: string = 'fr'): string {
+  if (!date) return '-'
+  const d = typeof date === 'string' ? parseISO(date) : date
+  const locale = dateLocales[lang] || fr
+  return format(d, 'd MMM yyyy HH:mm', { locale })
 }
 
 export function formatTime(date: string | Date | null | undefined): string {
@@ -206,15 +234,75 @@ export function calculateAmplitudeFromTimes(
   }
 }
 
-export function generateClientAccessUrl(reference: string, email: string): string {
-  const baseUrl = window.location.origin
-  return `${baseUrl}/mes-devis?ref=${encodeURIComponent(reference)}&email=${encodeURIComponent(email)}`
+/**
+ * Retourne le préfixe de langue à utiliser dans les URLs en fonction du code pays
+ * FR -> fr, ES -> es, DE -> de, GB -> en
+ */
+export function getLanguageFromCountry(countryCode: string | null | undefined): string {
+  switch (countryCode?.toUpperCase()) {
+    case 'ES': return 'es'
+    case 'DE': return 'de'
+    case 'GB': return 'en'
+    case 'FR':
+    default: return 'fr'
+  }
+}
+
+/**
+ * Génère une URL localisée avec le préfixe de langue approprié
+ * @param path Le chemin sans le préfixe de langue (ex: /mes-devis)
+ * @param countryCode Le code pays (FR, ES, DE, GB)
+ * @param queryParams Les paramètres de query string optionnels
+ */
+export function generateLocalizedUrl(
+  path: string,
+  countryCode: string | null | undefined,
+  queryParams?: Record<string, string>
+): string {
+  const baseUrl = getSiteBaseUrl()
+  const lang = getLanguageFromCountry(countryCode)
+
+  let url = `${baseUrl}/${lang}${path.startsWith('/') ? path : '/' + path}`
+
+  if (queryParams && Object.keys(queryParams).length > 0) {
+    const params = new URLSearchParams()
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (value) params.append(key, value)
+    }
+    url += `?${params.toString()}`
+  }
+
+  return url
+}
+
+/**
+ * Génère l'URL d'accès à l'espace client (mes-devis)
+ */
+export function generateClientAccessUrl(reference: string, email: string, countryCode?: string | null): string {
+  return generateLocalizedUrl('/mes-devis', countryCode, { ref: reference, email: email })
+}
+
+/**
+ * Génère l'URL de la page de paiement
+ */
+export function generatePaymentUrl(reference: string, email: string, countryCode?: string | null, type?: 'solde'): string {
+  const params: Record<string, string> = { ref: reference, email: email }
+  if (type) params.type = type
+  return generateLocalizedUrl('/paiement', countryCode, params)
+}
+
+/**
+ * Génère l'URL de la page infos voyage
+ */
+export function generateInfosVoyageUrl(reference: string, email: string, countryCode?: string | null): string {
+  return generateLocalizedUrl('/infos-voyage', countryCode, { ref: reference, email: email })
 }
 
 // Génère un lien mailto pour la validation de commande fournisseur
 export interface ValidationFournisseurParams {
   transporteurEmail: string
   transporteurName: string
+  transporteurCountryCode?: string | null // Pour déterminer la langue de l'email
   dossierReference: string
   departureCity?: string | null
   arrivalCity?: string | null
@@ -423,14 +511,146 @@ L'équipe Busmoov`
   return { to: transporteurEmail, subject, body }
 }
 
+// Traductions pour les templates d'email fournisseurs
+export const TEMPLATE_TRANSLATIONS: Record<string, Record<string, string>> = {
+  fr: {
+    // Demande de disponibilité
+    availabilityRequest: 'Demande de disponibilité',
+    hello: 'Bonjour',
+    availabilityRequestIntro: 'Pouvez-vous me faire une proposition pour la prestation suivante :',
+    reference: 'Référence',
+    route: 'Trajet',
+    departureDate: 'Date départ',
+    returnDate: 'Date retour',
+    passengers: 'Passagers',
+    serviceType: 'Type de service',
+    pleaseSendQuote: 'Merci de me faire parvenir votre meilleur tarif.',
+    submitProposal: 'Soumettre une proposition',
+    bestRegards: 'Cordialement',
+    theTeam: "L'équipe Busmoov",
+    at: 'à',
+    // Confirmation de commande (validation fournisseur)
+    orderConfirmation: 'Confirmation de commande',
+    orderConfirmationIntro: 'Suite à votre proposition, nous vous confirmons la réservation suivante :',
+    duration: 'Durée',
+    days: 'jour(s)',
+    madDetail: 'Détail mise à disposition',
+    numberOfVehicles: 'Nombre de véhicules',
+    numberOfDrivers: 'Nombre de chauffeurs',
+    agreedAmount: 'Montant convenu',
+    validateOrder: 'Valider la commande',
+    validationLinkIntro: 'Pour valider cette commande, cliquez sur le lien suivant :',
+    validationLinkNote: 'Ce lien vous permet de confirmer la commande en un clic, sans avoir à nous renvoyer de document.',
+    returnBpaRequest: 'Merci de nous retourner le Bon Pour Accord (BPA) signé afin de finaliser cette réservation.',
+  },
+  de: {
+    // Verfügbarkeitsanfrage
+    availabilityRequest: 'Verfügbarkeitsanfrage',
+    hello: 'Guten Tag',
+    availabilityRequestIntro: 'Können Sie uns ein Angebot für folgende Leistung unterbreiten:',
+    reference: 'Referenz',
+    route: 'Strecke',
+    departureDate: 'Abfahrtsdatum',
+    returnDate: 'Rückfahrtsdatum',
+    passengers: 'Passagiere',
+    serviceType: 'Serviceart',
+    pleaseSendQuote: 'Bitte senden Sie uns Ihr bestes Angebot.',
+    submitProposal: 'Angebot abgeben',
+    bestRegards: 'Mit freundlichen Grüßen',
+    theTeam: 'Das Busmoov Team',
+    at: 'um',
+    // Bestellbestätigung (Lieferantenvalidierung)
+    orderConfirmation: 'Bestellbestätigung',
+    orderConfirmationIntro: 'Nach Ihrem Angebot bestätigen wir Ihnen folgende Buchung:',
+    duration: 'Dauer',
+    days: 'Tag(e)',
+    madDetail: 'Dispositionsdetails',
+    numberOfVehicles: 'Anzahl Fahrzeuge',
+    numberOfDrivers: 'Anzahl Fahrer',
+    agreedAmount: 'Vereinbarter Betrag',
+    validateOrder: 'Bestellung bestätigen',
+    validationLinkIntro: 'Um diese Bestellung zu bestätigen, klicken Sie auf den folgenden Link:',
+    validationLinkNote: 'Mit diesem Link können Sie die Bestellung mit einem Klick bestätigen, ohne uns Dokumente zurücksenden zu müssen.',
+    returnBpaRequest: 'Bitte senden Sie uns die unterschriebene Auftragsbestätigung zurück, um diese Reservierung abzuschließen.',
+  },
+  es: {
+    // Solicitud de disponibilidad
+    availabilityRequest: 'Solicitud de disponibilidad',
+    hello: 'Buenos días',
+    availabilityRequestIntro: '¿Podría hacernos una propuesta para el siguiente servicio?',
+    reference: 'Referencia',
+    route: 'Trayecto',
+    departureDate: 'Fecha de salida',
+    returnDate: 'Fecha de regreso',
+    passengers: 'Pasajeros',
+    serviceType: 'Tipo de servicio',
+    pleaseSendQuote: 'Por favor, envíenos su mejor tarifa.',
+    submitProposal: 'Enviar propuesta',
+    bestRegards: 'Atentamente',
+    theTeam: 'El equipo de Busmoov',
+    at: 'a las',
+    // Confirmación de pedido (validación proveedor)
+    orderConfirmation: 'Confirmación de pedido',
+    orderConfirmationIntro: 'Tras su propuesta, le confirmamos la siguiente reserva:',
+    duration: 'Duración',
+    days: 'día(s)',
+    madDetail: 'Detalle de disposición',
+    numberOfVehicles: 'Número de vehículos',
+    numberOfDrivers: 'Número de conductores',
+    agreedAmount: 'Importe acordado',
+    validateOrder: 'Validar pedido',
+    validationLinkIntro: 'Para validar este pedido, haga clic en el siguiente enlace:',
+    validationLinkNote: 'Este enlace le permite confirmar el pedido con un clic, sin necesidad de enviarnos documentos.',
+    returnBpaRequest: 'Por favor, envíenos el Acuerdo de Reserva firmado para finalizar esta reserva.',
+  },
+  en: {
+    // Availability request
+    availabilityRequest: 'Availability Request',
+    hello: 'Hello',
+    availabilityRequestIntro: 'Could you please provide a quote for the following service:',
+    reference: 'Reference',
+    route: 'Route',
+    departureDate: 'Departure date',
+    returnDate: 'Return date',
+    passengers: 'Passengers',
+    serviceType: 'Service type',
+    pleaseSendQuote: 'Please send us your best quote.',
+    submitProposal: 'Submit proposal',
+    bestRegards: 'Best regards',
+    theTeam: 'The Busmoov Team',
+    at: 'at',
+    // Order confirmation (supplier validation)
+    orderConfirmation: 'Order Confirmation',
+    orderConfirmationIntro: 'Following your proposal, we confirm the following booking:',
+    duration: 'Duration',
+    days: 'day(s)',
+    madDetail: 'Disposition details',
+    numberOfVehicles: 'Number of vehicles',
+    numberOfDrivers: 'Number of drivers',
+    agreedAmount: 'Agreed amount',
+    validateOrder: 'Validate order',
+    validationLinkIntro: 'To validate this order, click on the following link:',
+    validationLinkNote: 'This link allows you to confirm the order in one click, without having to send us any documents.',
+    returnBpaRequest: 'Please return the signed Purchase Order Agreement to finalize this reservation.',
+  },
+}
+
 // Fonction pour substituer les variables dans un template
 function substituteTemplateVariables(
   template: string,
-  variables: Record<string, string | number | null | undefined>
+  variables: Record<string, string | number | null | undefined>,
+  language: string = 'fr'
 ): string {
-  let result = template
+  // Normaliser les fins de ligne (Windows CRLF -> LF)
+  let result = template.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
 
-  // Gestion des conditionnels {{#if variable}}...{{else}}...{{/if}} (avec else optionnel)
+  // 1. Gérer les traductions {{t:key}} AVANT les conditionnels
+  const translations = TEMPLATE_TRANSLATIONS[language] || TEMPLATE_TRANSLATIONS['fr']
+  result = result.replace(/{{t:(\w+)}}/g, (_match, key) => {
+    return translations[key] || key
+  })
+
+  // 2. Gestion des conditionnels {{#if variable}}...{{else}}...{{/if}} (avec else optionnel)
   // On doit traiter les conditionnels AVANT les variables simples pour éviter les conflits
   // Utiliser une boucle pour gérer les conditionnels imbriqués (du plus interne au plus externe)
   let previousResult = ''
@@ -466,7 +686,7 @@ function substituteTemplateVariables(
     )
   }
 
-  // Substitution des variables simples {{variable}}
+  // 3. Substitution des variables simples {{variable}}
   for (const [key, value] of Object.entries(variables)) {
     const regex = new RegExp(`{{${key}}}`, 'g')
     result = result.replace(regex, value != null ? String(value) : '')
@@ -485,6 +705,7 @@ export async function generateValidationFournisseurEmailFromTemplate(
   const {
     transporteurEmail,
     transporteurName,
+    transporteurCountryCode,
     dossierReference,
     departureCity,
     arrivalCity,
@@ -504,19 +725,35 @@ export async function generateValidationFournisseurEmailFromTemplate(
     validationToken,
   } = params
 
-  // Formater les dates
+  // Déterminer la langue du transporteur
+  const language = getLanguageFromCountry(transporteurCountryCode)
+
+  // Locale pour le formatage des dates selon la langue
+  const dateLocales: Record<string, typeof fr> = { fr, es, de, en: enGB }
+  const dateLocale = dateLocales[language] || fr
+
+  // Formater les dates dans la langue du transporteur
   const formatDateSimple = (date: string | Date | null | undefined): string => {
     if (!date) return ''
     const d = typeof date === 'string' ? parseISO(date) : date
-    return format(d, 'EEEE d MMMM yyyy', { locale: fr })
+    return format(d, 'EEEE d MMMM yyyy', { locale: dateLocale })
   }
 
-  // Déterminer le type de prestation
+  // Labels traduits pour le type de prestation
+  const serviceTypeLabels: Record<string, Record<string, string>> = {
+    fr: { aller_simple: 'Aller simple', aller_retour: 'Aller-Retour', mad: 'Mise à disposition' },
+    de: { aller_simple: 'Einfache Fahrt', aller_retour: 'Hin- und Rückfahrt', mad: 'Disposition' },
+    es: { aller_simple: 'Solo ida', aller_retour: 'Ida y vuelta', mad: 'Disposición' },
+    en: { aller_simple: 'One way', aller_retour: 'Round trip', mad: 'Disposition' },
+  }
+
+  // Déterminer le type de prestation avec traduction
   const getServiceTypeLabel = (type: string | null | undefined): string => {
-    if (type === 'aller_simple') return 'Aller simple'
-    if (type === 'aller_retour') return 'Aller-Retour'
-    if (type === 'circuit' || type === 'mise_disposition' || type === 'ar_mad') return 'Mise à disposition'
-    return returnDate ? 'Aller-Retour' : 'Aller simple'
+    const labels = serviceTypeLabels[language] || serviceTypeLabels['fr']
+    if (type === 'aller_simple') return labels.aller_simple
+    if (type === 'aller_retour') return labels.aller_retour
+    if (type === 'circuit' || type === 'mise_disposition' || type === 'ar_mad') return labels.mad
+    return returnDate ? labels.aller_retour : labels.aller_simple
   }
 
   const isMiseADispo = serviceType === 'circuit' || serviceType === 'mise_disposition' || serviceType === 'ar_mad'
@@ -530,9 +767,16 @@ export async function generateValidationFournisseurEmailFromTemplate(
   // Le prix d'achat est le prix fournisseur (déjà en TTC)
   const prixAchatFormate = prixAchat ? prixAchat.toFixed(2).replace('.', ',') : null
 
-  // Labels dynamiques selon le type de trajet
-  const labelDateDepart = isMiseADispo ? 'Date début' : 'Date aller'
-  const labelDateRetour = isMiseADispo ? 'Date fin' : 'Date retour'
+  // Labels dynamiques selon le type de trajet (traduits)
+  const dateLabels: Record<string, { depart: string; retour: string; debut: string; fin: string }> = {
+    fr: { depart: 'Date aller', retour: 'Date retour', debut: 'Date début', fin: 'Date fin' },
+    de: { depart: 'Hinfahrtsdatum', retour: 'Rückfahrtsdatum', debut: 'Startdatum', fin: 'Enddatum' },
+    es: { depart: 'Fecha de ida', retour: 'Fecha de vuelta', debut: 'Fecha de inicio', fin: 'Fecha de fin' },
+    en: { depart: 'Outbound date', retour: 'Return date', debut: 'Start date', fin: 'End date' },
+  }
+  const labels = dateLabels[language] || dateLabels['fr']
+  const labelDateDepart = isMiseADispo ? labels.debut : labels.depart
+  const labelDateRetour = isMiseADispo ? labels.fin : labels.retour
 
   // Variables pour le template - toutes les infos disponibles
   const variables: Record<string, string | number | null | undefined> = {
@@ -569,10 +813,10 @@ export async function generateValidationFournisseurEmailFromTemplate(
       .single()
 
     if (template) {
-      const subject = substituteTemplateVariables(template.subject || '', variables)
-      const body = substituteTemplateVariables(template.body || '', variables)
+      const subject = substituteTemplateVariables(template.subject || '', variables, language)
+      const body = substituteTemplateVariables(template.body || '', variables, language)
       const html = template.html_content
-        ? substituteTemplateVariables(template.html_content, variables)
+        ? substituteTemplateVariables(template.html_content, variables, language)
         : undefined
 
       return { to: transporteurEmail, subject, body, html }
@@ -630,6 +874,178 @@ export interface DemandePrixParams {
   specialRequests?: string | null
   luggageType?: string | null
   madDetails?: string | null
+  language?: string // Code langue: 'fr', 'de', 'es', 'en'
+}
+
+// Traductions pour les emails de demande de prix aux fournisseurs
+const DEMANDE_PRIX_TRANSLATIONS: Record<string, Record<string, string>> = {
+  fr: {
+    greeting: 'Bonjour',
+    requestIntro: 'Pouvez-vous me faire une proposition pour la prestation suivante :',
+    route: 'Trajet',
+    departureDate: 'Date départ',
+    returnDate: 'Date retour',
+    type: 'Type',
+    passengers: 'Passagers',
+    numberOfBuses: 'Nombre de cars',
+    vehicleType: 'Type de véhicule',
+    departureAddress: 'Adresse départ',
+    arrivalAddress: 'Adresse arrivée',
+    luggage: 'Bagages',
+    madSection: 'MISE À DISPOSITION',
+    remarks: 'Remarques',
+    closingRequest: 'Merci de me faire parvenir votre meilleur tarif.',
+    closing: 'Cordialement,',
+    signature: "L'équipe Busmoov",
+    subject: 'Demande de disponibilité',
+    at: 'à',
+    // Trip modes
+    oneWay: 'Aller simple',
+    roundTrip: 'Aller-Retour',
+    roundTrip1Day: 'Aller-Retour 1 jour',
+    roundTripNoMad: 'Aller-Retour sans mise à disposition',
+    roundTripWithMad: 'Aller-Retour avec mise à disposition',
+    circuit: 'Circuit',
+    disposal: 'Mise à disposition',
+  },
+  de: {
+    greeting: 'Guten Tag',
+    requestIntro: 'Können Sie uns ein Angebot für folgende Leistung unterbreiten:',
+    route: 'Strecke',
+    departureDate: 'Abfahrtsdatum',
+    returnDate: 'Rückfahrtsdatum',
+    type: 'Art',
+    passengers: 'Passagiere',
+    numberOfBuses: 'Anzahl Busse',
+    vehicleType: 'Fahrzeugtyp',
+    departureAddress: 'Abfahrtsadresse',
+    arrivalAddress: 'Ankunftsadresse',
+    luggage: 'Gepäck',
+    madSection: 'DISPOSITION',
+    remarks: 'Bemerkungen',
+    closingRequest: 'Bitte senden Sie uns Ihr bestes Angebot.',
+    closing: 'Mit freundlichen Grüßen,',
+    signature: 'Das Busmoov Team',
+    subject: 'Verfügbarkeitsanfrage',
+    at: 'um',
+    // Trip modes
+    oneWay: 'Einfache Fahrt',
+    roundTrip: 'Hin- und Rückfahrt',
+    roundTrip1Day: 'Hin- und Rückfahrt (1 Tag)',
+    roundTripNoMad: 'Hin- und Rückfahrt ohne Disposition',
+    roundTripWithMad: 'Hin- und Rückfahrt mit Disposition',
+    circuit: 'Rundfahrt',
+    disposal: 'Disposition',
+  },
+  es: {
+    greeting: 'Buenos días',
+    requestIntro: '¿Podría hacernos una propuesta para el siguiente servicio?',
+    route: 'Trayecto',
+    departureDate: 'Fecha de salida',
+    returnDate: 'Fecha de regreso',
+    type: 'Tipo',
+    passengers: 'Pasajeros',
+    numberOfBuses: 'Número de autocares',
+    vehicleType: 'Tipo de vehículo',
+    departureAddress: 'Dirección de salida',
+    arrivalAddress: 'Dirección de llegada',
+    luggage: 'Equipaje',
+    madSection: 'DISPOSICIÓN',
+    remarks: 'Observaciones',
+    closingRequest: 'Por favor, envíenos su mejor tarifa.',
+    closing: 'Atentamente,',
+    signature: 'El equipo de Busmoov',
+    subject: 'Solicitud de disponibilidad',
+    at: 'a las',
+    // Trip modes
+    oneWay: 'Solo ida',
+    roundTrip: 'Ida y vuelta',
+    roundTrip1Day: 'Ida y vuelta (1 día)',
+    roundTripNoMad: 'Ida y vuelta sin disposición',
+    roundTripWithMad: 'Ida y vuelta con disposición',
+    circuit: 'Circuito',
+    disposal: 'Disposición',
+  },
+  en: {
+    greeting: 'Hello',
+    requestIntro: 'Could you please provide a quote for the following service:',
+    route: 'Route',
+    departureDate: 'Departure date',
+    returnDate: 'Return date',
+    type: 'Type',
+    passengers: 'Passengers',
+    numberOfBuses: 'Number of coaches',
+    vehicleType: 'Vehicle type',
+    departureAddress: 'Departure address',
+    arrivalAddress: 'Arrival address',
+    luggage: 'Luggage',
+    madSection: 'DISPOSAL',
+    remarks: 'Remarks',
+    closingRequest: 'Please send us your best rate.',
+    closing: 'Best regards,',
+    signature: 'The Busmoov Team',
+    subject: 'Availability request',
+    at: 'at',
+    // Trip modes
+    oneWay: 'One way',
+    roundTrip: 'Round trip',
+    roundTrip1Day: 'Round trip (1 day)',
+    roundTripNoMad: 'Round trip without disposal',
+    roundTripWithMad: 'Round trip with disposal',
+    circuit: 'Circuit',
+    disposal: 'Disposal',
+  },
+}
+
+// Helper pour obtenir les traductions de demande prix
+function getDemandePrixTranslations(lang: string): Record<string, string> {
+  return DEMANDE_PRIX_TRANSLATIONS[lang] || DEMANDE_PRIX_TRANSLATIONS['fr']
+}
+
+// Formater une date selon la langue
+function formatDateForLanguage(date: string | Date | null | undefined, lang: string): string {
+  if (!date) return ''
+  const d = typeof date === 'string' ? parseISO(date) : date
+
+  // Utiliser toLocaleDateString pour le formatage localisé
+  const localeMap: Record<string, string> = {
+    'fr': 'fr-FR',
+    'de': 'de-DE',
+    'es': 'es-ES',
+    'en': 'en-GB',
+  }
+  const locale = localeMap[lang] || 'fr-FR'
+
+  return d.toLocaleDateString(locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+// Obtenir le label du mode de trajet selon la langue (pour emails fournisseurs)
+function getTripModeLabelForEmail(tripMode: string, lang: string): string {
+  const t = getDemandePrixTranslations(lang)
+
+  const tripModeMapping: Record<string, string> = {
+    'aller-simple': 'oneWay',
+    'aller_simple': 'oneWay',
+    'one-way': 'oneWay',
+    'aller-retour': 'roundTrip',
+    'aller_retour': 'roundTrip',
+    'round-trip': 'roundTrip',
+    'mise-a-dispo': 'disposal',
+    'mise_a_dispo': 'disposal',
+    'circuit': 'circuit',
+    'Aller simple': 'oneWay',
+    'Aller-Retour 1 jour': 'roundTrip1Day',
+    'Aller-Retour sans mise à disposition': 'roundTripNoMad',
+    'Aller-Retour avec mise à disposition': 'roundTripWithMad',
+  }
+
+  const translationKey = tripModeMapping[tripMode]
+  return translationKey ? t[translationKey] : tripMode
 }
 
 // VERSION SYNCHRONE (fallback) - utilisé si le template n'est pas chargé
@@ -651,85 +1067,66 @@ export function generateDemandePrixEmail(params: DemandePrixParams): { to: strin
     specialRequests,
     luggageType,
     madDetails,
+    language = 'fr',
   } = params
 
-  // Formater les dates
-  const formatDateSimple = (date: string | Date | null | undefined): string => {
-    if (!date) return ''
-    const d = typeof date === 'string' ? parseISO(date) : date
-    return format(d, 'EEEE d MMMM yyyy', { locale: fr })
-  }
+  const t = getDemandePrixTranslations(language)
 
-  const subject = `Demande de disponibilité - ${dossierReference}`
+  const subject = `${t.subject} - ${dossierReference}`
 
-  let body = `Bonjour,
+  let body = `${t.greeting},
 
-Pouvez-vous me faire une proposition pour la prestation suivante :
+${t.requestIntro}
 
-Trajet : ${departureCity || ''} - ${arrivalCity || ''}
-Date départ : ${formatDateSimple(departureDate)}${departureTime ? ` à ${departureTime}` : ''}
+${t.route} : ${departureCity || ''} - ${arrivalCity || ''}
+${t.departureDate} : ${formatDateForLanguage(departureDate, language)}${departureTime ? ` ${t.at} ${departureTime}` : ''}
 `
 
   if (returnDate) {
-    body += `Date retour : ${formatDateSimple(returnDate)}${returnTime ? ` à ${returnTime}` : ''}\n`
+    body += `${t.returnDate} : ${formatDateForLanguage(returnDate, language)}${returnTime ? ` ${t.at} ${returnTime}` : ''}\n`
   }
 
   if (tripMode) {
-    const tripModeLabels: Record<string, string> = {
-      'aller-simple': 'Aller simple',
-      'aller_simple': 'Aller simple',
-      'one-way': 'Aller simple',
-      'aller-retour': 'Aller-Retour',
-      'aller_retour': 'Aller-Retour',
-      'round-trip': 'Aller-Retour',
-      'mise-a-dispo': 'Mise à disposition',
-      'mise_a_dispo': 'Mise à disposition',
-      'circuit': 'Circuit',
-      'Aller simple': 'Aller simple',
-      'Aller-Retour 1 jour': 'Aller-Retour 1 jour',
-      'Aller-Retour sans mise à disposition': 'Aller-Retour sans mise à disposition',
-      'Aller-Retour avec mise à disposition': 'Aller-Retour avec mise à disposition',
-    }
-    body += `Type : ${tripModeLabels[tripMode] || tripMode}\n`
+    body += `${t.type} : ${getTripModeLabelForEmail(tripMode, language)}\n`
   }
 
   if (passengers) {
-    body += `Passagers : ${passengers}\n`
+    body += `${t.passengers} : ${passengers}\n`
     // Calculer le nombre de cars
     const nbCars = calculateNumberOfCars(passengers, vehicleType || 'standard')
-    body += `Nombre de cars : ${nbCars}\n`
+    body += `${t.numberOfBuses} : ${nbCars}\n`
   }
 
   if (vehicleType) {
-    body += `Type de véhicule : ${getVehicleTypeLabel(vehicleType)}\n`
+    body += `${t.vehicleType} : ${getVehicleTypeLabel(vehicleType)}\n`
   }
 
   if (departureAddress) {
-    body += `\nAdresse départ : ${departureAddress}\n`
+    body += `\n${t.departureAddress} : ${departureAddress}\n`
   }
 
   if (arrivalAddress) {
-    body += `Adresse arrivée : ${arrivalAddress}\n`
+    body += `${t.arrivalAddress} : ${arrivalAddress}\n`
   }
 
   if (luggageType) {
-    body += `\nBagages : ${luggageType}\n`
+    body += `\n${t.luggage} : ${luggageType}\n`
   }
 
   // Détails de mise à disposition (MAD)
   if (madDetails) {
-    body += `\n=== MISE À DISPOSITION ===\n${madDetails}\n==========================\n`
+    body += `\n=== ${t.madSection} ===\n${madDetails}\n==========================\n`
   }
 
   if (specialRequests) {
-    body += `\nRemarques : ${specialRequests}\n`
+    body += `\n${t.remarks} : ${specialRequests}\n`
   }
 
   body += `
-Merci de me faire parvenir votre meilleur tarif.
+${t.closingRequest}
 
-Cordialement,
-L'équipe Busmoov`
+${t.closing}
+${t.signature}`
 
   return { to: transporteurEmail, subject, body }
 }
@@ -756,45 +1153,24 @@ export async function generateDemandePrixEmailFromTemplate(
     specialRequests,
     luggageType,
     madDetails,
+    language = 'fr',
   } = params
 
-  // Formater les dates
-  const formatDateSimple = (date: string | Date | null | undefined): string => {
-    if (!date) return ''
-    const d = typeof date === 'string' ? parseISO(date) : date
-    return format(d, 'EEEE d MMMM yyyy', { locale: fr })
-  }
-
-  // Labels pour le mode de trajet (supporte les deux formats: tirets et underscores + anglais)
-  const tripModeLabels: Record<string, string> = {
-    'aller-simple': 'Aller simple',
-    'aller_simple': 'Aller simple',
-    'one-way': 'Aller simple',
-    'aller-retour': 'Aller-Retour',
-    'aller_retour': 'Aller-Retour',
-    'round-trip': 'Aller-Retour',
-    'mise-a-dispo': 'Mise à disposition',
-    'mise_a_dispo': 'Mise à disposition',
-    'circuit': 'Circuit',
-    'Aller simple': 'Aller simple',
-    'Aller-Retour 1 jour': 'Aller-Retour 1 jour',
-    'Aller-Retour sans mise à disposition': 'Aller-Retour sans mise à disposition',
-    'Aller-Retour avec mise à disposition': 'Aller-Retour avec mise à disposition',
-  }
+  const t = getDemandePrixTranslations(language)
 
   // Calculer le nombre de cars
   const nbCars = passengers ? calculateNumberOfCars(passengers, vehicleType || 'standard') : 1
 
-  // Variables pour le template
+  // Variables pour le template (avec traductions)
   const variables: Record<string, string | number | null | undefined> = {
     reference: dossierReference,
     departure: departureCity,
     arrival: arrivalCity,
-    departure_date: formatDateSimple(departureDate),
-    return_date: returnDate ? formatDateSimple(returnDate) : null,
+    departure_date: formatDateForLanguage(departureDate, language),
+    return_date: returnDate ? formatDateForLanguage(returnDate, language) : null,
     heure_depart: departureTime,
     heure_retour: returnTime,
-    trip_mode: tripMode ? (tripModeLabels[tripMode] || tripMode) : null,
+    trip_mode: tripMode ? getTripModeLabelForEmail(tripMode, language) : null,
     passengers: passengers,
     nombre_cars: nbCars,
     vehicle_type: vehicleType ? getVehicleTypeLabel(vehicleType) : null,
@@ -804,6 +1180,19 @@ export async function generateDemandePrixEmailFromTemplate(
     transporteur_name: transporteurName,
     luggage_type: luggageType,
     mad_details: madDetails,
+    // Labels traduits pour le template HTML
+    label_route: t.route,
+    label_departure_date: t.departureDate,
+    label_return_date: t.returnDate,
+    label_type: t.type,
+    label_passengers: t.passengers,
+    label_nb_cars: t.numberOfBuses,
+    label_vehicle_type: t.vehicleType,
+    label_departure_address: t.departureAddress,
+    label_arrival_address: t.arrivalAddress,
+    label_luggage: t.luggage,
+    label_remarks: t.remarks,
+    at: t.at,
   }
 
   try {
@@ -817,10 +1206,10 @@ export async function generateDemandePrixEmailFromTemplate(
       .single()
 
     if (template) {
-      const subject = substituteTemplateVariables(template.subject || '', variables)
-      const body = substituteTemplateVariables(template.body || '', variables)
+      const subject = substituteTemplateVariables(template.subject || '', variables, language)
+      const body = substituteTemplateVariables(template.body || '', variables, language)
       const html = template.html_content
-        ? substituteTemplateVariables(template.html_content, variables)
+        ? substituteTemplateVariables(template.html_content, variables, language)
         : undefined
 
       return { to: transporteurEmail, subject, body, html }
@@ -1244,9 +1633,11 @@ interface GeocodeResult {
 /**
  * Géocode une ville pour obtenir ses coordonnées
  * @param city Nom de la ville
+ * @param countryCode Code pays (ex: 'fr', 'es', 'de') - par défaut 'fr'
+ * @param lang Langue pour les résultats - par défaut 'fr'
  * @returns Coordonnées ou null si non trouvé
  */
-async function geocodeCity(city: string): Promise<GeocodeResult | null> {
+async function geocodeCity(city: string, countryCode: string = 'fr', lang: string = 'fr'): Promise<GeocodeResult | null> {
   if (!city) return null
 
   const apiKey = await getGeoapifyApiKey()
@@ -1254,7 +1645,7 @@ async function geocodeCity(city: string): Promise<GeocodeResult | null> {
 
   try {
     const response = await fetch(
-      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=fr&limit=1&filter=countrycode:fr&apiKey=${apiKey}`
+      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=1&filter=countrycode:${countryCode}&apiKey=${apiKey}`
     )
     const data = await response.json()
 
@@ -1278,9 +1669,10 @@ async function geocodeCity(city: string): Promise<GeocodeResult | null> {
  * Calcule la distance routière entre deux villes via l'API Geoapify Routing
  * @param departure Ville de départ
  * @param arrival Ville d'arrivée
+ * @param countryCode Code pays pour le géocodage (ex: 'fr', 'es', 'de') - par défaut 'fr'
  * @returns Distance en km ou null si échec
  */
-export async function calculateRouteDistance(departure: string, arrival: string): Promise<number | null> {
+export async function calculateRouteDistance(departure: string, arrival: string, countryCode: string = 'fr'): Promise<number | null> {
   if (!departure || !arrival) {
     return estimateDistance(departure, arrival)
   }
@@ -1292,10 +1684,10 @@ export async function calculateRouteDistance(departure: string, arrival: string)
   }
 
   try {
-    // Géocoder les deux villes
+    // Géocoder les deux villes avec le code pays
     const [depCoords, arrCoords] = await Promise.all([
-      geocodeCity(departure),
-      geocodeCity(arrival),
+      geocodeCity(departure, countryCode, countryCode),
+      geocodeCity(arrival, countryCode, countryCode),
     ])
 
     if (!depCoords || !arrCoords) {
@@ -1361,10 +1753,10 @@ export interface RouteInfo {
 
 const routeInfoCache = new Map<string, RouteInfo>()
 
-export async function calculateRouteInfo(departure: string, arrival: string): Promise<RouteInfo | null> {
+export async function calculateRouteInfo(departure: string, arrival: string, countryCode: string = 'fr'): Promise<RouteInfo | null> {
   if (!departure || !arrival) return null
 
-  const cacheKey = `${departure.toLowerCase().trim()}|${arrival.toLowerCase().trim()}`
+  const cacheKey = `${departure.toLowerCase().trim()}|${arrival.toLowerCase().trim()}|${countryCode}`
 
   if (routeInfoCache.has(cacheKey)) {
     return routeInfoCache.get(cacheKey) ?? null
@@ -1373,10 +1765,10 @@ export async function calculateRouteInfo(departure: string, arrival: string): Pr
   const apiKey = await getGeoapifyApiKey()
 
   try {
-    // Géocoder les deux villes
+    // Géocoder les deux villes avec le code pays
     const [depCoords, arrCoords] = await Promise.all([
-      geocodeCity(departure),
-      geocodeCity(arrival),
+      geocodeCity(departure, countryCode, countryCode),
+      geocodeCity(arrival, countryCode, countryCode),
     ])
 
     if (!depCoords || !arrCoords || !apiKey) {

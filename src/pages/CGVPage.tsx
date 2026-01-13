@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, FileText, Calendar } from 'lucide-react'
 import DOMPurify from 'dompurify'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { useCurrentCountry } from '@/hooks/useCountrySettings'
+import { useLocalizedPath } from '@/components/i18n'
 
 interface CGV {
   id: string
@@ -15,6 +18,9 @@ interface CGV {
 }
 
 export function CGVPage() {
+  const { t } = useTranslation()
+  const localizedPath = useLocalizedPath()
+  const { data: country } = useCurrentCountry()
   const [cgv, setCgv] = useState<CGV | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -68,7 +74,7 @@ export function CGVPage() {
         <div className="pt-24 pb-16 flex items-center justify-center">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-magenta border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-500">Chargement des CGV...</p>
+            <p className="text-gray-500">{t('common.loading', 'Chargement...')}</p>
           </div>
         </div>
       </div>
@@ -83,11 +89,11 @@ export function CGVPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Back link */}
           <Link
-            to="/"
+            to={localizedPath('/')}
             className="inline-flex items-center gap-2 text-gray-500 hover:text-magenta mb-8 transition-colors"
           >
             <ArrowLeft size={18} />
-            Retour à l'accueil
+            {t('contact.backHome')}
           </Link>
 
           {cgv ? (
@@ -135,9 +141,9 @@ export function CGVPage() {
               {/* Footer */}
               <div className="bg-gray-50 px-8 py-4 border-t border-gray-100">
                 <p className="text-sm text-gray-500 text-center">
-                  Pour toute question concernant ces conditions, contactez-nous à{' '}
-                  <a href="mailto:infos@busmoov.com" className="text-magenta hover:underline">
-                    infos@busmoov.com
+                  {t('cgv.contact', 'Pour toute question concernant ces conditions, contactez-nous à')}{' '}
+                  <a href={`mailto:${country?.email || 'infos@busmoov.com'}`} className="text-magenta hover:underline">
+                    {country?.email || 'infos@busmoov.com'}
                   </a>
                 </p>
               </div>
@@ -146,10 +152,10 @@ export function CGVPage() {
             <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
               <FileText size={48} className="mx-auto text-gray-300 mb-4" />
               <h2 className="text-xl font-semibold text-gray-700 mb-2">
-                CGV non disponibles
+                {t('cgv.notAvailable', 'CGV non disponibles')}
               </h2>
               <p className="text-gray-500">
-                Les conditions générales de vente ne sont pas encore publiées.
+                {t('cgv.notPublished', 'Les conditions générales de vente ne sont pas encore publiées.')}
               </p>
             </div>
           )}

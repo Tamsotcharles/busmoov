@@ -258,22 +258,67 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        const link = `${baseUrl}/fournisseur/chauffeur?token=${token}`;
+
+        // Envoyer l'email au transporteur via send-email
+        if (transporteur?.email) {
+          try {
+            const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+            const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+            const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${supabaseKey}`,
+              },
+              body: JSON.stringify({
+                type: 'demande_chauffeur',
+                to: transporteur.email,
+                data: {
+                  transporteur_name: transporteur.name || '',
+                  reference: dossier.reference,
+                  departure: dossier.departure,
+                  arrival: dossier.arrival,
+                  departure_date: new Date(dossier.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+                  passengers: String(dossier.passengers),
+                  lien_chauffeur: link,
+                  dossier_id: dossier.id,
+                  language: 'fr', // Emails aux transporteurs toujours en français
+                },
+              }),
+            });
+
+            const emailResult = await emailResponse.json();
+            if (!emailResponse.ok || !emailResult.success) {
+              console.error(`Email failed for ${dossier.reference}:`, emailResult.error);
+            } else {
+              // Mettre à jour la demande avec la date d'envoi email
+              await supabase
+                .from('demandes_chauffeur')
+                .update({ email_sent_at: new Date().toISOString() })
+                .eq('id', demande.id);
+            }
+          } catch (emailErr) {
+            console.error(`Error sending email for ${dossier.reference}:`, emailErr);
+          }
+        }
+
         // Add timeline entry
         await supabase
-          .from('timeline_entries')
+          .from('timeline')
           .insert({
             dossier_id: dossier.id,
             type: 'email_sent',
-            content: `Demande de contact chauffeur envoyee automatiquement (depart ${formatDateForQuery(new Date(dossier.departure_date))})`,
+            content: `Demande de contact chauffeur envoyée automatiquement à ${transporteur?.name || 'transporteur'} (départ ${formatDateForQuery(new Date(dossier.departure_date))})`,
           });
-
-        const link = `${baseUrl}/fournisseur/chauffeur?token=${token}`;
 
         results.push({
           dossier: dossier.reference,
           transporteur: transporteur?.name || 'Unknown',
           link: link,
-          type: type
+          type: type,
+          emailSent: !!transporteur?.email
         });
       }
     }

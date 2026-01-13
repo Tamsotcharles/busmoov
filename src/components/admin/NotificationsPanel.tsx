@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Bell, Check, CheckCheck, Info, Truck, Euro, XCircle, ChevronDown, ChevronUp, ExternalLink, CreditCard } from 'lucide-react'
+import { Bell, Check, CheckCheck, Info, Truck, Euro, XCircle, ChevronDown, ChevronUp, ExternalLink, CreditCard, FileSignature } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -10,7 +10,7 @@ interface NotificationCRM {
   created_at: string
   dossier_id: string | null
   dossier_reference: string | null
-  type: 'infos_voyage' | 'contact_chauffeur' | 'tarif_fournisseur' | 'refus_fournisseur' | 'paiement_echoue'
+  type: 'infos_voyage' | 'contact_chauffeur' | 'tarif_fournisseur' | 'refus_fournisseur' | 'paiement_echoue' | 'contrat_signe'
   title: string
   description: string | null
   source_type: string | null
@@ -51,6 +51,12 @@ const TYPE_CONFIG = {
     color: 'text-red-600',
     bgColor: 'bg-red-100',
     label: 'Paiement CB',
+  },
+  contrat_signe: {
+    icon: FileSignature,
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-100',
+    label: 'Contrat signé',
   },
 }
 
@@ -130,12 +136,15 @@ export function NotificationsPanel({ onOpenDossier, maxHeight = '400px' }: Notif
   })
 
   const handleNotificationClick = (notification: NotificationCRM) => {
-    if (!notification.is_read) {
-      markAsRead.mutate(notification.id)
-    }
+    // Ouvrir le dossier (sans marquer comme lu automatiquement)
     if (notification.dossier_id && onOpenDossier) {
       onOpenDossier(notification.dossier_id)
     }
+  }
+
+  const handleMarkAsReadOnly = (e: React.MouseEvent, notificationId: string) => {
+    e.stopPropagation() // Empêcher l'ouverture du dossier
+    markAsRead.mutate(notificationId)
   }
 
   const formatTimeAgo = (dateString: string) => {
@@ -277,12 +286,19 @@ export function NotificationsPanel({ onOpenDossier, maxHeight = '400px' }: Notif
                               </p>
                             )}
                           </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            {!notification.is_read && (
-                              <span className="w-2 h-2 bg-blue-500 rounded-full" />
-                            )}
-                            {notification.is_read && (
-                              <Check size={14} className="text-green-500" />
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {!notification.is_read ? (
+                              <button
+                                onClick={(e) => handleMarkAsReadOnly(e, notification.id)}
+                                className="w-7 h-7 rounded-full bg-yellow-400 hover:bg-green-500 text-white flex items-center justify-center transition-colors"
+                                title="Marquer comme lu"
+                              >
+                                <Check size={16} />
+                              </button>
+                            ) : (
+                              <span className="w-7 h-7 rounded-full bg-green-100 text-green-500 flex items-center justify-center">
+                                <Check size={16} />
+                              </span>
                             )}
                           </div>
                         </div>

@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { MessageCircle, Send, X, ChevronLeft, Users, Bot, Sparkles } from 'lucide-react'
 import { useMessages, useSendMessage, useVoyageInfo, useTransporteurForChat } from '@/hooks/useSupabase'
 import { useMessageNotificationWatcher, useNotificationPermission } from '@/hooks/useNotifications'
 import { formatTime, cn } from '@/lib/utils'
-import { getAutoResponse, FAQ_SUGGESTIONS, isGreeting, getGreetingResponse } from '@/lib/chatAutoResponses'
+import { getAutoResponse, getFaqSuggestions, isGreeting, getGreetingResponse } from '@/lib/chatAutoResponses'
+import { getChatTranslations, getLanguageFromCountryCode, type ChatLanguage } from '@/lib/chatTranslations'
 
 interface Supplier {
   devisId: string
@@ -18,10 +19,16 @@ interface ChatWidgetProps {
   onOpenChange?: (isOpen: boolean) => void // Callback when open state changes
   preSelectedSupplier?: Supplier | null // Pre-select a specific supplier
   singleSupplierMode?: boolean // If true, only show chat for the pre-selected supplier (no list)
+  countryCode?: string | null // Country code for language detection
 }
 
-export function ChatWidget({ dossierId, isClient = true, suppliers = [], externalOpen, onOpenChange, preSelectedSupplier, singleSupplierMode = false }: ChatWidgetProps) {
+export function ChatWidget({ dossierId, isClient = true, suppliers = [], externalOpen, onOpenChange, preSelectedSupplier, singleSupplierMode = false, countryCode }: ChatWidgetProps) {
   const [internalOpen, setInternalOpen] = useState(false)
+
+  // Déterminer la langue à partir du code pays
+  const language: ChatLanguage = useMemo(() => getLanguageFromCountryCode(countryCode), [countryCode])
+  const t = useMemo(() => getChatTranslations(language), [language])
+  const faqSuggestions = useMemo(() => getFaqSuggestions(language), [language])
 
   // Use external state if provided, otherwise use internal state
   const isOpen = externalOpen !== undefined ? externalOpen : internalOpen
@@ -95,8 +102,8 @@ export function ChatWidget({ dossierId, isClient = true, suppliers = [], externa
         // Petit délai pour que le message apparaisse d'abord
         setTimeout(() => {
           // Vérifier d'abord si c'est une salutation
-          if (isGreeting(msgToSend)) {
-            const greetingResponse = getGreetingResponse()
+          if (isGreeting(msgToSend, language)) {
+            const greetingResponse = getGreetingResponse(language)
             setAutoResponses(prev => [...prev, {
               id: `auto-${Date.now()}`,
               content: greetingResponse,
@@ -106,7 +113,7 @@ export function ChatWidget({ dossierId, isClient = true, suppliers = [], externa
           }
 
           // Sinon, vérifier les questions FAQ
-          const autoResponse = getAutoResponse(msgToSend, voyageInfo, transporteur)
+          const autoResponse = getAutoResponse(msgToSend, voyageInfo, transporteur, language)
           if (autoResponse.matched && autoResponse.response) {
             setAutoResponses(prev => [...prev, {
               id: `auto-${Date.now()}`,
@@ -157,17 +164,17 @@ export function ChatWidget({ dossierId, isClient = true, suppliers = [], externa
             <div className="flex-1">
               <h4 className="font-semibold">
                 {showSupplierList
-                  ? 'Choisir un fournisseur'
+                  ? t.chooseSupplier
                   : selectedSupplier
-                  ? `Fournisseur n°${selectedSupplier.supplierNum}`
+                  ? `${t.supplier} n°${selectedSupplier.supplierNum}`
                   : isClient
-                  ? 'Votre transporteur'
-                  : 'Chat client'}
+                  ? t.yourTransporter
+                  : t.clientChat}
               </h4>
               <span className="text-xs opacity-80">
                 {showSupplierList
-                  ? `${suppliers.length} fournisseur${suppliers.length > 1 ? 's' : ''} disponible${suppliers.length > 1 ? 's' : ''}`
-                  : 'Généralement répond sous 1h'}
+                  ? `${suppliers.length} ${t.suppliersAvailable}`
+                  : t.usuallyReplies}
               </span>
             </div>
             <button
@@ -182,7 +189,7 @@ export function ChatWidget({ dossierId, isClient = true, suppliers = [], externa
           {showSupplierList ? (
             <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
               <p className="text-sm text-gray-500 text-center mb-4">
-                Sélectionnez un fournisseur pour lui envoyer un message
+                {t.selectSupplierPrompt}
               </p>
               {suppliers.map((supplier) => {
                 const unread = getUnreadCountForSupplier(supplier.devisId)
@@ -197,10 +204,10 @@ export function ChatWidget({ dossierId, isClient = true, suppliers = [], externa
                     </div>
                     <div className="flex-1 text-left">
                       <div className="font-semibold text-purple-dark">
-                        Fournisseur n°{supplier.supplierNum}
+                        {t.supplier} n°{supplier.supplierNum}
                       </div>
                       <div className="text-xs text-gray-500">
-                        Cliquez pour discuter
+                        {t.clickToChat}
                       </div>
                     </div>
                     {unread > 0 && (
@@ -219,14 +226,14 @@ export function ChatWidget({ dossierId, isClient = true, suppliers = [], externa
                 {messages.length === 0 && autoResponses.length === 0 ? (
                   <div className="text-center py-6 text-gray-400">
                     <Bot size={40} className="mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Bienvenue sur l'assistance Busmoov</p>
+                    <p className="text-sm">{t.welcomeAssistance}</p>
                     <p className="text-xs mt-2 mb-4">
-                      {isClient ? 'Posez votre question ou choisissez un sujet' : 'Démarrez la conversation'}
+                      {isClient ? t.askQuestionOrChoose : t.startConversation}
                     </p>
                     {/* Suggestions FAQ pour les clients */}
                     {isClient && (
                       <div className="flex flex-wrap justify-center gap-2 mt-3">
-                        {FAQ_SUGGESTIONS.slice(0, 4).map((faq, index) => (
+                        {faqSuggestions.slice(0, 4).map((faq, index) => (
                           <button
                             key={index}
                             onClick={() => handleFaqClick(faq.message)}
@@ -270,7 +277,7 @@ export function ChatWidget({ dossierId, isClient = true, suppliers = [], externa
                             >
                               <div className="flex items-center gap-1.5 mb-1.5 text-magenta">
                                 <Sparkles size={12} />
-                                <span className="text-xs font-medium">Assistant Busmoov</span>
+                                <span className="text-xs font-medium">{t.assistantName}</span>
                               </div>
                               <div className="text-gray-700 whitespace-pre-wrap text-xs leading-relaxed">
                                 {item.content.split('\n').map((line, i) => {
@@ -304,7 +311,7 @@ export function ChatWidget({ dossierId, isClient = true, suppliers = [], externa
                           >
                             <p>{item.content}</p>
                             <p className="text-xs opacity-70 mt-1">
-                              {item.sender === 'client' ? 'Vous' : isClient ? 'Fournisseur' : 'Client'} • {formatTime(item.timestamp.toISOString())}
+                              {item.sender === 'client' ? t.you : isClient ? t.supplierLabel : t.client} • {formatTime(item.timestamp.toISOString())}
                             </p>
                           </div>
                         )
@@ -314,7 +321,7 @@ export function ChatWidget({ dossierId, isClient = true, suppliers = [], externa
                     {/* Suggestions après quelques messages */}
                     {isClient && messages.length > 0 && messages.length < 5 && (
                       <div className="flex flex-wrap gap-1.5 mt-2">
-                        {FAQ_SUGGESTIONS.slice(0, 3).map((faq, index) => (
+                        {faqSuggestions.slice(0, 3).map((faq, index) => (
                           <button
                             key={index}
                             onClick={() => handleFaqClick(faq.message)}
@@ -337,7 +344,7 @@ export function ChatWidget({ dossierId, isClient = true, suppliers = [], externa
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder="Votre message..."
+                  placeholder={t.yourMessage}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-magenta"
                 />
                 <button

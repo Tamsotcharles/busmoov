@@ -2,36 +2,40 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Award, Users, MapPin, Clock, Shield, Heart, Bus, Star, CheckCircle } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { useTranslation } from 'react-i18next'
+import { useLocalizedPath } from '@/components/i18n'
 
 export function AProposPage() {
+  const { t } = useTranslation()
+  const localizedPath = useLocalizedPath()
   const values = [
     {
       icon: Shield,
-      title: 'Fiabilité',
-      description: 'Des transporteurs rigoureusement sélectionnés et contrôlés pour garantir votre sécurité.',
+      title: t('about.valueReliability'),
+      description: t('about.valueReliabilityDesc'),
     },
     {
       icon: Heart,
-      title: 'Service client',
-      description: 'Une équipe dédiée disponible 6j/7 pour vous accompagner avant, pendant et après votre voyage.',
+      title: t('about.valueService'),
+      description: t('about.valueServiceDesc'),
     },
     {
       icon: Star,
-      title: 'Qualité',
-      description: 'Des véhicules récents, confortables et parfaitement entretenus pour un voyage agréable.',
+      title: t('about.valueQuality'),
+      description: t('about.valueQualityDesc'),
     },
     {
       icon: Award,
-      title: 'Expertise',
-      description: 'Plus de 5 ans d\'expérience dans le transport de voyageurs en autocar.',
+      title: t('about.valueExpertise'),
+      description: t('about.valueExpertiseDesc'),
     },
   ]
 
   const stats = [
-    { value: '5+', label: 'Années d\'expérience' },
-    { value: '150+', label: 'Transporteurs partenaires' },
-    { value: '50 000+', label: 'Passagers transportés' },
-    { value: '98%', label: 'Clients satisfaits' },
+    { value: '5+', label: t('about.statYears') },
+    { value: '150+', label: t('about.statPartners') },
+    { value: '50 000+', label: t('about.statPassengers') },
+    { value: '98%', label: t('about.statSatisfaction') },
   ]
 
   return (
@@ -43,21 +47,19 @@ export function AProposPage() {
         <section className="bg-gradient-to-br from-purple-dark to-purple text-white py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Link
-              to="/"
+              to={localizedPath('/')}
               className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-8 transition-colors"
             >
               <ArrowLeft size={18} />
-              Retour à l'accueil
+              {t('contact.backHome')}
             </Link>
 
             <div className="max-w-3xl">
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                À propos de Busmoov
+                {t('about.title')}
               </h1>
               <p className="text-xl text-white/90 leading-relaxed">
-                Busmoov est une marque du groupe Centrale Autocar, leader français de la mise en relation
-                entre clients et transporteurs. Notre mission : rendre le transport en autocar simple,
-                accessible et fiable pour tous.
+                {t('about.heroText')}
               </p>
             </div>
           </div>
@@ -69,26 +71,12 @@ export function AProposPage() {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
                 <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                  Notre histoire
+                  {t('about.storyTitle')}
                 </h2>
                 <div className="space-y-4 text-gray-600 leading-relaxed">
-                  <p>
-                    Fondée il y a plus de 5 ans, <strong>Centrale Autocar</strong> est née d'un constat simple :
-                    réserver un autocar avec chauffeur était un véritable parcours du combattant.
-                    Entre les multiples appels, les devis incomparables et l'incertitude sur la qualité
-                    des prestataires, les clients se retrouvaient souvent perdus.
-                  </p>
-                  <p>
-                    Notre fondateur, passionné par le transport et l'innovation, a décidé de créer
-                    une plateforme centralisant les meilleurs transporteurs de France. L'objectif ?
-                    Permettre à chacun d'obtenir rapidement plusieurs devis comparables et de réserver
-                    en toute confiance.
-                  </p>
-                  <p>
-                    Aujourd'hui, <strong>Busmoov</strong> perpétue cette vision en proposant une expérience
-                    digitale moderne et intuitive. Que vous organisiez une sortie scolaire, un voyage
-                    d'entreprise ou un événement familial, nous sommes là pour vous accompagner.
-                  </p>
+                  <p>{t('about.storyP1')}</p>
+                  <p>{t('about.storyP2')}</p>
+                  <p>{t('about.storyP3')}</p>
                 </div>
               </div>
               <div className="bg-gradient-to-br from-purple/5 to-magenta/5 rounded-3xl p-8">
@@ -109,10 +97,10 @@ export function AProposPage() {
         <section className="py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-4 text-center">
-              Nos valeurs
+              {t('about.valuesTitle')}
             </h2>
             <p className="text-gray-600 text-center max-w-2xl mx-auto mb-12">
-              Ce qui nous guide au quotidien pour vous offrir le meilleur service possible.
+              {t('about.valuesSubtitle')}
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {values.map((value, index) => (
@@ -135,16 +123,16 @@ export function AProposPage() {
               <div className="grid lg:grid-cols-2 gap-8 items-center">
                 <div>
                   <h2 className="text-3xl font-bold mb-6">
-                    Notre engagement qualité
+                    {t('about.commitmentTitle')}
                   </h2>
                   <ul className="space-y-4">
                     {[
-                      'Transporteurs certifiés et assurés',
-                      'Véhicules contrôlés et récents',
-                      'Chauffeurs professionnels expérimentés',
-                      'Devis transparents sans frais cachés',
-                      'Accompagnement personnalisé',
-                      'Satisfaction garantie ou remboursé',
+                      t('about.commitment1'),
+                      t('about.commitment2'),
+                      t('about.commitment3'),
+                      t('about.commitment4'),
+                      t('about.commitment5'),
+                      t('about.commitment6'),
                     ].map((item, index) => (
                       <li key={index} className="flex items-center gap-3">
                         <CheckCircle size={20} className="text-white/80 flex-shrink-0" />
@@ -157,14 +145,14 @@ export function AProposPage() {
                   <div className="bg-white/10 backdrop-blur rounded-2xl p-8 text-center">
                     <Bus size={80} className="mx-auto mb-4 text-white/80" />
                     <p className="text-2xl font-bold mb-2">Centrale Autocar</p>
-                    <p className="text-white/70">Groupe fondateur de Busmoov</p>
+                    <p className="text-white/70">{t('about.groupSubtitle')}</p>
                     <a
                       href="https://www.centrale-autocar.com"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-block mt-4 text-sm underline hover:no-underline"
                     >
-                      Visiter le site
+                      {t('about.visitSite')}
                     </a>
                   </div>
                 </div>
@@ -177,17 +165,17 @@ export function AProposPage() {
         <section className="py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Prêt à voyager avec nous ?
+              {t('about.ctaTitle')}
             </h2>
             <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-              Obtenez un devis gratuit en quelques minutes et découvrez la qualité Busmoov.
+              {t('about.ctaSubtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/#quote" className="btn btn-primary btn-lg">
-                Demander un devis gratuit
+              <Link to={localizedPath('/#quote')} className="btn btn-primary btn-lg">
+                {t('hero.cta')}
               </Link>
-              <Link to="/contact" className="btn btn-secondary btn-lg">
-                Nous contacter
+              <Link to={localizedPath('/contact')} className="btn btn-secondary btn-lg">
+                {t('nav.contact')}
               </Link>
             </div>
           </div>

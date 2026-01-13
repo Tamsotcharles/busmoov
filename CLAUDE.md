@@ -2,7 +2,7 @@
 
 ## Description du projet
 
-Busmoov est une plateforme de réservation de transport en autocar (bus) en France. L'application gère le cycle complet d'une réservation : demande de devis, comparaison de fournisseurs, signature de contrat, paiement, gestion des informations de voyage et coordination avec les transporteurs.
+Busmoov est une plateforme de réservation de transport en autocar (bus) multi-pays (France, Espagne, Allemagne, Royaume-Uni). L'application gère le cycle complet d'une réservation : demande de devis, comparaison de fournisseurs, signature de contrat, paiement, gestion des informations de voyage et coordination avec les transporteurs.
 
 ## Stack technique
 
@@ -13,6 +13,7 @@ Busmoov est une plateforme de réservation de transport en autocar (bus) en Fran
 - **Routing**: React Router v6
 - **PDF**: jsPDF + html2canvas
 - **Icons**: Lucide React
+- **Internationalisation**: i18next + react-i18next
 
 ## Structure du projet
 
@@ -137,6 +138,17 @@ Syntaxe : `{{variable}}`
 | `chauffeur_name` | Nom du chauffeur |
 | `chauffeur_phone` | Téléphone du chauffeur |
 | `transporteur` | Nom du transporteur |
+| `is_virement` | Booléen - true si paiement par virement |
+
+### Syntaxe conditionnelle Handlebars
+Les templates supportent la syntaxe Handlebars pour les conditions :
+```html
+{{#if is_virement}}
+  <p>Contenu affiché si virement</p>
+{{else}}
+  <p>Contenu affiché sinon</p>
+{{/if}}
+```
 
 ### Configuration Gmail API
 Secrets Supabase requis :
@@ -158,8 +170,27 @@ Fonctions dans `src/lib/pdf.ts` :
 - `generateDevisPDF()` - Devis client
 - `generateContratPDF()` - Contrat de réservation
 - `generateFacturePDF()` - Facture (acompte, solde, avoir)
-- `generateFeuilleRoutePDF()` - Feuille de route avec infos chauffeur
+- `generateFeuilleRoutePDF()` - Feuille de route avec infos chauffeur (une colonne pour aller simple)
 - `generateBpaPDF()` - Bon pour accord transporteur
+- `generateInfosVoyagePDFBase64()` - PDF infos voyage pour envoi au transporteur
+
+## Edge Functions Supabase
+
+Dans `supabase/functions/` :
+
+| Fonction | Description |
+|----------|-------------|
+| `send-email` | Envoi d'emails via Gmail API avec support Handlebars |
+| `sign-contract` | Signature de contrat (contourne RLS) |
+| `calculate-price` | Calcul de prix côté serveur |
+| `process-auto-devis` | Génération automatique de devis |
+| `resend-webhook` | Webhook pour tracking emails Resend |
+
+### Déploiement Edge Functions
+```bash
+npx supabase functions deploy send-email --project-ref rsxfmokwmwujercgpnfu
+npx supabase functions deploy sign-contract --project-ref rsxfmokwmwujercgpnfu
+```
 
 ## Conventions de code
 
@@ -187,6 +218,9 @@ Tous les hooks de données sont dans `useSupabase.ts` et suivent le pattern :
 2. **Invalidation des queries** : Après une mutation, invalider les queries pertinentes avec `queryClient.invalidateQueries()`
 3. **Génération de tokens** : Utiliser `generateChauffeurToken()` pour les liens sécurisés
 4. **Timeline** : Enregistrer les actions importantes dans la table `timeline` pour l'historique
+5. **Email infos voyage** : Utiliser UNIQUEMENT les données `voyageInfo` validées par le client, jamais les données du dossier/devis original
+6. **Signature contrat** : Utiliser l'Edge Function `sign-contract` pour contourner les restrictions RLS
+7. **Acompte dynamique** : Le pourcentage d'acompte varie selon la date de départ (30% standard, 50% si < 30 jours, 100% si < 15 jours)
 
 ## Commandes
 
@@ -200,13 +234,20 @@ npm run preview  # Prévisualisation du build
 
 - **Système d'emails automatiques** : Edge Functions pour envoi d'emails via Gmail API
 - **Templates d'emails éditables** : Interface admin pour personnaliser les emails (Paramètres > Emails)
+- **Syntaxe Handlebars dans templates** : Support des conditions `{{#if}}...{{else}}...{{/if}}`
 - **Notification devis prêts** : Email automatique au client quand ses devis sont générés
 - **Pages publiques** : CGV, À propos, Contact, Devenir Partenaire
 - **Service Clientèle** : Page complète de gestion des relances avec filtres personnalisés et requêtes prédéfinies
 - **Demande chauffeur** : Workflow de demande d'infos chauffeur aux transporteurs
-- **Feuille de route** : Affichage dans l'espace client et génération PDF
+- **Feuille de route** : Affichage dans l'espace client et génération PDF (une colonne pour aller simple)
 - **Statistiques cliquables** : Les cards de stats dans Service Clientèle appliquent des filtres au clic
 - **Synchronisation paiement/facture** : Mise à jour automatique du statut facture lors d'un paiement
+- **Auto-refresh dossier** : Le dossier se met à jour automatiquement après mutations (paiements, etc.)
+- **Timeline paiements** : Entrées automatiques dans l'historique lors d'un paiement/remboursement
+- **Onglet Historique** : Dans Paramètres, chronologie complète de toutes les actions (filtres date/type/recherche)
+- **Liens cliquables Exploitation** : Le numéro de dossier ouvre le dossier dans un nouvel onglet
+- **Deep linking dossiers** : URL `/admin?dossierId=xxx` ouvre directement un dossier spécifique
+- **Signature contrat via Edge Function** : Contourne les restrictions RLS pour la signature client
 
 ## Pages publiques
 
@@ -215,3 +256,64 @@ npm run preview  # Prévisualisation du build
 - `/a-propos` - Page À propos de Busmoov
 - `/contact` - Page de contact avec formulaire
 - `/devenir-partenaire` - Formulaire pour les transporteurs souhaitant rejoindre le réseau
+
+## Internationalisation (i18n)
+
+### Langues supportées
+| Code | Pays | Devise | TVA Transport |
+|------|------|--------|---------------|
+| `fr` | France | EUR (€) | 10% |
+| `es` | Espagne | EUR (€) | 10% |
+| `de` | Allemagne | EUR (€) | 7% |
+| `en` | Royaume-Uni (GB) | GBP (£) | 0% |
+
+### Structure des fichiers de traduction
+```
+src/locales/
+├── fr/
+│   ├── common.json    # Traductions générales (nav, formulaires, pages)
+│   ├── pdf.json       # Traductions pour les PDFs
+│   └── forms.json     # Traductions formulaires
+├── es/
+├── de/
+└── en/
+```
+
+### Configuration i18n
+- **Fichier principal** : `src/lib/i18n.ts`
+- **Composants** : `src/components/i18n/LanguageRouter.tsx`
+- **Hook pays** : `src/hooks/useCountrySettings.ts`
+
+### URLs avec préfixe de langue
+Les URLs publiques incluent un préfixe de langue : `/fr/`, `/es/`, `/de/`, `/en/`
+Redirection automatique vers la langue du navigateur si pas de préfixe.
+
+### Templates d'emails multilingues
+- **Table** : `email_templates` avec colonne `language` (fr, es, de, en)
+- **Contrainte unique** : `(key, language)` - permet le même template en plusieurs langues
+- **Fallback** : Si template non trouvé dans la langue demandée, utilise le français avec traduction automatique via `EMAIL_TRANSLATIONS`
+
+### Templates client (par langue)
+- `quote_sent`, `confirmation_reservation`, `payment_reminder`, `rappel_solde`
+- `info_request`, `driver_info`, `confirmation_signature_cb/virement`
+- `review_request`, `confirmation_solde`, `confirmation_demande`, `offre_flash`
+
+### Templates fournisseur (par langue)
+Les fournisseurs sont locaux à chaque pays (transporteurs espagnols en Espagne, etc.)
+- `demande_chauffeur` - Demande d'infos chauffeur
+- `demande_fournisseur` - Confirmation de commande (BPA)
+- `demande_prix_fournisseur` - Demande de prix
+- `demande_tarif_fournisseur` - Demande de tarif
+
+### Configuration pays (table `countries`)
+Chaque pays a sa propre configuration :
+- Informations entreprise (nom, SIRET/CIF/Company No., TVA intra)
+- Coordonnées bancaires (IBAN, BIC)
+- Téléphone et email de contact
+- Préfixes factures et proformas
+- Contenu légal (CGV, mentions légales, confidentialité)
+
+### Pages admin multi-pays
+- **Paramètres > Pays** : Configuration de chaque pays (CountrySettingsPage)
+- **Transporteurs** : Filtre par pays (FR, ES, DE, GB)
+- **Nouveau dossier** : Sélection du pays client

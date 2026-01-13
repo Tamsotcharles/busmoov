@@ -1,7 +1,760 @@
 import { jsPDF } from 'jspdf'
-import { formatDate, formatDateTime, formatPricePDF } from './utils'
+import { formatDate, formatDateTime, formatPricePDF, formatDateLocalized } from './utils'
 import { supabase } from './supabase'
 import type { CompanySettings } from '@/types/database'
+
+// Traductions PDF par langue
+type PdfLanguage = 'fr' | 'es' | 'de' | 'en'
+
+interface PdfTranslations {
+  // Documents
+  quote: string
+  invoice: string
+  proforma: string
+  contract: string
+  roadmap: string
+  creditNote: string
+  // Headers
+  number: string
+  date: string
+  dossier: string
+  client: string
+  yourAdvisor: string
+  teamBusmoov: string
+  // Sections
+  serviceDetails: string
+  outward: string
+  return: string
+  madTitle: string
+  vehicleInfo: string
+  pricing: string
+  // Fields
+  departureDate: string
+  returnDate: string
+  returnTime: string
+  departurePlace: string
+  destinationPlace: string
+  place: string
+  vehicle: string
+  vehicleType: string
+  passengers: string
+  persons: string
+  driver: string
+  drivers: string
+  cars: string
+  numberOfCars: string
+  numberOfDrivers: string
+  includedKm: string
+  luggage: string
+  distance: string
+  duration: string
+  days: string
+  // Pricing
+  priceHT: string
+  priceTTC: string
+  pricePerCarHT: string
+  pricePerCarTTC: string
+  vatRate: string
+  vatAmount: string
+  total: string
+  totalHT: string
+  totalTTC: string
+  deposit: string
+  balance: string
+  balanceBefore: string
+  alreadyPaid: string
+  remaining: string
+  perPerson: string
+  perCar: string
+  unitPrice: string
+  quantity: string
+  // Options
+  options: string
+  optionsAvailable: string
+  tolls: string
+  tollsIncluded: string
+  tollsNotIncluded: string
+  driverMeals: string
+  mealsIncluded: string
+  mealsNotIncluded: string
+  parking: string
+  parkingIncluded: string
+  parkingNotIncluded: string
+  driverAccommodation: string
+  accommodationIncluded: string
+  accommodationNotIncluded: string
+  // Payment
+  paymentTerms: string
+  paymentMethod: string
+  bankTransfer: string
+  creditCard: string
+  bankDetails: string
+  iban: string
+  bic: string
+  beneficiary: string
+  reference: string
+  amount: string
+  depositOnBooking: string
+  balanceBeforeDeparture: string
+  paymentByCardOrTransfer: string
+  // Invoice specific
+  invoiceDate: string
+  dueDate: string
+  paymentReceived: string
+  // Contract
+  signedOn: string
+  billingAddress: string
+  // Cancellation
+  cancellationConditions: string
+  cancellationIntro: string
+  cancellation31: string
+  cancellation30to14: string
+  cancellation13to8: string
+  cancellation7: string
+  // Roadmap
+  driverInfo: string
+  driverName: string
+  driverPhone: string
+  tripDetails: string
+  pickupAddress: string
+  destinationAddress: string
+  comments: string
+  contactOnSite: string
+  // Validity
+  validUntil: string
+  validFor: string
+  quoteValidFor: string
+  // Misc
+  page: string
+  of: string
+  generatedOn: string
+  standardBus: string
+  orText: string
+  billedTo: string
+  invoiceDeposit: string
+  invoiceBalance: string
+  // Luggage types
+  luggageLight: string
+  luggageMedium: string
+  luggageHeavy: string
+  luggageNone: string
+  // Table headers (factures/proformas)
+  designation: string
+  qty: string
+  unitPriceHT: string
+  // Service descriptions
+  transportOneWay: string
+  transportRoundTrip: string
+  transportMAD: string
+  coach: string
+  // Section headers
+  prestation: string
+  summary: string
+  paymentInfo: string
+  remainingToPay: string
+  paymentsMade: string
+  paymentCB: string
+  paymentTransfer: string
+  // Trip types
+  tripOneWay: string
+  tripRoundTrip: string
+  tripMAD: string
+  tripMADDays: string
+  // Invoice line descriptions
+  transportService: string
+  depositPercent: string
+  balancePercent: string
+  creditNoteDesc: string
+  totalTTCLabel: string
+  depositRefLabel: string
+  vatDetails: string
+}
+
+
+const PDF_TRANSLATIONS: Record<PdfLanguage, PdfTranslations> = {
+  fr: {
+    quote: 'DEVIS',
+    invoice: 'FACTURE',
+    proforma: 'PROFORMA',
+    contract: 'CONTRAT',
+    roadmap: 'FEUILLE DE ROUTE',
+    creditNote: 'AVOIR',
+    number: 'N°',
+    date: 'Date',
+    dossier: 'Dossier',
+    client: 'Client',
+    yourAdvisor: 'Votre conseiller',
+    teamBusmoov: 'Equipe Busmoov',
+    serviceDetails: 'Détails de la prestation',
+    outward: 'ALLER',
+    return: 'RETOUR',
+    madTitle: 'MISE À DISPOSITION',
+    vehicleInfo: 'Informations véhicule',
+    pricing: 'Tarification',
+    departureDate: 'Date de départ',
+    returnDate: 'Date de retour',
+    returnTime: 'Heure de retour',
+    departurePlace: 'Lieu de départ',
+    destinationPlace: 'Lieu de destination',
+    place: 'Lieu',
+    vehicle: 'Véhicule',
+    vehicleType: 'Type de véhicule',
+    passengers: 'Passagers',
+    persons: 'personnes',
+    driver: 'chauffeur',
+    drivers: 'chauffeurs',
+    cars: 'car(s)',
+    numberOfCars: 'Nombre de cars',
+    numberOfDrivers: 'Nombre de chauffeurs',
+    includedKm: 'Kilomètres inclus',
+    luggage: 'Bagages',
+    distance: 'Distance',
+    duration: 'Durée',
+    days: 'jours',
+    priceHT: 'Prix HT',
+    priceTTC: 'Prix TTC',
+    pricePerCarHT: 'Prix par car HT',
+    pricePerCarTTC: 'EUR TTC par car',
+    vatRate: 'TVA',
+    vatAmount: 'Montant TVA',
+    total: 'Total',
+    totalHT: 'Total HT',
+    totalTTC: 'TOTAL TTC',
+    deposit: 'Acompte',
+    balance: 'Solde',
+    balanceBefore: 'Solde avant départ',
+    alreadyPaid: 'Déjà réglé',
+    remaining: 'Reste à payer',
+    perPerson: 'par personne',
+    perCar: 'par car',
+    unitPrice: 'Prix unitaire',
+    quantity: 'Quantité',
+    options: 'Options',
+    optionsAvailable: 'Options disponibles (non incluses)',
+    tolls: 'Péages',
+    tollsIncluded: 'Péages inclus',
+    tollsNotIncluded: 'Péages non inclus',
+    driverMeals: 'Repas chauffeur',
+    mealsIncluded: 'Repas chauffeur inclus',
+    mealsNotIncluded: 'Repas chauffeur non inclus',
+    parking: 'Parking',
+    parkingIncluded: 'Parking inclus',
+    parkingNotIncluded: 'Parking non inclus',
+    driverAccommodation: 'Hébergement chauffeur',
+    accommodationIncluded: 'Hébergement chauffeur inclus',
+    accommodationNotIncluded: 'Hébergement chauffeur non inclus',
+    paymentTerms: 'Modalités de règlement',
+    paymentMethod: 'Mode de paiement',
+    bankTransfer: 'Virement bancaire',
+    creditCard: 'Carte bancaire',
+    bankDetails: 'Coordonnées bancaires',
+    iban: 'IBAN',
+    bic: 'BIC',
+    beneficiary: 'Bénéficiaire',
+    reference: 'Référence',
+    amount: 'Montant',
+    depositOnBooking: '30% à la réservation',
+    balanceBeforeDeparture: 'Solde 45 jours avant le départ',
+    paymentByCardOrTransfer: 'Paiement par carte bancaire ou virement',
+    invoiceDate: 'Date de facturation',
+    dueDate: 'Date d\'échéance',
+    paymentReceived: 'Paiement reçu le',
+    signedOn: 'Signé le',
+    billingAddress: 'Adresse de facturation',
+    cancellationConditions: 'Conditions d\'annulation',
+    cancellationIntro: 'La validation en ligne implique une acceptation totale de nos conditions générales de vente et donc des conditions d\'annulation ci-dessous :',
+    cancellation31: '30% du prix du service si l\'annulation intervient à J-31 ou plus',
+    cancellation30to14: '50% du prix du service si l\'annulation intervient entre J-30 et J-14',
+    cancellation13to8: '70% du prix du service si l\'annulation intervient entre J-13 et J-8',
+    cancellation7: '100% du prix du service si l\'annulation intervient à J-7 ou moins',
+    driverInfo: 'Informations chauffeur',
+    driverName: 'Nom du chauffeur',
+    driverPhone: 'Téléphone',
+    tripDetails: 'Détails du trajet',
+    pickupAddress: 'Adresse de prise en charge',
+    destinationAddress: 'Adresse de destination',
+    comments: 'Commentaires',
+    contactOnSite: 'Contact sur place',
+    validUntil: 'Valable jusqu\'au',
+    validFor: 'Validité',
+    quoteValidFor: 'Ce devis est valable',
+    page: 'Page',
+    of: 'sur',
+    generatedOn: 'Généré le',
+    standardBus: 'Autocar standard',
+    orText: 'Soit',
+    billedTo: 'FACTURÉ À',
+    invoiceDeposit: "D'ACOMPTE",
+    invoiceBalance: 'DE SOLDE',
+    luggageLight: 'Léger (sacs à main, petits sacs)',
+    luggageMedium: 'Moyen (valises cabine)',
+    luggageHeavy: 'Volumineux (grosses valises)',
+    luggageNone: 'Aucun bagage',
+    designation: 'Désignation',
+    qty: 'Qté',
+    unitPriceHT: 'Prix Unit. HT',
+    transportOneWay: 'Transport aller simple autocar',
+    transportRoundTrip: 'Transport aller-retour autocar',
+    transportMAD: 'Mise à disposition autocar',
+    coach: 'autocar',
+    prestation: 'PRESTATION',
+    summary: 'RÉCAPITULATIF',
+    paymentInfo: 'INFORMATIONS DE PAIEMENT',
+    remainingToPay: 'Reste à régler',
+    paymentsMade: 'Paiements effectués',
+    paymentCB: 'CB',
+    paymentTransfer: 'Virement',
+    tripOneWay: 'ALLER SIMPLE',
+    tripRoundTrip: 'ALLER / RETOUR',
+    tripMAD: 'MISE À DISPOSITION',
+    tripMADDays: 'jours',
+    transportService: 'Prestation de transport autocar',
+    depositPercent: 'Acompte',
+    balancePercent: 'Solde',
+    creditNoteDesc: 'Avoir - Transport autocar',
+    totalTTCLabel: 'Total TTC',
+    depositRefLabel: 'Acompte',
+    vatDetails: 'DÉTAILS TVA',
+  },
+  es: {
+    quote: 'PRESUPUESTO',
+    invoice: 'FACTURA',
+    proforma: 'PROFORMA',
+    contract: 'CONTRATO',
+    roadmap: 'HOJA DE RUTA',
+    creditNote: 'NOTA DE CRÉDITO',
+    number: 'N°',
+    date: 'Fecha',
+    dossier: 'Expediente',
+    client: 'Cliente',
+    yourAdvisor: 'Su asesor',
+    teamBusmoov: 'Equipo Busmoov',
+    serviceDetails: 'Detalles del servicio',
+    outward: 'IDA',
+    return: 'VUELTA',
+    madTitle: 'PUESTA A DISPOSICIÓN',
+    vehicleInfo: 'Información del vehículo',
+    pricing: 'Tarifas',
+    departureDate: 'Fecha de salida',
+    returnDate: 'Fecha de regreso',
+    returnTime: 'Hora de regreso',
+    departurePlace: 'Lugar de salida',
+    destinationPlace: 'Lugar de destino',
+    place: 'Lugar',
+    vehicle: 'Vehículo',
+    vehicleType: 'Tipo de vehículo',
+    passengers: 'Pasajeros',
+    persons: 'personas',
+    driver: 'conductor',
+    drivers: 'conductores',
+    cars: 'autocar(es)',
+    numberOfCars: 'Número de autocares',
+    numberOfDrivers: 'Número de conductores',
+    includedKm: 'Kilómetros incluidos',
+    luggage: 'Equipaje',
+    distance: 'Distancia',
+    duration: 'Duración',
+    days: 'días',
+    priceHT: 'Precio sin IVA',
+    priceTTC: 'Precio con IVA',
+    pricePerCarHT: 'Precio por autocar sin IVA',
+    pricePerCarTTC: 'EUR con IVA por autocar',
+    vatRate: 'IVA',
+    vatAmount: 'Importe IVA',
+    total: 'Total',
+    totalHT: 'Total sin IVA',
+    totalTTC: 'TOTAL CON IVA',
+    deposit: 'Anticipo',
+    balance: 'Saldo',
+    balanceBefore: 'Saldo antes de la salida',
+    alreadyPaid: 'Ya pagado',
+    remaining: 'Pendiente de pago',
+    perPerson: 'por persona',
+    perCar: 'por autocar',
+    unitPrice: 'Precio unitario',
+    quantity: 'Cantidad',
+    options: 'Opciones',
+    optionsAvailable: 'Opciones disponibles (no incluidas)',
+    tolls: 'Peajes',
+    tollsIncluded: 'Peajes incluidos',
+    tollsNotIncluded: 'Peajes no incluidos',
+    driverMeals: 'Comidas conductor',
+    mealsIncluded: 'Comidas conductor incluidas',
+    mealsNotIncluded: 'Comidas conductor no incluidas',
+    parking: 'Parking',
+    parkingIncluded: 'Parking incluido',
+    parkingNotIncluded: 'Parking no incluido',
+    driverAccommodation: 'Alojamiento conductor',
+    accommodationIncluded: 'Alojamiento conductor incluido',
+    accommodationNotIncluded: 'Alojamiento conductor no incluido',
+    paymentTerms: 'Condiciones de pago',
+    paymentMethod: 'Forma de pago',
+    bankTransfer: 'Transferencia bancaria',
+    creditCard: 'Tarjeta de crédito',
+    bankDetails: 'Datos bancarios',
+    iban: 'IBAN',
+    bic: 'BIC',
+    beneficiary: 'Beneficiario',
+    reference: 'Referencia',
+    amount: 'Importe',
+    depositOnBooking: '30% en la reserva',
+    balanceBeforeDeparture: 'Saldo 45 días antes de la salida',
+    paymentByCardOrTransfer: 'Pago por tarjeta de crédito o transferencia',
+    invoiceDate: 'Fecha de facturación',
+    dueDate: 'Fecha de vencimiento',
+    paymentReceived: 'Pago recibido el',
+    signedOn: 'Firmado el',
+    billingAddress: 'Dirección de facturación',
+    cancellationConditions: 'Condiciones de cancelación',
+    cancellationIntro: 'La validación en línea implica la aceptación total de nuestras condiciones generales de venta y, por tanto, de las condiciones de cancelación siguientes:',
+    cancellation31: '30% del precio del servicio si la cancelación se produce en J-31 o más',
+    cancellation30to14: '50% del precio del servicio si la cancelación se produce entre J-30 y J-14',
+    cancellation13to8: '70% del precio del servicio si la cancelación se produce entre J-13 y J-8',
+    cancellation7: '100% del precio del servicio si la cancelación se produce en J-7 o menos',
+    driverInfo: 'Información del conductor',
+    driverName: 'Nombre del conductor',
+    driverPhone: 'Teléfono',
+    tripDetails: 'Detalles del trayecto',
+    pickupAddress: 'Dirección de recogida',
+    destinationAddress: 'Dirección de destino',
+    comments: 'Comentarios',
+    contactOnSite: 'Contacto en el lugar',
+    validUntil: 'Válido hasta',
+    validFor: 'Validez',
+    quoteValidFor: 'Este presupuesto es válido por',
+    page: 'Página',
+    of: 'de',
+    generatedOn: 'Generado el',
+    standardBus: 'Autocar estándar',
+    orText: 'Es decir',
+    billedTo: 'FACTURADO A',
+    invoiceDeposit: 'DE ANTICIPO',
+    invoiceBalance: 'DE SALDO',
+    luggageLight: 'Ligero (bolsos, bolsas pequeñas)',
+    luggageMedium: 'Mediano (maletas de cabina)',
+    luggageHeavy: 'Voluminoso (maletas grandes)',
+    luggageNone: 'Sin equipaje',
+    designation: 'Descripción',
+    qty: 'Cant.',
+    unitPriceHT: 'Precio Unit. s/IVA',
+    transportOneWay: 'Transporte solo ida autocar',
+    transportRoundTrip: 'Transporte ida y vuelta autocar',
+    transportMAD: 'Puesta a disposición autocar',
+    coach: 'autocar',
+    prestation: 'SERVICIO',
+    summary: 'RESUMEN',
+    paymentInfo: 'INFORMACIÓN DE PAGO',
+    remainingToPay: 'Pendiente de pago',
+    paymentsMade: 'Pagos realizados',
+    paymentCB: 'Tarjeta',
+    paymentTransfer: 'Transferencia',
+    tripOneWay: 'SOLO IDA',
+    tripRoundTrip: 'IDA Y VUELTA',
+    tripMAD: 'PUESTA A DISPOSICIÓN',
+    tripMADDays: 'días',
+    transportService: 'Servicio de transporte en autocar',
+    depositPercent: 'Anticipo',
+    balancePercent: 'Saldo',
+    creditNoteDesc: 'Nota de crédito - Transporte en autocar',
+    totalTTCLabel: 'Total IVA incl.',
+    depositRefLabel: 'Anticipo',
+    vatDetails: 'DETALLE IVA',
+  },
+  de: {
+    quote: 'ANGEBOT',
+    invoice: 'RECHNUNG',
+    proforma: 'PROFORMA',
+    contract: 'VERTRAG',
+    roadmap: 'ROUTENPLAN',
+    creditNote: 'GUTSCHRIFT',
+    number: 'Nr.',
+    date: 'Datum',
+    dossier: 'Akte',
+    client: 'Kunde',
+    yourAdvisor: 'Ihr Berater',
+    teamBusmoov: 'Team Busmoov',
+    serviceDetails: 'Leistungsdetails',
+    outward: 'HINFAHRT',
+    return: 'RÜCKFAHRT',
+    madTitle: 'BEREITSTELLUNG',
+    vehicleInfo: 'Fahrzeuginformationen',
+    pricing: 'Preisgestaltung',
+    departureDate: 'Abfahrtsdatum',
+    returnDate: 'Rückfahrtdatum',
+    returnTime: 'Rückfahrtzeit',
+    departurePlace: 'Abfahrtsort',
+    destinationPlace: 'Zielort',
+    place: 'Ort',
+    vehicle: 'Fahrzeug',
+    vehicleType: 'Fahrzeugtyp',
+    passengers: 'Passagiere',
+    persons: 'Personen',
+    driver: 'Fahrer',
+    drivers: 'Fahrer',
+    cars: 'Bus(se)',
+    numberOfCars: 'Anzahl Busse',
+    numberOfDrivers: 'Anzahl Fahrer',
+    includedKm: 'Inklusive Kilometer',
+    luggage: 'Gepäck',
+    distance: 'Entfernung',
+    duration: 'Dauer',
+    days: 'Tage',
+    priceHT: 'Preis netto',
+    priceTTC: 'Preis brutto',
+    pricePerCarHT: 'Preis pro Bus netto',
+    pricePerCarTTC: 'EUR brutto pro Bus',
+    vatRate: 'MwSt.',
+    vatAmount: 'MwSt.-Betrag',
+    total: 'Gesamt',
+    totalHT: 'Gesamt netto',
+    totalTTC: 'GESAMT BRUTTO',
+    deposit: 'Anzahlung',
+    balance: 'Restbetrag',
+    balanceBefore: 'Restbetrag vor Abfahrt',
+    alreadyPaid: 'Bereits bezahlt',
+    remaining: 'Noch zu zahlen',
+    perPerson: 'pro Person',
+    perCar: 'pro Bus',
+    unitPrice: 'Einzelpreis',
+    quantity: 'Menge',
+    options: 'Optionen',
+    optionsAvailable: 'Verfügbare Optionen (nicht inbegriffen)',
+    tolls: 'Mautgebühren',
+    tollsIncluded: 'Mautgebühren inklusive',
+    tollsNotIncluded: 'Mautgebühren nicht inklusive',
+    driverMeals: 'Fahrermahlzeiten',
+    mealsIncluded: 'Fahrermahlzeiten inklusive',
+    mealsNotIncluded: 'Fahrermahlzeiten nicht inklusive',
+    parking: 'Parken',
+    parkingIncluded: 'Parken inklusive',
+    parkingNotIncluded: 'Parken nicht inklusive',
+    driverAccommodation: 'Fahrerunterkunft',
+    accommodationIncluded: 'Fahrerunterkunft inklusive',
+    accommodationNotIncluded: 'Fahrerunterkunft nicht inklusive',
+    paymentTerms: 'Zahlungsbedingungen',
+    paymentMethod: 'Zahlungsmethode',
+    bankTransfer: 'Überweisung',
+    creditCard: 'Kreditkarte',
+    bankDetails: 'Bankverbindung',
+    iban: 'IBAN',
+    bic: 'BIC',
+    beneficiary: 'Empfänger',
+    reference: 'Referenz',
+    amount: 'Betrag',
+    depositOnBooking: '30% bei der Buchung',
+    balanceBeforeDeparture: 'Restbetrag 45 Tage vor Abfahrt',
+    paymentByCardOrTransfer: 'Zahlung per Kreditkarte oder Überweisung',
+    invoiceDate: 'Rechnungsdatum',
+    dueDate: 'Fälligkeitsdatum',
+    paymentReceived: 'Zahlung erhalten am',
+    signedOn: 'Unterzeichnet am',
+    billingAddress: 'Rechnungsadresse',
+    cancellationConditions: 'Stornierungsbedingungen',
+    cancellationIntro: 'Die Online-Validierung impliziert die vollständige Akzeptanz unserer Allgemeinen Geschäftsbedingungen und damit der folgenden Stornierungsbedingungen:',
+    cancellation31: '30% des Servicepreises bei Stornierung ab J-31 oder mehr',
+    cancellation30to14: '50% des Servicepreises bei Stornierung zwischen J-30 und J-14',
+    cancellation13to8: '70% des Servicepreises bei Stornierung zwischen J-13 und J-8',
+    cancellation7: '100% des Servicepreises bei Stornierung ab J-7 oder weniger',
+    driverInfo: 'Fahrerinformationen',
+    driverName: 'Fahrername',
+    driverPhone: 'Telefon',
+    tripDetails: 'Fahrdetails',
+    pickupAddress: 'Abholadresse',
+    destinationAddress: 'Zieladresse',
+    comments: 'Kommentare',
+    contactOnSite: 'Kontakt vor Ort',
+    validUntil: 'Gültig bis',
+    validFor: 'Gültigkeit',
+    quoteValidFor: 'Dieses Angebot ist gültig für',
+    page: 'Seite',
+    of: 'von',
+    generatedOn: 'Erstellt am',
+    standardBus: 'Standardbus',
+    orText: 'D.h.',
+    billedTo: 'RECHNUNG AN',
+    invoiceDeposit: 'ANZAHLUNG',
+    invoiceBalance: 'RESTBETRAG',
+    luggageLight: 'Leicht (Handtaschen, kleine Taschen)',
+    luggageMedium: 'Mittel (Handgepäck)',
+    luggageHeavy: 'Groß (große Koffer)',
+    luggageNone: 'Kein Gepäck',
+    designation: 'Bezeichnung',
+    qty: 'Menge',
+    unitPriceHT: 'Einzelpreis netto',
+    transportOneWay: 'Einfache Fahrt Reisebus',
+    transportRoundTrip: 'Hin- und Rückfahrt Reisebus',
+    transportMAD: 'Bereitstellung Reisebus',
+    coach: 'Reisebus',
+    prestation: 'LEISTUNG',
+    summary: 'ZUSAMMENFASSUNG',
+    paymentInfo: 'ZAHLUNGSINFORMATIONEN',
+    remainingToPay: 'Noch zu zahlen',
+    paymentsMade: 'Zahlungen erfolgt',
+    paymentCB: 'Kreditkarte',
+    paymentTransfer: 'Überweisung',
+    tripOneWay: 'EINFACHE FAHRT',
+    tripRoundTrip: 'HIN- UND RÜCKFAHRT',
+    tripMAD: 'BEREITSTELLUNG',
+    tripMADDays: 'Tage',
+    transportService: 'Busbeförderungsleistung',
+    depositPercent: 'Anzahlung',
+    balancePercent: 'Restbetrag',
+    creditNoteDesc: 'Gutschrift - Busbeförderung',
+    totalTTCLabel: 'Gesamtbetrag inkl. MwSt',
+    depositRefLabel: 'Anzahlung',
+    vatDetails: 'MWST-DETAILS',
+  },
+  en: {
+    quote: 'QUOTE',
+    invoice: 'INVOICE',
+    proforma: 'PROFORMA',
+    contract: 'CONTRACT',
+    roadmap: 'TRIP SHEET',
+    creditNote: 'CREDIT NOTE',
+    number: 'No.',
+    date: 'Date',
+    dossier: 'File',
+    client: 'Client',
+    yourAdvisor: 'Your advisor',
+    teamBusmoov: 'Team Busmoov',
+    serviceDetails: 'Service details',
+    outward: 'OUTBOUND',
+    return: 'RETURN',
+    madTitle: 'AT-DISPOSAL SERVICE',
+    vehicleInfo: 'Vehicle information',
+    pricing: 'Pricing',
+    departureDate: 'Departure date',
+    returnDate: 'Return date',
+    returnTime: 'Return time',
+    departurePlace: 'Departure location',
+    destinationPlace: 'Destination',
+    place: 'Location',
+    vehicle: 'Vehicle',
+    vehicleType: 'Vehicle type',
+    passengers: 'Passengers',
+    persons: 'persons',
+    driver: 'driver',
+    drivers: 'drivers',
+    cars: 'coach(es)',
+    numberOfCars: 'Number of coaches',
+    numberOfDrivers: 'Number of drivers',
+    includedKm: 'Kilometres included',
+    luggage: 'Luggage',
+    distance: 'Distance',
+    duration: 'Duration',
+    days: 'days',
+    priceHT: 'Price excl. VAT',
+    priceTTC: 'Price incl. VAT',
+    pricePerCarHT: 'Price per coach excl. VAT',
+    pricePerCarTTC: 'GBP incl. VAT per coach',
+    vatRate: 'VAT',
+    vatAmount: 'VAT amount',
+    total: 'Total',
+    totalHT: 'Total excl. VAT',
+    totalTTC: 'TOTAL INCL. VAT',
+    deposit: 'Deposit',
+    balance: 'Balance',
+    balanceBefore: 'Balance before departure',
+    alreadyPaid: 'Already paid',
+    remaining: 'Remaining balance',
+    perPerson: 'per person',
+    perCar: 'per coach',
+    unitPrice: 'Unit price',
+    quantity: 'Quantity',
+    options: 'Options',
+    optionsAvailable: 'Available options (not included)',
+    tolls: 'Tolls',
+    tollsIncluded: 'Tolls included',
+    tollsNotIncluded: 'Tolls not included',
+    driverMeals: 'Driver meals',
+    mealsIncluded: 'Driver meals included',
+    mealsNotIncluded: 'Driver meals not included',
+    parking: 'Parking',
+    parkingIncluded: 'Parking included',
+    parkingNotIncluded: 'Parking not included',
+    driverAccommodation: 'Driver accommodation',
+    accommodationIncluded: 'Driver accommodation included',
+    accommodationNotIncluded: 'Driver accommodation not included',
+    paymentTerms: 'Payment terms',
+    paymentMethod: 'Payment method',
+    bankTransfer: 'Bank transfer',
+    creditCard: 'Credit card',
+    bankDetails: 'Bank details',
+    iban: 'IBAN',
+    bic: 'BIC',
+    beneficiary: 'Beneficiary',
+    reference: 'Reference',
+    amount: 'Amount',
+    depositOnBooking: '30% on booking',
+    balanceBeforeDeparture: 'Balance 45 days before departure',
+    paymentByCardOrTransfer: 'Payment by credit card or bank transfer',
+    invoiceDate: 'Invoice date',
+    dueDate: 'Due date',
+    paymentReceived: 'Payment received on',
+    signedOn: 'Signed on',
+    billingAddress: 'Billing address',
+    cancellationConditions: 'Cancellation conditions',
+    cancellationIntro: 'Online validation implies full acceptance of our terms and conditions and therefore the cancellation conditions below:',
+    cancellation31: '30% of the service price if cancellation occurs D-31 or more',
+    cancellation30to14: '50% of the service price if cancellation occurs between D-30 and D-14',
+    cancellation13to8: '70% of the service price if cancellation occurs between D-13 and D-8',
+    cancellation7: '100% of the service price if cancellation occurs D-7 or less',
+    driverInfo: 'Driver information',
+    driverName: 'Driver name',
+    driverPhone: 'Phone',
+    tripDetails: 'Trip details',
+    pickupAddress: 'Pick-up address',
+    destinationAddress: 'Destination address',
+    comments: 'Comments',
+    contactOnSite: 'On-site contact',
+    validUntil: 'Valid until',
+    validFor: 'Validity',
+    quoteValidFor: 'This quote is valid for',
+    page: 'Page',
+    of: 'of',
+    generatedOn: 'Generated on',
+    standardBus: 'Standard coach',
+    orText: 'i.e.',
+    billedTo: 'BILLED TO',
+    invoiceDeposit: 'DEPOSIT',
+    invoiceBalance: 'BALANCE',
+    luggageLight: 'Light (handbags, small bags)',
+    luggageMedium: 'Medium (cabin luggage)',
+    luggageHeavy: 'Large (large suitcases)',
+    luggageNone: 'No luggage',
+    designation: 'Description',
+    qty: 'Qty',
+    unitPriceHT: 'Unit Price excl. VAT',
+    transportOneWay: 'One-way coach transport',
+    transportRoundTrip: 'Round-trip coach transport',
+    transportMAD: 'Coach at disposal',
+    coach: 'coach',
+    prestation: 'SERVICE',
+    summary: 'SUMMARY',
+    paymentInfo: 'PAYMENT INFORMATION',
+    remainingToPay: 'Remaining to pay',
+    paymentsMade: 'Payments made',
+    paymentCB: 'Card',
+    paymentTransfer: 'Transfer',
+    tripOneWay: 'ONE WAY',
+    tripRoundTrip: 'ROUND TRIP',
+    tripMAD: 'AT DISPOSAL',
+    tripMADDays: 'days',
+    transportService: 'Coach transport service',
+    depositPercent: 'Deposit',
+    balancePercent: 'Balance',
+    creditNoteDesc: 'Credit note - Coach transport',
+    totalTTCLabel: 'Total incl. VAT',
+    depositRefLabel: 'Deposit',
+    vatDetails: 'VAT DETAILS',
+  },
+}
+
+// Fonction pour obtenir les traductions PDF
+function getPdfTranslations(lang: string = 'fr'): PdfTranslations {
+  const language = (lang?.toLowerCase() || 'fr') as PdfLanguage
+  return PDF_TRANSLATIONS[language] || PDF_TRANSLATIONS.fr
+}
 
 // Cache pour le logo converti en PNG base64
 let cachedLogoBase64: string | null = null
@@ -90,15 +843,137 @@ const DEFAULT_COMPANY_INFO = {
   rcs: 'Paris 853 867 703',
   codeApe: '4939B',
   tvaIntracom: 'FR58853867703',
+  vatRate: 10,
+  vatLabel: 'TVA',
   rib: {
     iban: 'FR76 3000 4015 9600 0101 0820 195',
     bic: 'BNPAFRPPXXX',
+    beneficiary: 'BUSMOOV SAS',
   },
 }
 
-// Fonction pour charger les settings depuis la BDD
-async function getCompanyInfo(): Promise<typeof DEFAULT_COMPANY_INFO> {
+// Type pour les informations pays
+interface CountryInfo {
+  code: string
+  name: string
+  vatRate: number
+  vatLabel: string
+  phone: string
+  email: string
+  address: string
+  city: string
+  companyName: string
+  siret: string
+  tvaIntra: string
+  invoicePrefix: string
+  proformaPrefix: string
+  bankName: string
+  bankIban: string
+  bankBic: string
+  bankBeneficiary: string
+}
+
+// Cache pour les infos pays
+const countryInfoCache: Record<string, CountryInfo> = {}
+
+// Fonction pour récupérer les informations d'un pays
+async function getCountryInfo(countryCode: string = 'FR'): Promise<CountryInfo> {
+  // Vérifier le cache
+  if (countryInfoCache[countryCode]) {
+    return countryInfoCache[countryCode]
+  }
+
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
+      .from('countries')
+      .select('*')
+      .eq('code', countryCode)
+      .single()
+
+    if (error || !data) {
+      console.warn(`Could not load country ${countryCode}, using FR defaults`)
+      // Fallback sur FR
+      if (countryCode !== 'FR') {
+        return getCountryInfo('FR')
+      }
+      // Retourner les valeurs par défaut
+      return {
+        code: 'FR',
+        name: 'France',
+        vatRate: 10,
+        vatLabel: 'TVA',
+        phone: '01 76 31 12 83',
+        email: 'infos@busmoov.com',
+        address: '41 Rue Barrault',
+        city: '75013 Paris',
+        companyName: 'Busmoov',
+        siret: '853 867 703 00029',
+        tvaIntra: 'FR58853867703',
+        invoicePrefix: 'FR-',
+        proformaPrefix: 'PRO-FR-',
+        bankName: 'BNP Paribas',
+        bankIban: 'FR76 3000 4015 9600 0101 0820 195',
+        bankBic: 'BNPAFRPPXXX',
+        bankBeneficiary: 'BUSMOOV SAS',
+      }
+    }
+
+    const countryInfo: CountryInfo = {
+      code: data.code,
+      name: data.name,
+      vatRate: parseFloat(data.vat_rate) || 10,
+      vatLabel: data.vat_label || 'TVA',
+      phone: data.phone_display || data.phone || '',
+      email: data.email || '',
+      address: data.address || '',
+      city: data.city || '',
+      companyName: data.company_name || 'Busmoov',
+      siret: data.siret || '',
+      tvaIntra: data.tva_intra || '',
+      invoicePrefix: data.invoice_prefix || '',
+      proformaPrefix: data.proforma_prefix || '',
+      bankName: data.bank_name || '',
+      bankIban: data.bank_iban || '',
+      bankBic: data.bank_bic || '',
+      bankBeneficiary: data.bank_beneficiary || '',
+    }
+
+    // Mettre en cache
+    countryInfoCache[countryCode] = countryInfo
+    return countryInfo
+  } catch (err) {
+    console.error('Error loading country info:', err)
+    // Fallback
+    return {
+      code: 'FR',
+      name: 'France',
+      vatRate: 10,
+      vatLabel: 'TVA',
+      phone: '01 76 31 12 83',
+      email: 'infos@busmoov.com',
+      address: '41 Rue Barrault',
+      city: '75013 Paris',
+      companyName: 'Busmoov',
+      siret: '853 867 703 00029',
+      tvaIntra: 'FR58853867703',
+      invoicePrefix: 'FR-',
+      proformaPrefix: 'PRO-FR-',
+      bankName: 'BNP Paribas',
+      bankIban: 'FR76 3000 4015 9600 0101 0820 195',
+      bankBic: 'BNPAFRPPXXX',
+      bankBeneficiary: 'BUSMOOV SAS',
+    }
+  }
+}
+
+// Fonction pour charger les settings depuis la BDD (avec support multi-pays)
+export async function getCompanyInfo(countryCode: string = 'FR'): Promise<typeof DEFAULT_COMPANY_INFO> {
+  try {
+    // Charger les infos du pays
+    const countryInfo = await getCountryInfo(countryCode)
+
+    // Charger les settings généraux de l'entreprise
     const { data, error } = await supabase
       .from('company_settings')
       .select('*')
@@ -106,25 +981,50 @@ async function getCompanyInfo(): Promise<typeof DEFAULT_COMPANY_INFO> {
       .single()
 
     if (error || !data) {
-      console.warn('Could not load company settings, using defaults')
-      return DEFAULT_COMPANY_INFO
+      console.warn('Could not load company settings, using country defaults')
+      // Utiliser les infos du pays comme fallback
+      return {
+        name: countryInfo.companyName || DEFAULT_COMPANY_INFO.name,
+        legalName: countryInfo.companyName || DEFAULT_COMPANY_INFO.legalName,
+        address: countryInfo.address || DEFAULT_COMPANY_INFO.address,
+        zipCity: countryInfo.city || DEFAULT_COMPANY_INFO.zipCity,
+        phone: countryInfo.phone || DEFAULT_COMPANY_INFO.phone,
+        email: countryInfo.email || DEFAULT_COMPANY_INFO.email,
+        siret: countryInfo.siret || DEFAULT_COMPANY_INFO.siret,
+        rcs: DEFAULT_COMPANY_INFO.rcs,
+        codeApe: DEFAULT_COMPANY_INFO.codeApe,
+        tvaIntracom: countryInfo.tvaIntra || DEFAULT_COMPANY_INFO.tvaIntracom,
+        vatRate: countryInfo.vatRate,
+        vatLabel: countryInfo.vatLabel,
+        rib: {
+          iban: countryInfo.bankIban || DEFAULT_COMPANY_INFO.rib.iban,
+          bic: countryInfo.bankBic || DEFAULT_COMPANY_INFO.rib.bic,
+          beneficiary: countryInfo.bankBeneficiary || DEFAULT_COMPANY_INFO.rib.beneficiary,
+        },
+      }
     }
 
     const settings = data as CompanySettings
+
+    // Fusionner les settings généraux avec les infos spécifiques au pays
+    // Les infos pays ont priorité pour: TVA, RIB, téléphone, email, adresse
     return {
-      name: settings.name || DEFAULT_COMPANY_INFO.name,
-      legalName: settings.legal_name || DEFAULT_COMPANY_INFO.legalName,
-      address: settings.address || DEFAULT_COMPANY_INFO.address,
-      zipCity: `${settings.zip || ''} ${settings.city || ''}`.trim() || DEFAULT_COMPANY_INFO.zipCity,
-      phone: settings.phone || DEFAULT_COMPANY_INFO.phone,
-      email: settings.email || DEFAULT_COMPANY_INFO.email,
-      siret: settings.siret || DEFAULT_COMPANY_INFO.siret,
+      name: countryInfo.companyName || settings.name || DEFAULT_COMPANY_INFO.name,
+      legalName: countryInfo.companyName || settings.legal_name || DEFAULT_COMPANY_INFO.legalName,
+      address: countryInfo.address || settings.address || DEFAULT_COMPANY_INFO.address,
+      zipCity: countryInfo.city || `${settings.zip || ''} ${settings.city || ''}`.trim() || DEFAULT_COMPANY_INFO.zipCity,
+      phone: countryInfo.phone || settings.phone || DEFAULT_COMPANY_INFO.phone,
+      email: countryInfo.email || settings.email || DEFAULT_COMPANY_INFO.email,
+      siret: countryInfo.siret || settings.siret || DEFAULT_COMPANY_INFO.siret,
       rcs: settings.rcs || DEFAULT_COMPANY_INFO.rcs,
       codeApe: settings.code_ape || DEFAULT_COMPANY_INFO.codeApe,
-      tvaIntracom: settings.tva_intracom || DEFAULT_COMPANY_INFO.tvaIntracom,
+      tvaIntracom: countryInfo.tvaIntra || settings.tva_intracom || DEFAULT_COMPANY_INFO.tvaIntracom,
+      vatRate: countryInfo.vatRate,
+      vatLabel: countryInfo.vatLabel,
       rib: {
-        iban: settings.iban || DEFAULT_COMPANY_INFO.rib.iban,
-        bic: settings.bic || DEFAULT_COMPANY_INFO.rib.bic,
+        iban: countryInfo.bankIban || settings.iban || DEFAULT_COMPANY_INFO.rib.iban,
+        bic: countryInfo.bankBic || settings.bic || DEFAULT_COMPANY_INFO.rib.bic,
+        beneficiary: countryInfo.bankBeneficiary || DEFAULT_COMPANY_INFO.rib.beneficiary,
       },
     }
   } catch (err) {
@@ -153,6 +1053,7 @@ interface DevisData {
     passengers: number
     luggage_type?: string | null
     trip_mode?: string | null
+    country_code?: string | null
   } | null
   transporteur?: {
     name: string
@@ -208,6 +1109,7 @@ interface ContratData {
   billing_zip?: string | null
   billing_city?: string | null
   billing_country?: string | null
+  country_code?: string | null
   nombre_cars?: number | null
   nombre_chauffeurs?: number | null
   // Type de service (aller_simple, aller_retour, circuit, mise_disposition)
@@ -351,15 +1253,25 @@ function formatAmount(amount: number): string {
   return formatted.replace(/[\u202F\u00A0]/g, ' ')
 }
 
-export async function generateDevisPDF(devis: DevisData): Promise<void> {
-  const COMPANY_INFO = await getCompanyInfo()
+export async function generateDevisPDF(devis: DevisData, lang: string = 'fr'): Promise<void> {
+  // Récupérer les infos pays basées sur country_code du dossier
+  const countryCode = devis.dossier?.country_code || 'FR'
+  const countryInfo = await getCountryInfo(countryCode)
+
+  // Déterminer la langue à partir du pays si non spécifiée
+  const effectiveLang = lang || (countryCode === 'DE' ? 'de' : countryCode === 'ES' ? 'es' : countryCode === 'GB' ? 'en' : 'fr')
+
+  const COMPANY_INFO = await getCompanyInfo(countryCode)
+  const t = getPdfTranslations(effectiveLang)
   const doc = new jsPDF({
     format: 'a4',
     orientation: 'portrait'
   })
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
-  const tvaRate = devis.tva_rate || 10
+  // Utiliser le taux TVA du pays (prioritaire pour garantir le bon taux légal), sinon celui du devis
+  const tvaRate = countryInfo.vatRate ?? devis.tva_rate ?? 10
+  const vatLabel = countryInfo.vatLabel || t.vatRate
   const tvaAmount = devis.price_ttc - devis.price_ht
 
   // Couleurs Busmoov
@@ -376,16 +1288,16 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   doc.setFontSize(18)
   doc.setTextColor(88, 44, 135) // Purple Busmoov
   doc.setFont('helvetica', 'bold')
-  doc.text('DEVIS', pageWidth - 15, 16, { align: 'right' })
+  doc.text(t.quote, pageWidth - 15, 16, { align: 'right' })
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(10)
   doc.setTextColor(80, 80, 80)
-  doc.text(`N° ${devis.reference}`, pageWidth - 15, 23, { align: 'right' })
+  doc.text(`${t.number} ${devis.reference}`, pageWidth - 15, 23, { align: 'right' })
   doc.setFontSize(9)
   doc.setTextColor(100, 100, 100)
-  doc.text(`Date : ${formatDate(devis.created_at)}`, pageWidth - 15, 29, { align: 'right' })
+  doc.text(`${t.date} : ${formatDateLocalized(devis.created_at, effectiveLang)}`, pageWidth - 15, 29, { align: 'right' })
   if (devis.dossier?.reference) {
-    doc.text(`Dossier : ${devis.dossier.reference}`, pageWidth - 15, 35, { align: 'right' })
+    doc.text(`${t.dossier} : ${devis.dossier.reference}`, pageWidth - 15, 35, { align: 'right' })
   }
 
   drawLine(doc, 42)
@@ -398,7 +1310,7 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(88, 44, 135) // Purple Busmoov
   doc.setFont('helvetica', 'bold')
-  doc.text("Client", 17, y)
+  doc.text(t.client, 17, y)
   doc.setFont('helvetica', 'normal')
 
   y += 7
@@ -424,12 +1336,12 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(88, 44, 135) // Purple Busmoov
   doc.setFont('helvetica', 'bold')
-  doc.text('Votre conseiller', 112, cy)
+  doc.text(t.yourAdvisor, 112, cy)
   doc.setFont('helvetica', 'normal')
 
   cy += 7
   doc.setTextColor(0, 0, 0)
-  doc.text('Equipe Busmoov', 112, cy)
+  doc.text(t.teamBusmoov, 112, cy)
   cy += 5
   doc.setTextColor(233, 30, 140) // Magenta Busmoov
   doc.text(COMPANY_INFO.email, 112, cy)
@@ -448,7 +1360,7 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
-  doc.text('Détails de la prestation', 17, y)
+  doc.text(t.serviceDetails, 17, y)
   doc.setFont('helvetica', 'normal')
 
   y += 12
@@ -460,23 +1372,23 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(233, 30, 140) // Magenta Busmoov
   doc.setFont('helvetica', 'bold')
-  doc.text('ALLER', colLeftX, leftY)
+  doc.text(t.outward, colLeftX, leftY)
   doc.setFont('helvetica', 'normal')
   leftY += 7
 
   // Date/Heure départ
   doc.setTextColor(88, 44, 135) // Purple
-  doc.text('Date de départ', colLeftX, leftY)
+  doc.text(t.departureDate, colLeftX, leftY)
   leftY += 5
   doc.setTextColor(0, 0, 0)
-  const departDate = devis.dossier?.departure_date ? formatDate(devis.dossier.departure_date) : '-'
+  const departDate = devis.dossier?.departure_date ? formatDateLocalized(devis.dossier.departure_date, effectiveLang) : '-'
   const departTime = devis.dossier?.departure_time || ''
   doc.text(`${departDate} ${departTime}`.trim(), colLeftX, leftY)
   leftY += 8
 
   // Lieu départ
   doc.setTextColor(88, 44, 135)
-  doc.text('Lieu de départ', colLeftX, leftY)
+  doc.text(t.departurePlace, colLeftX, leftY)
   leftY += 5
   doc.setTextColor(0, 0, 0)
   const departLines = doc.splitTextToSize(devis.dossier?.departure || '-', colWidth - 10)
@@ -485,7 +1397,7 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
 
   // Lieu arrivée
   doc.setTextColor(88, 44, 135)
-  doc.text('Lieu de destination', colLeftX, leftY)
+  doc.text(t.destinationPlace, colLeftX, leftY)
   leftY += 5
   doc.setTextColor(0, 0, 0)
   const arriveeLines = doc.splitTextToSize(devis.dossier?.arrival || '-', colWidth - 10)
@@ -501,18 +1413,18 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
     doc.setFontSize(9)
     doc.setTextColor(233, 30, 140) // Magenta
     doc.setFont('helvetica', 'bold')
-    doc.text('RETOUR', colRightX, rightY)
+    doc.text(t.return, colRightX, rightY)
     doc.setFont('helvetica', 'normal')
     rightY += 7
 
     // Date/Heure retour
     doc.setTextColor(88, 44, 135)
     const hasReturnDateDevis = !!devis.dossier?.return_date
-    doc.text(hasReturnDateDevis ? 'Date de retour' : 'Heure de retour', colRightX, rightY)
+    doc.text(hasReturnDateDevis ? t.returnDate : t.returnTime, colRightX, rightY)
     rightY += 5
     doc.setTextColor(0, 0, 0)
     if (hasReturnDateDevis) {
-      const retourDate = formatDate(devis.dossier!.return_date!)
+      const retourDate = formatDateLocalized(devis.dossier!.return_date!, effectiveLang)
       const retourTime = devis.dossier?.return_time || ''
       doc.text(`${retourDate} ${retourTime}`.trim(), colRightX, rightY)
     } else {
@@ -523,7 +1435,7 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
 
     // Lieu départ retour (inverse de l'aller)
     doc.setTextColor(88, 44, 135)
-    doc.text('Lieu de départ', colRightX, rightY)
+    doc.text(t.departurePlace, colRightX, rightY)
     rightY += 5
     doc.setTextColor(0, 0, 0)
     const retourDepartLines = doc.splitTextToSize(devis.dossier?.arrival || '-', colWidth - 10)
@@ -532,7 +1444,7 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
 
     // Lieu arrivée retour
     doc.setTextColor(88, 44, 135)
-    doc.text('Lieu de destination', colRightX, rightY)
+    doc.text(t.destinationPlace, colRightX, rightY)
     rightY += 5
     doc.setTextColor(0, 0, 0)
     const retourArriveeLines = doc.splitTextToSize(devis.dossier?.departure || '-', colWidth - 10)
@@ -543,22 +1455,22 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
     doc.setFontSize(9)
     doc.setTextColor(233, 30, 140) // Magenta
     doc.setFont('helvetica', 'bold')
-    doc.text('MISE À DISPOSITION', colRightX, rightY)
+    doc.text(t.madTitle, colRightX, rightY)
     doc.setFont('helvetica', 'normal')
     rightY += 7
 
     if (devis.mad_date) {
       doc.setTextColor(88, 44, 135)
-      doc.text('Date', colRightX, rightY)
+      doc.text(t.date, colRightX, rightY)
       rightY += 5
       doc.setTextColor(0, 0, 0)
-      doc.text(`${formatDate(devis.mad_date)} ${devis.mad_heure || ''}`.trim(), colRightX, rightY)
+      doc.text(`${formatDateLocalized(devis.mad_date, effectiveLang)} ${devis.mad_heure || ''}`.trim(), colRightX, rightY)
       rightY += 8
     }
 
     if (devis.mad_lieu) {
       doc.setTextColor(88, 44, 135)
-      doc.text('Lieu', colRightX, rightY)
+      doc.text(t.place, colRightX, rightY)
       rightY += 5
       doc.setTextColor(0, 0, 0)
       const madLines = doc.splitTextToSize(devis.mad_lieu, colWidth - 10)
@@ -574,24 +1486,24 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(88, 44, 135) // Purple
   doc.setFont('helvetica', 'bold')
-  doc.text('Informations véhicule', 17, y)
+  doc.text(t.vehicleInfo, 17, y)
   doc.setFont('helvetica', 'normal')
 
   y += 8
   doc.setTextColor(0, 0, 0)
   const vehicleDetails: [string, string][] = [
-    ['Passagers', `${devis.dossier?.passengers || '-'} personnes`],
-    ['Type de véhicule', devis.vehicle_type || 'Autocar standard'],
-    ['Nombre de cars', `${nombreCars} véhicule${nombreCars > 1 ? 's' : ''}`],
-    ['Nombre de chauffeurs', `${nombreChauffeurs} chauffeur${nombreChauffeurs > 1 ? 's' : ''}`],
+    [t.passengers, `${devis.dossier?.passengers || '-'} ${t.persons}`],
+    [t.vehicleType, devis.vehicle_type || t.standardBus],
+    [t.numberOfCars, `${nombreCars} ${t.vehicle}${nombreCars > 1 ? 's' : ''}`],
+    [t.numberOfDrivers, `${nombreChauffeurs} ${nombreChauffeurs > 1 ? t.drivers : t.driver}`],
   ]
   if (devis.km) {
-    vehicleDetails.push(['Kilomètres inclus', devis.km])
+    vehicleDetails.push([t.includedKm, devis.km])
   }
   // Bagages
   const luggageType = devis.luggage_type || devis.dossier?.luggage_type
   if (luggageType) {
-    vehicleDetails.push(['Bagages', luggageType])
+    vehicleDetails.push([t.luggage, luggageType])
   }
 
   vehicleDetails.forEach(([label, value], i) => {
@@ -610,7 +1522,7 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
     doc.setFontSize(9)
     doc.setTextColor(88, 44, 135)
     doc.setFont('helvetica', 'bold')
-    doc.text('Commentaires', 17, y)
+    doc.text(t.comments, 17, y)
     doc.setFont('helvetica', 'normal')
     y += 6
     doc.setTextColor(grayText[0], grayText[1], grayText[2])
@@ -624,7 +1536,7 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
-  doc.text('Tarification', 17, y)
+  doc.text(t.pricing, 17, y)
   doc.setFont('helvetica', 'normal')
 
   y += 10
@@ -635,24 +1547,24 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   const prixParCarTTC = devis.price_ttc / nombreCars
 
   // Prix par car HT
-  doc.text(`Prix par car HT`, 17, y)
+  doc.text(t.pricePerCarHT, 17, y)
   doc.text(`${formatAmount(prixParCarHT)} EUR`, pageWidth - 17, y, { align: 'right' })
 
   y += 6
   // Nombre de cars
-  doc.text(`Nombre de cars`, 17, y)
+  doc.text(t.numberOfCars, 17, y)
   doc.text(`x ${nombreCars}`, pageWidth - 17, y, { align: 'right' })
 
   y += 6
   // Total HT
   doc.setFont('helvetica', 'bold')
-  doc.text('Total HT', 17, y)
+  doc.text(t.totalHT, 17, y)
   doc.text(`${formatAmount(devis.price_ht)} EUR`, pageWidth - 17, y, { align: 'right' })
   doc.setFont('helvetica', 'normal')
 
   y += 6
   // TVA
-  doc.text(`TVA (${tvaRate}%)`, 17, y)
+  doc.text(`${vatLabel} (${tvaRate}%)`, 17, y)
   doc.text(`${formatAmount(tvaAmount)} EUR`, pageWidth - 17, y, { align: 'right' })
 
   y += 2
@@ -663,7 +1575,7 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(233, 30, 140) // Magenta Busmoov
-  doc.text('TOTAL TTC', 17, y)
+  doc.text(t.totalTTC, 17, y)
   doc.text(`${formatAmount(devis.price_ttc)} EUR`, pageWidth - 17, y, { align: 'right' })
   doc.setFont('helvetica', 'normal')
 
@@ -671,13 +1583,13 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   y += 6
   doc.setFontSize(8)
   doc.setTextColor(100, 100, 100)
-  doc.text(`Soit ${formatAmount(prixParCarTTC)} EUR TTC par car`, pageWidth - 17, y, { align: 'right' })
+  doc.text(`${t.orText} ${formatAmount(prixParCarTTC)} ${t.pricePerCarTTC}`, pageWidth - 17, y, { align: 'right' })
 
   // Prix par personne
   if (devis.dossier?.passengers && devis.dossier.passengers > 0) {
     y += 4
     const pricePerPerson = devis.price_ttc / devis.dossier.passengers
-    doc.text(`Soit ${formatAmount(pricePerPerson)} EUR TTC par personne`, pageWidth - 17, y, { align: 'right' })
+    doc.text(`${t.orText} ${formatAmount(pricePerPerson)} EUR TTC ${t.perPerson}`, pageWidth - 17, y, { align: 'right' })
   }
 
   // ========== OPTIONS DISPONIBLES ==========
@@ -696,26 +1608,26 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
     const nbRepas = dureeJours * 2
 
     if (opts.peages?.status === 'non_inclus' && opts.peages?.montant && opts.peages.montant > 0) {
-      optionsNonIncluses.push({ label: 'Péages', prix: `${formatAmount(opts.peages.montant)} €` })
+      optionsNonIncluses.push({ label: t.tolls, prix: `${formatAmount(opts.peages.montant)} €` })
     }
     if (opts.repas_chauffeur?.status === 'non_inclus' && opts.repas_chauffeur?.montant && opts.repas_chauffeur.montant > 0) {
       const totalRepas = opts.repas_chauffeur.montant * nbRepas * nombreChauffeurs
       optionsNonIncluses.push({
-        label: 'Repas chauffeur',
+        label: t.driverMeals,
         prix: `${formatAmount(totalRepas)} €`,
-        detail: `(${opts.repas_chauffeur.montant}€ × ${nbRepas} repas × ${nombreChauffeurs} chauff.)`
+        detail: `(${opts.repas_chauffeur.montant}€ × ${nbRepas} × ${nombreChauffeurs})`
       })
     }
     if (opts.parking?.status === 'non_inclus' && opts.parking?.montant && opts.parking.montant > 0) {
-      optionsNonIncluses.push({ label: 'Parking', prix: `${formatAmount(opts.parking.montant)} €` })
+      optionsNonIncluses.push({ label: t.parking, prix: `${formatAmount(opts.parking.montant)} €` })
     }
     if (opts.hebergement?.status === 'non_inclus' && opts.hebergement?.montant && opts.hebergement.montant > 0) {
       const nbNuits = opts.hebergement.nuits || 1
       const totalHeberg = opts.hebergement.montant * nbNuits * nombreChauffeurs
       optionsNonIncluses.push({
-        label: 'Hébergement chauffeur',
+        label: t.driverAccommodation,
         prix: `${formatAmount(totalHeberg)} €`,
-        detail: `(${opts.hebergement.montant}€ × ${nbNuits} nuit${nbNuits > 1 ? 's' : ''} × ${nombreChauffeurs} chauff.)`
+        detail: `(${opts.hebergement.montant}€ × ${nbNuits} × ${nombreChauffeurs})`
       })
     }
 
@@ -727,7 +1639,7 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
       doc.setFontSize(9)
       doc.setTextColor(146, 64, 14) // Amber foncé
       doc.setFont('helvetica', 'bold')
-      doc.text('Options disponibles (non incluses)', 17, y)
+      doc.text(t.optionsAvailable, 17, y)
       doc.setFont('helvetica', 'normal')
 
       y += 8
@@ -758,16 +1670,16 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   doc.setFontSize(10)
   doc.setTextColor(88, 44, 135) // Purple
   doc.setFont('helvetica', 'bold')
-  doc.text('Modalités de règlement', 15, y)
+  doc.text(t.paymentTerms, 15, y)
   doc.setFont('helvetica', 'normal')
 
   y += 7
   doc.setFontSize(8)
   doc.setTextColor(60, 60, 60)
   const modalites = [
-    '• 30% à la réservation',
-    '• Solde 45 jours avant le départ',
-    '• Paiement par carte bancaire ou virement',
+    `• ${t.depositOnBooking}`,
+    `• ${t.balanceBeforeDeparture}`,
+    `• ${t.paymentByCardOrTransfer}`,
   ]
   modalites.forEach((m, i) => {
     doc.text(m, 17, y + (i * 4))
@@ -777,9 +1689,9 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   y += 16
   doc.setFontSize(8)
   doc.setTextColor(100, 100, 100)
-  doc.text(`IBAN: ${COMPANY_INFO.rib.iban}`, 17, y)
+  doc.text(`${t.iban}: ${COMPANY_INFO.rib.iban}`, 17, y)
   y += 4
-  doc.text(`BIC: ${COMPANY_INFO.rib.bic}`, 17, y)
+  doc.text(`${t.bic}: ${COMPANY_INFO.rib.bic}`, 17, y)
 
   // ========== CONDITIONS ANNULATION ==========
   y += 10
@@ -790,24 +1702,23 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(133, 100, 4)
   doc.setFont('helvetica', 'bold')
-  doc.text("Conditions d'annulation", 17, y)
+  doc.text(t.cancellationConditions, 17, y)
   doc.setFont('helvetica', 'normal')
 
   y += 7
   doc.setFontSize(7)
   doc.setTextColor(60, 60, 60)
   // Texte d'introduction
-  const conditionsIntro = "La validation en ligne implique une acceptation totale de nos conditions générales de vente et donc des conditions d'annulation ci-dessous :"
-  const introLines = doc.splitTextToSize(conditionsIntro, pageWidth - 35)
+  const introLines = doc.splitTextToSize(t.cancellationIntro, pageWidth - 35)
   doc.text(introLines, 17, y)
   y += introLines.length * 3.5 + 3
 
   doc.setFontSize(8)
   const conditions = [
-    '30% du prix du service si l\'annulation intervient à J-31 ou plus',
-    '50% du prix du service si l\'annulation intervient entre J-30 et J-14',
-    '70% du prix du service si l\'annulation intervient entre J-13 et J-8',
-    '100% du prix du service si l\'annulation intervient à J-7 ou moins',
+    t.cancellation31,
+    t.cancellation30to14,
+    t.cancellation13to8,
+    t.cancellation7,
   ]
   conditions.forEach((c, i) => {
     doc.text(`• ${c}`, 17, y + (i * 4))
@@ -818,7 +1729,7 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(88, 44, 135) // Purple
   doc.setFont('helvetica', 'bold')
-  doc.text(`Ce devis est valable ${devis.validity_days || 7} jours.`, 15, y)
+  doc.text(`${t.quoteValidFor} ${devis.validity_days || 7} ${t.days}.`, 15, y)
   doc.setFont('helvetica', 'normal')
 
   // ========== FOOTER ==========
@@ -827,15 +1738,25 @@ export async function generateDevisPDF(devis: DevisData): Promise<void> {
   doc.save(`Devis_${devis.reference}.pdf`)
 }
 
-export async function generateContratPDF(contrat: ContratData): Promise<void> {
-  const COMPANY_INFO = await getCompanyInfo()
+export async function generateContratPDF(contrat: ContratData, lang: string = 'fr'): Promise<void> {
+  // Récupérer les infos pays basées sur country_code
+  const countryCode = contrat.country_code || 'FR'
+  const countryInfo = await getCountryInfo(countryCode)
+
+  // Déterminer la langue à partir du pays si non spécifiée
+  const effectiveLang = lang || (countryCode === 'DE' ? 'de' : countryCode === 'ES' ? 'es' : countryCode === 'GB' ? 'en' : 'fr')
+
+  const COMPANY_INFO = await getCompanyInfo(countryCode)
+  const t = getPdfTranslations(effectiveLang)
   const doc = new jsPDF({
     format: 'a4',
     orientation: 'portrait'
   })
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
-  const tvaRate = contrat.tva_rate || 10
+  // Utiliser le taux TVA du pays (prioritaire pour garantir le bon taux légal), sinon celui du contrat
+  const tvaRate = countryInfo.vatRate ?? contrat.tva_rate ?? 10
+  const vatLabel = countryInfo.vatLabel || t.vatRate
   const priceHT = contrat.price_ht || Math.round(contrat.price_ttc / (1 + tvaRate / 100))
   const tvaAmount = contrat.price_ttc - priceHT
 
@@ -864,7 +1785,7 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   ey += 4
   doc.text(COMPANY_INFO.zipCity, pageWidth - 15, ey, { align: 'right' })
   ey += 4
-  doc.text(`Tél: ${COMPANY_INFO.phone}`, pageWidth - 15, ey, { align: 'right' })
+  doc.text(`${t.driverPhone}: ${COMPANY_INFO.phone}`, pageWidth - 15, ey, { align: 'right' })
   ey += 4
   doc.text(COMPANY_INFO.email, pageWidth - 15, ey, { align: 'right' })
   ey += 4
@@ -872,24 +1793,24 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setTextColor(100, 100, 100)
   doc.text(`SIRET: ${COMPANY_INFO.siret}`, pageWidth - 15, ey, { align: 'right' })
   ey += 4
-  doc.text(`TVA: ${COMPANY_INFO.tvaIntracom}`, pageWidth - 15, ey, { align: 'right' })
+  doc.text(`${t.vatRate}: ${COMPANY_INFO.tvaIntracom}`, pageWidth - 15, ey, { align: 'right' })
 
   // ========== TITRE PROFORMA ==========
   let y = 55
   doc.setFontSize(22)
   doc.setTextColor(88, 44, 135)
   doc.setFont('helvetica', 'bold')
-  doc.text('PROFORMA', 15, y)
+  doc.text(t.proforma, 15, y)
 
   // Références
   y += 8
   doc.setFontSize(10)
   doc.setTextColor(60, 60, 60)
   doc.setFont('helvetica', 'normal')
-  doc.text(`N° ${contrat.reference}`, 15, y)
-  doc.text(`Date : ${formatDate(contrat.signed_at || new Date().toISOString())}`, 80, y)
+  doc.text(`${t.number} ${contrat.reference}`, 15, y)
+  doc.text(`${t.date} : ${formatDateLocalized(contrat.signed_at || new Date().toISOString(), effectiveLang)}`, 80, y)
   if (contrat.dossier?.reference) {
-    doc.text(`Dossier : ${contrat.dossier.reference}`, 140, y)
+    doc.text(`${t.dossier} : ${contrat.dossier.reference}`, 140, y)
   }
 
   // ========== BLOC CLIENT ==========
@@ -904,7 +1825,7 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setFontSize(10)
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
-  doc.text('CLIENT', 20, y + 5.5)
+  doc.text(t.client.toUpperCase(), 20, y + 5.5)
 
   // Contenu client
   let cy = y + 14
@@ -937,26 +1858,26 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setFontSize(10)
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
-  doc.text('PRESTATION', 20, y + 5.5)
+  doc.text(t.prestation, 20, y + 5.5)
 
   y += 14
 
   // Type de trajet basé sur service_type ou trip_mode
   // IMPORTANT: Vérifier d'abord circuit/mise_disposition car ils peuvent avoir des dates de retour
   const serviceType = contrat.service_type || contrat.dossier?.trip_mode
-  let typeTrajet = 'ALLER SIMPLE'
+  let typeTrajet = t.tripOneWay
   // ar_mad = aller-retour mise à disposition (circuit multi-jours)
   const isMiseADispo = serviceType === 'circuit' || serviceType === 'mise_disposition' || serviceType === 'ar_mad'
   if (isMiseADispo) {
-    typeTrajet = 'MISE À DISPOSITION'
+    typeTrajet = t.tripMAD
     if (contrat.duree_jours && contrat.duree_jours > 1) {
-      typeTrajet += ` (${contrat.duree_jours} jours)`
+      typeTrajet += ` (${contrat.duree_jours} ${t.tripMADDays})`
     }
   } else if (serviceType === 'aller_retour') {
-    typeTrajet = 'ALLER / RETOUR'
+    typeTrajet = t.tripRoundTrip
   } else if (contrat.dossier?.return_date || contrat.dossier?.return_time) {
     // Seulement si pas de trip_mode spécifié, on déduit du return_date
-    typeTrajet = 'ALLER / RETOUR'
+    typeTrajet = t.tripRoundTrip
   }
 
   doc.setFontSize(11)
@@ -981,7 +1902,7 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(88, 44, 135) // Purple
   doc.setFont('helvetica', 'bold')
-  doc.text('Départ', 17, y)
+  doc.text(t.departurePlace, 17, y)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(0, 0, 0)
   const departureText = contrat.dossier?.departure || '-'
@@ -992,7 +1913,7 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   // Description du trajet - Arrivée
   doc.setTextColor(88, 44, 135) // Purple
   doc.setFont('helvetica', 'bold')
-  doc.text('Arrivée', 17, y)
+  doc.text(t.destinationPlace, 17, y)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(0, 0, 0)
   const arrivalText = contrat.dossier?.arrival || '-'
@@ -1003,11 +1924,11 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   // Date et heure de départ
   doc.setTextColor(88, 44, 135) // Purple
   doc.setFont('helvetica', 'bold')
-  doc.text('Date aller', 17, y)
+  doc.text(t.departureDate, 17, y)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(0, 0, 0)
-  const departDateContract = contrat.dossier?.departure_date ? formatDate(contrat.dossier.departure_date) : '-'
-  const departTimeContract = contrat.dossier?.departure_time ? ` à ${contrat.dossier.departure_time}` : ''
+  const departDateContract = contrat.dossier?.departure_date ? formatDateLocalized(contrat.dossier.departure_date, effectiveLang) : '-'
+  const departTimeContract = contrat.dossier?.departure_time ? ` ${contrat.dossier.departure_time}` : ''
   doc.text(`${departDateContract}${departTimeContract}`, 45, y)
 
   // Date de fin/retour - afficher pour tous les types si une date de retour existe
@@ -1025,7 +1946,7 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(0, 0, 0)
     if (hasReturnDate) {
-      const returnDateContract = formatDate(contrat.dossier!.return_date!)
+      const returnDateContract = formatDateLocalized(contrat.dossier!.return_date!, effectiveLang)
       const returnTimeContract = contrat.dossier?.return_time ? ` à ${contrat.dossier.return_time}` : ''
       doc.text(`${returnDateContract}${returnTimeContract}`, 45, y)
     } else {
@@ -1046,26 +1967,26 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
 
   // Colonne gauche
   doc.setTextColor(100, 100, 100)
-  doc.text('Passagers', 17, y)
+  doc.text(t.passengers, 17, y)
   doc.setTextColor(0, 0, 0)
-  doc.text(`${contrat.dossier?.passengers || '-'} personnes`, 50, y)
+  doc.text(`${contrat.dossier?.passengers || '-'} ${t.persons}`, 50, y)
 
   // Colonne droite
   doc.setTextColor(100, 100, 100)
-  doc.text('Véhicule', 100, y)
+  doc.text(t.vehicle, 100, y)
   doc.setTextColor(0, 0, 0)
-  doc.text(`${nombreCars} autocar${nombreCars > 1 ? 's' : ''}`, 130, y)
+  doc.text(`${nombreCars} ${t.coach}${nombreCars > 1 ? 's' : ''}`, 130, y)
 
   y += 5
   doc.setTextColor(100, 100, 100)
-  doc.text('Chauffeurs', 17, y)
+  doc.text(t.numberOfDrivers, 17, y)
   doc.setTextColor(0, 0, 0)
-  doc.text(`${nombreChauffeurs} chauffeur${nombreChauffeurs > 1 ? 's' : ''}`, 50, y)
+  doc.text(`${nombreChauffeurs} ${nombreChauffeurs > 1 ? t.drivers : t.driver}`, 50, y)
 
   // Kilométrage si disponible
   if (contrat.km) {
     doc.setTextColor(100, 100, 100)
-    doc.text('Kilomètres', 100, y)
+    doc.text(t.includedKm, 100, y)
     doc.setTextColor(0, 0, 0)
     doc.text(contrat.km, 130, y)
   }
@@ -1082,11 +2003,11 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setFontSize(8)
   doc.setTextColor(60, 60, 60)
   doc.setFont('helvetica', 'bold')
-  doc.text('Désignation', 17, y)
-  doc.text('Qté', 97, y)
-  doc.text('Prix Unit. HT', 127, y)
-  doc.text('TVA', 157, y)
-  doc.text('Total HT', pageWidth - 17, y, { align: 'right' })
+  doc.text(t.designation, 17, y)
+  doc.text(t.qty, 97, y)
+  doc.text(t.unitPriceHT, 127, y)
+  doc.text(vatLabel, 157, y)
+  doc.text(t.totalHT, pageWidth - 17, y, { align: 'right' })
 
   // Ligne de données - Prestation transport
   y += 10
@@ -1094,14 +2015,14 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setTextColor(0, 0, 0)
 
   // Description condensée pour le tableau
-  let trajetDescShort = 'Transport aller simple autocar'
+  let trajetDescShort = t.transportOneWay
   if (isMiseADispo) {
-    trajetDescShort = `Mise à disposition autocar`
+    trajetDescShort = t.transportMAD
     if (contrat.duree_jours && contrat.duree_jours > 1) {
-      trajetDescShort += ` (${contrat.duree_jours} jours)`
+      trajetDescShort += ` (${contrat.duree_jours} ${t.days})`
     }
   } else if (isAllerRetour) {
-    trajetDescShort = 'Transport A/R autocar'
+    trajetDescShort = t.transportRoundTrip
   }
 
   doc.text(trajetDescShort, 17, y)
@@ -1145,7 +2066,7 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(60, 60, 60)
   doc.setFont('helvetica', 'bold')
-  doc.text('DÉTAILS TVA', 17, y + 5.5)
+  doc.text(`${t.vatDetails}`, 17, y + 5.5)
 
   y += 14
   doc.setFont('helvetica', 'normal')
@@ -1154,9 +2075,9 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
 
   // En-têtes TVA
   doc.setFont('helvetica', 'bold')
-  doc.text('Taux TVA', 17, y)
+  doc.text(`Taux ${vatLabel}`, 17, y)
   doc.text('Base HT', 70, y)
-  doc.text('Montant TVA', 120, y)
+  doc.text(`Montant ${vatLabel}`, 120, y)
 
   y += 6
   doc.setFont('helvetica', 'normal')
@@ -1175,7 +2096,7 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
-  doc.text('RÉCAPITULATIF', recapX + 5, y + 5.5)
+  doc.text(t.summary, recapX + 5, y + 5.5)
 
   y += 12
   doc.setFontSize(9)
@@ -1183,12 +2104,12 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setFont('helvetica', 'normal')
 
   // Total HT
-  doc.text('Total HT', recapX + 5, y)
+  doc.text(t.totalHT, recapX + 5, y)
   doc.text(`${formatAmount(priceHT)} €`, recapX + recapWidth - 5, y, { align: 'right' })
 
   y += 6
   // Total TVA
-  doc.text(`Total TVA (${tvaRate}%)`, recapX + 5, y)
+  doc.text(`Total ${vatLabel} (${tvaRate}%)`, recapX + 5, y)
   doc.text(`${formatAmount(tvaAmount)} €`, recapX + recapWidth - 5, y, { align: 'right' })
 
   y += 3
@@ -1201,7 +2122,7 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setFontSize(11)
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
-  doc.text('TOTAL TTC', recapX + 5, y + 2)
+  doc.text(t.totalTTC, recapX + 5, y + 2)
   doc.text(`${formatAmount(contrat.price_ttc)} €`, recapX + recapWidth - 5, y + 2, { align: 'right' })
 
   // Prix par personne/car
@@ -1210,11 +2131,11 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setTextColor(100, 100, 100)
   doc.setFont('helvetica', 'normal')
   if (nombreCars > 1) {
-    doc.text(`Soit ${formatAmount(contrat.price_ttc / nombreCars)} € TTC par car`, recapX + recapWidth - 5, y, { align: 'right' })
+    doc.text(`${t.orText} ${formatAmount(contrat.price_ttc / nombreCars)} € TTC ${t.perCar}`, recapX + recapWidth - 5, y, { align: 'right' })
     y += 4
   }
   if (contrat.dossier?.passengers && contrat.dossier.passengers > 0) {
-    doc.text(`Soit ${formatAmount(contrat.price_ttc / contrat.dossier.passengers)} € TTC par personne`, recapX + recapWidth - 5, y, { align: 'right' })
+    doc.text(`${t.orText} ${formatAmount(contrat.price_ttc / contrat.dossier.passengers)} € TTC ${t.perPerson}`, recapX + recapWidth - 5, y, { align: 'right' })
   }
 
   // ========== PAIEMENTS ==========
@@ -1225,14 +2146,14 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(0, 128, 0)
   doc.setFont('helvetica', 'normal')
-  doc.text('Déjà réglé :', recapX + 5, y)
+  doc.text(`${t.alreadyPaid} :`, recapX + 5, y)
   doc.text(`${formatAmount(totalPaye)} €`, recapX + recapWidth - 5, y, { align: 'right' })
 
   y += 6
   drawRect(doc, recapX, y - 4, recapWidth, 8, '#fef2f2')
   doc.setTextColor(185, 28, 28)
   doc.setFont('helvetica', 'bold')
-  doc.text('Reste à régler :', recapX + 5, y)
+  doc.text(`${t.remainingToPay} :`, recapX + 5, y)
   doc.text(`${formatAmount(resteARegler)} €`, recapX + recapWidth - 5, y, { align: 'right' })
 
   // ========== INFORMATIONS DE PAIEMENT ==========
@@ -1249,7 +2170,7 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(88, 44, 135)
   doc.setFont('helvetica', 'bold')
-  doc.text('INFORMATIONS DE PAIEMENT', 20, y + 5.5)
+  doc.text(t.paymentInfo, 20, y + 5.5)
 
   y += 14
   doc.setFontSize(8)
@@ -1257,19 +2178,19 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setFont('helvetica', 'normal')
 
   doc.setFont('helvetica', 'bold')
-  doc.text('IBAN :', 20, y)
+  doc.text(`${t.iban} :`, 20, y)
   doc.setFont('helvetica', 'normal')
   doc.text(COMPANY_INFO.rib.iban, 40, y)
 
   y += 5
   doc.setFont('helvetica', 'bold')
-  doc.text('BIC :', 20, y)
+  doc.text(`${t.bic} :`, 20, y)
   doc.setFont('helvetica', 'normal')
   doc.text(COMPANY_INFO.rib.bic, 40, y)
 
   y += 5
   doc.setFont('helvetica', 'bold')
-  doc.text('Référence :', 20, y)
+  doc.text(`${t.reference} :`, 20, y)
   doc.setFont('helvetica', 'normal')
   doc.text(contrat.reference, 50, y)
 
@@ -1277,9 +2198,9 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setFontSize(7)
   doc.setTextColor(100, 100, 100)
   const modalY = y - 10
-  doc.text('Modalités : 30% à la réservation', 120, modalY)
-  doc.text('Solde 45 jours avant le départ', 120, modalY + 4)
-  doc.text('Paiement par CB ou virement', 120, modalY + 8)
+  doc.text(t.depositOnBooking, 120, modalY)
+  doc.text(t.balanceBeforeDeparture, 120, modalY + 4)
+  doc.text(t.paymentByCardOrTransfer, 120, modalY + 8)
 
   // ========== PAIEMENTS EFFECTUÉS ==========
   if (contrat.paiements && contrat.paiements.length > 0) {
@@ -1289,12 +2210,12 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
     doc.setFontSize(8)
     doc.setTextColor(21, 87, 36)
     doc.setFont('helvetica', 'bold')
-    doc.text('Paiements effectués :', 20, y)
+    doc.text(`${t.paymentsMade} :`, 20, y)
     doc.setFont('helvetica', 'normal')
     y += 5
     contrat.paiements.forEach((p, i) => {
-      const typeLabel = p.type === 'cb' ? 'CB' : p.type === 'virement' ? 'Virement' : p.type
-      doc.text(`• ${formatDate(p.payment_date)} - ${typeLabel} - ${formatAmount(p.amount)} €`, 25, y + (i * 4))
+      const typeLabel = p.type === 'cb' ? t.paymentCB : p.type === 'virement' ? t.paymentTransfer : p.type
+      doc.text(`• ${formatDateLocalized(p.payment_date, effectiveLang)} - ${typeLabel} - ${formatAmount(p.amount)} €`, 25, y + (i * 4))
     })
     y += contrat.paiements.length * 4
   }
@@ -1308,24 +2229,24 @@ export async function generateContratPDF(contrat: ContratData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(133, 100, 4)
   doc.setFont('helvetica', 'bold')
-  doc.text("Conditions d'annulation", 17, y)
+  doc.text(t.cancellationConditions, 17, y)
   doc.setFont('helvetica', 'normal')
 
   y += 7
   doc.setFontSize(7)
   doc.setTextColor(60, 60, 60)
   // Texte d'introduction
-  const conditionsIntroProforma = "La validation en ligne implique une acceptation totale de nos conditions générales de vente et donc des conditions d'annulation ci-dessous :"
+  const conditionsIntroProforma = t.cancellationIntro
   const introLinesProforma = doc.splitTextToSize(conditionsIntroProforma, pageWidth - 35)
   doc.text(introLinesProforma, 17, y)
   y += introLinesProforma.length * 3.5 + 3
 
   doc.setFontSize(8)
   const conditionsProforma = [
-    '30% du prix du service si l\'annulation intervient à J-31 ou plus',
-    '50% du prix du service si l\'annulation intervient entre J-30 et J-14',
-    '70% du prix du service si l\'annulation intervient entre J-13 et J-8',
-    '100% du prix du service si l\'annulation intervient à J-7 ou moins',
+    t.cancellation31,
+    t.cancellation30to14,
+    t.cancellation13to8,
+    t.cancellation7,
   ]
   conditionsProforma.forEach((c, i) => {
     doc.text(`• ${c}`, 17, y + (i * 4))
@@ -1347,6 +2268,7 @@ interface FactureData {
   amount_ht: number
   amount_ttc: number
   tva_rate?: number | null
+  country_code?: string | null
   client_name?: string | null
   client_address?: string | null
   client_zip?: string | null
@@ -1377,15 +2299,25 @@ interface FactureData {
   } | null
 }
 
-export async function generateFacturePDF(facture: FactureData): Promise<void> {
-  const COMPANY_INFO = await getCompanyInfo()
+export async function generateFacturePDF(facture: FactureData, lang: string = 'fr'): Promise<void> {
+  // Récupérer les infos pays basées sur country_code
+  const countryCode = facture.country_code || 'FR'
+  const countryInfo = await getCountryInfo(countryCode)
+
+  // Déterminer la langue à partir du pays si non spécifiée
+  const effectiveLang = lang || (countryCode === 'DE' ? 'de' : countryCode === 'ES' ? 'es' : countryCode === 'GB' ? 'en' : 'fr')
+
+  const COMPANY_INFO = await getCompanyInfo(countryCode)
+  const t = getPdfTranslations(effectiveLang)
   const doc = new jsPDF({
     format: 'a4',
     orientation: 'portrait'
   })
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
-  const tvaRate = facture.tva_rate || 10
+  // Utiliser le taux TVA du pays (prioritaire pour garantir le bon taux légal), sinon celui de la facture
+  const tvaRate = countryInfo.vatRate ?? facture.tva_rate ?? 10
+  const vatLabel = countryInfo.vatLabel || t.vatRate
   const tvaAmount = facture.amount_ttc - facture.amount_ht
 
   // Couleurs Busmoov
@@ -1396,7 +2328,7 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
 
   // Déterminer le type de document
   const isAvoir = facture.type === 'avoir'
-  const docTitle = isAvoir ? 'AVOIR' : 'FACTURE'
+  const docTitle = isAvoir ? t.creditNote : t.invoice
   const titleColor = isAvoir ? '#b42828' : purpleDark
   const accentColor = isAvoir ? '#b42828' : magenta
 
@@ -1438,7 +2370,7 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
 
   // Titre avec type de facture
   if (!isAvoir) {
-    const typeLabel = facture.type === 'acompte' ? "D'ACOMPTE" : 'DE SOLDE'
+    const typeLabel = facture.type === 'acompte' ? t.invoiceDeposit : t.invoiceBalance
     doc.text(`${docTitle} ${typeLabel}`, 15, y)
   } else {
     doc.text(docTitle, 15, y)
@@ -1449,10 +2381,10 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
   doc.setFontSize(10)
   doc.setTextColor(60, 60, 60)
   doc.setFont('helvetica', 'normal')
-  doc.text(`N° ${facture.reference}`, 15, y)
-  doc.text(`Date : ${formatDate(facture.created_at || new Date().toISOString())}`, 80, y)
+  doc.text(`${t.number} ${facture.reference}`, 15, y)
+  doc.text(`${t.date} : ${formatDateLocalized(facture.created_at || new Date().toISOString(), effectiveLang)}`, 80, y)
   if (facture.dossier?.reference) {
-    doc.text(`Dossier : ${facture.dossier.reference}`, 140, y)
+    doc.text(`${t.dossier} : ${facture.dossier.reference}`, 140, y)
   }
 
   // ========== BLOC CLIENT ==========
@@ -1468,7 +2400,7 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
   doc.setFontSize(10)
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
-  doc.text('FACTURÉ À', 20, y + 5.5)
+  doc.text(t.billedTo, 20, y + 5.5)
 
   // Contenu client
   let cy = y + 14
@@ -1496,12 +2428,12 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
   doc.setFontSize(10)
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
-  doc.text('PRESTATION', 20, y + 5.5)
+  doc.text(t.prestation, 20, y + 5.5)
 
   y += 14
 
   // Type de facture (Acompte / Solde / Avoir)
-  const factureTypeLabel = facture.type === 'acompte' ? 'ACOMPTE (30%)' : facture.type === 'solde' ? 'SOLDE' : 'AVOIR'
+  const factureTypeLabel = facture.type === 'acompte' ? `${t.deposit} (30%)` : facture.type === 'solde' ? t.balance : t.creditNote
 
   doc.setFontSize(11)
   doc.setTextColor(233, 30, 140) // Magenta
@@ -1516,7 +2448,7 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
     doc.setFontSize(9)
     doc.setTextColor(88, 44, 135) // Purple
     doc.setFont('helvetica', 'bold')
-    doc.text('Départ', 17, y)
+    doc.text(t.departurePlace, 17, y)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(0, 0, 0)
     const departureTextFact = facture.dossier.departure || '-'
@@ -1527,7 +2459,7 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
     // Description du trajet - Arrivée
     doc.setTextColor(88, 44, 135) // Purple
     doc.setFont('helvetica', 'bold')
-    doc.text('Arrivée', 17, y)
+    doc.text(t.destinationPlace, 17, y)
     doc.setFont('helvetica', 'normal')
     doc.setTextColor(0, 0, 0)
     const arrivalTextFact = facture.dossier.arrival || '-'
@@ -1539,10 +2471,10 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
     if (facture.dossier.departure_date) {
       doc.setTextColor(88, 44, 135) // Purple
       doc.setFont('helvetica', 'bold')
-      doc.text('Date', 17, y)
+      doc.text(t.date, 17, y)
       doc.setFont('helvetica', 'normal')
       doc.setTextColor(0, 0, 0)
-      doc.text(formatDate(facture.dossier.departure_date), 45, y)
+      doc.text(formatDateLocalized(facture.dossier.departure_date, effectiveLang), 45, y)
       y += 6
     }
 
@@ -1556,21 +2488,21 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
 
     // Colonne gauche
     doc.setTextColor(100, 100, 100)
-    doc.text('Passagers', 17, y)
+    doc.text(t.passengers, 17, y)
     doc.setTextColor(0, 0, 0)
-    doc.text(`${facture.dossier.passengers || '-'} personnes`, 50, y)
+    doc.text(`${facture.dossier.passengers || '-'} ${t.persons}`, 50, y)
 
     // Colonne droite
     doc.setTextColor(100, 100, 100)
-    doc.text('Véhicule', 100, y)
+    doc.text(t.vehicle, 100, y)
     doc.setTextColor(0, 0, 0)
-    doc.text(`${nombreCars} autocar${nombreCars > 1 ? 's' : ''}`, 130, y)
+    doc.text(`${nombreCars} ${t.coach}${nombreCars > 1 ? 's' : ''}`, 130, y)
 
     y += 5
     doc.setTextColor(100, 100, 100)
-    doc.text('Chauffeurs', 17, y)
+    doc.text(t.numberOfDrivers, 17, y)
     doc.setTextColor(0, 0, 0)
-    doc.text(`${nombreChauffeurs} chauffeur${nombreChauffeurs > 1 ? 's' : ''}`, 50, y)
+    doc.text(`${nombreChauffeurs} ${nombreChauffeurs > 1 ? t.drivers : t.driver}`, 50, y)
 
     y += 8
   }
@@ -1585,11 +2517,11 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
   doc.setFontSize(8)
   doc.setTextColor(60, 60, 60)
   doc.setFont('helvetica', 'bold')
-  doc.text('Désignation', 17, y)
-  doc.text('Qté', 97, y)
-  doc.text('Prix Unit. HT', 127, y)
-  doc.text('TVA', 157, y)
-  doc.text('Total HT', pageWidth - 17, y, { align: 'right' })
+  doc.text(t.designation, 17, y)
+  doc.text(t.qty, 97, y)
+  doc.text(t.unitPriceHT, 127, y)
+  doc.text(vatLabel, 157, y)
+  doc.text(t.totalHT, pageWidth - 17, y, { align: 'right' })
 
   // Ligne de données
   y += 10
@@ -1610,9 +2542,9 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
     const displayTransportHT = isAvoir ? `-${formatAmount(Math.abs(prixUnitTransportHT))}` : formatAmount(prixUnitTransportHT)
     const displayTotalTransportHT = isAvoir ? `-${formatAmount(Math.abs(transportHT))}` : formatAmount(transportHT)
 
-    const prefixLabel = facture.type === 'acompte' ? 'Acompte 30% - ' : facture.type === 'solde' ? 'Solde 70% - ' : isAvoir ? 'Avoir - ' : ''
+    const prefixLabel = facture.type === 'acompte' ? `${t.depositPercent} 30% - ` : facture.type === 'solde' ? `${t.balancePercent} 70% - ` : isAvoir ? `${t.creditNote} - ` : ''
     doc.setFontSize(8)
-    doc.text(`${prefixLabel}Transport autocar`, 17, y)
+    doc.text(`${prefixLabel}${t.transportService}`, 17, y)
     doc.text(`${nombreCars}`, 97, y)
     doc.text(`${displayTransportHT} €`, 127, y)
     doc.text(`${tvaRate}%`, 157, y)
@@ -1631,22 +2563,22 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
     }
   } else {
     // Affichage classique sans options
-    let trajetDescFacture = 'Prestation de transport autocar'
+    let trajetDescFacture = t.transportService
     if (facture.type === 'acompte') {
       const totalTTC = facture.dossier?.total_ttc
       if (totalTTC) {
-        trajetDescFacture = `Acompte 30% - Transport autocar (Total TTC : ${formatAmount(totalTTC)} €)`
+        trajetDescFacture = `${t.depositPercent} 30% - ${t.transportService} (${t.totalTTCLabel} : ${formatAmount(totalTTC)} €)`
       } else {
-        trajetDescFacture = 'Acompte 30% - Transport autocar'
+        trajetDescFacture = `${t.depositPercent} 30% - ${t.transportService}`
       }
     } else if (facture.type === 'solde') {
       if (facture.facture_acompte) {
-        trajetDescFacture = `Solde 70% - Transport autocar (Acompte ${facture.facture_acompte.reference} : ${formatAmount(facture.facture_acompte.amount_ttc)} € TTC)`
+        trajetDescFacture = `${t.balancePercent} 70% - ${t.transportService} (${t.depositRefLabel} ${facture.facture_acompte.reference} : ${formatAmount(facture.facture_acompte.amount_ttc)} € TTC)`
       } else {
-        trajetDescFacture = 'Solde 70% - Transport autocar'
+        trajetDescFacture = `${t.balancePercent} 70% - ${t.transportService}`
       }
     } else if (isAvoir) {
-      trajetDescFacture = 'Avoir - Transport autocar'
+      trajetDescFacture = t.creditNoteDesc
     }
 
     doc.setFontSize(8)
@@ -1676,7 +2608,7 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(60, 60, 60)
   doc.setFont('helvetica', 'bold')
-  doc.text('DÉTAILS TVA', 17, y + 5.5)
+  doc.text(`${t.vatDetails}`, 17, y + 5.5)
 
   y += 14
   doc.setFont('helvetica', 'normal')
@@ -1685,9 +2617,9 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
 
   // En-têtes TVA
   doc.setFont('helvetica', 'bold')
-  doc.text('Taux TVA', 17, y)
+  doc.text(`Taux ${vatLabel}`, 17, y)
   doc.text('Base HT', 70, y)
-  doc.text('Montant TVA', 120, y)
+  doc.text(`Montant ${vatLabel}`, 120, y)
 
   y += 6
   doc.setFont('helvetica', 'normal')
@@ -1708,7 +2640,7 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
   doc.setFontSize(9)
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
-  doc.text('RÉCAPITULATIF', recapX + 5, y + 5.5)
+  doc.text(t.summary, recapX + 5, y + 5.5)
 
   y += 12
   doc.setFontSize(9)
@@ -1716,12 +2648,12 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
   doc.setFont('helvetica', 'normal')
 
   // Total HT
-  doc.text('Total HT', recapX + 5, y)
+  doc.text(t.totalHT, recapX + 5, y)
   doc.text(`${displayBaseHT} €`, recapX + recapWidth - 5, y, { align: 'right' })
 
   y += 6
   // Total TVA
-  doc.text(`Total TVA (${tvaRate}%)`, recapX + 5, y)
+  doc.text(`Total ${vatLabel} (${tvaRate}%)`, recapX + 5, y)
   doc.text(`${displayTVA} €`, recapX + recapWidth - 5, y, { align: 'right' })
 
   y += 3
@@ -1734,7 +2666,7 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
   doc.setFontSize(11)
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
-  doc.text('TOTAL TTC', recapX + 5, y + 2)
+  doc.text(t.totalTTC, recapX + 5, y + 2)
   const displayTTC = isAvoir ? `-${formatAmount(Math.abs(facture.amount_ttc))}` : formatAmount(facture.amount_ttc)
   doc.text(`${displayTTC} €`, recapX + recapWidth - 5, y + 2, { align: 'right' })
 
@@ -1745,11 +2677,11 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
     doc.setTextColor(100, 100, 100)
     doc.setFont('helvetica', 'normal')
     if (nombreCars > 1) {
-      doc.text(`Soit ${formatAmount(facture.amount_ttc / nombreCars)} € TTC par car`, recapX + recapWidth - 5, y, { align: 'right' })
+      doc.text(`${t.orText} ${formatAmount(facture.amount_ttc / nombreCars)} € TTC ${t.perCar}`, recapX + recapWidth - 5, y, { align: 'right' })
       y += 4
     }
     if (facture.dossier?.passengers && facture.dossier.passengers > 0) {
-      doc.text(`Soit ${formatAmount(facture.amount_ttc / facture.dossier.passengers)} € TTC par personne`, recapX + recapWidth - 5, y, { align: 'right' })
+      doc.text(`${t.orText} ${formatAmount(facture.amount_ttc / facture.dossier.passengers)} € TTC ${t.perPerson}`, recapX + recapWidth - 5, y, { align: 'right' })
     }
   }
 
@@ -1768,7 +2700,7 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
     doc.setFontSize(9)
     doc.setTextColor(88, 44, 135)
     doc.setFont('helvetica', 'bold')
-    doc.text('INFORMATIONS DE PAIEMENT', 20, y + 5.5)
+    doc.text(t.paymentInfo, 20, y + 5.5)
 
     y += 14
     doc.setFontSize(8)
@@ -1776,19 +2708,19 @@ export async function generateFacturePDF(facture: FactureData): Promise<void> {
     doc.setFont('helvetica', 'normal')
 
     doc.setFont('helvetica', 'bold')
-    doc.text('IBAN :', 20, y)
+    doc.text(`${t.iban} :`, 20, y)
     doc.setFont('helvetica', 'normal')
     doc.text(COMPANY_INFO.rib.iban, 40, y)
 
     y += 5
     doc.setFont('helvetica', 'bold')
-    doc.text('BIC :', 20, y)
+    doc.text(`${t.bic} :`, 20, y)
     doc.setFont('helvetica', 'normal')
     doc.text(COMPANY_INFO.rib.bic, 40, y)
 
     y += 5
     doc.setFont('helvetica', 'bold')
-    doc.text('Référence :', 20, y)
+    doc.text(`${t.reference} :`, 20, y)
     doc.setFont('helvetica', 'normal')
     doc.text(facture.reference, 50, y)
   }
@@ -1843,8 +2775,9 @@ interface FeuilleRouteData {
   options_non_incluses?: string[] | null
 }
 
-export async function generateFeuilleRoutePDF(data: FeuilleRouteData): Promise<void> {
+export async function generateFeuilleRoutePDF(data: FeuilleRouteData, lang: string = 'fr'): Promise<void> {
   const COMPANY_INFO = await getCompanyInfo()
+  const t = getPdfTranslations(lang)
   const doc = new jsPDF({
     format: 'a4',
     orientation: 'portrait'
@@ -1865,7 +2798,7 @@ export async function generateFeuilleRoutePDF(data: FeuilleRouteData): Promise<v
   doc.setFontSize(16)
   doc.setTextColor(88, 44, 135) // Purple dark
   doc.setFont('helvetica', 'bold')
-  doc.text('FEUILLE DE ROUTE', pageWidth / 2 + 20, 15, { align: 'center' })
+  doc.text(t.roadmap, pageWidth / 2 + 20, 15, { align: 'center' })
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(100, 100, 100)
@@ -1947,15 +2880,15 @@ export async function generateFeuilleRoutePDF(data: FeuilleRouteData): Promise<v
     colY += 10
     // Date de départ
     doc.setTextColor(88, 44, 135) // Purple Busmoov
-    doc.text('Date de départ', startX, colY)
+    doc.text(t.departureDate, startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
-    doc.text(date ? formatDate(date) : '-', startX, colY)
+    doc.text(date ? formatDateLocalized(date, lang) : '-', startX, colY)
 
     colY += 10
     // Heure de départ
     doc.setTextColor(88, 44, 135) // Purple Busmoov
-    doc.text('Heure de départ', startX, colY)
+    doc.text(t.departureDate.replace('Date', 'Heure'), startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
     doc.text(heure || '-', startX, colY)
@@ -1963,7 +2896,7 @@ export async function generateFeuilleRoutePDF(data: FeuilleRouteData): Promise<v
     colY += 10
     // Lieu de départ
     doc.setTextColor(88, 44, 135) // Purple Busmoov
-    doc.text('Lieu de départ', startX, colY)
+    doc.text(t.departurePlace, startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
     const departLines = doc.splitTextToSize(depart || 'Non renseigné', columnWidth - 5)
@@ -2160,8 +3093,9 @@ export async function generateFeuilleRoutePDF(data: FeuilleRouteData): Promise<v
 }
 
 // Version qui retourne le PDF en base64 pour envoi par email
-export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Promise<{ base64: string; filename: string }> {
+export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData, lang: string = 'fr'): Promise<{ base64: string; filename: string }> {
   const COMPANY_INFO = await getCompanyInfo()
+  const t = getPdfTranslations(lang)
   const doc = new jsPDF({
     format: 'a4',
     orientation: 'portrait'
@@ -2178,7 +3112,7 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
   doc.setFontSize(16)
   doc.setTextColor(88, 44, 135)
   doc.setFont('helvetica', 'bold')
-  doc.text('FEUILLE DE ROUTE', pageWidth / 2 + 20, 15, { align: 'center' })
+  doc.text(t.roadmap, pageWidth / 2 + 20, 15, { align: 'center' })
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(100, 100, 100)
@@ -2186,11 +3120,16 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
 
   let y = 40
 
-  // TYPE DE TRAJET
+  // TYPE DE TRAJET (traduit selon la langue)
+  const outwardLabel = lang === 'de' ? 'Hinfahrt' : lang === 'es' ? 'Ida' : lang === 'en' ? 'Outbound' : 'Aller'
+  const returnLabel = lang === 'de' ? 'Rückfahrt' : lang === 'es' ? 'Vuelta' : lang === 'en' ? 'Return' : 'Retour'
+  const transferLabel = lang === 'de' ? 'Transfer' : lang === 'es' ? 'Traslado' : lang === 'en' ? 'Transfer' : 'Transfert'
+  const passengersLabel = lang === 'de' ? 'Passagiere' : lang === 'es' ? 'pasajeros' : lang === 'en' ? 'passengers' : 'passagers'
+
   doc.setFontSize(11)
   doc.setTextColor(0, 0, 0)
   doc.setFont('helvetica', 'normal')
-  const typeLabel = data.type === 'aller_retour' ? 'Transfert Aller/Retour' : data.type === 'aller' ? 'Transfert Aller' : 'Transfert Retour'
+  const typeLabel = data.type === 'aller_retour' ? `${transferLabel} ${outwardLabel}/${returnLabel}` : data.type === 'aller' ? `${transferLabel} ${outwardLabel}` : `${transferLabel} ${returnLabel}`
   doc.text(typeLabel, pageWidth / 2, y, { align: 'center' })
 
   y += 8
@@ -2199,11 +3138,13 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
   doc.setFontSize(10)
   doc.setTextColor(100, 100, 100)
   if (data.type === 'aller_retour') {
-    doc.text(`${paxAller} passagers à l'aller / ${paxRetour} passagers au retour`, pageWidth / 2, y, { align: 'center' })
+    const outLabel = lang === 'de' ? 'zur Hinfahrt' : lang === 'es' ? 'a la ida' : lang === 'en' ? 'outbound' : "à l'aller"
+    const retLabel = lang === 'de' ? 'zur Rückfahrt' : lang === 'es' ? 'a la vuelta' : lang === 'en' ? 'return' : 'au retour'
+    doc.text(`${paxAller} ${passengersLabel} ${outLabel} / ${paxRetour} ${passengersLabel} ${retLabel}`, pageWidth / 2, y, { align: 'center' })
   } else if (data.type === 'aller') {
-    doc.text(`${paxAller} passagers`, pageWidth / 2, y, { align: 'center' })
+    doc.text(`${paxAller} ${passengersLabel}`, pageWidth / 2, y, { align: 'center' })
   } else {
-    doc.text(`${paxRetour} passagers`, pageWidth / 2, y, { align: 'center' })
+    doc.text(`${paxRetour} ${passengersLabel}`, pageWidth / 2, y, { align: 'center' })
   }
 
   y += 15
@@ -2213,6 +3154,14 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
   const colWidth = isSingleColumn ? pageWidth - 30 : (pageWidth - 40) / 2
   const colLeftX = 15
   const colRightX = pageWidth / 2 + 5
+
+  // Traductions pour la feuille de route
+  const driverContactLabel = lang === 'de' ? 'Fahrerkontakt' : lang === 'es' ? 'Contacto conductor' : lang === 'en' ? 'Driver contact' : 'Contact chauffeur'
+  const departureDateLabel = lang === 'de' ? 'Abfahrtsdatum' : lang === 'es' ? 'Fecha de salida' : lang === 'en' ? 'Departure date' : 'Date de départ'
+  const departureTimeLabel = lang === 'de' ? 'Abfahrtszeit' : lang === 'es' ? 'Hora de salida' : lang === 'en' ? 'Departure time' : 'Heure de départ'
+  const departureLocationLabel = lang === 'de' ? 'Abfahrtsort' : lang === 'es' ? 'Lugar de salida' : lang === 'en' ? 'Departure location' : 'Lieu de départ'
+  const destinationLabel = lang === 'de' ? 'Zielort' : lang === 'es' ? 'Destino' : lang === 'en' ? 'Destination' : 'Lieu de destination'
+  const notSpecifiedLabel = lang === 'de' ? 'Nicht angegeben' : lang === 'es' ? 'No especificado' : lang === 'en' ? 'Not specified' : 'Non renseigné'
 
   const drawTrajetColumnWithChauffeur = (
     startX: number, startY: number, title: string, titleColor: string,
@@ -2234,7 +3183,9 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
     doc.setFontSize(9)
     doc.setTextColor(233, 30, 140)
     doc.setFont('helvetica', 'bold')
-    doc.text('Contact chauffeur ' + title.toLowerCase().replace('transfert ', ''), startX, colY)
+    // Extraire le type (aller/retour) du titre pour le contact chauffeur
+    const typeForContact = title.toLowerCase().includes('retour') || title.toLowerCase().includes('return') || title.toLowerCase().includes('rück') || title.toLowerCase().includes('vuelta') ? (lang === 'de' ? 'Rückfahrt' : lang === 'es' ? 'vuelta' : lang === 'en' ? 'return' : 'retour') : (lang === 'de' ? 'Hinfahrt' : lang === 'es' ? 'ida' : lang === 'en' ? 'outbound' : 'aller')
+    doc.text(`${driverContactLabel} ${typeForContact}`, startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
     doc.setFont('helvetica', 'normal')
@@ -2243,43 +3194,47 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
     colY += 10
 
     doc.setTextColor(88, 44, 135)
-    doc.text('Date de départ', startX, colY)
+    doc.text(departureDateLabel, startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
-    doc.text(date ? formatDate(date) : '-', startX, colY)
+    doc.text(date ? formatDateLocalized(date, lang) : '-', startX, colY)
     colY += 10
 
     doc.setTextColor(88, 44, 135)
-    doc.text('Heure de départ', startX, colY)
+    doc.text(departureTimeLabel, startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
     doc.text(heure || '-', startX, colY)
     colY += 10
 
     doc.setTextColor(88, 44, 135)
-    doc.text('Lieu de départ', startX, colY)
+    doc.text(departureLocationLabel, startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
-    const departLines = doc.splitTextToSize(depart || 'Non renseigné', columnWidth - 5)
+    const departLines = doc.splitTextToSize(depart || notSpecifiedLabel, columnWidth - 5)
     doc.text(departLines, startX, colY)
     colY += departLines.length * 4 + 4
 
     doc.setTextColor(88, 44, 135)
-    doc.text('Lieu de destination', startX, colY)
+    doc.text(destinationLabel, startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
-    const arriveeLines = doc.splitTextToSize(arrivee || 'Non renseigné', columnWidth - 5)
+    const arriveeLines = doc.splitTextToSize(arrivee || notSpecifiedLabel, columnWidth - 5)
     doc.text(arriveeLines, startX, colY)
     colY += arriveeLines.length * 4
 
     return colY
   }
 
+  // Titres traduits pour les colonnes
+  const outboundTitle = `${transferLabel} ${outwardLabel}`
+  const returnTitle = `${transferLabel} ${returnLabel}`
+
   let maxY = y
   if (data.type === 'aller') {
     // Aller seul - colonne pleine largeur
     const endY = drawTrajetColumnWithChauffeur(
-      colLeftX, y, 'Transfert aller', purpleDark,
+      colLeftX, y, outboundTitle, purpleDark,
       data.chauffeur_aller_nom, data.chauffeur_aller_tel,
       data.aller_date, data.aller_heure,
       data.aller_adresse_depart, data.aller_adresse_arrivee,
@@ -2289,7 +3244,7 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
   } else if (data.type === 'retour') {
     // Retour seul - colonne pleine largeur
     const endY = drawTrajetColumnWithChauffeur(
-      colLeftX, y, 'Transfert retour', purpleDark,
+      colLeftX, y, returnTitle, purpleDark,
       data.chauffeur_retour_nom, data.chauffeur_retour_tel,
       data.retour_date, data.retour_heure,
       data.retour_adresse_depart, data.retour_adresse_arrivee,
@@ -2299,14 +3254,14 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
   } else if (data.type === 'aller_retour') {
     // Aller-retour - deux colonnes
     const endYAller = drawTrajetColumnWithChauffeur(
-      colLeftX, y, 'Transfert aller', purpleDark,
+      colLeftX, y, outboundTitle, purpleDark,
       data.chauffeur_aller_nom, data.chauffeur_aller_tel,
       data.aller_date, data.aller_heure,
       data.aller_adresse_depart, data.aller_adresse_arrivee,
       colWidth
     )
     const endYRetour = drawTrajetColumnWithChauffeur(
-      colRightX, y, 'Transfert retour', purpleDark,
+      colRightX, y, returnTitle, purpleDark,
       data.chauffeur_retour_nom, data.chauffeur_retour_tel,
       data.retour_date, data.retour_heure,
       data.retour_adresse_depart, data.retour_adresse_arrivee,
@@ -2317,14 +3272,16 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
 
   y = maxY + 15
 
-  // OPTIONS
+  // OPTIONS - traductions
+  const contractIncludesLabel = lang === 'de' ? 'Ihr Vertrag beinhaltet' : lang === 'es' ? 'Su contrato incluye' : lang === 'en' ? 'Your contract includes' : 'Votre contrat comprend'
+  const contractNotIncludesLabel = lang === 'de' ? 'Nicht im Vertrag enthalten' : lang === 'es' ? 'No incluido en su contrato' : lang === 'en' ? 'Not included in your contract' : 'Votre contrat ne comprend pas'
   const optColWidth = (pageWidth - 40) / 2
   doc.setFontSize(10)
   doc.setTextColor(88, 44, 135)
   doc.setFont('helvetica', 'bold')
-  doc.text('Votre contrat comprend', colLeftX, y)
+  doc.text(contractIncludesLabel, colLeftX, y)
   drawLine(doc, y + 2, colLeftX, colLeftX + optColWidth - 10)
-  doc.text('Votre contrat ne comprend pas', colRightX, y)
+  doc.text(contractNotIncludesLabel, colRightX, y)
   drawLine(doc, y + 2, colRightX, colRightX + optColWidth - 10)
 
   y += 10
@@ -2335,26 +3292,31 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
   const incluses = data.options_incluses || []
   incluses.forEach((opt, i) => { doc.text(opt, colLeftX, y + i * 5) })
 
-  const nonIncluses = data.options_non_incluses || ['Kilomètres supplémentaires', 'Heures supplémentaires']
+  const defaultExtraKm = lang === 'de' ? 'Zusätzliche Kilometer' : lang === 'es' ? 'Kilómetros adicionales' : lang === 'en' ? 'Extra kilometres' : 'Kilomètres supplémentaires'
+  const defaultExtraHours = lang === 'de' ? 'Zusätzliche Stunden' : lang === 'es' ? 'Horas adicionales' : lang === 'en' ? 'Extra hours' : 'Heures supplémentaires'
+  const nonIncluses = data.options_non_incluses || [defaultExtraKm, defaultExtraHours]
   nonIncluses.forEach((opt, i) => { doc.text(opt, colRightX, y + i * 5) })
 
   y += Math.max(incluses.length, nonIncluses.length) * 5 + 10
 
-  // INFOS COMPLEMENTAIRES
+  // INFOS COMPLEMENTAIRES - traductions
+  const additionalInfoLabel = lang === 'de' ? 'Zusätzliche Informationen' : lang === 'es' ? 'Información adicional' : lang === 'en' ? 'Additional information' : 'Informations complémentaires'
+  const luggageTypeLabel = lang === 'de' ? 'Gepäckart: ' : lang === 'es' ? 'Tipo de equipaje: ' : lang === 'en' ? 'Luggage type: ' : 'Type de bagage : '
+  const noLuggageLabel = lang === 'de' ? 'Kein Gepäck' : lang === 'es' ? 'Sin equipaje' : lang === 'en' ? 'No luggage' : 'Pas de bagage'
   doc.setFontSize(11)
   doc.setTextColor(88, 44, 135)
   doc.setFont('helvetica', 'bold')
-  doc.text('Informations complémentaires', 15, y)
+  doc.text(additionalInfoLabel, 15, y)
   y += 8
 
   doc.setFontSize(9)
   doc.setTextColor(grayText[0], grayText[1], grayText[2])
   doc.setFont('helvetica', 'normal')
   doc.setFont('helvetica', 'bold')
-  doc.text('Type de bagage : ', 15, y)
+  doc.text(luggageTypeLabel, 15, y)
   doc.setFont('helvetica', 'normal')
-  const bagageFeuille = data.luggage_type || 'Pas de bagage'
-  doc.text(bagageFeuille, 45, y)
+  const bagageFeuille = data.luggage_type || noLuggageLabel
+  doc.text(bagageFeuille, 15 + doc.getTextWidth(luggageTypeLabel), y)
 
   if (data.commentaires) {
     y += 8
@@ -2363,35 +3325,53 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
     y += commentLines.slice(0, 3).length * 4
   }
 
-  // ASTREINTE
+  // ASTREINTE - traduction
+  const emergencyContactLabel = lang === 'de' ? 'Im Notfall kontaktieren Sie' : lang === 'es' ? 'En caso de emergencia contactar al' : lang === 'en' ? 'In case of emergency contact' : "En cas d'urgence contacter le"
   y += 15
   doc.setFontSize(10)
   doc.setTextColor(233, 30, 140)
   doc.setFont('helvetica', 'bold')
   const astreinteTel = data.astreinte_tel || COMPANY_INFO.phone
-  doc.text(`En cas d'urgence contacter le ${astreinteTel}.`, pageWidth / 2, y, { align: 'center' })
+  doc.text(`${emergencyContactLabel} ${astreinteTel}.`, pageWidth / 2, y, { align: 'center' })
 
   // PAGE 2 - LEGISLATION
+  const legislationReminderLabel = lang === 'de' ? 'Gesetzliche Hinweise' : lang === 'es' ? 'Recordatorio de la legislación' : lang === 'en' ? 'Legislation reminder' : 'Rappel de la législation'
   doc.addPage()
   y = 20
   doc.setFontSize(11)
   doc.setTextColor(88, 44, 135)
   doc.setFont('helvetica', 'bold')
-  doc.text('Rappel de la législation', 15, y)
+  doc.text(legislationReminderLabel, 15, y)
   drawLine(doc, y + 2, 15, pageWidth - 15)
 
   y += 15
   doc.setFontSize(9)
   doc.setTextColor(grayText[0], grayText[1], grayText[2])
 
-  const legislation = [
+  // Législation traduite
+  const legislationData = lang === 'de' ? [
+    { title: 'Arbeitszeit', text: '12h für einen Fahrer und 18h für zwei Fahrer im Doppelteam' },
+    { title: 'Fahrzeit', text: '9h Fahrzeit pro Tag für einen Fahrer.' },
+    { title: 'Pause', text: 'Eine 45-minütige Pause alle 4h30 Fahrzeit.\nVon 21h bis 06h (Nachtzeiten) erfolgen die Pausen alle 4h Fahrzeit.' },
+    { title: 'Ruhezeit', text: '1 Ruhetag vor Ort obligatorisch für Reisen über 6 Tage.' },
+  ] : lang === 'es' ? [
+    { title: 'Amplitud', text: '12h para un conductor y 18h para dos conductores en doble equipo' },
+    { title: 'Tiempo de conducción', text: '9h de conducción por día para un conductor.' },
+    { title: 'Descanso', text: 'Un descanso de 45 min cada 4h30 de conducción.\nDe 21h a 06h (horas nocturnas) los descansos tienen lugar cada 4h de conducción.' },
+    { title: 'Reposo', text: '1 día de reposo obligatorio en el lugar para viajes de más de 6 días.' },
+  ] : lang === 'en' ? [
+    { title: 'Working hours', text: '12h for one driver and 18h for two drivers in double crew' },
+    { title: 'Driving time', text: '9h driving time per day for one driver.' },
+    { title: 'Break', text: 'A 45-minute break every 4h30 of driving.\nFrom 21h to 06h (night hours) breaks take place every 4h of driving.' },
+    { title: 'Rest', text: '1 mandatory rest day on site for trips over 6 days.' },
+  ] : [
     { title: 'Amplitude', text: '12h pour un conducteur et 18h pour deux conducteurs en double équipage' },
     { title: 'Temps de conduite', text: '9h de conduite pour un conducteur par jour.' },
     { title: 'Coupure', text: 'une coupure de 45 min toutes les 4h30 de conduite.\nDe 21h à 06h (heures de nuit) les coupures ont lieu toutes les 4h de conduite.' },
     { title: 'Repos', text: '1 jour de repos obligatoire sur place pour les voyages de plus de 6 jours.' },
   ]
 
-  legislation.forEach(item => {
+  legislationData.forEach(item => {
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(88, 44, 135)
     doc.text(item.title, 20, y)
@@ -2403,16 +3383,19 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData): Pro
     y += lines.length * 5 + 8
   })
 
+  // Message de remerciement traduit
+  const thankYouLabel = lang === 'de' ? 'Danke!' : lang === 'es' ? '¡Gracias!' : lang === 'en' ? 'Thank you!' : 'Merci !'
+  const wishesLabel = lang === 'de' ? `Das Team von ${COMPANY_INFO.name} wünscht Ihnen eine gute Reise` : lang === 'es' ? `El equipo de ${COMPANY_INFO.name} le desea un excelente viaje` : lang === 'en' ? `The ${COMPANY_INFO.name} team wishes you an excellent trip` : `L'équipe de ${COMPANY_INFO.name} vous souhaite un excellent voyage`
   y += 20
   doc.setFontSize(14)
   doc.setTextColor(0, 51, 102)
   doc.setFont('helvetica', 'bold')
-  doc.text('Merci !', pageWidth / 2, y, { align: 'center' })
+  doc.text(thankYouLabel, pageWidth / 2, y, { align: 'center' })
   y += 10
   doc.setFontSize(10)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(grayText[0], grayText[1], grayText[2])
-  doc.text(`L'équipe de ${COMPANY_INFO.name} vous souhaite un excellent voyage`, pageWidth / 2, y, { align: 'center' })
+  doc.text(wishesLabel, pageWidth / 2, y, { align: 'center' })
 
   // FOOTER PAGE 2
   const footerY2 = pageHeight - 20
@@ -2464,8 +3447,9 @@ interface InfosVoyageData {
   validated_at?: string | null
 }
 
-export async function generateInfosVoyagePDF(data: InfosVoyageData): Promise<void> {
+export async function generateInfosVoyagePDF(data: InfosVoyageData, lang: string = 'fr'): Promise<void> {
   const COMPANY_INFO = await getCompanyInfo()
+  const t = getPdfTranslations(lang)
   const doc = new jsPDF({
     format: 'a4',
     orientation: 'portrait'
@@ -2478,6 +3462,9 @@ export async function generateInfosVoyagePDF(data: InfosVoyageData): Promise<voi
   const magenta = '#E91E8C' // Magenta Busmoov
   const grayText = [80, 80, 80]
 
+  // Titre traduit pour "Informations voyage"
+  const titleInfosVoyage = lang === 'de' ? 'REISEINFORMATIONEN' : lang === 'es' ? 'INFORMACIÓN DEL VIAJE' : lang === 'en' ? 'TRIP INFORMATION' : 'INFORMATIONS VOYAGE'
+
   // ========== HEADER ==========
   // Logo Busmoov à gauche (contient déjà le nom)
   await addLogoToPdf(doc, 15, 8, 50, 11)
@@ -2486,7 +3473,7 @@ export async function generateInfosVoyagePDF(data: InfosVoyageData): Promise<voi
   doc.setFontSize(16)
   doc.setTextColor(88, 44, 135) // Purple Busmoov
   doc.setFont('helvetica', 'bold')
-  doc.text('INFORMATIONS VOYAGE', pageWidth / 2 + 20, 15, { align: 'center' })
+  doc.text(titleInfosVoyage, pageWidth / 2 + 20, 15, { align: 'center' })
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(100, 100, 100)
@@ -2555,15 +3542,15 @@ export async function generateInfosVoyagePDF(data: InfosVoyageData): Promise<voi
     doc.setFontSize(9)
     doc.setTextColor(88, 44, 135) // Purple Busmoov
     doc.setFont('helvetica', 'normal')
-    doc.text('Date de départ', startX, colY)
+    doc.text(t.departureDate, startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
-    doc.text(date ? formatDate(date) : '-', startX, colY)
+    doc.text(date ? formatDateLocalized(date, lang) : '-', startX, colY)
 
     colY += 10
     // Heure de départ
     doc.setTextColor(88, 44, 135) // Purple Busmoov
-    doc.text('Heure de départ', startX, colY)
+    doc.text(t.departureDate.replace('Date', 'Heure'), startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
     doc.text(heure || '-', startX, colY)
@@ -2703,8 +3690,9 @@ export async function generateInfosVoyagePDF(data: InfosVoyageData): Promise<voi
 }
 
 // Version qui retourne le PDF en base64 pour envoi par email
-export async function generateInfosVoyagePDFBase64(data: InfosVoyageData): Promise<{ base64: string; filename: string }> {
+export async function generateInfosVoyagePDFBase64(data: InfosVoyageData, lang: string = 'fr'): Promise<{ base64: string; filename: string }> {
   const COMPANY_INFO = await getCompanyInfo()
+  const t = getPdfTranslations(lang)
   const doc = new jsPDF({
     format: 'a4',
     orientation: 'portrait'
@@ -2717,13 +3705,16 @@ export async function generateInfosVoyagePDFBase64(data: InfosVoyageData): Promi
   const magenta = '#E91E8C' // Magenta Busmoov
   const grayText = [80, 80, 80]
 
+  // Titre traduit pour "Informations voyage"
+  const titleInfosVoyage = lang === 'de' ? 'REISEINFORMATIONEN' : lang === 'es' ? 'INFORMACIÓN DEL VIAJE' : lang === 'en' ? 'TRIP INFORMATION' : 'INFORMATIONS VOYAGE'
+
   // ========== HEADER ==========
   await addLogoToPdf(doc, 15, 8, 50, 11)
 
   doc.setFontSize(16)
   doc.setTextColor(88, 44, 135)
   doc.setFont('helvetica', 'bold')
-  doc.text('INFORMATIONS VOYAGE', pageWidth / 2 + 20, 15, { align: 'center' })
+  doc.text(titleInfosVoyage, pageWidth / 2 + 20, 15, { align: 'center' })
   doc.setFontSize(9)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(100, 100, 100)
@@ -2787,14 +3778,14 @@ export async function generateInfosVoyagePDFBase64(data: InfosVoyageData): Promi
     doc.setFontSize(9)
     doc.setTextColor(88, 44, 135)
     doc.setFont('helvetica', 'normal')
-    doc.text('Date de départ', startX, colY)
+    doc.text(t.departureDate, startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
-    doc.text(date ? formatDate(date) : '-', startX, colY)
+    doc.text(date ? formatDateLocalized(date, lang) : '-', startX, colY)
 
     colY += 10
     doc.setTextColor(88, 44, 135)
-    doc.text('Heure de départ', startX, colY)
+    doc.text(t.departureDate.replace('Date', 'Heure'), startX, colY)
     colY += 5
     doc.setTextColor(0, 0, 0)
     doc.text(heure || '-', startX, colY)

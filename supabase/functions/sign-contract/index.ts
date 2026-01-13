@@ -6,6 +6,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Helper pour obtenir le préfixe de langue à partir du code pays
+function getLanguageFromCountry(countryCode: string | null | undefined): string {
+  switch (countryCode?.toUpperCase()) {
+    case 'ES': return 'es'
+    case 'DE': return 'de'
+    case 'GB': return 'en'
+    case 'FR':
+    default: return 'fr'
+  }
+}
+
+// Helper pour générer une URL localisée
+function generateLocalizedUrl(baseUrl: string, path: string, countryCode: string | null | undefined, params: Record<string, string>): string {
+  const lang = getLanguageFromCountry(countryCode)
+  const queryString = new URLSearchParams(params).toString()
+  return `${baseUrl}/${lang}${path}?${queryString}`
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -24,6 +42,7 @@ serve(async (req) => {
       devis_id,
       signataire_name,
       billing_info,
+      e_invoice_info,
       payment_method,
       selected_options,
       client_ip,
@@ -206,6 +225,11 @@ serve(async (req) => {
         billing_country: billing_info?.country || 'France',
         payment_method: payment_method,
         signer_name: signataire_name,
+        // Champs e-invoice (facturation électronique B2B/B2G)
+        client_vat_number: e_invoice_info?.vat_number || null,
+        client_order_reference: e_invoice_info?.order_reference || null,
+        client_leitweg_id: e_invoice_info?.leitweg_id || null,
+        client_dir3_code: e_invoice_info?.dir3_code || null,
       })
       .eq('id', dossier_id)
 
@@ -214,7 +238,21 @@ serve(async (req) => {
       throw updateDossierError
     }
 
-    // 4. Ajouter à la timeline
+    // 4. Désactiver l'auto-devis pour ce dossier (le contrat est signé)
+    const { error: autoDevisError } = await supabaseAdmin
+      .from('dossier_auto_devis')
+      .update({ is_active: false, deactivated_at: signedAt })
+      .eq('dossier_id', dossier_id)
+      .eq('is_active', true)
+
+    if (autoDevisError) {
+      // Ne pas bloquer si l'auto-devis n'existe pas ou échoue
+      console.log('Note: Auto-devis désactivation:', autoDevisError.message)
+    } else {
+      console.log('Auto-devis désactivé pour le dossier', dossier_id)
+    }
+
+    // 5. Ajouter à la timeline
     const paymentTypeLabel = isFullPaymentRequired ? 'paiement complet requis' : `acompte ${acomptePercent}%`
     await supabaseAdmin.from('timeline').insert({
       dossier_id: dossier_id,
@@ -222,7 +260,30 @@ serve(async (req) => {
       content: `📝 Contrat signé par ${signataire_name} - ${finalPriceTTC}€ TTC (${paymentTypeLabel}, ${payment_method === 'cb' ? 'CB' : 'Virement'})`,
     })
 
-    // 5. Envoyer l'email de confirmation
+    // 5b. Créer une notification CRM pour le contrat signé
+    try {
+      await supabaseAdmin.from('notifications_crm').insert({
+        dossier_id: dossier_id,
+        dossier_reference: dossier.reference,
+        type: 'contrat_signe',
+        title: 'Contrat signé',
+        description: `${signataire_name} a signé le contrat pour ${dossier.departure} → ${dossier.arrival} - ${finalPriceTTC}€ TTC`,
+        source_type: 'client',
+        source_name: signataire_name,
+        is_read: false,
+        metadata: {
+          price_ttc: finalPriceTTC,
+          acompte: calculatedAcompte,
+          payment_method: payment_method,
+        },
+      })
+      console.log('Notification CRM créée pour contrat signé')
+    } catch (notifError) {
+      // Ne pas bloquer si la notification échoue
+      console.error('Erreur création notification CRM:', notifError)
+    }
+
+    // 6. Envoyer l'email de confirmation
     try {
       const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
       const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
@@ -238,10 +299,12 @@ serve(async (req) => {
         return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
       }
 
-      // Lien vers la page de paiement
+      // Liens localisés vers les pages client
       const baseUrl = 'https://busmoov.com'
+      const countryCode = dossier.country_code
+      const lienEspaceClient = generateLocalizedUrl(baseUrl, '/mes-devis', countryCode, { ref: dossier.reference, email: dossier.client_email })
       const lienPaiement = payment_method === 'cb'
-        ? `${baseUrl}/paiement?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`
+        ? generateLocalizedUrl(baseUrl, '/paiement', countryCode, { ref: dossier.reference, email: dossier.client_email })
         : null
 
       const emailPayload = {
@@ -257,11 +320,12 @@ serve(async (req) => {
           total_ttc: `${finalPriceTTC}€`,
           montant_acompte: `${calculatedAcompte}€`,
           montant_solde: calculatedSolde > 0 ? `${calculatedSolde}€` : '',
-          lien_espace_client: `${baseUrl}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`,
+          lien_espace_client: lienEspaceClient,
           lien_paiement: lienPaiement || '',
           payment_method: payment_method === 'cb' ? 'Carte bancaire' : 'Virement bancaire',
           is_virement: payment_method === 'virement' ? 'true' : '',
           dossier_id: dossier_id,
+          language: getLanguageFromCountry(countryCode),
         },
       }
 
@@ -329,6 +393,7 @@ serve(async (req) => {
             vehicle_type: devis.vehicle_type,
             trip_mode: dossier.trip_mode,
             transporteur: devis.transporteur,
+            country_code: dossier.country_code || 'FR',
           },
           billing_info: {
             address: billing_info?.address,

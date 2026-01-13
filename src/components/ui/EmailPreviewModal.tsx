@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { X, Send, Mail, User, FileText, Loader2, CheckCircle, Pencil } from 'lucide-react'
+import { X, Send, Mail, User, FileText, Loader2, CheckCircle, Pencil, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
 
 interface EmailPreviewModalProps {
   isOpen: boolean
@@ -8,6 +9,9 @@ interface EmailPreviewModalProps {
   to: string
   subject: string
   body: string
+  html?: string // Contenu HTML optionnel
+  dossierId?: string // Pour le logging
+  templateKey?: string // Pour identifier le type d'email dans les logs
   onSend?: () => void | Promise<void>
 }
 
@@ -17,47 +21,80 @@ export function EmailPreviewModal({
   to: initialTo,
   subject: initialSubject,
   body: initialBody,
+  html: initialHtml,
+  dossierId,
+  templateKey = 'demande_fournisseur',
   onSend,
 }: EmailPreviewModalProps) {
   const [isSending, setIsSending] = useState(false)
   const [isSent, setIsSent] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // États éditables
   const [to, setTo] = useState(initialTo)
   const [subject, setSubject] = useState(initialSubject)
   const [body, setBody] = useState(initialBody)
+  const [html, setHtml] = useState(initialHtml)
 
   // Réinitialiser les valeurs quand les props changent
   useEffect(() => {
     setTo(initialTo)
     setSubject(initialSubject)
     setBody(initialBody)
+    setHtml(initialHtml)
     setIsEditing(false)
     setIsSent(false)
-  }, [initialTo, initialSubject, initialBody])
+    setError(null)
+  }, [initialTo, initialSubject, initialBody, initialHtml])
 
   if (!isOpen) return null
 
   const handleSend = async () => {
     setIsSending(true)
+    setError(null)
 
-    // Simuler un délai d'envoi
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    try {
+      // Préparer le contenu HTML (soit le HTML fourni, soit convertir le body en HTML simple)
+      const htmlContent = html || body.replace(/\n/g, '<br>')
 
-    // Appeler le callback si fourni
-    if (onSend) {
-      await onSend()
+      // Envoyer l'email via la fonction send-email
+      const { error: emailError } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'custom',
+          to: to,
+          subject: subject,
+          html_content: htmlContent,
+          data: {
+            dossier_id: dossierId,
+            template_key: templateKey,
+            language: 'fr', // Les emails fournisseurs sont en français par défaut (la traduction est déjà faite dans le body)
+          },
+        },
+      })
+
+      if (emailError) {
+        throw emailError
+      }
+
+      // Appeler le callback si fourni (pour les actions supplémentaires comme valider la demande)
+      if (onSend) {
+        await onSend()
+      }
+
+      setIsSent(true)
+
+      // Fermer automatiquement après 2 secondes
+      setTimeout(() => {
+        setIsSent(false)
+        onClose()
+      }, 2000)
+    } catch (err) {
+      console.error('Erreur envoi email:', err)
+      setError(err instanceof Error ? err.message : 'Erreur lors de l\'envoi de l\'email')
+    } finally {
+      setIsSending(false)
     }
-
-    setIsSending(false)
-    setIsSent(true)
-
-    // Fermer automatiquement après 2 secondes
-    setTimeout(() => {
-      setIsSent(false)
-      onClose()
-    }, 2000)
   }
 
   const handleClose = () => {
@@ -203,6 +240,17 @@ export function EmailPreviewModal({
                 </div>
                 <p className="text-xs text-gray-500 mt-1">infos@busmoov.com | www.busmoov.com</p>
               </div>
+
+              {/* Affichage erreur */}
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                  <AlertCircle size={18} className="text-red-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-red-700">Erreur d'envoi</p>
+                    <p className="text-xs text-red-600 mt-1">{error}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -257,10 +305,13 @@ export function EmailPreviewModal({
 }
 
 // Hook pour faciliter l'utilisation de la modal
-interface EmailData {
+export interface EmailData {
   to: string
   subject: string
   body: string
+  html?: string
+  dossierId?: string
+  templateKey?: string
 }
 
 export function useEmailPreview() {

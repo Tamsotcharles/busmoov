@@ -182,10 +182,10 @@ export function EmailTemplatesPage() {
               testData[v.name] = `[${v.name}]`
           }
         })
-        // Ajouter les liens
-        testData['lien_espace_client'] = 'https://busmoov.com/mes-devis?ref=TEST'
-        testData['lien_paiement'] = 'https://busmoov.com/paiement?ref=TEST'
-        testData['lien_infos_voyage'] = 'https://busmoov.com/infos-voyage?ref=TEST'
+        // Ajouter les liens (avec préfixe de langue français par défaut pour les tests)
+        testData['lien_espace_client'] = 'https://busmoov.com/fr/mes-devis?ref=TEST'
+        testData['lien_paiement'] = 'https://busmoov.com/fr/paiement?ref=TEST'
+        testData['lien_infos_voyage'] = 'https://busmoov.com/fr/infos-voyage?ref=TEST'
       }
 
       const response = await supabase.functions.invoke('send-email', {

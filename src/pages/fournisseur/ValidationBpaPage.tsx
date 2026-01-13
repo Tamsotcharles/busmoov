@@ -3,6 +3,21 @@ import { useSearchParams, Link } from 'react-router-dom'
 import { CheckCircle, XCircle, Loader2, Calendar, MapPin, Users, Euro, FileText, Route } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { formatDate, formatPrice } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
+
+// Taux de TVA par pays pour le transport de passagers
+const COUNTRY_TVA_RATES: Record<string, number> = {
+  FR: 10,
+  ES: 10,
+  DE: 7,
+  GB: 0,
+  EN: 0,
+}
+
+function getTvaRateByCountry(countryCode?: string | null): number {
+  if (!countryCode) return 10
+  return COUNTRY_TVA_RATES[countryCode] ?? 10
+}
 
 interface DossierInfo {
   id: string
@@ -24,9 +39,12 @@ interface DossierInfo {
   prix_achat: number | null
   marge_percent: number | null
   price_ht: number | null
+  country_code: string | null
+  tva_rate: number | null
 }
 
 export function ValidationBpaPage() {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') || ''
   const demandeId = searchParams.get('demande') || ''
@@ -44,7 +62,7 @@ export function ValidationBpaPage() {
 
   const validateToken = async () => {
     if (!token || !demandeId) {
-      setError('Lien invalide. Veuillez contacter Busmoov.')
+      setError(t('fournisseur.invalidLink'))
       setLoading(false)
       return
     }
@@ -72,6 +90,8 @@ export function ValidationBpaPage() {
             return_time,
             passengers,
             price_ht,
+            country_code,
+            tva_rate,
             devis (
               service_type,
               nombre_cars,
@@ -90,14 +110,14 @@ export function ValidationBpaPage() {
         .single()
 
       if (demandeError || !demande) {
-        setError('Demande introuvable. Ce lien peut avoir expiré.')
+        setError(t('fournisseur.requestNotFound'))
         setLoading(false)
         return
       }
 
       // Vérifier le token de validation
       if ((demande as any).validation_token !== token) {
-        setError('Lien de validation invalide.')
+        setError(t('fournisseur.invalidValidationLink'))
         setLoading(false)
         return
       }
@@ -136,13 +156,15 @@ export function ValidationBpaPage() {
           prix_achat: (demande as any).prix_propose,
           marge_percent: (demande as any).marge_percent,
           price_ht: dossier.price_ht,
+          country_code: dossier.country_code || null,
+          tva_rate: dossier.tva_rate || null,
         })
       }
 
       setLoading(false)
     } catch (err) {
       console.error('Error validating token:', err)
-      setError('Une erreur est survenue. Veuillez réessayer.')
+      setError(t('fournisseur.errorOccurred'))
       setLoading(false)
     }
   }
@@ -169,9 +191,10 @@ export function ValidationBpaPage() {
       // Mettre à jour le dossier avec les infos définitives (prix achat, transporteur)
       if (dossierInfo) {
         // Convertir le prix TTC en HT (prix_achat dans le dossier est en HT)
-        // prix_propose du transporteur est en TTC, on divise par 1.1 pour obtenir le HT
+        // prix_propose du transporteur est en TTC, on divise par (1 + tva_rate) pour obtenir le HT
+        const tvaRate = dossierInfo.tva_rate ?? getTvaRateByCountry(dossierInfo.country_code)
         const prixAchatHT = dossierInfo.prix_achat
-          ? Math.round((dossierInfo.prix_achat / 1.1) * 100) / 100
+          ? Math.round((dossierInfo.prix_achat / (1 + tvaRate / 100)) * 100) / 100
           : null
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -210,7 +233,7 @@ export function ValidationBpaPage() {
       setSuccess(true)
     } catch (err) {
       console.error('Error validating BPA:', err)
-      setError('Une erreur est survenue lors de la validation.')
+      setError(t('fournisseur.validationError'))
     } finally {
       setValidating(false)
     }
@@ -222,7 +245,7 @@ export function ValidationBpaPage() {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
         <div className="text-center">
           <Loader2 size={48} className="animate-spin text-magenta mx-auto mb-4" />
-          <p className="text-gray-500">Vérification en cours...</p>
+          <p className="text-gray-500">{t('fournisseur.verifying')}</p>
         </div>
       </div>
     )
@@ -238,11 +261,11 @@ export function ValidationBpaPage() {
               <XCircle size={40} className="text-red-600" />
             </div>
             <h2 className="font-display text-2xl font-bold text-red-600 mb-2">
-              Erreur
+              {t('fournisseur.error')}
             </h2>
             <p className="text-gray-500 mb-6">{error}</p>
             <a href="mailto:infos@busmoov.com" className="btn btn-primary">
-              Contacter Busmoov
+              {t('fournisseur.contactBusmoov')}
             </a>
           </div>
         </div>
@@ -260,14 +283,14 @@ export function ValidationBpaPage() {
               <CheckCircle size={40} />
             </div>
             <h2 className="font-display text-2xl font-bold text-emerald-600 mb-2">
-              Déjà validé
+              {t('fournisseur.alreadyValidated')}
             </h2>
             <p className="text-gray-500 mb-6">
-              Cette commande a déjà été confirmée. Merci de votre collaboration !
+              {t('fournisseur.alreadyValidatedMessage')}
             </p>
             {dossierInfo && (
               <div className="text-sm text-gray-500">
-                Référence : <span className="font-semibold">{dossierInfo.reference}</span>
+                {t('fournisseur.reference')} : <span className="font-semibold">{dossierInfo.reference}</span>
               </div>
             )}
           </div>
@@ -286,16 +309,16 @@ export function ValidationBpaPage() {
               <CheckCircle size={40} />
             </div>
             <h2 className="font-display text-2xl font-bold text-emerald-600 mb-2">
-              Commande confirmée !
+              {t('fournisseur.orderConfirmed')}
             </h2>
             <p className="text-gray-500 mb-6">
-              Merci ! Votre confirmation a bien été enregistrée. L'équipe Busmoov va prendre le relais.
+              {t('fournisseur.orderConfirmedMessage')}
             </p>
             {dossierInfo && (
               <div className="p-4 bg-gray-50 rounded-lg text-sm text-left space-y-2">
-                <p><span className="text-gray-500">Référence :</span> <span className="font-semibold">{dossierInfo.reference}</span></p>
-                <p><span className="text-gray-500">Trajet :</span> {dossierInfo.departure} → {dossierInfo.arrival}</p>
-                <p><span className="text-gray-500">Date :</span> {formatDate(dossierInfo.departure_date)}</p>
+                <p><span className="text-gray-500">{t('fournisseur.reference')} :</span> <span className="font-semibold">{dossierInfo.reference}</span></p>
+                <p><span className="text-gray-500">{t('fournisseur.route')} :</span> {dossierInfo.departure} → {dossierInfo.arrival}</p>
+                <p><span className="text-gray-500">{t('fournisseur.date')} :</span> {formatDate(dossierInfo.departure_date)}</p>
               </div>
             )}
           </div>
@@ -315,10 +338,10 @@ export function ValidationBpaPage() {
             <span className="font-display text-xl font-bold gradient-text">Busmoov</span>
           </Link>
           <h1 className="font-display text-2xl font-bold text-purple-dark">
-            Confirmation de commande
+            {t('fournisseur.confirmationTitle')}
           </h1>
           <p className="text-gray-500 mt-2">
-            Validez votre Bon Pour Accord (BPA) en un clic
+            {t('fournisseur.confirmationSubtitle')}
           </p>
         </div>
 
@@ -330,9 +353,9 @@ export function ValidationBpaPage() {
                 <FileText size={20} className="text-white" />
               </div>
               <div>
-                <h2 className="font-semibold text-purple-dark">Dossier {dossierInfo.reference}</h2>
+                <h2 className="font-semibold text-purple-dark">{t('fournisseur.dossier')} {dossierInfo.reference}</h2>
                 {dossierInfo.transporteur_name && (
-                  <p className="text-sm text-gray-500">Pour : {dossierInfo.transporteur_name}</p>
+                  <p className="text-sm text-gray-500">{t('fournisseur.for')} : {dossierInfo.transporteur_name}</p>
                 )}
               </div>
             </div>
@@ -342,12 +365,12 @@ export function ValidationBpaPage() {
               <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                 <Route size={18} className="text-magenta mt-0.5" />
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Type de prestation</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">{t('fournisseur.serviceType')}</p>
                   <p className="font-medium">
-                    {dossierInfo.service_type === 'aller_simple' && 'Aller simple'}
-                    {dossierInfo.service_type === 'aller_retour' && 'Aller-Retour'}
-                    {(dossierInfo.service_type === 'circuit' || dossierInfo.service_type === 'mise_disposition' || dossierInfo.service_type === 'ar_mad') && 'Mise à disposition'}
-                    {!dossierInfo.service_type && (dossierInfo.return_date ? 'Aller-Retour' : 'Aller simple')}
+                    {dossierInfo.service_type === 'aller_simple' && t('fournisseur.oneWay')}
+                    {dossierInfo.service_type === 'aller_retour' && t('fournisseur.roundTrip')}
+                    {(dossierInfo.service_type === 'circuit' || dossierInfo.service_type === 'mise_disposition' || dossierInfo.service_type === 'ar_mad') && t('fournisseur.disposal')}
+                    {!dossierInfo.service_type && (dossierInfo.return_date ? t('fournisseur.roundTrip') : t('fournisseur.oneWay'))}
                   </p>
                 </div>
               </div>
@@ -356,7 +379,7 @@ export function ValidationBpaPage() {
               <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                 <MapPin size={18} className="text-magenta mt-0.5" />
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Trajet</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wide">{t('fournisseur.route')}</p>
                   <p className="font-medium">{dossierInfo.departure} → {dossierInfo.arrival}</p>
                 </div>
               </div>
@@ -367,12 +390,12 @@ export function ValidationBpaPage() {
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide">
                     {(dossierInfo.service_type === 'circuit' || dossierInfo.service_type === 'mise_disposition' || dossierInfo.service_type === 'ar_mad')
-                      ? 'Date début'
-                      : 'Date aller'}
+                      ? t('fournisseur.startDate')
+                      : t('fournisseur.departureDate')}
                   </p>
                   <p className="font-medium">
                     {formatDate(dossierInfo.departure_date)}
-                    {dossierInfo.departure_time && ` à ${dossierInfo.departure_time}`}
+                    {dossierInfo.departure_time && ` ${t('fournisseur.at')} ${dossierInfo.departure_time}`}
                   </p>
                 </div>
               </div>
@@ -384,12 +407,12 @@ export function ValidationBpaPage() {
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">
                       {(dossierInfo.service_type === 'circuit' || dossierInfo.service_type === 'mise_disposition' || dossierInfo.service_type === 'ar_mad')
-                        ? 'Date fin'
-                        : 'Date retour'}
+                        ? t('fournisseur.endDate')
+                        : t('fournisseur.returnDate')}
                     </p>
                     <p className="font-medium">
                       {formatDate(dossierInfo.return_date)}
-                      {dossierInfo.return_time && ` à ${dossierInfo.return_time}`}
+                      {dossierInfo.return_time && ` ${t('fournisseur.at')} ${dossierInfo.return_time}`}
                     </p>
                   </div>
                 </div>
@@ -400,8 +423,8 @@ export function ValidationBpaPage() {
                 <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                   <Calendar size={18} className="text-magenta mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">Durée</p>
-                    <p className="font-medium">{dossierInfo.duree_jours} jour{dossierInfo.duree_jours > 1 ? 's' : ''}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">{t('fournisseur.duration')}</p>
+                    <p className="font-medium">{dossierInfo.duree_jours} {t('fournisseur.days', { count: dossierInfo.duree_jours })}</p>
                   </div>
                 </div>
               )}
@@ -411,7 +434,7 @@ export function ValidationBpaPage() {
                 <div className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
                   <Route size={18} className="text-amber-600 mt-0.5" />
                   <div>
-                    <p className="text-xs text-amber-600 uppercase tracking-wide">Détail mise à disposition</p>
+                    <p className="text-xs text-amber-600 uppercase tracking-wide">{t('fournisseur.disposalDetail')}</p>
                     <p className="font-medium text-amber-800">{dossierInfo.detail_mad}</p>
                   </div>
                 </div>
@@ -422,19 +445,19 @@ export function ValidationBpaPage() {
                 <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
                   <Users size={16} className="text-magenta mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">Passagers</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">{t('fournisseur.passengers')}</p>
                     <p className="font-medium">{dossierInfo.passengers}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">Véhicules</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">{t('fournisseur.vehicles')}</p>
                     <p className="font-medium">{dossierInfo.nb_vehicles || 1}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">Chauffeurs</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">{t('fournisseur.drivers')}</p>
                     <p className="font-medium">{dossierInfo.nb_chauffeurs || 1}</p>
                   </div>
                 </div>
@@ -445,7 +468,7 @@ export function ValidationBpaPage() {
                 <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-purple-50 to-magenta-50 rounded-lg border border-purple-100">
                   <Euro size={18} className="text-magenta mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">Montant convenu</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">{t('fournisseur.agreedAmount')}</p>
                     <p className="font-bold text-lg text-purple-dark">{formatPrice(dossierInfo.prix_achat)} TTC</p>
                   </div>
                 </div>
@@ -457,7 +480,7 @@ export function ValidationBpaPage() {
         {/* Validation button */}
         <div className="card p-6">
           <p className="text-sm text-gray-600 mb-4">
-            En cliquant sur le bouton ci-dessous, vous confirmez accepter cette commande aux conditions indiquées.
+            {t('fournisseur.confirmationDisclaimer')}
           </p>
 
           <button
@@ -468,24 +491,24 @@ export function ValidationBpaPage() {
             {validating ? (
               <>
                 <Loader2 size={20} className="animate-spin" />
-                Validation en cours...
+                {t('fournisseur.validating')}
               </>
             ) : (
               <>
                 <CheckCircle size={20} />
-                Je confirme la commande (BPA)
+                {t('fournisseur.confirmButton')}
               </>
             )}
           </button>
 
           <p className="text-xs text-gray-400 text-center mt-4">
-            Une confirmation vous sera envoyée par email.
+            {t('fournisseur.confirmationEmail')}
           </p>
         </div>
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500">
-          <p>Besoin d'aide ? Contactez-nous à <a href="mailto:infos@busmoov.com" className="text-magenta hover:underline">infos@busmoov.com</a></p>
+          <p>{t('fournisseur.needHelp')} <a href="mailto:infos@busmoov.com" className="text-magenta hover:underline">infos@busmoov.com</a></p>
         </div>
       </div>
     </div>

@@ -3,6 +3,21 @@ import { useSearchParams } from 'react-router-dom'
 import { CheckCircle, XCircle, Loader2, Calendar, MapPin, Users, Bus, Clock, Euro, Send, Wifi, Info, Accessibility, Luggage } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { formatDate, formatPrice } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
+
+// Taux de TVA par pays pour le transport de passagers
+const COUNTRY_TVA_RATES: Record<string, number> = {
+  FR: 10,
+  ES: 10,
+  DE: 7,
+  GB: 0,
+  EN: 0,
+}
+
+function getTvaRateByCountry(countryCode?: string | null): number {
+  if (!countryCode) return 10
+  return COUNTRY_TVA_RATES[countryCode] ?? 10
+}
 
 interface DemandeInfo {
   id: string
@@ -28,6 +43,8 @@ interface DemandeInfo {
     wc: boolean | null
     accessibility: boolean | null
     luggage_type: string | null
+    country_code: string | null
+    tva_rate: number | null
   }
   transporteur: {
     id: string
@@ -88,6 +105,7 @@ function extractRemarques(specialRequests: string | null | undefined): string {
 }
 
 export function PropositionTarifPage() {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') || ''
   const demandeId = searchParams.get('demande') || ''
@@ -109,7 +127,7 @@ export function PropositionTarifPage() {
 
   const loadDemande = async () => {
     if (!token || !demandeId) {
-      setError('Lien invalide. Veuillez contacter Busmoov.')
+      setError(t('fournisseur.invalidLink'))
       setLoading(false)
       return
     }
@@ -143,6 +161,8 @@ export function PropositionTarifPage() {
             wc,
             accessibility,
             luggage_type,
+            country_code,
+            tva_rate,
             devis (
               service_type,
               nombre_cars,
@@ -162,14 +182,14 @@ export function PropositionTarifPage() {
         .single()
 
       if (demandeError || !demande) {
-        setError('Demande introuvable. Ce lien peut avoir expiré.')
+        setError(t('fournisseur.requestNotFound'))
         setLoading(false)
         return
       }
 
       // Vérifier le token
       if (demande.validation_token !== token) {
-        setError('Lien invalide.')
+        setError(t('fournisseur.invalidValidationLink'))
         setLoading(false)
         return
       }
@@ -189,7 +209,7 @@ export function PropositionTarifPage() {
       const transporteur = Array.isArray(demande.transporteur) ? demande.transporteur[0] : demande.transporteur
 
       if (!dossier || !transporteur) {
-        setError('Informations du dossier introuvables.')
+        setError(t('fournisseur.dossierInfoNotFound'))
         setLoading(false)
         return
       }
@@ -222,6 +242,8 @@ export function PropositionTarifPage() {
           wc: dossier.wc,
           accessibility: dossier.accessibility,
           luggage_type: dossier.luggage_type,
+          country_code: dossier.country_code || null,
+          tva_rate: dossier.tva_rate || null,
         },
         transporteur: {
           id: transporteur.id,
@@ -240,7 +262,7 @@ export function PropositionTarifPage() {
       setLoading(false)
     } catch (err) {
       console.error('Error loading demande:', err)
-      setError('Une erreur est survenue. Veuillez réessayer.')
+      setError(t('fournisseur.errorOccurred'))
       setLoading(false)
     }
   }
@@ -252,7 +274,7 @@ export function PropositionTarifPage() {
 
     const prix = parseFloat(prixTTC.replace(',', '.'))
     if (isNaN(prix) || prix <= 0) {
-      setError('Veuillez saisir un prix valide.')
+      setError(t('fournisseur.invalidPrice'))
       return
     }
 
@@ -275,7 +297,8 @@ export function PropositionTarifPage() {
 
       // Ajouter une entrée dans la timeline
       if (demandeInfo) {
-        const prixHT = Math.round((prix / 1.1) * 100) / 100
+        const tvaRate = demandeInfo.dossier.tva_rate ?? getTvaRateByCountry(demandeInfo.dossier.country_code)
+        const prixHT = Math.round((prix / (1 + tvaRate / 100)) * 100) / 100
         await supabase
           .from('timeline')
           .insert({
@@ -303,7 +326,7 @@ export function PropositionTarifPage() {
       setSuccess(true)
     } catch (err) {
       console.error('Error submitting tarif:', err)
-      setError('Une erreur est survenue lors de l\'envoi.')
+      setError(t('fournisseur.sendError'))
     } finally {
       setSubmitting(false)
     }
@@ -313,7 +336,7 @@ export function PropositionTarifPage() {
     if (!demandeId || !token || !demandeInfo) return
 
     // Confirmation
-    if (!confirm('Êtes-vous sûr de vouloir refuser cette prestation ? Cette action est irréversible.')) {
+    if (!confirm(t('fournisseur.confirmRefuse'))) {
       return
     }
 
@@ -359,15 +382,16 @@ export function PropositionTarifPage() {
       setRefused(true)
     } catch (err) {
       console.error('Error refusing demande:', err)
-      setError('Une erreur est survenue lors du refus.')
+      setError(t('fournisseur.refuseError'))
     } finally {
       setRefusing(false)
     }
   }
 
-  // Calculer le prix HT à partir du TTC
+  // Calculer le prix HT à partir du TTC (selon le taux de TVA du pays)
+  const tvaRateDisplay = demandeInfo?.dossier.tva_rate ?? getTvaRateByCountry(demandeInfo?.dossier.country_code)
   const prixHTCalcule = prixTTC
-    ? Math.round((parseFloat(prixTTC.replace(',', '.')) / 1.1) * 100) / 100
+    ? Math.round((parseFloat(prixTTC.replace(',', '.')) / (1 + tvaRateDisplay / 100)) * 100) / 100
     : null
 
   // Loading state
@@ -376,7 +400,7 @@ export function PropositionTarifPage() {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
         <div className="text-center">
           <Loader2 size={48} className="animate-spin text-magenta mx-auto mb-4" />
-          <p className="text-gray-500">Chargement...</p>
+          <p className="text-gray-500">{t('fournisseur.loading')}</p>
         </div>
       </div>
     )
@@ -392,11 +416,11 @@ export function PropositionTarifPage() {
               <XCircle size={40} className="text-red-600" />
             </div>
             <h2 className="font-display text-2xl font-bold text-red-600 mb-2">
-              Erreur
+              {t('fournisseur.error')}
             </h2>
             <p className="text-gray-500 mb-6">{error}</p>
             <a href="mailto:infos@busmoov.com" className="btn btn-primary">
-              Contacter Busmoov
+              {t('fournisseur.contactBusmoov')}
             </a>
           </div>
         </div>
@@ -414,13 +438,13 @@ export function PropositionTarifPage() {
               <CheckCircle size={40} className="text-green-600" />
             </div>
             <h2 className="font-display text-2xl font-bold text-green-600 mb-2">
-              Proposition envoyée !
+              {t('fournisseur.proposalSent')}
             </h2>
             <p className="text-gray-500 mb-4">
-              Votre tarif de <strong>{formatPrice(parseFloat(prixTTC.replace(',', '.')))}</strong> TTC a été transmis à Busmoov.
+              {t('fournisseur.proposalSentText', { price: formatPrice(parseFloat(prixTTC.replace(',', '.'))) })}
             </p>
             <p className="text-gray-400 text-sm">
-              Nous reviendrons vers vous rapidement si votre offre est retenue.
+              {t('fournisseur.willContactYou')}
             </p>
           </div>
         </div>
@@ -438,16 +462,16 @@ export function PropositionTarifPage() {
               <CheckCircle size={40} className="text-blue-600" />
             </div>
             <h2 className="font-display text-2xl font-bold text-blue-600 mb-2">
-              Proposition déjà envoyée
+              {t('fournisseur.alreadySubmitted')}
             </h2>
             <p className="text-gray-500 mb-4">
-              Vous avez déjà soumis un tarif de <strong>{formatPrice(demandeInfo.prix_propose || 0)}</strong> TTC pour ce dossier.
+              {t('fournisseur.alreadySubmittedText', { price: formatPrice(demandeInfo.prix_propose || 0) })}
             </p>
             <p className="text-gray-400 text-sm">
-              Si vous souhaitez modifier votre proposition, veuillez contacter Busmoov.
+              {t('fournisseur.modifyContact')}
             </p>
             <a href="mailto:infos@busmoov.com" className="btn btn-secondary mt-4">
-              Contacter Busmoov
+              {t('fournisseur.contactBusmoov')}
             </a>
           </div>
         </div>
@@ -465,13 +489,13 @@ export function PropositionTarifPage() {
               <XCircle size={40} className="text-orange-600" />
             </div>
             <h2 className="font-display text-2xl font-bold text-orange-600 mb-2">
-              Demande refusée
+              {t('fournisseur.requestRefused')}
             </h2>
             <p className="text-gray-500 mb-4">
-              Votre indisponibilité a bien été enregistrée.
+              {t('fournisseur.unavailabilityRecorded')}
             </p>
             <p className="text-gray-400 text-sm">
-              Merci de nous avoir informés. Nous vous contacterons pour de futures opportunités.
+              {t('fournisseur.thanksForInfo')}
             </p>
           </div>
         </div>
@@ -489,16 +513,16 @@ export function PropositionTarifPage() {
               <XCircle size={40} className="text-orange-600" />
             </div>
             <h2 className="font-display text-2xl font-bold text-orange-600 mb-2">
-              Demande déjà refusée
+              {t('fournisseur.alreadyRefused')}
             </h2>
             <p className="text-gray-500 mb-4">
-              Vous avez déjà indiqué ne pas être disponible pour cette prestation.
+              {t('fournisseur.alreadyRefusedText')}
             </p>
             <p className="text-gray-400 text-sm">
-              Si vous souhaitez finalement proposer un tarif, veuillez contacter Busmoov.
+              {t('fournisseur.wantToQuote')}
             </p>
             <a href="mailto:infos@busmoov.com" className="btn btn-secondary mt-4">
-              Contacter Busmoov
+              {t('fournisseur.contactBusmoov')}
             </a>
           </div>
         </div>
@@ -515,7 +539,7 @@ export function PropositionTarifPage() {
         <div className="text-center mb-8">
           <img src="/logo.svg" alt="Busmoov" className="h-12 mx-auto mb-4" />
           <h1 className="font-display text-2xl font-bold text-gray-900">
-            Demande de tarif
+            {t('fournisseur.quoteRequest')}
           </h1>
           <p className="text-gray-500 mt-2">
             {demandeInfo.transporteur.name}
@@ -526,13 +550,13 @@ export function PropositionTarifPage() {
         <div className="card p-6 mb-6">
           <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
             <Bus size={20} className="text-magenta" />
-            Détails de la prestation
+            {t('fournisseur.serviceDetails')}
           </h2>
 
           <div className="space-y-4">
             {/* Référence */}
             <div className="bg-gray-50 rounded-lg p-3">
-              <span className="text-sm text-gray-500">Référence</span>
+              <span className="text-sm text-gray-500">{t('fournisseur.reference')}</span>
               <p className="font-semibold">{demandeInfo.dossier.reference}</p>
             </div>
 
@@ -541,14 +565,14 @@ export function PropositionTarifPage() {
               <div className="flex items-start gap-3">
                 <MapPin size={18} className="text-green-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <span className="text-sm text-gray-500">Départ</span>
+                  <span className="text-sm text-gray-500">{t('fournisseur.departure')}</span>
                   <p className="font-medium">{demandeInfo.dossier.departure}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <MapPin size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <span className="text-sm text-gray-500">Arrivée</span>
+                  <span className="text-sm text-gray-500">{t('fournisseur.arrival')}</span>
                   <p className="font-medium">{demandeInfo.dossier.arrival}</p>
                 </div>
               </div>
@@ -559,10 +583,10 @@ export function PropositionTarifPage() {
               <div className="flex items-start gap-3">
                 <Calendar size={18} className="text-magenta mt-0.5 flex-shrink-0" />
                 <div>
-                  <span className="text-sm text-gray-500">Date aller</span>
+                  <span className="text-sm text-gray-500">{t('fournisseur.departureDate')}</span>
                   <p className="font-medium">
                     {formatDate(demandeInfo.dossier.departure_date)}
-                    {demandeInfo.dossier.departure_time && ` à ${demandeInfo.dossier.departure_time}`}
+                    {demandeInfo.dossier.departure_time && ` ${t('fournisseur.at')} ${demandeInfo.dossier.departure_time}`}
                   </p>
                 </div>
               </div>
@@ -570,10 +594,10 @@ export function PropositionTarifPage() {
                 <div className="flex items-start gap-3">
                   <Calendar size={18} className="text-magenta mt-0.5 flex-shrink-0" />
                   <div>
-                    <span className="text-sm text-gray-500">Date retour</span>
+                    <span className="text-sm text-gray-500">{t('fournisseur.returnDate')}</span>
                     <p className="font-medium">
                       {formatDate(demandeInfo.dossier.return_date)}
-                      {demandeInfo.dossier.return_time && ` à ${demandeInfo.dossier.return_time}`}
+                      {demandeInfo.dossier.return_time && ` ${t('fournisseur.at')} ${demandeInfo.dossier.return_time}`}
                     </p>
                   </div>
                 </div>
@@ -584,8 +608,8 @@ export function PropositionTarifPage() {
             <div className="flex items-start gap-3">
               <Users size={18} className="text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
-                <span className="text-sm text-gray-500">Passagers</span>
-                <p className="font-medium">{demandeInfo.dossier.passengers} personnes</p>
+                <span className="text-sm text-gray-500">{t('fournisseur.passengers')}</span>
+                <p className="font-medium">{demandeInfo.dossier.passengers} {t('fournisseur.passengersCount')}</p>
               </div>
             </div>
 
@@ -594,8 +618,8 @@ export function PropositionTarifPage() {
               <div className="flex items-start gap-3">
                 <Bus size={18} className="text-purple-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <span className="text-sm text-gray-500">Type de trajet</span>
-                  <p className="font-medium">{TRIP_MODE_LABELS[demandeInfo.dossier.trip_mode] || demandeInfo.dossier.trip_mode}</p>
+                  <span className="text-sm text-gray-500">{t('fournisseur.tripType')}</span>
+                  <p className="font-medium">{t(`fournisseur.tripMode.${demandeInfo.dossier.trip_mode}`, TRIP_MODE_LABELS[demandeInfo.dossier.trip_mode] || demandeInfo.dossier.trip_mode)}</p>
                 </div>
               </div>
             )}
@@ -605,8 +629,8 @@ export function PropositionTarifPage() {
               <div className="flex items-start gap-3">
                 <Bus size={18} className="text-orange-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <span className="text-sm text-gray-500">Type de véhicule</span>
-                  <p className="font-medium">{VEHICLE_TYPE_LABELS[demandeInfo.dossier.vehicle_type] || demandeInfo.dossier.vehicle_type}</p>
+                  <span className="text-sm text-gray-500">{t('fournisseur.vehicleType')}</span>
+                  <p className="font-medium">{t(`fournisseur.vehicleTypes.${demandeInfo.dossier.vehicle_type}`, VEHICLE_TYPE_LABELS[demandeInfo.dossier.vehicle_type] || demandeInfo.dossier.vehicle_type)}</p>
                 </div>
               </div>
             )}
@@ -618,7 +642,7 @@ export function PropositionTarifPage() {
                   <div className="flex items-start gap-3">
                     <Bus size={18} className="text-indigo-600 mt-0.5 flex-shrink-0" />
                     <div>
-                      <span className="text-sm text-gray-500">Nb autocars</span>
+                      <span className="text-sm text-gray-500">{t('fournisseur.nbBuses')}</span>
                       <p className="font-medium">{demandeInfo.dossier.nombre_cars}</p>
                     </div>
                   </div>
@@ -627,7 +651,7 @@ export function PropositionTarifPage() {
                   <div className="flex items-start gap-3">
                     <Users size={18} className="text-indigo-600 mt-0.5 flex-shrink-0" />
                     <div>
-                      <span className="text-sm text-gray-500">Nb chauffeurs</span>
+                      <span className="text-sm text-gray-500">{t('fournisseur.nbDrivers')}</span>
                       <p className="font-medium">{demandeInfo.dossier.nombre_chauffeurs}</p>
                     </div>
                   </div>
@@ -640,7 +664,7 @@ export function PropositionTarifPage() {
               <div className="border-t pt-4 mt-4">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                   <Info size={16} className="text-blue-500" />
-                  Équipements demandés
+                  {t('fournisseur.requestedEquipment')}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {demandeInfo.dossier.wifi && (
@@ -655,12 +679,12 @@ export function PropositionTarifPage() {
                   )}
                   {demandeInfo.dossier.accessibility && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded text-sm">
-                      <Accessibility size={14} /> PMR
+                      <Accessibility size={14} /> {t('fournisseur.pmr')}
                     </span>
                   )}
                   {demandeInfo.dossier.luggage_type && demandeInfo.dossier.luggage_type !== 'none' && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-700 rounded text-sm">
-                      <Luggage size={14} /> {LUGGAGE_TYPE_LABELS[demandeInfo.dossier.luggage_type] || demandeInfo.dossier.luggage_type}
+                      <Luggage size={14} /> {t(`fournisseur.luggageTypes.${demandeInfo.dossier.luggage_type}`, LUGGAGE_TYPE_LABELS[demandeInfo.dossier.luggage_type] || demandeInfo.dossier.luggage_type)}
                     </span>
                   )}
                 </div>
@@ -672,7 +696,7 @@ export function PropositionTarifPage() {
               <div className="border-t pt-4 mt-4">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                   <Clock size={16} className="text-magenta" />
-                  Détail de la mise à disposition
+                  {t('fournisseur.disposalDetail')}
                 </h3>
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                   <p className="text-sm text-amber-900 whitespace-pre-line">{extractMadDetails(demandeInfo.dossier.special_requests)}</p>
@@ -685,7 +709,7 @@ export function PropositionTarifPage() {
               <div className="border-t pt-4 mt-4">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                   <Info size={16} className="text-gray-500" />
-                  Remarques
+                  {t('fournisseur.remarks')}
                 </h3>
                 <div className="bg-gray-50 rounded-lg p-3">
                   <p className="text-sm text-gray-700 whitespace-pre-line">{extractRemarques(demandeInfo.dossier.special_requests)}</p>
@@ -696,24 +720,24 @@ export function PropositionTarifPage() {
             {/* Infos devis supplémentaires si disponibles */}
             {demandeInfo.devis && (demandeInfo.devis.service_type || demandeInfo.devis.km || demandeInfo.devis.duree_jours) && (
               <div className="border-t pt-4 mt-4">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Détails supplémentaires</h3>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('fournisseur.additionalDetails')}</h3>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   {demandeInfo.devis.service_type && (
                     <div>
-                      <span className="text-gray-500">Type de service</span>
-                      <p className="font-medium">{SERVICE_TYPE_LABELS[demandeInfo.devis.service_type] || demandeInfo.devis.service_type}</p>
+                      <span className="text-gray-500">{t('fournisseur.serviceTypeLabel')}</span>
+                      <p className="font-medium">{t(`fournisseur.serviceTypes.${demandeInfo.devis.service_type}`, SERVICE_TYPE_LABELS[demandeInfo.devis.service_type] || demandeInfo.devis.service_type)}</p>
                     </div>
                   )}
                   {demandeInfo.devis.km && (
                     <div>
-                      <span className="text-gray-500">Distance estimée</span>
+                      <span className="text-gray-500">{t('fournisseur.estimatedDistance')}</span>
                       <p className="font-medium">{demandeInfo.devis.km} km</p>
                     </div>
                   )}
                   {demandeInfo.devis.duree_jours && demandeInfo.devis.duree_jours > 1 && (
                     <div>
-                      <span className="text-gray-500">Durée</span>
-                      <p className="font-medium">{demandeInfo.devis.duree_jours} jours</p>
+                      <span className="text-gray-500">{t('fournisseur.duration')}</span>
+                      <p className="font-medium">{demandeInfo.devis.duree_jours} {t('fournisseur.days')}</p>
                     </div>
                   )}
                 </div>
@@ -726,12 +750,12 @@ export function PropositionTarifPage() {
         <div className="card p-6">
           <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
             <Euro size={20} className="text-green-600" />
-            Votre proposition tarifaire
+            {t('fournisseur.yourQuote')}
           </h2>
 
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label className="label">Prix TTC *</label>
+              <label className="label">{t('fournisseur.priceTTC')}</label>
               <div className="relative">
                 <input
                   type="text"
@@ -748,7 +772,7 @@ export function PropositionTarifPage() {
               </div>
               {prixHTCalcule && prixHTCalcule > 0 && (
                 <p className="text-sm text-gray-500 mt-1">
-                  Soit {formatPrice(prixHTCalcule)} HT (TVA 10%)
+                  {t('fournisseur.priceHTNote', { price: formatPrice(prixHTCalcule), vatRate: tvaRateDisplay })}
                 </p>
               )}
             </div>
@@ -767,18 +791,18 @@ export function PropositionTarifPage() {
               {submitting ? (
                 <>
                   <Loader2 size={18} className="animate-spin" />
-                  Envoi en cours...
+                  {t('fournisseur.sending')}
                 </>
               ) : (
                 <>
                   <Send size={18} />
-                  Envoyer ma proposition
+                  {t('fournisseur.sendProposal')}
                 </>
               )}
             </button>
 
             <p className="text-xs text-gray-400 text-center mt-4">
-              En soumettant ce formulaire, vous vous engagez à honorer ce tarif si votre offre est retenue.
+              {t('fournisseur.commitmentNote')}
             </p>
           </form>
 
@@ -788,7 +812,7 @@ export function PropositionTarifPage() {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">ou</span>
+              <span className="px-2 bg-white text-gray-500">{t('fournisseur.or')}</span>
             </div>
           </div>
 
@@ -802,12 +826,12 @@ export function PropositionTarifPage() {
             {refusing ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                Traitement...
+                {t('fournisseur.processing')}
               </>
             ) : (
               <>
                 <XCircle size={18} />
-                Je ne suis pas disponible pour cette prestation
+                {t('fournisseur.notAvailable')}
               </>
             )}
           </button>
@@ -815,7 +839,7 @@ export function PropositionTarifPage() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-400">
-          <p>Une question ? Contactez-nous à <a href="mailto:infos@busmoov.com" className="text-magenta hover:underline">infos@busmoov.com</a></p>
+          <p>{t('fournisseur.questionContact')} <a href="mailto:infos@busmoov.com" className="text-magenta hover:underline">infos@busmoov.com</a></p>
         </div>
       </div>
     </div>

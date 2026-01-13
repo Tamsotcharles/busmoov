@@ -30,7 +30,7 @@ serve(async (req: Request) => {
     const { data: dossiersToComplete, error: fetchError } = await supabaseClient
       .from('dossiers')
       .select(`
-        id, reference, client_name, client_email, departure_date, return_date, status,
+        id, reference, client_name, client_email, departure_date, return_date, status, country_code,
         contrats!inner(signed_at)
       `)
       .in('status', ['confirmed', 'pending-driver', 'pending-info', 'pending-info-received', 'pending-info-confirm'])
@@ -148,75 +148,24 @@ async function sendReviewRequestEmail(
   reviewToken: string
 ): Promise<boolean> {
   try {
-    // Charger le template d'email
-    const { data: template } = await supabase
-      .from('email_templates')
-      .select('subject, html_content, body')
-      .eq('key', 'review_request')
-      .eq('is_active', true)
-      .single()
-
-    if (!template) {
-      console.log('No review_request template found, using default')
-    }
+    // Déterminer la langue à partir du country_code du dossier
+    const language = (dossier.country_code || 'FR').toLowerCase()
 
     const baseUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://busmoov.com'
     const reviewUrl = `${baseUrl}/avis?token=${reviewToken}`
 
-    const defaultSubject = 'Comment s\'est passé votre voyage avec Busmoov ?'
-    const defaultBody = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #7c3aed, #ec4899); padding: 30px; text-align: center;">
-          <h1 style="color: white; margin: 0;">Busmoov</h1>
-        </div>
-        <div style="padding: 30px; background: #f9fafb;">
-          <h2 style="color: #1f2937;">Bonjour ${dossier.client_name},</h2>
-          <p style="color: #4b5563; line-height: 1.6;">
-            Nous espérons que votre voyage s'est bien passé !
-          </p>
-          <p style="color: #4b5563; line-height: 1.6;">
-            Votre avis compte beaucoup pour nous et nous aide à améliorer nos services.
-            Pourriez-vous prendre quelques instants pour partager votre expérience ?
-          </p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${reviewUrl}"
-               style="background: linear-gradient(135deg, #7c3aed, #ec4899);
-                      color: white;
-                      padding: 15px 30px;
-                      text-decoration: none;
-                      border-radius: 8px;
-                      font-weight: bold;
-                      display: inline-block;">
-              Donner mon avis
-            </a>
-          </div>
-          <p style="color: #9ca3af; font-size: 14px;">
-            Référence de votre dossier : ${dossier.reference}
-          </p>
-        </div>
-        <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
-          © 2025 Busmoov - Groupe Centrale Autocar
-        </div>
-      </div>
-    `
-
-    const subject = template?.subject || defaultSubject
-    let htmlContent = template?.html_content || template?.body || defaultBody
-
-    // Remplacer les variables
-    htmlContent = htmlContent
-      .replace(/\{\{client_name\}\}/g, dossier.client_name || '')
-      .replace(/\{\{reference\}\}/g, dossier.reference || '')
-      .replace(/\{\{lien_avis\}\}/g, reviewUrl)
-      .replace(/\{\{review_url\}\}/g, reviewUrl)
-
-    // Envoyer via la fonction send-email
+    // Envoyer via la fonction send-email qui gère la traduction automatique
     const { error } = await supabase.functions.invoke('send-email', {
       body: {
-        type: 'custom',
+        type: 'review_request',
         to: dossier.client_email,
-        subject: subject.replace(/\{\{reference\}\}/g, dossier.reference),
-        html_content: htmlContent,
+        data: {
+          client_name: dossier.client_name || '',
+          reference: dossier.reference || '',
+          lien_avis: reviewUrl,
+          review_url: reviewUrl,
+          language: language,
+        },
       },
     })
 
@@ -225,6 +174,7 @@ async function sendReviewRequestEmail(
       return false
     }
 
+    console.log(`Review email sent to ${dossier.client_email} (lang: ${language})`)
     return true
   } catch (err) {
     console.error('Error in sendReviewRequestEmail:', err)

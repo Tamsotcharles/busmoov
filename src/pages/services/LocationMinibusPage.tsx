@@ -2,8 +2,197 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { Link } from 'react-router-dom'
 import { Bus, Users, Shield, Clock, MapPin, CheckCircle, Star, Phone, ArrowRight, Briefcase, Heart, Camera, Building2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useLocalizedPath } from '@/components/i18n'
+import { useCurrentCountry } from '@/hooks/useCountrySettings'
 
 export function LocationMinibusPage() {
+  const { t } = useTranslation()
+  const localizedPath = useLocalizedPath()
+  const { data: country } = useCurrentCountry()
+
+  const advantages = [
+    {
+      icon: Users,
+      title: t('services.minibusRental.advantage1Title'),
+      description: t('services.minibusRental.advantage1Desc'),
+    },
+    {
+      icon: MapPin,
+      title: t('services.minibusRental.advantage2Title'),
+      description: t('services.minibusRental.advantage2Desc'),
+    },
+    {
+      icon: Star,
+      title: t('services.minibusRental.advantage3Title'),
+      description: t('services.minibusRental.advantage3Desc'),
+    },
+    {
+      icon: Clock,
+      title: t('services.minibusRental.advantage4Title'),
+      description: t('services.minibusRental.advantage4Desc'),
+    },
+  ]
+
+  const vehicles = [
+    {
+      title: t('services.minibusRental.mini8Title'),
+      description: t('services.minibusRental.mini8Desc'),
+      usages: [
+        t('services.minibusRental.mini8Usage1'),
+        t('services.minibusRental.mini8Usage2'),
+        t('services.minibusRental.mini8Usage3'),
+        t('services.minibusRental.mini8Usage4'),
+      ],
+      features: [
+        t('services.minibusRental.featureClim'),
+        t('services.minibusRental.featureBagages'),
+        t('services.minibusRental.featureConfort'),
+      ],
+    },
+    {
+      title: t('services.minibusRental.mini12Title'),
+      description: t('services.minibusRental.mini12Desc'),
+      usages: [
+        t('services.minibusRental.mini12Usage1'),
+        t('services.minibusRental.mini12Usage2'),
+        t('services.minibusRental.mini12Usage3'),
+        t('services.minibusRental.mini12Usage4'),
+      ],
+      features: [
+        t('services.minibusRental.featureClim'),
+        t('services.minibusRental.featureSoute'),
+        t('services.minibusRental.featureWifi'),
+      ],
+    },
+    {
+      title: t('services.minibusRental.mini20Title'),
+      description: t('services.minibusRental.mini20Desc'),
+      usages: [
+        t('services.minibusRental.mini20Usage1'),
+        t('services.minibusRental.mini20Usage2'),
+        t('services.minibusRental.mini20Usage3'),
+        t('services.minibusRental.mini20Usage4'),
+      ],
+      features: [
+        t('services.minibusRental.featureClim'),
+        t('services.minibusRental.featureGrandeSoute'),
+        t('services.minibusRental.featureSieges'),
+      ],
+    },
+  ]
+
+  const occasions = [
+    {
+      icon: Briefcase,
+      title: t('services.minibusRental.occasionPro'),
+      items: [
+        t('services.minibusRental.occasionProItem1'),
+        t('services.minibusRental.occasionProItem2'),
+        t('services.minibusRental.occasionProItem3'),
+        t('services.minibusRental.occasionProItem4'),
+      ],
+    },
+    {
+      icon: Heart,
+      title: t('services.minibusRental.occasionPrivate'),
+      items: [
+        t('services.minibusRental.occasionPrivateItem1'),
+        t('services.minibusRental.occasionPrivateItem2'),
+        t('services.minibusRental.occasionPrivateItem3'),
+        t('services.minibusRental.occasionPrivateItem4'),
+      ],
+    },
+    {
+      icon: Camera,
+      title: t('services.minibusRental.occasionTourism'),
+      items: [
+        t('services.minibusRental.occasionTourismItem1'),
+        t('services.minibusRental.occasionTourismItem2'),
+        t('services.minibusRental.occasionTourismItem3'),
+        t('services.minibusRental.occasionTourismItem4'),
+      ],
+    },
+    {
+      icon: Building2,
+      title: t('services.minibusRental.occasionTransfer'),
+      items: [
+        t('services.minibusRental.occasionTransferItem1'),
+        t('services.minibusRental.occasionTransferItem2'),
+        t('services.minibusRental.occasionTransferItem3'),
+        t('services.minibusRental.occasionTransferItem4'),
+      ],
+    },
+  ]
+
+  const pricing = [
+    {
+      type: t('services.minibusRental.pricingHalfDay'),
+      duration: t('services.minibusRental.pricingHalfDayDuration'),
+      price: t('services.minibusRental.pricingHalfDayPrice'),
+      includes: [
+        t('services.minibusRental.pricingHalfDayInclude1'),
+        t('services.minibusRental.pricingHalfDayInclude2'),
+        t('services.minibusRental.pricingHalfDayInclude3'),
+      ],
+    },
+    {
+      type: t('services.minibusRental.pricingFullDay'),
+      duration: t('services.minibusRental.pricingFullDayDuration'),
+      price: t('services.minibusRental.pricingFullDayPrice'),
+      includes: [
+        t('services.minibusRental.pricingFullDayInclude1'),
+        t('services.minibusRental.pricingFullDayInclude2'),
+        t('services.minibusRental.pricingFullDayInclude3'),
+        t('services.minibusRental.pricingFullDayInclude4'),
+      ],
+      highlight: true,
+    },
+    {
+      type: t('services.minibusRental.pricingTransfer'),
+      duration: t('services.minibusRental.pricingTransferDuration'),
+      price: t('services.minibusRental.pricingTransferPrice'),
+      includes: [
+        t('services.minibusRental.pricingTransferInclude1'),
+        t('services.minibusRental.pricingTransferInclude2'),
+        t('services.minibusRental.pricingTransferInclude3'),
+      ],
+    },
+  ]
+
+  const whyBusmoov = [
+    {
+      icon: Clock,
+      title: t('services.minibusRental.why1Title'),
+      description: t('services.minibusRental.why1Desc'),
+    },
+    {
+      icon: Shield,
+      title: t('services.minibusRental.why2Title'),
+      description: t('services.minibusRental.why2Desc'),
+    },
+    {
+      icon: Star,
+      title: t('services.minibusRental.why3Title'),
+      description: t('services.minibusRental.why3Desc'),
+    },
+    {
+      icon: Users,
+      title: t('services.minibusRental.why4Title'),
+      description: t('services.minibusRental.why4Desc'),
+    },
+  ]
+
+  const included = [
+    t('services.minibusRental.included1'),
+    t('services.minibusRental.included2'),
+    t('services.minibusRental.included3'),
+    t('services.minibusRental.included4'),
+    t('services.minibusRental.included5'),
+    t('services.minibusRental.included6'),
+    t('services.minibusRental.included7'),
+  ]
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -19,34 +208,33 @@ export function LocationMinibusPage() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-magenta/10 to-purple/10 border border-magenta/20 rounded-full text-magenta text-sm font-medium mb-6">
               <Bus size={16} />
-              Location de minibus avec chauffeur
+              {t('services.minibusRental.badge')}
             </div>
 
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-purple-dark leading-tight mb-6">
-              Location de minibus{' '}
-              <span className="gradient-text">8 à 25 places</span>{' '}
-              avec chauffeur
+              {t('services.minibusRental.title')}{' '}
+              <span className="gradient-text">{t('services.minibusRental.titleHighlight')}</span>{' '}
+              {t('services.minibusRental.titleSuffix')}
             </h1>
 
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              La solution idéale pour vos petits groupes ! Nos minibus avec chauffeur professionnel sont parfaits pour
-              vos déplacements d'affaires, transferts VIP, excursions en famille ou événements privés.
+              {t('services.minibusRental.description')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                to="/#quote"
+                to={localizedPath('/#quote')}
                 className="btn btn-primary text-lg px-8 py-4 inline-flex items-center justify-center gap-2"
               >
-                Demander un devis gratuit
+                {t('services.minibusRental.ctaButton')}
                 <ArrowRight size={20} />
               </Link>
               <a
-                href="tel:+33176311283"
+                href={`tel:${country?.phone || '+33176311283'}`}
                 className="btn btn-secondary text-lg px-8 py-4 inline-flex items-center justify-center gap-2"
               >
                 <Phone size={20} />
-                01 76 31 12 83
+                {country?.phoneDisplay || '01 76 31 12 83'}
               </a>
             </div>
 
@@ -54,15 +242,15 @@ export function LocationMinibusPage() {
             <div className="flex flex-wrap gap-6 mt-10 text-sm text-gray-500">
               <div className="flex items-center gap-2">
                 <CheckCircle className="text-green-500" size={18} />
-                Devis gratuit en 24h
+                {t('services.minibusRental.trustBadge1')}
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="text-green-500" size={18} />
-                Minibus 8 à 25 places
+                {t('services.minibusRental.trustBadge2')}
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="text-green-500" size={18} />
-                Chauffeur professionnel inclus
+                {t('services.minibusRental.trustBadge3')}
               </div>
             </div>
           </div>
@@ -74,36 +262,15 @@ export function LocationMinibusPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-purple-dark mb-4">
-              Les avantages du minibus avec chauffeur
+              {t('services.minibusRental.advantagesTitle')}
             </h2>
             <p className="text-gray-600 text-lg">
-              Une solution de transport flexible, confortable et économique pour vos petits groupes
+              {t('services.minibusRental.advantagesSubtitle')}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                icon: Users,
-                title: 'Capacité adaptée',
-                description: 'De 8 à 25 passagers selon vos besoins, idéal pour les petits groupes sans payer un grand car.',
-              },
-              {
-                icon: MapPin,
-                title: 'Accès facilité',
-                description: 'Véhicule compact permettant l\'accès aux centres-villes, ruelles étroites et parkings limités.',
-              },
-              {
-                icon: Star,
-                title: 'Confort premium',
-                description: 'Climatisation, sièges confortables et espace bagages généreux pour un voyage agréable.',
-              },
-              {
-                icon: Clock,
-                title: 'Flexibilité totale',
-                description: 'Horaires personnalisés, itinéraires sur-mesure et arrêts selon vos besoins.',
-              },
-            ].map((advantage, index) => (
+            {advantages.map((advantage, index) => (
               <div
                 key={index}
                 className="bg-gray-50 rounded-2xl p-6 hover:bg-white hover:shadow-xl border border-transparent hover:border-gray-200 transition-all duration-300"
@@ -126,34 +293,15 @@ export function LocationMinibusPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-purple-dark mb-4">
-              Nos différentes capacités de minibus
+              {t('services.minibusRental.capacityTitle')}
             </h2>
             <p className="text-gray-600 text-lg">
-              Choisissez le minibus adapté à la taille de votre groupe
+              {t('services.minibusRental.capacitySubtitle')}
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                title: 'Minibus 8-9 places',
-                description: 'Le plus compact de notre flotte, parfait pour les transferts VIP et petits groupes.',
-                usages: ['Transferts aéroport', 'Réunions d\'affaires', 'Sorties en famille', 'Navettes hôtel'],
-                features: ['Climatisation', 'Bagages inclus', 'Confort premium'],
-              },
-              {
-                title: 'Minibus 12-16 places',
-                description: 'L\'équilibre parfait entre capacité et maniabilité pour vos groupes moyens.',
-                usages: ['Excursions touristiques', 'Séminaires', 'Mariages', 'Événements sportifs'],
-                features: ['Climatisation', 'Large soute', 'Wi-Fi sur demande'],
-              },
-              {
-                title: 'Minibus 20-25 places',
-                description: 'Notre plus grand minibus, idéal pour les groupes qui veulent rester ensemble.',
-                usages: ['Voyages scolaires', 'Associations', 'Clubs sportifs', 'Sorties d\'entreprise'],
-                features: ['Climatisation', 'Grande soute', 'Sièges inclinables'],
-              },
-            ].map((vehicle, index) => (
+            {vehicles.map((vehicle, index) => (
               <div
                 key={index}
                 className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300"
@@ -167,7 +315,7 @@ export function LocationMinibusPage() {
                 <p className="text-gray-600 mb-4">{vehicle.description}</p>
 
                 <div className="mb-4">
-                  <h4 className="text-sm font-semibold text-purple-dark mb-2">Utilisations courantes :</h4>
+                  <h4 className="text-sm font-semibold text-purple-dark mb-2">{t('services.minibusRental.commonUsages')}</h4>
                   <ul className="space-y-1">
                     {vehicle.usages.map((usage, i) => (
                       <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
@@ -198,36 +346,15 @@ export function LocationMinibusPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-purple-dark mb-4">
-              Pour quelles occasions louer un minibus ?
+              {t('services.minibusRental.occasionsTitle')}
             </h2>
             <p className="text-gray-600 text-lg">
-              Le minibus avec chauffeur s'adapte à tous vos besoins de transport
+              {t('services.minibusRental.occasionsSubtitle')}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                icon: Briefcase,
-                title: 'Déplacements professionnels',
-                items: ['Séminaires d\'entreprise', 'Transferts clients VIP', 'Visites de sites', 'Team building'],
-              },
-              {
-                icon: Heart,
-                title: 'Événements privés',
-                items: ['Mariages et EVJF/EVG', 'Anniversaires', 'Fêtes de famille', 'Baptêmes'],
-              },
-              {
-                icon: Camera,
-                title: 'Tourisme et loisirs',
-                items: ['Visites guidées', 'Circuits oenotouristiques', 'Excursions à la journée', 'Parcs d\'attractions'],
-              },
-              {
-                icon: Building2,
-                title: 'Transferts',
-                items: ['Aéroports', 'Gares TGV', 'Hôtels', 'Ports de croisière'],
-              },
-            ].map((category, index) => (
+            {occasions.map((category, index) => (
               <div key={index} className="bg-gray-50 rounded-xl p-6">
                 <div className="w-12 h-12 mb-4 bg-gradient-to-br from-magenta/10 to-purple/10 rounded-lg flex items-center justify-center">
                   <category.icon size={24} className="text-magenta" />
@@ -254,35 +381,15 @@ export function LocationMinibusPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-purple-dark mb-4">
-              Tarifs indicatifs location minibus
+              {t('services.minibusRental.pricingTitle')}
             </h2>
             <p className="text-gray-600 text-lg">
-              Des prix compétitifs adaptés à votre projet. Demandez un devis personnalisé pour un tarif exact.
+              {t('services.minibusRental.pricingSubtitle')}
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {[
-              {
-                type: 'Demi-journée',
-                duration: '4 heures',
-                price: 'À partir de 250€',
-                includes: ['Chauffeur professionnel', '100 km inclus', 'Climatisation'],
-              },
-              {
-                type: 'Journée complète',
-                duration: '8 heures',
-                price: 'À partir de 400€',
-                includes: ['Chauffeur professionnel', '200 km inclus', 'Climatisation', 'Arrêts illimités'],
-                highlight: true,
-              },
-              {
-                type: 'Transfert simple',
-                duration: 'Aller simple',
-                price: 'À partir de 150€',
-                includes: ['Chauffeur professionnel', 'Trajet direct', 'Accueil personnalisé'],
-              },
-            ].map((offer, index) => (
+            {pricing.map((offer, index) => (
               <div
                 key={index}
                 className={`rounded-2xl p-8 ${
@@ -313,8 +420,7 @@ export function LocationMinibusPage() {
           </div>
 
           <p className="text-center text-gray-500 text-sm mt-8">
-            * Tarifs indicatifs pouvant varier selon la saison, la distance et la disponibilité.
-            Demandez un devis pour un prix exact.
+            {t('services.minibusRental.pricingNote')}
           </p>
         </div>
       </section>
@@ -325,31 +431,10 @@ export function LocationMinibusPage() {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="font-display text-3xl md:text-4xl font-bold text-purple-dark mb-6">
-                Pourquoi louer votre minibus avec Busmoov ?
+                {t('services.minibusRental.whyTitle')}
               </h2>
               <div className="space-y-6">
-                {[
-                  {
-                    icon: Clock,
-                    title: 'Réponse rapide garantie',
-                    description: 'Recevez jusqu\'à 3 devis personnalisés en moins de 24 heures.',
-                  },
-                  {
-                    icon: Shield,
-                    title: 'Partenaires certifiés',
-                    description: 'Tous nos autocaristes sont vérifiés, assurés et conformes aux normes.',
-                  },
-                  {
-                    icon: Star,
-                    title: 'Service sur-mesure',
-                    description: 'Itinéraires personnalisés, horaires flexibles et accompagnement dédié.',
-                  },
-                  {
-                    icon: Users,
-                    title: 'Chauffeurs expérimentés',
-                    description: 'Des professionnels courtois, ponctuels et connaissant parfaitement leur région.',
-                  },
-                ].map((item, index) => (
+                {whyBusmoov.map((item, index) => (
                   <div key={index} className="flex gap-4">
                     <div className="w-12 h-12 shrink-0 bg-gradient-to-br from-magenta/10 to-purple/10 rounded-lg flex items-center justify-center">
                       <item.icon size={24} className="text-magenta" />
@@ -365,18 +450,10 @@ export function LocationMinibusPage() {
 
             <div className="bg-gray-50 rounded-2xl p-8">
               <h3 className="font-display text-2xl font-bold text-purple-dark mb-6">
-                Services inclus
+                {t('services.minibusRental.includedTitle')}
               </h3>
               <ul className="space-y-4">
-                {[
-                  'Chauffeur professionnel',
-                  'Véhicule climatisé récent',
-                  'Assurance tous risques',
-                  'Accueil personnalisé',
-                  'Bagages inclus',
-                  'Annulation flexible',
-                  'Service client 7j/7',
-                ].map((item, index) => (
+                {included.map((item, index) => (
                   <li key={index} className="flex items-center gap-3 text-gray-700">
                     <CheckCircle className="text-green-500 shrink-0" size={20} />
                     {item}
@@ -394,16 +471,16 @@ export function LocationMinibusPage() {
           <div className="gradient-bg rounded-3xl p-12 text-center relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
             <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4 relative z-10">
-              Besoin d'un minibus avec chauffeur ?
+              {t('services.minibusRental.ctaTitle')}
             </h2>
             <p className="text-white/90 text-lg mb-8 relative z-10 max-w-xl mx-auto">
-              Décrivez votre projet et recevez jusqu'à 3 devis gratuits de nos partenaires en moins de 24h
+              {t('services.minibusRental.ctaSubtitle')}
             </p>
             <Link
-              to="/#quote"
+              to={localizedPath('/#quote')}
               className="btn bg-white text-purple font-bold px-8 py-4 text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 relative z-10 inline-flex items-center gap-2"
             >
-              Demander un devis gratuit
+              {t('services.minibusRental.ctaButton')}
               <ArrowRight size={20} />
             </Link>
           </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
@@ -16,30 +17,31 @@ interface Review {
   }
 }
 
-// Témoignages par défaut (fallback)
-const defaultTestimonials = [
-  {
-    text: "Service impeccable ! J'ai reçu 3 devis très rapidement et le chauffeur était ponctuel et professionnel. Je recommande vivement.",
-    author: 'Marie L.',
-    role: 'Mariage - Île-de-France',
-    rating: 5,
-  },
-  {
-    text: 'Nous utilisons Busmoov pour tous les déplacements de notre club de foot. Toujours des prix compétitifs et un service au top !',
-    author: 'Thomas D.',
-    role: 'Club sportif - Lyon',
-    rating: 5,
-  },
-  {
-    text: "Organisation de notre séminaire d'entreprise facilitée grâce à Busmoov. 50 personnes transportées sans aucun souci. Merci !",
-    author: 'Sophie C.',
-    role: 'Séminaire - Paris',
-    rating: 5,
-  },
-]
-
 export function HomePage() {
+  const { t } = useTranslation()
   const [reviews, setReviews] = useState<Review[]>([])
+
+  // Témoignages par défaut (fallback) - traduits
+  const defaultTestimonials = [
+    {
+      text: t('testimonials.default1', "Service impeccable ! J'ai reçu 3 devis très rapidement et le chauffeur était ponctuel et professionnel. Je recommande vivement."),
+      author: 'Marie L.',
+      role: t('testimonials.wedding', 'Mariage'),
+      rating: 5,
+    },
+    {
+      text: t('testimonials.default2', 'Nous utilisons Busmoov pour tous les déplacements de notre club de foot. Toujours des prix compétitifs et un service au top !'),
+      author: 'Thomas D.',
+      role: t('testimonials.sportClub', 'Club sportif'),
+      rating: 5,
+    },
+    {
+      text: t('testimonials.default3', "Organisation de notre séminaire d'entreprise facilitée grâce à Busmoov. 50 personnes transportées sans aucun souci. Merci !"),
+      author: 'Sophie C.',
+      role: t('testimonials.seminar', 'Séminaire'),
+      rating: 5,
+    },
+  ]
 
   useEffect(() => {
     // Charger les avis approuvés/featured
@@ -76,10 +78,53 @@ export function HomePage() {
     ? reviews.slice(0, 3).map((review) => ({
         text: review.comment || '',
         author: review.client_name || 'Client Busmoov',
-        role: review.dossier ? `${review.dossier.departure} → ${review.dossier.arrival}` : 'France',
+        role: review.dossier ? `${review.dossier.departure} → ${review.dossier.arrival}` : t('country.fr', 'France'),
         rating: review.rating || 5,
       }))
     : defaultTestimonials
+
+  // Features avec traductions
+  const features = [
+    {
+      icon: Bus,
+      title: t('features.partners.title'),
+      description: t('features.partners.description'),
+    },
+    {
+      icon: Clock,
+      title: t('features.response.title'),
+      description: t('features.response.description'),
+    },
+    {
+      icon: Wallet,
+      title: t('features.price.title'),
+      description: t('features.price.description'),
+    },
+    {
+      icon: Shield,
+      title: t('features.secure.title'),
+      description: t('features.secure.description'),
+    },
+  ]
+
+  // Steps avec traductions
+  const steps = [
+    {
+      step: 1,
+      title: t('howItWorks.step1.title'),
+      description: t('howItWorks.step1.description'),
+    },
+    {
+      step: 2,
+      title: t('howItWorks.step2.title'),
+      description: t('howItWorks.step2.description'),
+    },
+    {
+      step: 3,
+      title: t('howItWorks.step3.title'),
+      description: t('howItWorks.step3.description'),
+    },
+  ]
 
   return (
     <div className="min-h-screen">
@@ -97,29 +142,28 @@ export function HomePage() {
           {/* Left Content */}
           <div className="animate-fadeIn">
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-purple-dark leading-tight mb-6">
-              Location d'autocar{' '}
-              <span className="gradient-text">avec chauffeur</span>{' '}
-              en France
+              {t('hero.title1')}{' '}
+              <span className="gradient-text">{t('hero.title2')}</span>{' '}
+              {t('hero.title3')}
             </h1>
 
             <p className="text-xl text-gray-500 mb-8 max-w-lg">
-              Comparez jusqu'à 3 devis personnalisés de nos autocaristes partenaires.
-              Réservation simple, rapide et au meilleur prix garanti.
+              {t('hero.subtitle')}
             </p>
 
             {/* Stats */}
             <div className="flex gap-12 mt-10">
               <div>
                 <div className="font-display text-4xl font-bold text-purple">500+</div>
-                <div className="text-gray-500 text-sm">Autocaristes partenaires</div>
+                <div className="text-gray-500 text-sm">{t('stats.partners')}</div>
               </div>
               <div>
                 <div className="font-display text-4xl font-bold text-purple">50K+</div>
-                <div className="text-gray-500 text-sm">Voyageurs satisfaits</div>
+                <div className="text-gray-500 text-sm">{t('stats.travelers')}</div>
               </div>
               <div>
                 <div className="font-display text-4xl font-bold text-purple">4.8/5</div>
-                <div className="text-gray-500 text-sm">Note moyenne</div>
+                <div className="text-gray-500 text-sm">{t('stats.rating')}</div>
               </div>
             </div>
           </div>
@@ -136,36 +180,15 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-purple-dark mb-4">
-              Pourquoi choisir Busmoov ?
+              {t('features.title')}
             </h2>
             <p className="text-gray-500 text-lg">
-              La solution la plus simple et fiable pour vos déplacements en groupe
+              {t('features.subtitle')}
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                icon: Bus,
-                title: '+500 Autocaristes',
-                description: 'Un réseau de partenaires certifiés partout en France pour répondre à toutes vos demandes.',
-              },
-              {
-                icon: Clock,
-                title: 'Réponse en 24h',
-                description: 'Recevez jusqu\'à 3 devis personnalisés en moins de 24 heures, garantis.',
-              },
-              {
-                icon: Wallet,
-                title: 'Meilleurs prix',
-                description: 'Comparez et choisissez l\'offre qui correspond le mieux à votre budget.',
-              },
-              {
-                icon: Shield,
-                title: '100% Sécurisé',
-                description: 'Tous nos partenaires sont vérifiés, assurés et conformes aux réglementations.',
-              },
-            ].map((feature, index) => (
+            {features.map((feature, index) => (
               <div
                 key={index}
                 className="bg-gray-50 rounded-2xl p-8 text-center hover:bg-white hover:shadow-xl hover:border-gray-200 border border-transparent transition-all duration-300 hover:-translate-y-1"
@@ -190,10 +213,10 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-purple-dark mb-4">
-              Comment ça marche ?
+              {t('howItWorks.title')}
             </h2>
             <p className="text-gray-500 text-lg">
-              Obtenez vos devis en 3 étapes simples
+              {t('howItWorks.subtitle')}
             </p>
           </div>
 
@@ -201,23 +224,7 @@ export function HomePage() {
             {/* Connection Line */}
             <div className="hidden md:block absolute top-16 left-1/4 right-1/4 h-1 bg-gradient-to-r from-magenta to-purple opacity-20 rounded-full" />
 
-            {[
-              {
-                step: 1,
-                title: 'Décrivez votre projet',
-                description: 'Remplissez le formulaire avec les détails de votre voyage : dates, itinéraire, nombre de passagers.',
-              },
-              {
-                step: 2,
-                title: 'Recevez 3 devis',
-                description: 'Nos autocaristes partenaires vous envoient leurs meilleures offres sous 24h.',
-              },
-              {
-                step: 3,
-                title: 'Réservez et voyagez',
-                description: 'Choisissez l\'offre qui vous convient et partez l\'esprit tranquille !',
-              },
-            ].map((item) => (
+            {steps.map((item) => (
               <div key={item.step} className="text-center relative">
                 <div className="w-20 h-20 mx-auto mb-6 gradient-bg rounded-full flex items-center justify-center text-white font-display text-2xl font-bold shadow-lg shadow-magenta/30 relative z-10">
                   {item.step}
@@ -244,10 +251,10 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-              Ils nous font confiance
+              {t('testimonials.title')}
             </h2>
             <p className="text-white/70 text-lg">
-              Des milliers de clients satisfaits partout en France
+              {t('testimonials.subtitle')}
             </p>
           </div>
 
@@ -289,16 +296,16 @@ export function HomePage() {
           <div className="gradient-bg rounded-3xl p-12 text-center relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
             <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4 relative z-10">
-              Prêt à partir ?
+              {t('cta.title')}
             </h2>
             <p className="text-white/90 text-lg mb-8 relative z-10">
-              Obtenez vos devis gratuits en moins de 2 minutes
+              {t('cta.subtitle')}
             </p>
             <a
               href="#quote"
               className="btn bg-white text-purple font-bold px-8 py-4 text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 relative z-10"
             >
-              Demander un devis gratuit
+              {t('cta.button')}
             </a>
           </div>
         </div>

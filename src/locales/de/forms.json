@@ -1,0 +1,113 @@
+{
+  "clientSpace": {
+    "title": "Kundenbereich",
+    "welcome": "Willkommen, {{name}}",
+    "yourQuotes": "Ihre Angebote",
+    "yourBookings": "Ihre Buchungen",
+    "noQuotes": "Noch keine Angebote vorhanden",
+    "noBookings": "Noch keine Buchungen vorhanden"
+  },
+  "quotes": {
+    "title": "Ihre Angebote",
+    "received": "Erhaltene Angebote",
+    "pending": "Warten auf Angebote",
+    "select": "Dieses Angebot auswählen",
+    "selected": "Angebot ausgewählt",
+    "viewDetails": "Details ansehen",
+    "downloadPdf": "PDF herunterladen",
+    "expiresIn": "Läuft ab in {{days}} Tagen",
+    "expired": "Abgelaufen"
+  },
+  "payment": {
+    "title": "Zahlung",
+    "deposit": "Anzahlung",
+    "balance": "Restbetrag",
+    "total": "Gesamt",
+    "toPay": "Zu zahlen",
+    "paid": "Bezahlt",
+    "remaining": "Offener Betrag",
+    "method": "Zahlungsmethode",
+    "creditCard": "Kreditkarte",
+    "bankTransfer": "Banküberweisung",
+    "payNow": "Jetzt bezahlen",
+    "transferInfo": "Überweisungsdaten",
+    "iban": "IBAN",
+    "bic": "BIC",
+    "reference": "Verwendungszweck",
+    "confirmTransfer": "Ich habe die Überweisung getätigt",
+    "processingPayment": "Wird verarbeitet..."
+  },
+  "tripInfo": {
+    "title": "Reiseinformationen",
+    "subtitle": "Bitte vervollständigen Sie die Informationen für Ihre Reise",
+    "outbound": "Hinfahrt",
+    "return": "Rückfahrt",
+    "date": "Datum",
+    "time": "Uhrzeit",
+    "pickupAddress": "Abholadresse",
+    "dropoffAddress": "Zieladresse",
+    "passengers": "Anzahl der Passagiere",
+    "contactOnSite": "Ansprechpartner vor Ort",
+    "contactName": "Name des Ansprechpartners",
+    "contactPhone": "Telefon des Ansprechpartners",
+    "comments": "Hinweise für den Fahrer",
+    "validate": "Informationen bestätigen",
+    "validated": "Informationen bestätigt",
+    "editInfo": "Informationen bearbeiten"
+  },
+  "contract": {
+    "title": "Vertragsunterzeichnung",
+    "read": "Bitte lesen Sie den Vertrag sorgfältig durch",
+    "terms": "Ich akzeptiere die Allgemeinen Geschäftsbedingungen",
+    "sign": "Vertrag unterzeichnen",
+    "signed": "Vertrag unterzeichnet",
+    "signatureRequired": "Unterschrift erforderlich",
+    "drawSignature": "Zeichnen Sie Ihre Unterschrift",
+    "clearSignature": "Löschen",
+    "confirmSignature": "Unterschrift bestätigen"
+  },
+  "roadmap": {
+    "title": "Fahrtblatt",
+    "driver": "Ihr Fahrer",
+    "driverName": "Name",
+    "driverPhone": "Telefon",
+    "vehicle": "Fahrzeug",
+    "downloadPdf": "Fahrtblatt herunterladen",
+    "notAvailable": "Das Fahrtblatt wird verfügbar sein, sobald die Fahrerinformationen eingegangen sind"
+  },
+  "review": {
+    "title": "Ihre Bewertung",
+    "subtitle": "Wie war Ihre Reise?",
+    "rating": "Gesamtbewertung",
+    "comment": "Ihr Kommentar",
+    "commentPlaceholder": "Teilen Sie Ihre Erfahrung...",
+    "submit": "Bewertung absenden",
+    "thanks": "Vielen Dank für Ihre Bewertung!",
+    "alreadySubmitted": "Sie haben bereits eine Bewertung abgegeben"
+  },
+  "contact": {
+    "title": "Kontaktieren Sie uns",
+    "subtitle": "Haben Sie eine Frage? Schreiben Sie uns gerne",
+    "name": "Ihr Name",
+    "email": "Ihre E-Mail",
+    "subject": "Betreff",
+    "message": "Ihre Nachricht",
+    "send": "Absenden",
+    "sent": "Nachricht gesendet!",
+    "sentMessage": "Wir werden Ihnen so schnell wie möglich antworten."
+  },
+  "partner": {
+    "title": "Partner werden",
+    "subtitle": "Werden Sie Teil des Busmoov-Netzwerks",
+    "companyName": "Firmenname",
+    "siret": "Handelsregisternummer",
+    "address": "Adresse",
+    "fleet": "Flottengröße",
+    "fleetSmall": "1-5 Fahrzeuge",
+    "fleetMedium": "6-15 Fahrzeuge",
+    "fleetLarge": "16-50 Fahrzeuge",
+    "fleetXLarge": "Mehr als 50 Fahrzeuge",
+    "regions": "Bediente Regionen",
+    "submit": "Bewerbung absenden"
+  }
+}

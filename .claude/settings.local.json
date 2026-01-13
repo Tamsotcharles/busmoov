@@ -58,7 +58,15 @@
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_53b3219582c75f3bfc46792061ed3af14ba37ebf npx supabase functions deploy:*)",
       "Bash(export SUPABASE_ACCESS_TOKEN=sbp_53b3219582c75f3bfc46792061ed3af14ba37ebf)",
       "Bash(npx vercel:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nFix proforma PDF: afficher montant déjà réglé\n\n- Passer les paiements à generateContratPDF dans AdminDashboard\n- Le montant ''Déjà réglé'' s''affiche maintenant correctement\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nFix proforma PDF: afficher montant déjà réglé\n\n- Passer les paiements à generateContratPDF dans AdminDashboard\n- Le montant ''Déjà réglé'' s''affiche maintenant correctement\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__get_edge_function",
+      "mcp__supabase__deploy_edge_function",
+      "mcp__supabase__get_logs",
+      "mcp__supabase__list_projects"
     ]
   },
   "enableAllProjectMcpServers": true,

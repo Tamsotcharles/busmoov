@@ -4,6 +4,8 @@ import { ArrowLeft, Send, Building2, Users, TrendingUp, Shield, CheckCircle, Tru
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { supabase } from '@/lib/supabase'
+import { useTranslation } from 'react-i18next'
+import { useLocalizedPath } from '@/components/i18n'
 
 interface FormData {
   company: string
@@ -16,6 +18,8 @@ interface FormData {
 }
 
 export function DevenirPartenairePage() {
+  const { t } = useTranslation()
+  const localizedPath = useLocalizedPath()
   const [formData, setFormData] = useState<FormData>({
     company: '',
     contact: '',
@@ -84,7 +88,7 @@ export function DevenirPartenairePage() {
       setSent(true)
     } catch (err) {
       console.error('Error sending partnership form:', err)
-      setError('Une erreur est survenue lors de l\'envoi. Veuillez réessayer ou nous contacter par téléphone.')
+      setError(t('partner.errorSending'))
     } finally {
       setSending(false)
     }
@@ -93,23 +97,23 @@ export function DevenirPartenairePage() {
   const benefits = [
     {
       icon: TrendingUp,
-      title: 'Augmentez votre chiffre d\'affaires',
-      description: 'Accédez à un flux constant de demandes qualifiées sans effort commercial.',
+      title: t('partner.benefit1Title'),
+      description: t('partner.benefit1Desc'),
     },
     {
       icon: Users,
-      title: 'Clients qualifiés',
-      description: 'Nous pré-qualifions toutes les demandes pour vous envoyer uniquement des opportunités sérieuses.',
+      title: t('partner.benefit2Title'),
+      description: t('partner.benefit2Desc'),
     },
     {
       icon: Shield,
-      title: 'Paiement sécurisé',
-      description: 'Nous gérons les paiements clients et vous garantissons le règlement de vos prestations.',
+      title: t('partner.benefit3Title'),
+      description: t('partner.benefit3Desc'),
     },
     {
       icon: Building2,
-      title: 'Gestion simplifiée',
-      description: 'Interface dédiée pour gérer vos disponibilités, devis et réservations en quelques clics.',
+      title: t('partner.benefit4Title'),
+      description: t('partner.benefit4Desc'),
     },
   ]
 
@@ -124,14 +128,13 @@ export function DevenirPartenairePage() {
                 <CheckCircle size={40} className="text-emerald-500" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                Demande envoyée !
+                {t('partner.successTitle')}
               </h1>
               <p className="text-gray-600 mb-8">
-                Merci pour votre intérêt. Notre équipe vous contactera dans les plus brefs délais
-                pour discuter de notre partenariat.
+                {t('partner.successMessage')}
               </p>
-              <Link to="/" className="btn btn-primary">
-                Retour à l'accueil
+              <Link to={localizedPath('/')} className="btn btn-primary">
+                {t('contact.backHome')}
               </Link>
             </div>
           </div>
@@ -150,36 +153,35 @@ export function DevenirPartenairePage() {
         <section className="bg-gradient-to-br from-purple to-magenta text-white py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Link
-              to="/"
+              to={localizedPath('/')}
               className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-8 transition-colors"
             >
               <ArrowLeft size={18} />
-              Retour à l'accueil
+              {t('contact.backHome')}
             </Link>
 
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                  Rejoignez le réseau Busmoov
+                  {t('partner.title')}
                 </h1>
                 <p className="text-xl text-white/90 mb-8">
-                  Vous êtes transporteur ? Développez votre activité en rejoignant notre plateforme.
-                  Plus de 500 demandes de devis par mois, zéro prospection.
+                  {t('partner.heroText')}
                 </p>
                 <div className="flex items-center gap-6">
                   <div className="text-center">
-                    <div className="text-3xl font-bold">500+</div>
-                    <div className="text-white/70 text-sm">Demandes/mois</div>
+                    <div className="text-3xl font-bold">{t('partner.statCarriers')}</div>
+                    <div className="text-white/70 text-sm">{t('partner.statCarriersLabel')}</div>
                   </div>
                   <div className="w-px h-12 bg-white/30" />
                   <div className="text-center">
-                    <div className="text-3xl font-bold">150+</div>
-                    <div className="text-white/70 text-sm">Partenaires</div>
+                    <div className="text-3xl font-bold">{t('partner.statTrips')}</div>
+                    <div className="text-white/70 text-sm">{t('partner.statTripsLabel')}</div>
                   </div>
                   <div className="w-px h-12 bg-white/30" />
                   <div className="text-center">
-                    <div className="text-3xl font-bold">98%</div>
-                    <div className="text-white/70 text-sm">Satisfaction</div>
+                    <div className="text-3xl font-bold">{t('partner.statSupport')}</div>
+                    <div className="text-white/70 text-sm">{t('partner.statSupportLabel')}</div>
                   </div>
                 </div>
               </div>
@@ -194,7 +196,7 @@ export function DevenirPartenairePage() {
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-              Pourquoi devenir partenaire ?
+              {t('partner.whyJoinTitle')}
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {benefits.map((benefit, index) => (
@@ -215,16 +217,16 @@ export function DevenirPartenairePage() {
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12">
               <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
-                Demande de partenariat
+                {t('partner.formTitle')}
               </h2>
               <p className="text-gray-600 text-center mb-8">
-                Remplissez le formulaire ci-dessous, notre équipe vous recontactera rapidement.
+                {t('partner.formSubtitle')}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="label">Nom de l'entreprise *</label>
+                    <label className="label">{t('partner.companyName')}</label>
                     <input
                       type="text"
                       name="company"
@@ -232,11 +234,10 @@ export function DevenirPartenairePage() {
                       onChange={handleChange}
                       required
                       className="input"
-                      placeholder="Transport Dupont SARL"
                     />
                   </div>
                   <div>
-                    <label className="label">Nom du contact *</label>
+                    <label className="label">{t('partner.contactName')}</label>
                     <input
                       type="text"
                       name="contact"
@@ -244,14 +245,13 @@ export function DevenirPartenairePage() {
                       onChange={handleChange}
                       required
                       className="input"
-                      placeholder="Jean Dupont"
                     />
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="label">Email *</label>
+                    <label className="label">{t('partner.email')}</label>
                     <input
                       type="email"
                       name="email"
@@ -259,11 +259,10 @@ export function DevenirPartenairePage() {
                       onChange={handleChange}
                       required
                       className="input"
-                      placeholder="contact@entreprise.fr"
                     />
                   </div>
                   <div>
-                    <label className="label">Téléphone *</label>
+                    <label className="label">{t('partner.phone')}</label>
                     <input
                       type="tel"
                       name="phone"
@@ -271,14 +270,13 @@ export function DevenirPartenairePage() {
                       onChange={handleChange}
                       required
                       className="input"
-                      placeholder="06 12 34 56 78"
                     />
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="label">Ville / Département *</label>
+                    <label className="label">{t('partner.city')}</label>
                     <input
                       type="text"
                       name="city"
@@ -286,11 +284,10 @@ export function DevenirPartenairePage() {
                       onChange={handleChange}
                       required
                       className="input"
-                      placeholder="Paris (75)"
                     />
                   </div>
                   <div>
-                    <label className="label">Taille de votre flotte *</label>
+                    <label className="label">{t('partner.fleetSize')}</label>
                     <select
                       name="fleetSize"
                       value={formData.fleetSize}
@@ -298,24 +295,24 @@ export function DevenirPartenairePage() {
                       required
                       className="input"
                     >
-                      <option value="">Sélectionnez</option>
-                      <option value="1-5">1 à 5 véhicules</option>
-                      <option value="6-15">6 à 15 véhicules</option>
-                      <option value="16-30">16 à 30 véhicules</option>
-                      <option value="31+">Plus de 30 véhicules</option>
+                      <option value="">{t('partner.fleetSelect')}</option>
+                      <option value="1-5">{t('partner.fleet1to5')}</option>
+                      <option value="6-15">{t('partner.fleet6to15')}</option>
+                      <option value="16-30">{t('partner.fleet16to30')}</option>
+                      <option value="31+">{t('partner.fleet30plus')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="label">Message (optionnel)</label>
+                  <label className="label">{t('partner.message')}</label>
                   <textarea
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
                     rows={4}
                     className="input"
-                    placeholder="Présentez-nous votre entreprise, vos véhicules, vos zones de couverture..."
+                    placeholder={t('partner.messagePlaceholder')}
                   />
                 </div>
 
@@ -333,21 +330,20 @@ export function DevenirPartenairePage() {
                   {sending ? (
                     <>
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Envoi en cours...
+                      {t('partner.sending')}
                     </>
                   ) : (
                     <>
                       <Send size={20} />
-                      Envoyer ma demande
+                      {t('partner.submitButton')}
                     </>
                   )}
                 </button>
 
                 <p className="text-xs text-gray-500 text-center">
-                  En soumettant ce formulaire, vous acceptez d'être contacté par notre équipe commerciale.
-                  Vos données sont traitées conformément à notre{' '}
+                  {t('partner.privacyNotice')}{' '}
                   <Link to="/confidentialite" className="text-purple hover:underline">
-                    politique de confidentialité
+                    {t('partner.privacyLink')}
                   </Link>.
                 </p>
               </form>

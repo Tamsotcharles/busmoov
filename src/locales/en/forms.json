@@ -1,0 +1,113 @@
+{
+  "clientSpace": {
+    "title": "Client Area",
+    "welcome": "Welcome, {{name}}",
+    "yourQuotes": "Your Quotes",
+    "yourBookings": "Your Bookings",
+    "noQuotes": "No quotes yet",
+    "noBookings": "No bookings yet"
+  },
+  "quotes": {
+    "title": "Your Quotes",
+    "received": "Quotes Received",
+    "pending": "Awaiting Quotes",
+    "select": "Select This Quote",
+    "selected": "Quote Selected",
+    "viewDetails": "View Details",
+    "downloadPdf": "Download PDF",
+    "expiresIn": "Expires in {{days}} days",
+    "expired": "Expired"
+  },
+  "payment": {
+    "title": "Payment",
+    "deposit": "Deposit",
+    "balance": "Balance",
+    "total": "Total",
+    "toPay": "To Pay",
+    "paid": "Paid",
+    "remaining": "Remaining Balance",
+    "method": "Payment Method",
+    "creditCard": "Credit Card",
+    "bankTransfer": "Bank Transfer",
+    "payNow": "Pay Now",
+    "transferInfo": "Bank Transfer Details",
+    "iban": "IBAN",
+    "bic": "BIC",
+    "reference": "Payment Reference",
+    "confirmTransfer": "I Have Completed the Transfer",
+    "processingPayment": "Processing Payment..."
+  },
+  "tripInfo": {
+    "title": "Trip Information",
+    "subtitle": "Please complete the details for your journey",
+    "outbound": "Outbound",
+    "return": "Return",
+    "date": "Date",
+    "time": "Time",
+    "pickupAddress": "Pick-up Address",
+    "dropoffAddress": "Drop-off Address",
+    "passengers": "Number of Passengers",
+    "contactOnSite": "On-site Contact",
+    "contactName": "Contact Name",
+    "contactPhone": "Contact Phone",
+    "comments": "Comments for the Driver",
+    "validate": "Confirm Information",
+    "validated": "Information Confirmed",
+    "editInfo": "Edit Information"
+  },
+  "contract": {
+    "title": "Contract Signature",
+    "read": "Please read the contract carefully",
+    "terms": "I accept the terms and conditions",
+    "sign": "Sign Contract",
+    "signed": "Contract Signed",
+    "signatureRequired": "Signature Required",
+    "drawSignature": "Draw Your Signature",
+    "clearSignature": "Clear",
+    "confirmSignature": "Confirm Signature"
+  },
+  "roadmap": {
+    "title": "Journey Details",
+    "driver": "Your Driver",
+    "driverName": "Name",
+    "driverPhone": "Phone",
+    "vehicle": "Vehicle",
+    "downloadPdf": "Download Journey Details",
+    "notAvailable": "Journey details will be available once driver information is received"
+  },
+  "review": {
+    "title": "Your Feedback",
+    "subtitle": "How was your journey?",
+    "rating": "Overall Rating",
+    "comment": "Your Comments",
+    "commentPlaceholder": "Share your experience...",
+    "submit": "Submit Feedback",
+    "thanks": "Thank you for your feedback!",
+    "alreadySubmitted": "You have already submitted your feedback"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Have a question? Feel free to get in touch",
+    "name": "Your Name",
+    "email": "Your Email",
+    "subject": "Subject",
+    "message": "Your Message",
+    "send": "Send",
+    "sent": "Message Sent!",
+    "sentMessage": "We will respond as soon as possible."
+  },
+  "partner": {
+    "title": "Become a Partner",
+    "subtitle": "Join the Busmoov Network",
+    "companyName": "Company Name",
+    "siret": "Company Registration Number",
+    "address": "Address",
+    "fleet": "Fleet Size",
+    "fleetSmall": "1-5 vehicles",
+    "fleetMedium": "6-15 vehicles",
+    "fleetLarge": "16-50 vehicles",
+    "fleetXLarge": "More than 50 vehicles",
+    "regions": "Regions Covered",
+    "submit": "Submit Application"
+  }
+}

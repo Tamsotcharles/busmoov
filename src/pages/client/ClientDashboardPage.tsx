@@ -22,6 +22,8 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Modal } from '@/components/ui/Modal'
+import { useTranslation } from 'react-i18next'
+import { useLocalizedPath } from '@/components/i18n'
 
 interface ClientSession {
   id: string
@@ -87,23 +89,7 @@ interface Devis {
   } | null
 }
 
-const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
-  new: { label: 'Nouveau', color: 'bg-blue-100 text-blue-700', icon: Clock },
-  quotes_pending: { label: 'Devis en attente', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
-  quotes_received: { label: 'Devis reçus', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-  quotes_sent: { label: 'Devis envoyés', color: 'bg-purple-100 text-purple-700', icon: FileText },
-  'pending-client': { label: 'Devis envoyés', color: 'bg-orange-100 text-orange-700', icon: FileText },
-  quote_accepted: { label: 'Devis accepté', color: 'bg-purple-100 text-purple-700', icon: CheckCircle },
-  'pending-payment': { label: 'En attente paiement', color: 'bg-amber-100 text-amber-700', icon: Clock },
-  'pending-reservation': { label: 'Acompte payé', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-  'bpa-received': { label: 'Réservation confirmée', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-  'pending-info': { label: 'Infos à compléter', color: 'bg-cyan-100 text-cyan-700', icon: FileText },
-  'pending-driver': { label: 'Chauffeur assigné', color: 'bg-indigo-100 text-indigo-700', icon: CheckCircle },
-  contract_sent: { label: 'Contrat envoyé', color: 'bg-indigo-100 text-indigo-700', icon: FileText },
-  contract_signed: { label: 'Contrat signé', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-  completed: { label: 'Terminé', color: 'bg-gray-100 text-gray-700', icon: CheckCircle },
-  cancelled: { label: 'Annulé', color: 'bg-red-100 text-red-700', icon: AlertCircle },
-}
+// Status config moved inside component to support i18n
 
 // Fonction pour déterminer l'étape actuelle du workflow
 // 6 étapes: Devis reçu → Contrat signé → Acompte payé → Infos voyage → Feuille de route → Voyage terminé
@@ -141,31 +127,7 @@ const getWorkflowStep = (status: string, hasDevis: boolean, hasContract: boolean
   return 1
 }
 
-// Fonction pour obtenir le label du véhicule
-const getVehicleLabel = (type: string | null): string => {
-  if (!type) return 'Autocar'
-  const types: Record<string, string> = {
-    minibus: 'Minibus (8-20 places)',
-    standard: 'Autocar Standard (21-59 places)',
-    '60-63': 'Autocar 60-63 places',
-    '70': 'Autocar 70 places',
-    '83-90': 'Double étage (83-90 places)',
-    'autocar-standard': 'Autocar Standard',
-    'autocar-gt': 'Autocar Grand Tourisme',
-  }
-  return types[type] || type
-}
-
-// Fonction pour obtenir le label du type de trajet
-const getTripModeLabel = (tripMode: string | null): string => {
-  if (!tripMode) return 'Non défini'
-  const modes: Record<string, string> = {
-    'one-way': 'Aller simple',
-    'round-trip': 'Aller-retour',
-    'circuit': 'Circuit / Mise à disposition',
-  }
-  return modes[tripMode] || tripMode
-}
+// Vehicle and trip mode functions moved inside component to support i18n
 
 // Fonction pour extraire le détail du circuit depuis special_requests
 const extractCircuitDetails = (specialRequests: string | null | undefined): string | null => {
@@ -180,11 +142,61 @@ const extractCircuitDetails = (specialRequests: string | null | undefined): stri
 }
 
 export function ClientDashboardPage() {
+  const { t, i18n } = useTranslation()
+  const localizedPath = useLocalizedPath()
   const navigate = useNavigate()
   const [session, setSession] = useState<ClientSession | null>(null)
   const [dossier, setDossier] = useState<Dossier | null>(null)
   const [devis, setDevis] = useState<Devis[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Status config with i18n support
+  const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+    new: { label: t('dashboard.status.new'), color: 'bg-blue-100 text-blue-700', icon: Clock },
+    quotes_pending: { label: t('dashboard.status.quotesPending'), color: 'bg-yellow-100 text-yellow-700', icon: Clock },
+    quotes_received: { label: t('dashboard.status.quotesReceived'), color: 'bg-green-100 text-green-700', icon: CheckCircle },
+    quotes_sent: { label: t('dashboard.status.quotesSent'), color: 'bg-purple-100 text-purple-700', icon: FileText },
+    'pending-client': { label: t('dashboard.status.quotesSent'), color: 'bg-orange-100 text-orange-700', icon: FileText },
+    quote_accepted: { label: t('dashboard.status.quoteAccepted'), color: 'bg-purple-100 text-purple-700', icon: CheckCircle },
+    'pending-payment': { label: t('dashboard.status.pendingPayment'), color: 'bg-amber-100 text-amber-700', icon: Clock },
+    'pending-reservation': { label: t('dashboard.status.depositPaid'), color: 'bg-green-100 text-green-700', icon: CheckCircle },
+    'bpa-received': { label: t('dashboard.status.reservationConfirmed'), color: 'bg-green-100 text-green-700', icon: CheckCircle },
+    'pending-info': { label: t('dashboard.status.pendingInfo'), color: 'bg-cyan-100 text-cyan-700', icon: FileText },
+    'pending-driver': { label: t('dashboard.status.driverAssigned'), color: 'bg-indigo-100 text-indigo-700', icon: CheckCircle },
+    contract_sent: { label: t('dashboard.status.contractSent'), color: 'bg-indigo-100 text-indigo-700', icon: FileText },
+    contract_signed: { label: t('dashboard.status.contractSigned'), color: 'bg-green-100 text-green-700', icon: CheckCircle },
+    completed: { label: t('dashboard.status.completed'), color: 'bg-gray-100 text-gray-700', icon: CheckCircle },
+    cancelled: { label: t('dashboard.status.cancelled'), color: 'bg-red-100 text-red-700', icon: AlertCircle },
+  }
+
+  // Vehicle labels with i18n
+  const getVehicleLabel = (type: string | null): string => {
+    if (!type) return t('dashboard.vehicleTypes.autocar')
+    const types: Record<string, string> = {
+      minibus: t('dashboard.vehicleTypes.minibus'),
+      standard: t('dashboard.vehicleTypes.standard'),
+      '60-63': t('dashboard.vehicleTypes.60-63'),
+      '70': t('dashboard.vehicleTypes.70'),
+      '83-90': t('dashboard.vehicleTypes.83-90'),
+      'autocar-standard': t('dashboard.vehicleTypes.autocarStandard'),
+      'autocar-gt': t('dashboard.vehicleTypes.autocarGT'),
+    }
+    return types[type] || type
+  }
+
+  // Trip mode labels with i18n
+  const getTripModeLabel = (tripMode: string | null): string => {
+    if (!tripMode) return t('dashboard.tripModes.undefined')
+    const modes: Record<string, string> = {
+      'one-way': t('dashboard.tripModes.oneWay'),
+      'round-trip': t('dashboard.tripModes.roundTrip'),
+      'circuit': t('dashboard.tripModes.circuit'),
+    }
+    return modes[tripMode] || tripMode
+  }
+
+  // Locale for date formatting
+  const dateLocale = i18n.language === 'de' ? 'de-DE' : i18n.language === 'es' ? 'es-ES' : i18n.language === 'en' ? 'en-GB' : 'fr-FR'
 
   // États pour la modale de contact support
   const [supportModalOpen, setSupportModalOpen] = useState(false)
@@ -337,7 +349,7 @@ export function ClientDashboardPage() {
       navigate(`/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}&sign=1&devis=${devisId}`)
     } catch (error) {
       console.error('Erreur acceptation devis:', error)
-      alert('Une erreur est survenue')
+      alert(t('dashboard.errorOccurred'))
     }
   }
 
@@ -414,14 +426,14 @@ export function ClientDashboardPage() {
 
     } catch (error) {
       console.error('Erreur envoi message support:', error)
-      alert('Une erreur est survenue lors de l\'envoi du message. Veuillez réessayer.')
+      alert(t('dashboard.supportMessageError'))
     } finally {
       setSendingSupport(false)
     }
   }
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
+    return new Date(date).toLocaleDateString(dateLocale, {
       day: 'numeric',
       month: 'long',
       year: 'numeric'
@@ -429,7 +441,7 @@ export function ClientDashboardPage() {
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat(dateLocale, {
       style: 'currency',
       currency: 'EUR'
     }).format(price)
@@ -438,7 +450,7 @@ export function ClientDashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-gray-500">Chargement...</div>
+        <div className="animate-pulse text-gray-500">{t('common.loading')}</div>
       </div>
     )
   }
@@ -447,9 +459,9 @@ export function ClientDashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500 mb-4">Dossier introuvable</p>
-          <Link to="/espace-client" className="btn btn-primary">
-            Retour
+          <p className="text-gray-500 mb-4">{t('dashboard.notFound')}</p>
+          <Link to={localizedPath('/espace-client')} className="btn btn-primary">
+            {t('common.back')}
           </Link>
         </div>
       </div>
@@ -464,7 +476,7 @@ export function ClientDashboardPage() {
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to={localizedPath('/')} className="flex items-center gap-3">
             <img src="/logo-icon.svg" alt="Busmoov" className="w-10 h-10" />
             <span className="font-display text-xl font-bold gradient-text">Busmoov</span>
           </Link>
@@ -477,7 +489,7 @@ export function ClientDashboardPage() {
               className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition-colors"
             >
               <LogOut size={18} />
-              <span className="hidden sm:inline">Déconnexion</span>
+              <span className="hidden sm:inline">{t('nav.logout')}</span>
             </button>
           </div>
         </div>
@@ -491,7 +503,7 @@ export function ClientDashboardPage() {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="font-display text-2xl font-bold text-purple-dark">
-                  Dossier {dossier.reference}
+                  {t('dashboard.dossier')} {dossier.reference}
                 </h1>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${status.color}`}>
                   <StatusIcon size={14} className="inline mr-1" />
@@ -499,11 +511,11 @@ export function ClientDashboardPage() {
                 </span>
               </div>
               <p className="text-gray-600">
-                Bonjour {dossier.client_name}, bienvenue dans votre espace client
+                {t('dashboard.welcomeMessage', { name: dossier.client_name })}
               </p>
             </div>
             <div className="text-right text-sm text-gray-500">
-              Créé le {formatDate(dossier.created_at)}
+              {t('dashboard.createdOn')} {formatDate(dossier.created_at)}
             </div>
           </div>
         </div>
@@ -515,7 +527,7 @@ export function ClientDashboardPage() {
             <div className="card p-6">
               <h2 className="font-display text-lg font-semibold text-purple-dark mb-4 flex items-center gap-2">
                 <Bus size={20} className="text-magenta" />
-                Détails du voyage
+                {t('dashboard.tripDetails')}
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -523,7 +535,7 @@ export function ClientDashboardPage() {
                 <div className="flex items-start gap-3">
                   <Route size={18} className="text-magenta mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-500">Type de prestation</p>
+                    <p className="text-sm text-gray-500">{t('dashboard.serviceType')}</p>
                     <p className="font-medium">
                       {getTripModeLabel(dossier.trip_mode || dossier.demande?.trip_type || null)}
                     </p>
@@ -534,7 +546,7 @@ export function ClientDashboardPage() {
                 <div className="flex items-start gap-3">
                   <MapPin size={18} className="text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-500">Trajet</p>
+                    <p className="text-sm text-gray-500">{t('dashboard.route')}</p>
                     <p className="font-medium">
                       {dossier.departure} → {dossier.arrival}
                     </p>
@@ -545,11 +557,11 @@ export function ClientDashboardPage() {
                 <div className="flex items-start gap-3">
                   <Calendar size={18} className="text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-500">Date(s)</p>
+                    <p className="text-sm text-gray-500">{t('dashboard.dates')}</p>
                     <p className="font-medium">
                       {formatDate(dossier.departure_date)}
                       {dossier.return_date && (
-                        <> au {formatDate(dossier.return_date)}</>
+                        <> {t('dashboard.to')} {formatDate(dossier.return_date)}</>
                       )}
                     </p>
                   </div>
@@ -559,8 +571,8 @@ export function ClientDashboardPage() {
                 <div className="flex items-start gap-3">
                   <Users size={18} className="text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-500">Passagers</p>
-                    <p className="font-medium">{dossier.passengers} personnes</p>
+                    <p className="text-sm text-gray-500">{t('dashboard.passengers')}</p>
+                    <p className="font-medium">{dossier.passengers} {t('dashboard.persons')}</p>
                   </div>
                 </div>
 
@@ -568,7 +580,7 @@ export function ClientDashboardPage() {
                 <div className="flex items-start gap-3">
                   <Bus size={18} className="text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-500">Type de véhicule</p>
+                    <p className="text-sm text-gray-500">{t('dashboard.vehicleType')}</p>
                     <p className="font-medium">{getVehicleLabel(dossier.vehicle_type)}</p>
                   </div>
                 </div>
@@ -578,7 +590,7 @@ export function ClientDashboardPage() {
                   <div className="flex items-start gap-3">
                     <FileText size={18} className="text-gray-400 mt-0.5" />
                     <div>
-                      <p className="text-sm text-gray-500">Motif du voyage</p>
+                      <p className="text-sm text-gray-500">{t('dashboard.tripPurpose')}</p>
                       <p className="font-medium capitalize">{dossier.demande.voyage_type}</p>
                     </div>
                   </div>
@@ -596,7 +608,7 @@ export function ClientDashboardPage() {
                       <div className="flex items-start gap-3">
                         <Info size={18} className="text-purple mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-sm font-medium text-purple-dark mb-2">Détail de la mise à disposition</p>
+                          <p className="text-sm font-medium text-purple-dark mb-2">{t('dashboard.circuitDetails')}</p>
                           <p className="text-sm text-gray-700 whitespace-pre-line">{circuitDetails}</p>
                         </div>
                       </div>
@@ -611,14 +623,14 @@ export function ClientDashboardPage() {
             <div className="card p-6">
               <h2 className="font-display text-lg font-semibold text-purple-dark mb-4 flex items-center gap-2">
                 <Euro size={20} className="text-magenta" />
-                Vos devis ({devis.length})
+                {t('dashboard.yourQuotes')} ({devis.length})
               </h2>
 
               {devis.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Clock size={48} className="mx-auto mb-4 text-gray-300" />
-                  <p>Vos devis sont en cours de préparation</p>
-                  <p className="text-sm mt-1">Vous recevrez un email dès qu'ils seront disponibles</p>
+                  <p>{t('dashboard.quotesInPreparation')}</p>
+                  <p className="text-sm mt-1">{t('dashboard.quotesNotification')}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -642,19 +654,19 @@ export function ClientDashboardPage() {
                         {/* Badge meilleur prix */}
                         {isBestPrice && (
                           <div className="bg-gradient-to-r from-magenta to-purple text-white text-center py-1.5 text-sm font-semibold">
-                            Meilleur prix
+                            {t('dashboard.bestPrice')}
                           </div>
                         )}
                         {isAccepted && (
                           <div className="bg-green-500 text-white text-center py-1.5 text-sm font-semibold flex items-center justify-center gap-1">
                             <CheckCircle size={14} />
-                            Fournisseur confirmé
+                            {t('dashboard.supplierConfirmed')}
                           </div>
                         )}
                         {isPending && (
                           <div className="bg-orange-400 text-white text-center py-1.5 text-sm font-semibold flex items-center justify-center gap-1">
                             <Clock size={14} />
-                            En cours de validation
+                            {t('dashboard.validationInProgress')}
                           </div>
                         )}
 
@@ -669,7 +681,7 @@ export function ClientDashboardPage() {
                               </div>
                               <div>
                                 <span className="font-semibold text-purple-dark block">
-                                  {d.transporteur?.number || `Fournisseur n°${supplierNum}`}
+                                  {d.transporteur?.number || t('dashboard.supplierNum', { num: supplierNum })}
                                 </span>
                                 <span className="flex items-center gap-1 text-sm text-yellow-600">
                                   <Star size={12} fill="currentColor" />
@@ -686,7 +698,7 @@ export function ClientDashboardPage() {
                               </div>
                               <div className="flex items-center gap-2">
                                 <Clock size={14} className="text-gray-400" />
-                                <span className="text-gray-600">Valide {d.validity_days}j</span>
+                                <span className="text-gray-600">{t('dashboard.validDays', { days: d.validity_days })}</span>
                               </div>
                               {d.client_notes && (
                                 <div className="col-span-2 text-xs text-amber-700 bg-amber-50 rounded px-2 py-1">
@@ -701,9 +713,9 @@ export function ClientDashboardPage() {
                                 <p className={`text-2xl font-bold ${isBestPrice ? 'text-magenta' : 'text-purple-dark'}`}>
                                   {formatPrice(d.price_ttc)}
                                 </p>
-                                <p className="text-xs text-gray-500">TTC ({formatPrice(d.price_ht)} HT)</p>
+                                <p className="text-xs text-gray-500">{t('dashboard.ttc')} ({formatPrice(d.price_ht)} {t('dashboard.ht')})</p>
                                 <p className={`text-sm font-medium ${isBestPrice ? 'text-magenta' : 'text-purple'}`}>
-                                  soit {formatPrice(pricePerPerson)}/pers.
+                                  {t('dashboard.perPerson', { price: formatPrice(pricePerPerson) })}
                                 </p>
                               </div>
 
@@ -712,7 +724,7 @@ export function ClientDashboardPage() {
                                   onClick={() => handleAcceptDevis(d.id)}
                                   className={`btn ${isBestPrice ? 'btn-primary' : 'btn-secondary'} whitespace-nowrap`}
                                 >
-                                  Choisir
+                                  {t('dashboard.choose')}
                                 </button>
                               )}
                             </div>
@@ -730,32 +742,32 @@ export function ClientDashboardPage() {
           <div className="space-y-6">
             {/* Actions */}
             <div className="card p-6">
-              <h3 className="font-semibold text-purple-dark mb-4">Actions</h3>
+              <h3 className="font-semibold text-purple-dark mb-4">{t('dashboard.actions')}</h3>
               <div className="space-y-3">
                 <Link
-                  to={`/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`}
+                  to={localizedPath(`/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`)}
                   className="btn btn-primary w-full justify-start"
                 >
                   <FileText size={18} className="mr-2" />
-                  Voir tous mes devis
+                  {t('dashboard.viewAllQuotes')}
                 </Link>
                 <button
                   onClick={() => setSupportModalOpen(true)}
                   className="btn btn-outline w-full justify-start"
                 >
                   <MessageCircle size={18} className="mr-2" />
-                  Contacter le support
+                  {t('dashboard.contactSupport')}
                 </button>
                 <button className="btn btn-outline w-full justify-start">
                   <Download size={18} className="mr-2" />
-                  Télécharger les documents
+                  {t('dashboard.downloadDocuments')}
                 </button>
               </div>
             </div>
 
             {/* Timeline */}
             <div className="card p-6">
-              <h3 className="font-semibold text-purple-dark mb-4">Suivi du dossier</h3>
+              <h3 className="font-semibold text-purple-dark mb-4">{t('dashboard.dossierTracking')}</h3>
               {(() => {
                 const hasContract = !!dossier.contract_signed_at
                 const hasDevis = devis.length > 0
@@ -763,12 +775,12 @@ export function ClientDashboardPage() {
                 const currentStep = getWorkflowStep(dossier.status, hasDevis, hasContract, hasAcceptedDevis)
 
                 const steps = [
-                  { num: 1, icon: '💰', label: 'Devis reçu' },
-                  { num: 2, icon: '📄', label: 'Contrat signé' },
-                  { num: 3, icon: '💳', label: 'Acompte payé' },
-                  { num: 4, icon: '📝', label: 'Infos voyage' },
-                  { num: 5, icon: '🗺️', label: 'Feuille de route' },
-                  { num: 6, icon: '🎉', label: 'Voyage terminé' },
+                  { num: 1, icon: '💰', label: t('dashboard.steps.quoteReceived') },
+                  { num: 2, icon: '📄', label: t('dashboard.steps.contractSigned') },
+                  { num: 3, icon: '💳', label: t('dashboard.steps.depositPaid') },
+                  { num: 4, icon: '📝', label: t('dashboard.steps.tripInfo') },
+                  { num: 5, icon: '🗺️', label: t('dashboard.steps.roadmap') },
+                  { num: 6, icon: '🎉', label: t('dashboard.steps.tripCompleted') },
                 ]
 
                 return (
@@ -804,13 +816,13 @@ export function ClientDashboardPage() {
                       <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
                         <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
                           <CheckCircle size={16} />
-                          Acompte reçu
+                          {t('dashboard.depositReceived')}
                         </h4>
                         <div className="space-y-2 text-sm">
                           {dossier.paiements.map((p) => (
                             <div key={p.id} className="flex justify-between">
                               <span className="text-gray-600">
-                                {p.type === 'virement' ? 'Virement' : p.type === 'cb' ? 'Carte bancaire' : p.type === 'especes' ? 'Espèces' : p.type === 'cheque' ? 'Chèque' : p.type}
+                                {p.type === 'virement' ? t('payment.bankTransfer') : p.type === 'cb' ? t('payment.creditCard') : p.type === 'especes' ? t('payment.cash') : p.type === 'cheque' ? t('payment.check') : p.type}
                               </span>
                               <span className="font-medium text-green-700">
                                 {formatPrice(p.amount)}
@@ -821,14 +833,14 @@ export function ClientDashboardPage() {
                             <>
                               <div className="border-t border-green-200 pt-2 mt-2">
                                 <div className="flex justify-between">
-                                  <span className="text-gray-600">Solde restant</span>
+                                  <span className="text-gray-600">{t('dashboard.balanceRemaining')}</span>
                                   <span className="font-bold text-purple-dark">
                                     {formatPrice(dossier.price_ttc - dossier.paiements.reduce((sum, p) => sum + p.amount, 0))}
                                   </span>
                                 </div>
                               </div>
                               <p className="text-xs text-gray-500 mt-2">
-                                Le solde est à régler avant le départ.
+                                {t('dashboard.balanceBeforeDeparture')}
                               </p>
                             </>
                           )}
@@ -841,10 +853,10 @@ export function ClientDashboardPage() {
                       <div className="mt-4 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-lg">
                         <h4 className="font-semibold text-cyan-800 mb-2 flex items-center gap-2">
                           <FileText size={16} />
-                          Prochaine étape : Infos voyage
+                          {t('dashboard.nextStep')}: {t('dashboard.steps.tripInfo')}
                         </h4>
                         <p className="text-sm text-gray-600">
-                          Notre équipe va vous contacter pour compléter les informations de votre voyage (liste des passagers, horaires précis, etc.)
+                          {t('dashboard.tripInfoNextStepText')}
                         </p>
                       </div>
                     )}
@@ -853,7 +865,7 @@ export function ClientDashboardPage() {
                     {currentStep >= 6 && (
                       <div className="mt-4 p-3 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-lg text-center">
                         <p className="text-sm text-emerald-700 font-medium">
-                          Merci d'avoir voyagé avec Busmoov ! 🎉
+                          {t('dashboard.thankYouMessage')}
                         </p>
                       </div>
                     )}
@@ -864,15 +876,15 @@ export function ClientDashboardPage() {
 
             {/* Contact */}
             <div className="card p-6 bg-gradient-to-br from-purple-50 to-magenta-50">
-              <h3 className="font-semibold text-purple-dark mb-2">Besoin d'aide ?</h3>
+              <h3 className="font-semibold text-purple-dark mb-2">{t('dashboard.needHelp')}</h3>
               <p className="text-sm text-gray-600 mb-4">
-                Notre équipe est disponible pour répondre à vos questions.
+                {t('dashboard.teamAvailable')}
               </p>
               <button
                 onClick={() => setSupportModalOpen(true)}
                 className="text-magenta font-medium hover:underline"
               >
-                Nous contacter
+                {t('dashboard.contactUs')}
               </button>
             </div>
           </div>
@@ -886,7 +898,7 @@ export function ClientDashboardPage() {
           setSupportModalOpen(false)
           setSupportSuccess(false)
         }}
-        title="Contacter le support"
+        title={t('dashboard.contactSupport')}
         size="md"
       >
         {supportSuccess ? (
@@ -894,42 +906,42 @@ export function ClientDashboardPage() {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Message envoyé !</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('dashboard.messageSent')}</h3>
             <p className="text-gray-600">
-              Notre équipe vous répondra dans les plus brefs délais.
+              {t('dashboard.teamWillReply')}
             </p>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="bg-gray-50 rounded-lg p-4">
               <p className="text-sm text-gray-600">
-                <strong>Dossier :</strong> {dossier.reference}
+                <strong>{t('dashboard.dossier')}:</strong> {dossier.reference}
               </p>
               <p className="text-sm text-gray-600">
-                <strong>Trajet :</strong> {dossier.departure} → {dossier.arrival}
+                <strong>{t('dashboard.route')}:</strong> {dossier.departure} → {dossier.arrival}
               </p>
             </div>
 
             <div>
-              <label className="label">Type de demande</label>
+              <label className="label">{t('dashboard.requestType')}</label>
               <select
                 value={supportSubject}
                 onChange={(e) => setSupportSubject(e.target.value)}
                 className="input"
               >
-                <option value="question">Question sur mon dossier</option>
-                <option value="modification">Demande de modification</option>
-                <option value="probleme">Signaler un problème</option>
-                <option value="autre">Autre demande</option>
+                <option value="question">{t('dashboard.requestTypes.question')}</option>
+                <option value="modification">{t('dashboard.requestTypes.modification')}</option>
+                <option value="probleme">{t('dashboard.requestTypes.problem')}</option>
+                <option value="autre">{t('dashboard.requestTypes.other')}</option>
               </select>
             </div>
 
             <div>
-              <label className="label">Votre message</label>
+              <label className="label">{t('dashboard.yourMessage')}</label>
               <textarea
                 value={supportMessage}
                 onChange={(e) => setSupportMessage(e.target.value)}
-                placeholder="Décrivez votre demande en détail..."
+                placeholder={t('dashboard.messagePlaceholder')}
                 rows={5}
                 className="input resize-none"
               />
@@ -940,7 +952,7 @@ export function ClientDashboardPage() {
                 onClick={() => setSupportModalOpen(false)}
                 className="btn btn-secondary"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleSendSupportMessage}
@@ -950,12 +962,12 @@ export function ClientDashboardPage() {
                 {sendingSupport ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Envoi...
+                    {t('dashboard.sending')}
                   </>
                 ) : (
                   <>
                     <Send className="h-4 w-4" />
-                    Envoyer
+                    {t('common.send')}
                   </>
                 )}
               </button>

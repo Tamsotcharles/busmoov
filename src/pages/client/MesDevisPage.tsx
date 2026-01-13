@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
-import { ArrowLeft, Check, Clock, MessageCircle, Phone, Info, Download, Bus, Users, Euro, MapPin, Calendar, FileText, ArrowLeftRight, X, Zap, Hourglass, CheckCircle2, Sparkles } from 'lucide-react'
+import { ArrowLeft, Check, Clock, MessageCircle, Phone, Info, Download, Bus, Users, Euro, MapPin, Calendar, FileText, ArrowLeftRight, X, Zap, Hourglass, CheckCircle2, Sparkles, ChevronDown } from 'lucide-react'
 import { useUpdateDossier } from '@/hooks/useSupabase'
 import { supabase } from '@/lib/supabase'
 import { Modal } from '@/components/ui/Modal'
@@ -8,12 +8,15 @@ import { ChatWidget } from '@/components/chat/ChatWidget'
 import { formatDate, formatPrice, getVehicleTypeLabel, cn, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, type RouteInfo } from '@/lib/utils'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFeuilleRoutePDF } from '@/lib/pdf'
 import { Truck, Navigation } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useLocalizedPath } from '@/components/i18n'
+import { useCurrentCountry } from '@/hooks/useCountrySettings'
 import type { Demande, DevisWithTransporteur, DossierWithRelations } from '@/types/database'
 // Types pour l'API de calcul de prix (côté serveur)
 type ServiceType = 'aller_simple' | 'ar_1j' | 'ar_mad' | 'ar_sans_mad'
 
 // Composant compte à rebours pour les offres flash
-function CountdownTimer({ expiresAt }: { expiresAt: string }) {
+function CountdownTimer({ expiresAt, expiredText }: { expiresAt: string; expiredText?: string }) {
   const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number } | null>(null)
   const [isExpired, setIsExpired] = useState(false)
 
@@ -43,7 +46,7 @@ function CountdownTimer({ expiresAt }: { expiresAt: string }) {
   }, [expiresAt])
 
   if (isExpired) {
-    return <span className="text-gray-400">Offre expirée</span>
+    return <span className="text-gray-400">{expiredText}</span>
   }
 
   if (!timeLeft) {
@@ -68,6 +71,10 @@ function CountdownTimer({ expiresAt }: { expiresAt: string }) {
 }
 
 export function MesDevisPage() {
+  const { t, i18n } = useTranslation()
+  const dateLocale = i18n.language === 'de' ? 'de-DE' : i18n.language === 'es' ? 'es-ES' : i18n.language === 'en' ? 'en-GB' : 'fr-FR'
+  const localizedPath = useLocalizedPath()
+  const { data: country } = useCurrentCountry()
   const [searchParams] = useSearchParams()
   const refParam = searchParams.get('ref')
   const emailParam = searchParams.get('email')
@@ -96,6 +103,11 @@ export function MesDevisPage() {
     zip: '',
     city: '',
     country: 'France',
+    // Champs e-invoice (facturation électronique)
+    vatNumber: '', // N° TVA intracommunautaire client
+    orderReference: '', // Référence commande (marchés publics)
+    leitwegId: '', // Leitweg-ID (DE uniquement)
+    dir3Code: '', // Code DIR3 (ES uniquement)
   })
   const [paymentMethod, setPaymentMethod] = useState<'cb' | 'virement' | null>(null)
   const [clientIp, setClientIp] = useState<string>('')
@@ -219,7 +231,7 @@ export function MesDevisPage() {
             devis: (devisResult?.devis as unknown as DevisWithTransporteur[]) || [],
           })
         } else {
-          setError('Demande introuvable. Vérifiez votre numéro de référence et email.')
+          setError(t('mesDevis.errors.notFound'))
         }
         return
       }
@@ -235,10 +247,10 @@ export function MesDevisPage() {
           devis: (devis as unknown as DevisWithTransporteur[]) || [],
         })
       } else {
-        setError('Demande introuvable. Vérifiez votre numéro de référence et email.')
+        setError(t('mesDevis.errors.notFound'))
       }
     } catch (err) {
-      setError('Une erreur est survenue. Veuillez réessayer.')
+      setError(t('mesDevis.errors.generic'))
       console.error(err)
     } finally {
       setLoading(false)
@@ -453,13 +465,13 @@ export function MesDevisPage() {
                 devis: (devisData as unknown as DevisWithTransporteur[]) || [],
               })
             } else {
-              setError('Demande introuvable. Vérifiez votre numéro de référence et email.')
+              setError(t('mesDevis.errors.notFound'))
             }
           }
         } catch (err) {
           // Ne pas afficher l'erreur si la requête a été annulée
           if (currentRequest !== loadDataRequestRef.current) return
-          setError('Une erreur est survenue. Veuillez réessayer.')
+          setError(t('mesDevis.errors.generic'))
           console.error(err)
         } finally {
           // Ne mettre à jour loading que si c'est la requête courante
@@ -585,7 +597,7 @@ export function MesDevisPage() {
       setContractModalOpen(true)
     } catch (err) {
       console.error('Error selecting quote:', err)
-      alert('Une erreur est survenue')
+      alert(t('mesDevis.errors.generic'))
     }
   }
 
@@ -604,7 +616,7 @@ export function MesDevisPage() {
 
   const handleSignContract = async () => {
     if (!isSignatureFormValid() || !data?.dossier || !selectedDevis) {
-      alert('Veuillez remplir tous les champs obligatoires et choisir un moyen de paiement')
+      alert(t('mesDevis.errors.fillAllFields'))
       return
     }
 
@@ -622,6 +634,13 @@ export function MesDevisPage() {
             zip: billingInfo.zip,
             city: billingInfo.city,
             country: billingInfo.country || 'France',
+          },
+          // Champs e-invoice (facturation électronique B2B/B2G)
+          e_invoice_info: {
+            vat_number: billingInfo.vatNumber || null,
+            order_reference: billingInfo.orderReference || null,
+            leitweg_id: billingInfo.leitwegId || null,
+            dir3_code: billingInfo.dir3Code || null,
           },
           payment_method: paymentMethod,
           selected_options: selectedOptions,
@@ -641,6 +660,8 @@ export function MesDevisPage() {
 
       // Générer la proforma PDF avec les données retournées par l'Edge Function
       const contractData = result.data
+      const countryCode = contractData.dossier?.country_code || data.dossier.country_code || 'FR'
+      const pdfLang = countryCode.toLowerCase()
       await generateContratPDF({
         reference: contractData.proforma_reference,
         price_ttc: contractData.price_ttc,
@@ -655,6 +676,7 @@ export function MesDevisPage() {
         billing_zip: contractData.billing_info.zip,
         billing_city: contractData.billing_info.city,
         billing_country: contractData.billing_info.country,
+        country_code: countryCode,
         nombre_chauffeurs: contractData.nombre_chauffeurs,
         nombre_cars: contractData.nombre_cars,
         tva_rate: contractData.tva_rate,
@@ -662,7 +684,7 @@ export function MesDevisPage() {
         duree_jours: contractData.duree_jours,
         detail_mad: contractData.detail_mad,
         dossier: contractData.dossier,
-      })
+      }, pdfLang)
 
       setContractModalOpen(false)
       setSelectedDevis(null)
@@ -670,16 +692,16 @@ export function MesDevisPage() {
 
       // Message différent selon le moyen de paiement
       if (paymentMethod === 'virement') {
-        alert('✅ Contrat signé avec succès ! La proforma a été téléchargée.\n\nVous trouverez les coordonnées bancaires pour effectuer le virement sur la proforma.')
+        alert(t('mesDevis.contractSignedTransfer'))
       } else {
-        alert('✅ Contrat signé avec succès ! La proforma a été téléchargée.\n\nVous allez être redirigé vers la page de paiement sécurisé.')
+        alert(t('mesDevis.contractSignedCard'))
         // Rediriger vers la page de paiement CB
-        window.location.href = `/paiement?ref=${data.dossier.reference}&email=${encodeURIComponent(data.dossier.client_email)}`
+        window.location.href = `${localizedPath('/paiement')}?ref=${data.dossier.reference}&email=${encodeURIComponent(data.dossier.client_email)}`
       }
     } catch (err: any) {
       console.error('Error signing contract:', err)
-      const errorMessage = err?.message || err?.toString() || 'Erreur inconnue'
-      alert(`Une erreur est survenue: ${errorMessage}`)
+      const errorMessage = err?.message || err?.toString() || t('mesDevis.errors.unknown')
+      alert(`${t('mesDevis.errors.generic')}: ${errorMessage}`)
     }
   }
 
@@ -689,10 +711,10 @@ export function MesDevisPage() {
   // Déterminer le type de prestation
   const getTripTypeLabel = () => {
     const tripMode = data?.dossier?.trip_mode || data?.demande?.trip_type
-    if (tripMode === 'circuit') return 'Circuit / Mise à disposition'
-    if (tripMode === 'one-way') return 'Aller simple'
-    if (data?.dossier?.return_date || data?.demande?.return_date) return 'Aller-retour'
-    return 'Aller simple'
+    if (tripMode === 'circuit') return t('dashboard.tripModes.circuit')
+    if (tripMode === 'one-way') return t('dashboard.tripModes.oneWay')
+    if (data?.dossier?.return_date || data?.demande?.return_date) return t('dashboard.tripModes.roundTrip')
+    return t('dashboard.tripModes.oneWay')
   }
   const tripType = getTripTypeLabel()
 
@@ -762,7 +784,7 @@ export function MesDevisPage() {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4">
         <div className="max-w-md mx-auto">
-          <Link to="/" className="flex items-center gap-3 mb-8">
+          <Link to={localizedPath('/')} className="flex items-center gap-3 mb-8">
             <img src="/logo-icon.svg" alt="Busmoov" className="w-10 h-10" />
             <span className="font-display text-xl font-bold gradient-text">Busmoov</span>
           </Link>
@@ -770,38 +792,38 @@ export function MesDevisPage() {
           <div className="card p-8">
             <div className="text-center mb-8">
               <h1 className="font-display text-2xl font-bold text-purple-dark mb-2">
-                Consulter mes devis
+                {t('mesDevis.pageTitle')}
               </h1>
               <p className="text-gray-500">
-                Entrez vos informations pour accéder à votre espace
+                {t('mesDevis.pageSubtitle')}
               </p>
             </div>
 
             <form onSubmit={handleSearch} className="space-y-4">
               <div>
-                <label className="label">Numéro de demande</label>
+                <label className="label">{t('mesDevis.referenceLabel')}</label>
                 <input
                   type="text"
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
-                  placeholder="Ex: DEM-001234"
+                  placeholder={t('mesDevis.referencePlaceholder')}
                   className="input"
                   required
                 />
               </div>
               <div>
-                <label className="label">Email</label>
+                <label className="label">{t('mesDevis.emailLabel')}</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="votre@email.com"
+                  placeholder={t('mesDevis.emailPlaceholder')}
                   className="input"
                   required
                 />
               </div>
               <button type="submit" className="btn btn-primary w-full">
-                Voir mes devis
+                {t('mesDevis.viewQuotes')}
               </button>
             </form>
           </div>
@@ -815,7 +837,7 @@ export function MesDevisPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-magenta border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">Chargement...</p>
+          <p className="text-gray-500">{t('mesDevis.loading')}</p>
         </div>
       </div>
     )
@@ -827,13 +849,13 @@ export function MesDevisPage() {
         <div className="max-w-md mx-auto text-center">
           <div className="text-6xl mb-6">🔍</div>
           <h2 className="font-display text-2xl font-bold text-purple-dark mb-2">
-            Demande introuvable
+            {t('mesDevis.notFound')}
           </h2>
           <p className="text-gray-500 mb-6">
-            {error || "Nous n'avons pas trouvé de dossier avec ces informations."}
+            {error || t('mesDevis.notFoundText')}
           </p>
-          <Link to="/" className="btn btn-primary">
-            Faire une nouvelle demande
+          <Link to={localizedPath('/')} className="btn btn-primary">
+            {t('mesDevis.newRequest')}
           </Link>
         </div>
       </div>
@@ -845,13 +867,13 @@ export function MesDevisPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 py-4 px-6">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to={localizedPath('/')} className="flex items-center gap-3">
             <img src="/logo-icon.svg" alt="Busmoov" className="w-10 h-10" />
             <span className="font-display text-xl font-bold gradient-text">Busmoov</span>
           </Link>
-          <Link to="/" className="btn btn-secondary btn-sm">
+          <Link to={localizedPath('/')} className="btn btn-secondary btn-sm">
             <ArrowLeft size={16} />
-            Retour
+            {t('mesDevis.back')}
           </Link>
         </div>
       </header>
@@ -860,9 +882,9 @@ export function MesDevisPage() {
         {/* Page Header */}
         <div className="text-center mb-8">
           <h1 className="font-display text-2xl font-bold text-purple-dark mb-2">
-            Votre espace client
+            {t('mesDevis.clientSpace')}
           </h1>
-          <p className="text-gray-500">Suivez l'avancement de votre réservation</p>
+          <p className="text-gray-500">{t('mesDevis.trackProgress')}</p>
         </div>
 
         {/* Request Summary */}
@@ -887,14 +909,14 @@ export function MesDevisPage() {
               <span className="badge badge-magenta">{data.demande?.reference}</span>
             )}
             <span className="text-gray-500 text-sm">
-              Créé le {formatDate(displayData?.created_at)}
+              {t('mesDevis.createdOn')} {formatDate(displayData?.created_at)}
             </span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="flex items-start gap-3">
               <MapPin size={18} className="text-magenta mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-xs text-gray-500">Trajet</div>
+                <div className="text-xs text-gray-500">{t('mesDevis.journey')}</div>
                 <div className="font-semibold text-purple-dark text-sm">
                   {data.type === 'dossier' ? `${data.dossier?.departure} → ${data.dossier?.arrival}` : `${data.demande?.departure_city} → ${data.demande?.arrival_city}`}
                 </div>
@@ -903,7 +925,7 @@ export function MesDevisPage() {
             <div className="flex items-start gap-3">
               <Calendar size={18} className="text-magenta mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-xs text-gray-500">Date(s)</div>
+                <div className="text-xs text-gray-500">{t('mesDevis.dates')}</div>
                 <div className="font-semibold text-purple-dark text-sm">
                   {formatDate(data.type === 'dossier' ? data.dossier?.departure_date : data.demande?.departure_date)}
                   {(data.type === 'dossier' ? data.dossier?.return_date : data.demande?.return_date) && (
@@ -915,16 +937,16 @@ export function MesDevisPage() {
             <div className="flex items-start gap-3">
               <Users size={18} className="text-magenta mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-xs text-gray-500">Passagers</div>
+                <div className="text-xs text-gray-500">{t('mesDevis.passengers')}</div>
                 <div className="font-semibold text-purple-dark text-sm">
-                  {data.type === 'dossier' ? data.dossier?.passengers : data.demande?.passengers} personnes
+                  {data.type === 'dossier' ? data.dossier?.passengers : data.demande?.passengers} {t('mesDevis.persons')}
                 </div>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Bus size={18} className="text-magenta mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-xs text-gray-500">Type</div>
+                <div className="text-xs text-gray-500">{t('mesDevis.type')}</div>
                 <div className="font-semibold text-purple-dark text-sm">
                   {getVehicleTypeLabel(data.type === 'dossier' ? data.dossier?.vehicle_type : data.demande?.vehicle_type) || 'Autocar-Standard'}
                 </div>
@@ -934,7 +956,7 @@ export function MesDevisPage() {
               <div className="flex items-start gap-3">
                 <FileText size={18} className="text-magenta mt-0.5 flex-shrink-0" />
                 <div>
-                  <div className="text-xs text-gray-500">Type de voyage</div>
+                  <div className="text-xs text-gray-500">{t('mesDevis.voyageType')}</div>
                   <div className="font-semibold text-purple-dark text-sm capitalize">
                     {data.type === 'dossier' ? data.dossier?.voyage_type : data.demande?.voyage_type}
                   </div>
@@ -944,7 +966,7 @@ export function MesDevisPage() {
             <div className="flex items-start gap-3">
               <ArrowLeftRight size={18} className="text-magenta mt-0.5 flex-shrink-0" />
               <div>
-                <div className="text-xs text-gray-500">Formule</div>
+                <div className="text-xs text-gray-500">{t('mesDevis.formula')}</div>
                 <div className="font-semibold text-purple-dark text-sm">{tripType}</div>
               </div>
             </div>
@@ -956,7 +978,7 @@ export function MesDevisPage() {
               <div className="flex items-start gap-3">
                 <Info size={18} className="text-purple mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-purple-dark mb-2">Détail de la mise à disposition</p>
+                  <p className="text-sm font-medium text-purple-dark mb-2">{t('mesDevis.circuitDetails')}</p>
                   <p className="text-sm text-gray-700 whitespace-pre-line">{circuitDetails}</p>
                 </div>
               </div>
@@ -968,8 +990,8 @@ export function MesDevisPage() {
             <div className="mt-4 pt-4 border-t border-gray-200">
               <button
                 onClick={async () => {
-                  const raison = prompt('Pouvez-vous nous indiquer la raison de votre abandon ? (optionnel)')
-                  if (!confirm('Êtes-vous sûr de vouloir abandonner ce projet ?\n\nCette action est définitive.')) return
+                  const raison = prompt(t('mesDevis.abandonReason'))
+                  if (!confirm(t('mesDevis.abandonConfirm'))) return
 
                   try {
                     // Mettre à jour le statut du dossier
@@ -982,20 +1004,20 @@ export function MesDevisPage() {
                     await supabase.from('timeline').insert({
                       dossier_id: data.dossier!.id,
                       type: 'status_change',
-                      content: `❌ Projet abandonné par le client${raison ? ` - Raison : ${raison}` : ''}`,
+                      content: `❌ ${t('mesDevis.projectAbandoned')}${raison ? ` - Raison : ${raison}` : ''}`,
                     })
 
-                    alert('Votre projet a été abandonné. Nous espérons vous revoir bientôt !')
+                    alert(t('mesDevis.abandonSuccess'))
                     // Recharger les données
                     loadData()
                   } catch (err) {
                     console.error('Erreur:', err)
-                    alert('Une erreur est survenue')
+                    alert(t('mesDevis.errors.generic'))
                   }
                 }}
                 className="text-sm text-gray-500 hover:text-red-600 transition-colors underline"
               >
-                Abandonner ce projet
+                {t('mesDevis.abandonProject')}
               </button>
             </div>
           )}
@@ -1005,7 +1027,7 @@ export function MesDevisPage() {
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                 <p className="text-sm text-amber-800 mb-3">
-                  Ce projet a été abandonné. Vous pouvez le réouvrir si vous souhaitez reprendre votre demande.
+                  {t('mesDevis.projectAbandonedText')}
                 </p>
                 <button
                   onClick={async () => {
@@ -1018,19 +1040,19 @@ export function MesDevisPage() {
                       await supabase.from('timeline').insert({
                         dossier_id: data.dossier!.id,
                         type: 'status_change',
-                        content: '🔄 Projet réouvert par le client',
+                        content: `🔄 ${t('mesDevis.projectReopened')}`,
                       })
 
-                      alert('Votre projet a été réouvert ! Notre équipe va reprendre contact avec vous.')
+                      alert(t('mesDevis.reopenSuccess'))
                       loadData()
                     } catch (err) {
                       console.error('Erreur:', err)
-                      alert('Une erreur est survenue')
+                      alert(t('mesDevis.errors.generic'))
                     }
                   }}
                   className="btn-primary text-sm"
                 >
-                  Réouvrir ce projet
+                  {t('mesDevis.reopenProject')}
                 </button>
               </div>
             </div>
@@ -1049,12 +1071,12 @@ export function MesDevisPage() {
                 />
               </div>
               {[
-                { key: 'quote', icon: '💰', label: 'Devis reçu' },
-                { key: 'contract', icon: '📄', label: 'Contrat signé' },
-                { key: 'payment', icon: '💳', label: 'Acompte payé' },
-                { key: 'info', icon: '📝', label: 'Infos voyage' },
-                { key: 'roadmap', icon: '🗺️', label: 'Feuille de route' },
-                { key: 'completed', icon: '🎉', label: 'Voyage terminé' },
+                { key: 'quote', icon: '💰', label: t('mesDevis.workflow.quoteReceived') },
+                { key: 'contract', icon: '📄', label: t('mesDevis.workflow.contractSigned') },
+                { key: 'payment', icon: '💳', label: t('mesDevis.workflow.depositPaid') },
+                { key: 'info', icon: '📝', label: t('mesDevis.workflow.tripInfo') },
+                { key: 'roadmap', icon: '🗺️', label: t('mesDevis.workflow.roadmap') },
+                { key: 'completed', icon: '🎉', label: t('mesDevis.workflow.tripCompleted') },
               ].map((step, index) => {
                 const stepNum = index + 1
                 const currentStep = getWorkflowStep()
@@ -1094,9 +1116,9 @@ export function MesDevisPage() {
             {getWorkflowStep() === 6 && (
               <div className="mt-6 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-4 text-center">
                 <div className="text-3xl mb-2">🎉</div>
-                <h3 className="font-semibold text-emerald-800 mb-1">Merci d'avoir voyagé avec Busmoov !</h3>
+                <h3 className="font-semibold text-emerald-800 mb-1">{t('mesDevis.workflow.completedTitle')}</h3>
                 <p className="text-sm text-emerald-600">
-                  Nous espérons que votre voyage s'est bien passé. À bientôt pour de nouvelles aventures !
+                  {t('mesDevis.workflow.completedText')}
                 </p>
               </div>
             )}
@@ -1113,8 +1135,8 @@ export function MesDevisPage() {
                   <div className="w-20 h-20 bg-purple/10 rounded-full flex items-center justify-center mb-4">
                     <Hourglass size={40} className="text-purple animate-pulse" />
                   </div>
-                  <h3 className="text-xl font-bold text-purple-dark mb-2">Recherche de transporteurs en cours...</h3>
-                  <p className="text-gray-600">Nous analysons votre trajet et recherchons les meilleurs transporteurs disponibles.</p>
+                  <h3 className="text-xl font-bold text-purple-dark mb-2">{t('mesDevis.search.title')}</h3>
+                  <p className="text-gray-600">{t('mesDevis.search.subtitle')}</p>
                   <div className="mt-4 flex gap-2">
                     <div className="w-3 h-3 bg-magenta rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                     <div className="w-3 h-3 bg-magenta rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
@@ -1135,11 +1157,11 @@ export function MesDevisPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-xl font-bold text-emerald-800">3 transporteurs intéressés par votre trajet !</h3>
+                        <h3 className="text-xl font-bold text-emerald-800">{t('mesDevis.search.foundTitle')}</h3>
                         <Sparkles size={20} className="text-emerald-500" />
                       </div>
                       <p className="text-emerald-700 mt-1">
-                        Nous avons trouvé des transporteurs disponibles pour votre demande.
+                        {t('mesDevis.search.foundText')}
                       </p>
                     </div>
                   </div>
@@ -1152,9 +1174,9 @@ export function MesDevisPage() {
                       <Clock size={32} className="text-amber-600" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-amber-800">Devis en préparation</h3>
+                      <h3 className="text-xl font-bold text-amber-800">{t('mesDevis.search.preparingTitle')}</h3>
                       <p className="text-amber-700 mt-1">
-                        Nos transporteurs étudient votre demande. <span className="font-semibold">Réponse sous 24h.</span>
+                        {t('mesDevis.search.preparingText')} <span className="font-semibold">{t('mesDevis.search.responseIn24h')}</span>
                       </p>
                     </div>
                   </div>
@@ -1164,17 +1186,17 @@ export function MesDevisPage() {
                     <div className="mt-4 pt-4 border-t border-amber-200">
                       <h4 className="font-medium text-amber-800 mb-3 flex items-center gap-2">
                         <Navigation size={16} />
-                        Estimation du trajet
+                        {t('mesDevis.routeEstimate.title')}
                       </h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {routeInfo && (
                           <>
                             <div className="bg-white/60 rounded-lg p-3 text-center">
-                              <div className="text-xs text-amber-600 mb-1">Distance</div>
+                              <div className="text-xs text-amber-600 mb-1">{t('mesDevis.routeEstimate.distance')}</div>
                               <div className="font-bold text-amber-900">{routeInfo.distance} km</div>
                             </div>
                             <div className="bg-white/60 rounded-lg p-3 text-center">
-                              <div className="text-xs text-amber-600 mb-1">Durée estimée</div>
+                              <div className="text-xs text-amber-600 mb-1">{t('mesDevis.routeEstimate.duration')}</div>
                               <div className="font-bold text-amber-900">{routeInfo.durationFormatted}</div>
                             </div>
                           </>
@@ -1182,18 +1204,18 @@ export function MesDevisPage() {
                         {tripEstimate && (
                           <>
                             <div className="bg-white/60 rounded-lg p-3 text-center">
-                              <div className="text-xs text-amber-600 mb-1">Nb de cars</div>
+                              <div className="text-xs text-amber-600 mb-1">{t('mesDevis.routeEstimate.nbCars')}</div>
                               <div className="font-bold text-amber-900">{tripEstimate.nbCars}</div>
                             </div>
                             <div className="bg-white/60 rounded-lg p-3 text-center">
-                              <div className="text-xs text-amber-600 mb-1">Chauffeur(s)</div>
+                              <div className="text-xs text-amber-600 mb-1">{t('mesDevis.routeEstimate.drivers')}</div>
                               <div className="font-bold text-amber-900">{tripEstimate.nbDrivers}</div>
                             </div>
                           </>
                         )}
                       </div>
                       <p className="text-xs text-amber-600 mt-2 italic">
-                        * Estimations basées sur le trajet en autocar. Valeurs indicatives.
+                        {t('mesDevis.routeEstimate.disclaimer')}
                       </p>
                     </div>
                   )}
@@ -1203,13 +1225,13 @@ export function MesDevisPage() {
                     <div className="mt-4 pt-4 border-t border-amber-200">
                       <div className="flex items-center gap-2 text-amber-800">
                         <Euro size={18} />
-                        <span className="font-medium">Tarif estimé :</span>
+                        <span className="font-medium">{t('mesDevis.priceEstimate.title')}</span>
                       </div>
                       <p className="text-lg font-bold text-amber-900 mt-1">
                         {formatPrice(estimatedPrice.min)} TTC
                       </p>
                       <p className="text-xs text-amber-600 mt-1">
-                        * Tarif à titre indicatif. Le devis définitif vous sera envoyé après validation par notre équipe.
+                        {t('mesDevis.priceEstimate.disclaimer')}
                       </p>
                     </div>
                   )}
@@ -1221,9 +1243,9 @@ export function MesDevisPage() {
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6 flex items-center gap-3">
             <Check size={24} className="text-emerald-500" />
             <div>
-              <h3 className="font-semibold text-emerald-800">Réservation confirmée</h3>
+              <h3 className="font-semibold text-emerald-800">{t('mesDevis.status.confirmed')}</h3>
               <p className="text-sm text-emerald-600">
-                Votre transport est réservé. Montant : {formatPrice(acceptedDevis.price_ttc)} TTC
+                {t('mesDevis.status.confirmedText')} {formatPrice(acceptedDevis.price_ttc)} TTC
               </p>
             </div>
           </div>
@@ -1231,9 +1253,9 @@ export function MesDevisPage() {
           <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 flex items-center gap-3">
             <Clock size={24} className="text-orange-500" />
             <div>
-              <h3 className="font-semibold text-orange-800">En attente de confirmation</h3>
+              <h3 className="font-semibold text-orange-800">{t('mesDevis.status.pending')}</h3>
               <p className="text-sm text-orange-600">
-                Votre choix a été enregistré ({formatPrice(clientValidatedDevis.price_ttc)} TTC). Notre équipe vérifie la disponibilité.
+                {t('mesDevis.status.pendingText')} ({formatPrice(clientValidatedDevis.price_ttc)} TTC)
               </p>
             </div>
           </div>
@@ -1242,10 +1264,10 @@ export function MesDevisPage() {
             <Info size={24} className="text-blue-500" />
             <div>
               <h3 className="font-semibold text-blue-800">
-                {data.devis.length} devis disponible{data.devis.length > 1 ? 's' : ''}
+                {data.devis.length} {data.devis.length > 1 ? t('mesDevis.status.quotesAvailablePlural') : t('mesDevis.status.quotesAvailable')}
               </h3>
               <p className="text-sm text-blue-600">
-                Comparez et choisissez l'offre qui vous convient
+                {t('mesDevis.status.compareText')}
               </p>
             </div>
           </div>
@@ -1272,6 +1294,7 @@ export function MesDevisPage() {
                       billing_zip: data.dossier.billing_zip,
                       billing_city: data.dossier.billing_city,
                       billing_country: data.dossier.billing_country,
+                      country_code: data.dossier.country_code || 'FR',
                       dossier: {
                         reference: data.dossier.reference,
                         client_name: data.dossier.client_name,
@@ -1285,15 +1308,15 @@ export function MesDevisPage() {
                         passengers: data.dossier.passengers,
                         transporteur: acceptedDevis.transporteur || undefined,
                       },
-                    })
+                    }, (data.dossier.country_code || 'FR').toLowerCase())
                   }
                 }}
                 className="card p-6 text-center cursor-pointer hover:shadow-lg transition-all bg-emerald-50 border-emerald-200 hover:border-emerald-400"
               >
                 <div className="text-3xl mb-2">✅</div>
-                <h4 className="font-semibold text-purple-dark text-sm">Contrat signé</h4>
+                <h4 className="font-semibold text-purple-dark text-sm">{t('mesDevis.actions.contractSigned')}</h4>
                 <p className="text-xs text-gray-500">{formatDate(data.dossier.contract_signed_at)}</p>
-                <p className="text-xs text-emerald-600 mt-1">Télécharger la proforma</p>
+                <p className="text-xs text-emerald-600 mt-1">{t('mesDevis.actions.downloadProforma')}</p>
               </button>
             ) : (
               <button
@@ -1301,8 +1324,8 @@ export function MesDevisPage() {
                 className="card p-6 text-center cursor-pointer hover:shadow-lg hover:border-magenta transition-all"
               >
                 <div className="text-3xl mb-2">📄</div>
-                <h4 className="font-semibold text-purple-dark text-sm">Signer le contrat</h4>
-                <p className="text-xs text-gray-500">Signature électronique</p>
+                <h4 className="font-semibold text-purple-dark text-sm">{t('mesDevis.actions.signContract')}</h4>
+                <p className="text-xs text-gray-500">{t('mesDevis.actions.electronicSignature')}</p>
               </button>
             )}
 
@@ -1322,20 +1345,20 @@ export function MesDevisPage() {
                 return (
                   <div className="card p-6 text-center bg-emerald-50 border-emerald-200">
                     <div className="text-3xl mb-2">✅</div>
-                    <h4 className="font-semibold text-emerald-700 text-sm">Paiement complet</h4>
-                    <p className="text-xs text-emerald-600">{formatPrice(totalPaye)} réglés</p>
+                    <h4 className="font-semibold text-emerald-700 text-sm">{t('mesDevis.actions.fullPayment')}</h4>
+                    <p className="text-xs text-emerald-600">{formatPrice(totalPaye)} {t('mesDevis.actions.paid')}</p>
                   </div>
                 )
               } else if (acomptePaye) {
                 // Acompte payé, reste le solde
                 return (
                   <Link
-                    to={`/paiement?ref=${data.dossier?.reference}&email=${encodeURIComponent(email)}&type=solde`}
+                    to={`${localizedPath('/paiement')}?ref=${data.dossier?.reference}&email=${encodeURIComponent(email)}&type=solde`}
                     className="card p-6 text-center cursor-pointer hover:shadow-lg hover:border-magenta transition-all bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200"
                   >
                     <div className="text-3xl mb-2">💳</div>
-                    <h4 className="font-semibold text-orange-700 text-sm">Payer le solde</h4>
-                    <p className="text-xs text-orange-600">{formatPrice(soldeRestant)} restant</p>
+                    <h4 className="font-semibold text-orange-700 text-sm">{t('mesDevis.actions.paySolde')}</h4>
+                    <p className="text-xs text-orange-600">{formatPrice(soldeRestant)} {t('mesDevis.actions.remaining')}</p>
                   </Link>
                 )
               } else {
@@ -1343,14 +1366,14 @@ export function MesDevisPage() {
                 const isFullPayment = currentAcomptePercent === 100
                 return (
                   <Link
-                    to={`/paiement?ref=${data.dossier?.reference}&email=${encodeURIComponent(email)}`}
+                    to={`${localizedPath('/paiement')}?ref=${data.dossier?.reference}&email=${encodeURIComponent(email)}`}
                     className="card p-6 text-center cursor-pointer hover:shadow-lg hover:border-magenta transition-all bg-gradient-to-br from-magenta/5 to-purple/5 border-magenta/20"
                   >
                     <div className="text-3xl mb-2">💳</div>
                     <h4 className="font-semibold text-purple-dark text-sm">
-                      {isFullPayment ? 'Régler la totalité' : "Payer l'acompte"}
+                      {isFullPayment ? t('mesDevis.actions.payTotal') : t('mesDevis.actions.payDeposit')}
                     </h4>
-                    <p className="text-xs text-gray-500">CB ou Virement</p>
+                    <p className="text-xs text-gray-500">{t('mesDevis.actions.cbOrTransfer')}</p>
                   </Link>
                 )
               }
@@ -1365,36 +1388,36 @@ export function MesDevisPage() {
                 // Infos validées - consultation seule
                 return (
                   <Link
-                    to={`/infos-voyage?ref=${data.dossier?.reference}&email=${encodeURIComponent(email)}`}
+                    to={`${localizedPath('/infos-voyage')}?ref=${data.dossier?.reference}&email=${encodeURIComponent(email)}`}
                     className="card p-6 text-center cursor-pointer hover:shadow-lg transition-all bg-emerald-50 border-emerald-200 hover:border-emerald-400"
                   >
                     <div className="text-3xl mb-2">✅</div>
-                    <h4 className="font-semibold text-emerald-700 text-sm">Infos voyage</h4>
-                    <p className="text-xs text-emerald-600">Validées</p>
+                    <h4 className="font-semibold text-emerald-700 text-sm">{t('mesDevis.actions.tripInfo')}</h4>
+                    <p className="text-xs text-emerald-600">{t('mesDevis.actions.validated')}</p>
                   </Link>
                 )
               } else if (hasVoyageInfo) {
                 // Infos complétées mais pas validées
                 return (
                   <Link
-                    to={`/infos-voyage?ref=${data.dossier?.reference}&email=${encodeURIComponent(email)}`}
+                    to={`${localizedPath('/infos-voyage')}?ref=${data.dossier?.reference}&email=${encodeURIComponent(email)}`}
                     className="card p-6 text-center cursor-pointer hover:shadow-lg hover:border-orange-400 transition-all bg-orange-50 border-orange-200"
                   >
                     <div className="text-3xl mb-2">⏳</div>
-                    <h4 className="font-semibold text-orange-700 text-sm">Infos voyage</h4>
-                    <p className="text-xs text-orange-600">En attente de validation</p>
+                    <h4 className="font-semibold text-orange-700 text-sm">{t('mesDevis.actions.tripInfo')}</h4>
+                    <p className="text-xs text-orange-600">{t('mesDevis.actions.pendingValidation')}</p>
                   </Link>
                 )
               } else {
                 // Infos pas encore complétées
                 return (
                   <Link
-                    to={`/infos-voyage?ref=${data.dossier?.reference}&email=${encodeURIComponent(email)}`}
+                    to={`${localizedPath('/infos-voyage')}?ref=${data.dossier?.reference}&email=${encodeURIComponent(email)}`}
                     className="card p-6 text-center cursor-pointer hover:shadow-lg hover:border-magenta transition-all"
                   >
                     <div className="text-3xl mb-2">📝</div>
-                    <h4 className="font-semibold text-purple-dark text-sm">Infos voyage</h4>
-                    <p className="text-xs text-gray-500">À compléter</p>
+                    <h4 className="font-semibold text-purple-dark text-sm">{t('mesDevis.actions.tripInfo')}</h4>
+                    <p className="text-xs text-gray-500">{t('mesDevis.actions.toComplete')}</p>
                   </Link>
                 )
               }
@@ -1405,8 +1428,8 @@ export function MesDevisPage() {
               className="card p-6 text-center cursor-pointer hover:shadow-lg hover:border-magenta transition-all"
             >
               <div className="text-3xl mb-2">💬</div>
-              <h4 className="font-semibold text-purple-dark text-sm">Contacter</h4>
-              <p className="text-xs text-gray-500">Discuter</p>
+              <h4 className="font-semibold text-purple-dark text-sm">{t('mesDevis.actions.contact')}</h4>
+              <p className="text-xs text-gray-500">{t('mesDevis.actions.chat')}</p>
             </button>
           </div>
         )}
@@ -1416,7 +1439,7 @@ export function MesDevisPage() {
           <div className="card p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 mb-6">
             <h4 className="font-semibold text-blue-800 mb-4 flex items-center gap-2 text-lg">
               <FileText size={20} className="text-blue-600" />
-              Mes factures
+              {t('mesDevis.invoices.title')}
             </h4>
             <div className="space-y-3">
               {data.dossier.factures.map((facture: any) => (
@@ -1431,7 +1454,7 @@ export function MesDevisPage() {
                       facture.type === 'solde' && "bg-blue-100 text-blue-700",
                       facture.type === 'avoir' && "bg-red-100 text-red-700"
                     )}>
-                      {facture.type === 'acompte' ? 'Acompte' : facture.type === 'solde' ? 'Solde' : 'Avoir'}
+                      {facture.type === 'acompte' ? t('mesDevis.invoices.deposit') : facture.type === 'solde' ? t('mesDevis.invoices.balance') : t('mesDevis.invoices.credit')}
                     </span>
                     <span className={cn(
                       "ml-2 text-xs px-2 py-0.5 rounded-full",
@@ -1440,9 +1463,9 @@ export function MesDevisPage() {
                       facture.type === 'avoir' && facture.status !== 'cancelled' && "bg-gray-100 text-gray-600",
                       (facture.status === 'pending' || facture.status === 'generated') && facture.type !== 'avoir' && "bg-orange-100 text-orange-700"
                     )}>
-                      {facture.status === 'paid' ? '✓ Payée' :
-                       facture.status === 'cancelled' ? 'Annulée' :
-                       facture.type === 'avoir' ? 'Émis' : 'En attente'}
+                      {facture.status === 'paid' ? t('mesDevis.invoices.paid') :
+                       facture.status === 'cancelled' ? t('mesDevis.invoices.cancelled') :
+                       facture.type === 'avoir' ? t('mesDevis.invoices.issued') : t('mesDevis.invoices.pending')}
                     </span>
                     <p className="text-xs text-gray-500 mt-1">
                       {formatDate(facture.created_at)}
@@ -1460,6 +1483,7 @@ export function MesDevisPage() {
                         const devisAccepte = data.devis.find(d => d.status === 'accepted')
                         generateFacturePDF({
                           ...facture,
+                          country_code: data.dossier?.country_code || 'FR',
                           dossier: data.dossier ? {
                             reference: data.dossier.reference,
                             departure: data.dossier.departure,
@@ -1470,7 +1494,7 @@ export function MesDevisPage() {
                             client_email: data.dossier.client_email,
                             total_ttc: data.dossier.price_ttc || devisAccepte?.price_ttc || null,
                           } : null
-                        })
+                        }, (data.dossier?.country_code || 'FR').toLowerCase())
                       }}
                       className="btn btn-sm bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1"
                     >
@@ -1498,24 +1522,24 @@ export function MesDevisPage() {
                 <div className="bg-white/70 rounded-xl p-4 border border-purple-100">
                   <div className="flex items-center gap-2 mb-3 text-purple-700 font-semibold">
                     <Truck size={18} />
-                    <span>ALLER</span>
+                    <span>{t('mesDevis.roadmap.outbound')}</span>
                     <span className="text-sm font-normal text-gray-500 ml-auto">
                       {voyageInfo.aller_date ? formatDate(voyageInfo.aller_date) : formatDate(data.dossier?.departure_date)}
                     </span>
                   </div>
                   <div className="space-y-2 text-sm">
                     <p className="flex items-center gap-2">
-                      <span className="text-gray-500 w-24">Chauffeur :</span>
+                      <span className="text-gray-500 w-24">{t('mesDevis.roadmap.driver')}</span>
                       <span className="font-semibold text-purple-dark">{voyageInfo.chauffeur_aller_nom}</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <span className="text-gray-500 w-24">Téléphone :</span>
+                      <span className="text-gray-500 w-24">{t('mesDevis.roadmap.phone')}</span>
                       <a href={`tel:${voyageInfo.chauffeur_aller_tel}`} className="font-semibold text-magenta hover:underline">
                         {voyageInfo.chauffeur_aller_tel}
                       </a>
                     </p>
                     <p className="flex items-center gap-2">
-                      <span className="text-gray-500 w-24">Véhicule :</span>
+                      <span className="text-gray-500 w-24">{t('mesDevis.roadmap.vehicle')}</span>
                       <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">{voyageInfo.chauffeur_aller_immatriculation}</span>
                     </p>
                   </div>
@@ -1527,24 +1551,24 @@ export function MesDevisPage() {
                 <div className="bg-white/70 rounded-xl p-4 border border-magenta/20">
                   <div className="flex items-center gap-2 mb-3 text-magenta font-semibold">
                     <Truck size={18} />
-                    <span>RETOUR</span>
+                    <span>{t('mesDevis.roadmap.return')}</span>
                     <span className="text-sm font-normal text-gray-500 ml-auto">
                       {voyageInfo.retour_date ? formatDate(voyageInfo.retour_date) : formatDate(data.dossier?.return_date)}
                     </span>
                   </div>
                   <div className="space-y-2 text-sm">
                     <p className="flex items-center gap-2">
-                      <span className="text-gray-500 w-24">Chauffeur :</span>
+                      <span className="text-gray-500 w-24">{t('mesDevis.roadmap.driver')}</span>
                       <span className="font-semibold text-purple-dark">{voyageInfo.chauffeur_retour_nom}</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <span className="text-gray-500 w-24">Téléphone :</span>
+                      <span className="text-gray-500 w-24">{t('mesDevis.roadmap.phone')}</span>
                       <a href={`tel:${voyageInfo.chauffeur_retour_tel}`} className="font-semibold text-magenta hover:underline">
                         {voyageInfo.chauffeur_retour_tel}
                       </a>
                     </p>
                     <p className="flex items-center gap-2">
-                      <span className="text-gray-500 w-24">Véhicule :</span>
+                      <span className="text-gray-500 w-24">{t('mesDevis.roadmap.vehicle')}</span>
                       <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">{voyageInfo.chauffeur_retour_immatriculation}</span>
                     </p>
                   </div>
@@ -1580,13 +1604,13 @@ export function MesDevisPage() {
                       chauffeur_retour_immatriculation: voyageInfo.chauffeur_retour_immatriculation,
                       contact_nom: voyageInfo.contact_nom,
                       contact_tel: voyageInfo.contact_tel,
-                    })
+                    }, (data.dossier.country_code || 'FR').toLowerCase())
                   }
                 }}
                 className="btn bg-purple-600 text-white hover:bg-purple-700 flex items-center gap-2"
               >
                 <Download size={16} />
-                Télécharger la feuille de route PDF
+                {t('mesDevis.roadmap.downloadPdf')}
               </button>
             </div>
           </div>
@@ -1597,10 +1621,10 @@ export function MesDevisPage() {
           <div className="card p-6 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 mb-6">
             <h4 className="font-semibold text-amber-800 mb-2 flex items-center gap-2">
               <Clock size={18} className="text-amber-600" />
-              Feuille de route en préparation
+              {t('mesDevis.roadmap.preparing')}
             </h4>
             <p className="text-gray-600 text-sm">
-              Les informations du chauffeur vous seront communiquées prochainement. Vous recevrez un email dès que la feuille de route sera disponible.
+              {t('mesDevis.roadmap.preparingText')}
             </p>
           </div>
         )}
@@ -1646,17 +1670,17 @@ export function MesDevisPage() {
               <div className="card p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200">
                 <h4 className="font-semibold text-green-800 mb-4 flex items-center gap-2 text-lg">
                   <Check size={20} className="text-green-600" />
-                  Récapitulatif des paiements
+                  {t('mesDevis.payment.summary')}
                 </h4>
                 <div className="space-y-3">
                   {paiements.map((p) => (
                     <div key={p.id} className="flex justify-between items-center bg-white/50 rounded-lg p-3">
                       <div>
                         <span className="font-medium text-gray-700">
-                          {p.type === 'virement' ? 'Virement bancaire' : p.type === 'cb' ? 'Carte bancaire' : p.type === 'especes' ? 'Espèces' : p.type === 'cheque' ? 'Chèque' : p.type}
+                          {p.type === 'virement' ? t('mesDevis.payment.bankTransfer') : p.type === 'cb' ? t('mesDevis.payment.creditCard') : p.type === 'especes' ? t('mesDevis.payment.cash') : p.type === 'cheque' ? t('mesDevis.payment.check') : p.type}
                         </span>
                         <span className="text-sm text-gray-500 ml-2">
-                          le {new Date(p.payment_date).toLocaleDateString('fr-FR')}
+                          {t('mesDevis.payment.on')} {new Date(p.payment_date).toLocaleDateString(dateLocale)}
                         </span>
                       </div>
                       <span className="font-bold text-green-700 text-lg">
@@ -1669,13 +1693,13 @@ export function MesDevisPage() {
                   {data?.dossier?.price_ttc && (
                     <div className="border-t border-green-200 pt-3 mt-3 space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Total payé</span>
+                        <span className="text-gray-600">{t('mesDevis.payment.totalPaid')}</span>
                         <span className="font-semibold text-green-700">
                           {formatPrice(totalPaye)}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Montant total TTC</span>
+                        <span className="text-gray-600">{t('mesDevis.payment.totalTTC')}</span>
                         <span className="font-semibold text-gray-700">
                           {formatPrice(data.dossier.price_ttc)}
                         </span>
@@ -1683,16 +1707,16 @@ export function MesDevisPage() {
                       <div className="flex justify-between items-center pt-2 border-t border-green-100">
                         <div>
                           <span className={isSoldePaid ? "text-green-700 font-medium" : "text-purple-dark font-medium"}>
-                            {isSoldePaid ? 'Solde réglé' : 'Reste à payer'}
+                            {isSoldePaid ? t('mesDevis.payment.balancePaid') : t('mesDevis.payment.remaining')}
                           </span>
                           {!isSoldePaid && soldeDueDate && (
                             <p className="text-xs text-gray-500 mt-0.5">
-                              À régler avant le {soldeDueDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              {t('mesDevis.payment.dueBy')} {soldeDueDate.toLocaleDateString(dateLocale, { day: 'numeric', month: 'long', year: 'numeric' })}
                             </p>
                           )}
                         </div>
                         <span className={`font-bold text-xl ${isSoldePaid ? 'text-green-700' : 'text-purple-dark'}`}>
-                          {isSoldePaid ? '✓ Payé' : formatPrice(soldeRestant)}
+                          {isSoldePaid ? '✓' : formatPrice(soldeRestant)}
                         </span>
                       </div>
                     </div>
@@ -1706,10 +1730,10 @@ export function MesDevisPage() {
               <div className="card p-6 bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-200">
                 <h4 className="font-semibold text-cyan-800 mb-2 flex items-center gap-2">
                   <Info size={18} />
-                  Prochaine étape : Confirmation fournisseur
+                  {t('mesDevis.payment.nextStep')}
                 </h4>
                 <p className="text-gray-600">
-                  Nous attendons la confirmation de notre partenaire transporteur. Vous serez notifié dès réception.
+                  {t('mesDevis.payment.waitingConfirmation')}
                 </p>
               </div>
             )}
@@ -1725,15 +1749,15 @@ export function MesDevisPage() {
                 <div className="card p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200">
                   <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
                     <CheckCircle2 size={18} />
-                    Réservation confirmée
+                    {t('mesDevis.payment.reservationConfirmed')}
                     {isPaymentPending && (
-                      <span className="text-orange-600 text-sm font-normal ml-2">— En attente de votre règlement</span>
+                      <span className="text-orange-600 text-sm font-normal ml-2">— {t('mesDevis.payment.waitingPayment')}</span>
                     )}
                   </h4>
                   <p className="text-gray-600">
-                    Votre transporteur a confirmé la réservation. {isPaymentPending
-                      ? "Merci d'effectuer votre virement pour finaliser la réservation."
-                      : "Nous vous contacterons prochainement pour les détails du voyage."}
+                    {t('mesDevis.payment.confirmedText')} {isPaymentPending
+                      ? t('mesDevis.payment.makeTransfer')
+                      : t('mesDevis.payment.willContact')}
                   </p>
                 </div>
               )
@@ -1765,19 +1789,19 @@ export function MesDevisPage() {
                   {/* Badge Best-seller ou Confirmé */}
                   {index === 0 && !isConfirmed && !isPending && !hasSignedContract && (
                     <div className="bg-gradient-to-r from-magenta to-purple text-white text-center py-2 text-sm font-semibold">
-                      Meilleur rapport qualité-prix
+                      {t('mesDevis.quote.bestValue')}
                     </div>
                   )}
                   {isConfirmed && (
                     <div className="bg-emerald-500 text-white text-center py-2 text-sm font-semibold flex items-center justify-center gap-2">
                       <Check size={16} />
-                      Fournisseur confirmé pour votre voyage
+                      {t('mesDevis.quote.confirmedSupplier')}
                     </div>
                   )}
                   {isPending && (
                     <div className="bg-orange-400 text-white text-center py-2 text-sm font-semibold flex items-center justify-center gap-2">
                       <Clock size={16} />
-                      {(data?.dossier as any)?.payment_method === 'virement' ? 'En attente de votre virement' : 'En attente de paiement'}
+                      {(data?.dossier as any)?.payment_method === 'virement' ? t('mesDevis.quote.waitingTransfer') : t('mesDevis.quote.waitingPaymentBadge')}
                     </div>
                   )}
 
@@ -1791,7 +1815,7 @@ export function MesDevisPage() {
                           </div>
                           <div>
                             <h3 className="font-display font-bold text-lg text-purple-dark">
-                              {devis.transporteur?.number || `Fournisseur n°${supplierNum}`}
+                              {devis.transporteur?.number || `${t('mesDevis.quote.supplier')}${supplierNum}`}
                             </h3>
                             <div className="flex items-center justify-center lg:justify-start gap-1 text-sm">
                               <span className="text-yellow-500">{'★'.repeat(Math.floor(devis.transporteur?.rating || 4.5))}</span>
@@ -1808,7 +1832,7 @@ export function MesDevisPage() {
                           <div className="bg-gray-50 rounded-xl p-4">
                             <div className="flex items-center gap-2 mb-1">
                               <Bus size={16} className="text-purple" />
-                              <span className="text-xs text-gray-500 uppercase tracking-wide">Véhicule</span>
+                              <span className="text-xs text-gray-500 uppercase tracking-wide">{t('mesDevis.quote.vehicleLabel')}</span>
                             </div>
                             <div className="font-semibold text-purple-dark">
                               {getVehicleTypeLabel(devis.vehicle_type)}
@@ -1819,10 +1843,10 @@ export function MesDevisPage() {
                           <div className="bg-gray-50 rounded-xl p-4">
                             <div className="flex items-center gap-2 mb-1">
                               <Users size={16} className="text-purple" />
-                              <span className="text-xs text-gray-500 uppercase tracking-wide">Capacité</span>
+                              <span className="text-xs text-gray-500 uppercase tracking-wide">{t('mesDevis.quote.capacityLabel')}</span>
                             </div>
                             <div className="font-semibold text-purple-dark">
-                              {passengers} passagers
+                              {passengers} {t('mesDevis.quote.passengersUnit')}
                             </div>
                           </div>
 
@@ -1830,10 +1854,10 @@ export function MesDevisPage() {
                           <div className="bg-gray-50 rounded-xl p-4">
                             <div className="flex items-center gap-2 mb-1">
                               <Truck size={16} className="text-purple" />
-                              <span className="text-xs text-gray-500 uppercase tracking-wide">Nb de cars</span>
+                              <span className="text-xs text-gray-500 uppercase tracking-wide">{t('mesDevis.quote.nbCars')}</span>
                             </div>
                             <div className="font-semibold text-purple-dark">
-                              {devis.nombre_cars || 1} véhicule{(devis.nombre_cars || 1) > 1 ? 's' : ''}
+                              {devis.nombre_cars || 1} {(devis.nombre_cars || 1) > 1 ? t('mesDevis.quote.vehiclesUnit') : t('mesDevis.quote.vehicleUnit')}
                             </div>
                           </div>
 
@@ -1841,10 +1865,10 @@ export function MesDevisPage() {
                           <div className="bg-gray-50 rounded-xl p-4">
                             <div className="flex items-center gap-2 mb-1">
                               <Users size={16} className="text-purple" />
-                              <span className="text-xs text-gray-500 uppercase tracking-wide">Chauffeurs</span>
+                              <span className="text-xs text-gray-500 uppercase tracking-wide">{t('mesDevis.quote.driversLabel')}</span>
                             </div>
                             <div className="font-semibold text-purple-dark">
-                              {devis.nombre_chauffeurs || 1} chauffeur{(devis.nombre_chauffeurs || 1) > 1 ? 's' : ''}
+                              {devis.nombre_chauffeurs || 1} {(devis.nombre_chauffeurs || 1) > 1 ? t('mesDevis.quote.driversUnit') : t('mesDevis.quote.driverUnit')}
                             </div>
                           </div>
                         </div>
@@ -1853,7 +1877,7 @@ export function MesDevisPage() {
                         {(devis.nombre_cars || 1) > 1 && (
                           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-blue-700">Prix par car TTC :</span>
+                              <span className="text-sm text-blue-700">{t('mesDevis.quote.pricePerCar')}</span>
                               <span className="font-bold text-blue-800">{formatPrice(devis.price_ttc / (devis.nombre_cars || 1))}</span>
                             </div>
                           </div>
@@ -1861,56 +1885,56 @@ export function MesDevisPage() {
 
                         {/* Ce qui est inclus / non inclus */}
                         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
-                          <div className="text-sm font-semibold text-emerald-800 mb-2">✓ Inclus dans ce devis :</div>
+                          <div className="text-sm font-semibold text-emerald-800 mb-2">{t('mesDevis.quote.included')}</div>
                           <div className="grid grid-cols-2 gap-2 text-sm text-emerald-700">
                             <div className="flex items-center gap-1">
                               <Check size={14} className="text-emerald-500" />
-                              Chauffeur professionnel
+                              {t('mesDevis.quote.professionalDriver')}
                             </div>
                             <div className="flex items-center gap-1">
                               <Check size={14} className="text-emerald-500" />
-                              Carburant inclus
+                              {t('mesDevis.quote.fuelIncluded')}
                             </div>
                             <div className="flex items-center gap-1">
                               <Check size={14} className="text-emerald-500" />
-                              Assurance RC
+                              {t('mesDevis.quote.insuranceRC')}
                             </div>
                             {/* Péages - inclus par défaut si pas d'info ou status inclus */}
                             {(devis.options_details as any)?.peages?.status === 'non_inclus' ? (
                               <div className="flex items-center gap-1 text-amber-600">
                                 <X size={14} className="text-amber-500" />
-                                Péages non inclus
+                                {t('mesDevis.quote.tollsNotIncluded')}
                               </div>
                             ) : (devis.options_details as any)?.peages?.status !== 'cache' && (
                               <div className="flex items-center gap-1">
                                 <Check size={14} className="text-emerald-500" />
-                                Péages inclus
+                                {t('mesDevis.quote.tollsIncluded')}
                               </div>
                             )}
                             {/* Repas chauffeur - inclus par défaut si pas d'info ou status inclus */}
                             {(devis.options_details as any)?.repas_chauffeur?.status === 'non_inclus' ? (
                               <div className="flex items-center gap-1 text-amber-600">
                                 <X size={14} className="text-amber-500" />
-                                Repas non inclus
+                                {t('mesDevis.quote.mealsNotIncluded')}
                               </div>
                             ) : (devis.options_details as any)?.repas_chauffeur?.status !== 'cache' && (
                               <div className="flex items-center gap-1">
                                 <Check size={14} className="text-emerald-500" />
-                                Repas chauffeur
+                                {t('mesDevis.quote.mealsIncluded')}
                               </div>
                             )}
                             {/* Parking - non inclus par défaut, n'afficher que si explicitement inclus */}
                             {(devis.options_details as any)?.parking?.status === 'inclus' && (
                               <div className="flex items-center gap-1">
                                 <Check size={14} className="text-emerald-500" />
-                                Parking inclus
+                                {t('mesDevis.quote.parkingIncluded')}
                               </div>
                             )}
                             {/* Hébergement - non inclus par défaut, n'afficher que si explicitement inclus */}
                             {(devis.options_details as any)?.hebergement?.status === 'inclus' && (
                               <div className="flex items-center gap-1">
                                 <Check size={14} className="text-emerald-500" />
-                                Hébergement chauffeur
+                                {t('mesDevis.quote.accommodationIncluded')}
                               </div>
                             )}
                           </div>
@@ -1919,7 +1943,7 @@ export function MesDevisPage() {
                         {/* Options et notes visibles pour le client */}
                         {devis.options && (
                           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-                            <div className="text-sm font-semibold text-blue-800 mb-1">Options supplémentaires :</div>
+                            <div className="text-sm font-semibold text-blue-800 mb-1">{t('mesDevis.quote.additionalOptions')}</div>
                             <p className="text-sm text-blue-700">{devis.options}</p>
                           </div>
                         )}
@@ -1927,7 +1951,7 @@ export function MesDevisPage() {
                         {/* Notes visibles client (filtrer les notes internes) */}
                         {devis.client_notes && (
                           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                            <div className="text-sm font-semibold text-amber-800 mb-1">Note importante :</div>
+                            <div className="text-sm font-semibold text-amber-800 mb-1">{t('mesDevis.quote.importantNote')}</div>
                             <p className="text-sm text-amber-700">{devis.client_notes}</p>
                           </div>
                         )}
@@ -1940,7 +1964,7 @@ export function MesDevisPage() {
                           <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white text-center py-2 px-3 rounded-t-2xl -mb-2">
                             <div className="flex items-center justify-center gap-2 text-sm font-bold">
                               <Zap size={16} className="animate-pulse" />
-                              OFFRE FLASH
+                              {t('mesDevis.quote.flashOffer')}
                             </div>
                             <div className="mt-1">
                               <CountdownTimer expiresAt={(devis as any).promo_expires_at} />
@@ -1984,7 +2008,7 @@ export function MesDevisPage() {
                                     </div>
                                     <div className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full mt-1">
                                       <Zap size={12} />
-                                      -{formatPrice(promoOriginalPrice - devis.price_ttc)} de réduction
+                                      -{formatPrice(promoOriginalPrice - devis.price_ttc)} {t('mesDevis.quote.reduction')}
                                     </div>
                                   </>
                                 ) : isPromoExpired ? (
@@ -1993,7 +2017,7 @@ export function MesDevisPage() {
                                       {formatPrice(promoOriginalPrice)} <span className="text-lg text-gray-600 font-medium">TTC</span>
                                     </div>
                                     <div className="text-xs text-gray-400 mt-1">
-                                      (Offre flash expirée)
+                                      ({t('mesDevis.quote.offerExpired')})
                                     </div>
                                   </>
                                 ) : (
@@ -2006,7 +2030,7 @@ export function MesDevisPage() {
 
                               {/* Prix par personne */}
                               <div className="bg-white/80 rounded-xl p-3 mb-4">
-                                <div className="text-xs text-gray-500 uppercase tracking-wide">Soit par personne</div>
+                                <div className="text-xs text-gray-500 uppercase tracking-wide">{t('mesDevis.quote.perPerson')}</div>
                                 <div className="font-display text-xl font-bold text-magenta">
                                   {formatPrice(displayPricePerPerson)}
                                 </div>
@@ -2016,13 +2040,13 @@ export function MesDevisPage() {
                               <div className="text-left space-y-2 mb-4 text-sm">
                                 <div className="flex justify-between items-center">
                                   <span className="text-gray-600">
-                                    {effectiveAcomptePercent === 100 ? 'Paiement total' : `Acompte (${effectiveAcomptePercent}%)`}
+                                    {effectiveAcomptePercent === 100 ? t('mesDevis.quote.totalPayment') : `${t('mesDevis.quote.deposit')} (${effectiveAcomptePercent}%)`}
                                   </span>
                                   <span className="font-semibold text-purple-dark">{formatPrice(displayAcompte)}</span>
                                 </div>
                                 {effectiveAcomptePercent < 100 && (
                                   <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Solde avant départ</span>
+                                    <span className="text-gray-600">{t('mesDevis.quote.balanceBefore')}</span>
                                     <span className="font-semibold text-purple-dark">{formatPrice(displayPrice - displayAcompte)}</span>
                                   </div>
                                 )}
@@ -2032,20 +2056,20 @@ export function MesDevisPage() {
                               <div className="text-xs text-gray-500 mb-4 flex items-center justify-center gap-1">
                                 <Clock size={12} />
                                 {isPromoActive
-                                  ? "Offre limitée !"
-                                  : `Valable ${devis.validity_days} jours`}
+                                  ? t('mesDevis.quote.limitedOffer')
+                                  : `${t('mesDevis.quote.validFor')} ${devis.validity_days} ${t('mesDevis.quote.days')}`}
                               </div>
 
                               {/* Bouton action */}
                               {isConfirmed ? (
                                 <button className="btn btn-success w-full" disabled>
                                   <Check size={18} />
-                                  Confirmé
+                                  {t('mesDevis.quote.confirmed')}
                                 </button>
                               ) : isPending ? (
                                 <button className="btn btn-warning w-full" disabled>
                                   <Clock size={18} />
-                                  En attente
+                                  {t('mesDevis.quote.waiting')}
                                 </button>
                               ) : (
                                 <button
@@ -2053,7 +2077,7 @@ export function MesDevisPage() {
                                   className="btn btn-primary w-full text-base py-3"
                                   disabled={!!acceptedDevis || !!clientValidatedDevis}
                                 >
-                                  Choisir ce devis
+                                  {t('mesDevis.quote.chooseQuote')}
                                 </button>
                               )}
                             </div>
@@ -2067,7 +2091,7 @@ export function MesDevisPage() {
                             onClick={() => setSelectedDevis({ devis, supplierNum })}
                           >
                             <Info size={14} />
-                            Voir le détail
+                            {t('mesDevis.quote.seeDetails')}
                           </button>
                           <button
                             className="flex-1 btn btn-secondary btn-sm flex items-center justify-center gap-1"
@@ -2082,7 +2106,7 @@ export function MesDevisPage() {
                                     return_time: data.dossier.return_time || undefined,
                                   },
                                   commentaires: devis.client_notes || devis.options || undefined,
-                                })
+                                }, (data.dossier.country_code || 'FR').toLowerCase())
                               }
                             }}
                           >
@@ -2097,7 +2121,7 @@ export function MesDevisPage() {
                           className="w-full btn btn-secondary btn-sm mt-2 flex items-center justify-center gap-2"
                         >
                           <MessageCircle size={16} />
-                          Chatter avec ce transporteur
+                          {t('mesDevis.quote.chatWithSupplier')}
                         </button>
                       </div>
                     </div>
@@ -2111,14 +2135,14 @@ export function MesDevisPage() {
 
         {/* Contact Box */}
         <div className="gradient-bg rounded-2xl p-8 text-center text-white">
-          <h3 className="font-display text-xl font-semibold mb-2">Une question ?</h3>
-          <p className="text-white/80 mb-4">Notre équipe est là pour vous</p>
+          <h3 className="font-display text-xl font-semibold mb-2">{t('mesDevis.contactBox.title')}</h3>
+          <p className="text-white/80 mb-4">{t('mesDevis.contactBox.subtitle')}</p>
           <a
-            href="tel:+33176311283"
+            href={`tel:${country?.phone || '+33176311283'}`}
             className="inline-flex items-center gap-2 text-white font-semibold text-lg hover:opacity-80"
           >
             <Phone size={20} />
-            01 76 31 12 83
+            {country?.phoneDisplay || '01 76 31 12 83'}
           </a>
         </div>
       </div>
@@ -2140,6 +2164,7 @@ export function MesDevisPage() {
             <ChatWidget
               dossierId={data.dossier!.id}
               isClient={true}
+              countryCode={data.dossier?.country_code}
               suppliers={[validatedSupplier]}
               externalOpen={chatOpen}
               onOpenChange={(open) => {
@@ -2157,6 +2182,7 @@ export function MesDevisPage() {
           <ChatWidget
             dossierId={data.dossier!.id}
             isClient={true}
+            countryCode={data.dossier?.country_code}
             suppliers={data.devis.map((d, index) => ({
               devisId: d.id,
               supplierNum: index + 1,
@@ -2175,13 +2201,13 @@ export function MesDevisPage() {
       <Modal
         isOpen={!!selectedDevis}
         onClose={() => setSelectedDevis(null)}
-        title={selectedDevis?.devis?.transporteur?.number || `Fournisseur n°${selectedDevis?.supplierNum}`}
+        title={selectedDevis?.devis?.transporteur?.number || `${t('mesDevis.quote.supplier')}${selectedDevis?.supplierNum}`}
         size="lg"
         footer={
           selectedDevis && selectedDevis.devis.status !== 'accepted' && selectedDevis.devis.status !== 'client_validated' && !acceptedDevis && !clientValidatedDevis ? (
             <>
               <button className="btn btn-secondary" onClick={() => setSelectedDevis(null)}>
-                Fermer
+                {t('mesDevis.modal.close')}
               </button>
               <button
                 className="btn btn-primary"
@@ -2191,12 +2217,12 @@ export function MesDevisPage() {
                 }}
               >
                 <Check size={18} />
-                Choisir ce fournisseur
+                {t('mesDevis.modal.chooseSupplier')}
               </button>
             </>
           ) : (
             <button className="btn btn-secondary" onClick={() => setSelectedDevis(null)}>
-              Fermer
+              {t('mesDevis.modal.close')}
             </button>
           )
         }
@@ -2208,8 +2234,8 @@ export function MesDevisPage() {
               <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
                 <Check size={24} className="text-emerald-500" />
                 <div>
-                  <h3 className="font-semibold text-emerald-800">Fournisseur confirmé</h3>
-                  <p className="text-sm text-emerald-600">Ce transporteur a été validé pour votre voyage</p>
+                  <h3 className="font-semibold text-emerald-800">{t('mesDevis.modal.supplierConfirmed')}</h3>
+                  <p className="text-sm text-emerald-600">{t('mesDevis.modal.confirmedForTrip')}</p>
                 </div>
               </div>
             )}
@@ -2217,8 +2243,8 @@ export function MesDevisPage() {
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-center gap-3">
                 <Clock size={24} className="text-orange-500" />
                 <div>
-                  <h3 className="font-semibold text-orange-800">En attente de confirmation</h3>
-                  <p className="text-sm text-orange-600">Notre équipe vérifie la disponibilité</p>
+                  <h3 className="font-semibold text-orange-800">{t('mesDevis.modal.waitingConfirmation')}</h3>
+                  <p className="text-sm text-orange-600">{t('mesDevis.modal.verifyingAvailability')}</p>
                 </div>
               </div>
             )}
@@ -2239,19 +2265,19 @@ export function MesDevisPage() {
             <div className="bg-gray-50 rounded-xl p-6">
               <h4 className="font-semibold text-purple-dark mb-4 flex items-center gap-2">
                 <Euro size={18} />
-                Détails de la tarification
+                {t('mesDevis.modal.pricingDetails')}
               </h4>
               <div className="space-y-3">
                 <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">Prix HT</span>
+                  <span className="text-gray-600">{t('mesDevis.modal.priceHT')}</span>
                   <span className="font-semibold text-purple-dark">{formatPrice(selectedDevis.devis.price_ht)}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">TVA (10%)</span>
+                  <span className="text-gray-600">{t('mesDevis.modal.vat')} (10%)</span>
                   <span className="font-medium">{formatPrice(selectedDevis.devis.price_ttc - selectedDevis.devis.price_ht)}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">Prix TTC</span>
+                  <span className="text-gray-600">{t('mesDevis.modal.priceTTC')}</span>
                   <span className="font-bold text-purple-dark">{formatPrice(selectedDevis.devis.price_ttc)}</span>
                 </div>
                 {(() => {
@@ -2261,7 +2287,7 @@ export function MesDevisPage() {
                       <div className="flex justify-between py-2 bg-magenta/10 rounded-lg px-3 -mx-3">
                         <span className="text-magenta font-medium flex items-center gap-2">
                           <Users size={16} />
-                          Prix par personne
+                          {t('mesDevis.modal.pricePerPerson')}
                         </span>
                         <span className="font-bold text-magenta">
                           {formatPrice(Math.round(selectedDevis.devis.price_ttc / Number(passengers)))}
@@ -2278,7 +2304,7 @@ export function MesDevisPage() {
             <div className="bg-gray-50 rounded-xl p-6">
               <h4 className="font-semibold text-purple-dark mb-4 flex items-center gap-2">
                 <Bus size={18} />
-                Véhicule proposé
+                {t('mesDevis.modal.proposedVehicle')}
               </h4>
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-magenta/20 to-purple/20 rounded-xl flex items-center justify-center">
@@ -2289,7 +2315,7 @@ export function MesDevisPage() {
                     {getVehicleTypeLabel(selectedDevis.devis.vehicle_type)}
                   </div>
                   <div className="text-sm text-gray-500">
-                    Capacité adaptée à votre groupe
+                    {t('mesDevis.modal.adaptedCapacity')}
                   </div>
                 </div>
               </div>
@@ -2300,7 +2326,7 @@ export function MesDevisPage() {
               <div className="bg-gray-50 rounded-xl p-6">
                 <h4 className="font-semibold text-purple-dark mb-4 flex items-center gap-2">
                   <Info size={18} />
-                  Options incluses
+                  {t('mesDevis.modal.includedOptions')}
                 </h4>
                 <p className="text-gray-700">{selectedDevis.devis.options}</p>
               </div>
@@ -2311,7 +2337,7 @@ export function MesDevisPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
                 <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
                   <MessageCircle size={18} />
-                  Informations complémentaires
+                  {t('mesDevis.modal.additionalInfo')}
                 </h4>
                 <p className="text-blue-700 text-sm">{selectedDevis.devis.client_notes}</p>
               </div>
@@ -2320,7 +2346,7 @@ export function MesDevisPage() {
             {/* Validité */}
             <div className="text-center text-sm text-gray-500">
               <Clock size={14} className="inline mr-1" />
-              Ce devis est valable {selectedDevis.devis.validity_days} jours
+              {t('mesDevis.modal.quoteValidity')} {selectedDevis.devis.validity_days} {t('mesDevis.quote.days')}
             </div>
 
             {/* Télécharger le PDF */}
@@ -2336,13 +2362,13 @@ export function MesDevisPage() {
                       return_time: data.dossier.return_time || undefined,
                     },
                     commentaires: selectedDevis.devis.client_notes || selectedDevis.devis.options || undefined,
-                  })
+                  }, (data.dossier.country_code || 'FR').toLowerCase())
                 }
               }}
               className="w-full btn btn-secondary flex items-center justify-center gap-2"
             >
               <Download size={18} />
-              Télécharger le devis PDF
+              {t('mesDevis.modal.downloadPdf')}
             </button>
           </div>
         )}
@@ -2356,7 +2382,7 @@ export function MesDevisPage() {
           setSelectedDevis(null)
           setSelectedOptions({ peages: false, repas_chauffeur: false, parking: false, hebergement: false })
         }}
-        title="📄 Signature du contrat"
+        title={`📄 ${t('mesDevis.contract.title')}`}
         size="lg"
         footer={null}
       >
@@ -2402,27 +2428,27 @@ export function MesDevisPage() {
             <>
               {/* 1. SIGNATURE ÉLECTRONIQUE EN HAUT */}
               <div className="border-2 border-purple-200 bg-purple-50 rounded-xl p-6 mb-6">
-                <h3 className="text-center font-semibold text-purple-dark mb-4">Signature électronique</h3>
+                <h3 className="text-center font-semibold text-purple-dark mb-4">{t('mesDevis.contract.electronicSignature')}</h3>
 
                 {/* Identité du signataire */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="label text-sm">Prénom <span className="text-red-500">*</span></label>
+                    <label className="label text-sm">{t('mesDevis.contract.firstName')} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       className={cn('input', !signataire.firstName && 'border-red-300')}
-                      placeholder="Jean"
+                      placeholder={t('mesDevis.contract.firstNamePlaceholder')}
                       value={signataire.firstName}
                       onChange={(e) => setSignataire({ ...signataire, firstName: e.target.value })}
                       required
                     />
                   </div>
                   <div>
-                    <label className="label text-sm">Nom <span className="text-red-500">*</span></label>
+                    <label className="label text-sm">{t('mesDevis.contract.lastName')} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       className={cn('input', !signataire.lastName && 'border-red-300')}
-                      placeholder="Dupont"
+                      placeholder={t('mesDevis.contract.lastNamePlaceholder')}
                       value={signataire.lastName}
                       onChange={(e) => setSignataire({ ...signataire, lastName: e.target.value })}
                       required
@@ -2433,12 +2459,12 @@ export function MesDevisPage() {
                 {/* Info signature */}
                 <div className="bg-white rounded-lg p-3 text-xs text-gray-500">
                   <p className="flex justify-between mb-1">
-                    <span>Date de signature :</span>
-                    <span className="font-mono">{new Date().toLocaleString('fr-FR')}</span>
+                    <span>{t('mesDevis.contract.signatureDate')} :</span>
+                    <span className="font-mono">{new Date().toLocaleString(dateLocale)}</span>
                   </p>
                   <p className="flex justify-between">
-                    <span>Adresse IP :</span>
-                    <span className="font-mono">{clientIp || 'Récupération...'}</span>
+                    <span>{t('mesDevis.contract.ipAddress')} :</span>
+                    <span className="font-mono">{clientIp || t('mesDevis.contract.fetching')}</span>
                   </p>
                 </div>
               </div>
@@ -2446,50 +2472,125 @@ export function MesDevisPage() {
               {/* 2. ADRESSE DE FACTURATION */}
               <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
                 <h3 className="font-semibold text-purple-dark mb-4">
-                  Adresse de facturation <span className="text-red-500">*</span>
+                  {t('mesDevis.contract.billingAddress')} <span className="text-red-500">*</span>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <label className="label text-sm">Adresse <span className="text-red-500">*</span></label>
+                    <label className="label text-sm">{t('mesDevis.contract.address')} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       className={cn('input', !billingInfo.address && 'border-red-300')}
-                      placeholder="123 rue de la Paix"
+                      placeholder={t('mesDevis.contract.addressPlaceholder')}
                       value={billingInfo.address}
                       onChange={(e) => setBillingInfo({ ...billingInfo, address: e.target.value })}
                       required
                     />
                   </div>
                   <div>
-                    <label className="label text-sm">Code postal <span className="text-red-500">*</span></label>
+                    <label className="label text-sm">{t('mesDevis.contract.zipCode')} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       className={cn('input', !billingInfo.zip && 'border-red-300')}
-                      placeholder="75001"
+                      placeholder={t('mesDevis.contract.zipPlaceholder')}
                       value={billingInfo.zip}
                       onChange={(e) => setBillingInfo({ ...billingInfo, zip: e.target.value })}
                       required
                     />
                   </div>
                   <div>
-                    <label className="label text-sm">Ville <span className="text-red-500">*</span></label>
+                    <label className="label text-sm">{t('mesDevis.contract.city')} <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       className={cn('input', !billingInfo.city && 'border-red-300')}
-                      placeholder="Paris"
+                      placeholder={t('mesDevis.contract.cityPlaceholder')}
                       value={billingInfo.city}
                       onChange={(e) => setBillingInfo({ ...billingInfo, city: e.target.value })}
                       required
                     />
                   </div>
                   <div>
-                    <label className="label text-sm">Pays</label>
+                    <label className="label text-sm">{t('mesDevis.contract.country')}</label>
                     <input
                       type="text"
                       className="input"
                       value={billingInfo.country}
                       onChange={(e) => setBillingInfo({ ...billingInfo, country: e.target.value })}
                     />
+                  </div>
+                </div>
+
+                {/* Section Facturation électronique (optionnel) */}
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const section = document.getElementById('e-invoice-section')
+                      if (section) section.classList.toggle('hidden')
+                    }}
+                    className="text-sm text-purple hover:text-magenta flex items-center gap-2"
+                  >
+                    <FileText size={16} />
+                    {t('mesDevis.contract.eInvoiceSection', 'Facturation électronique (B2B / B2G)')}
+                    <ChevronDown size={16} />
+                  </button>
+                  <div id="e-invoice-section" className="hidden mt-3 space-y-3 bg-gray-50 rounded-lg p-4">
+                    <p className="text-xs text-gray-500 mb-3">
+                      {t('mesDevis.contract.eInvoiceHelp', 'Renseignez ces informations si vous êtes une entreprise ou une administration.')}
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="label text-sm">{t('mesDevis.contract.vatNumber', 'N° TVA (optionnel)')}</label>
+                        <input
+                          type="text"
+                          className="input"
+                          placeholder={data?.dossier?.country_code === 'FR' ? 'FR12 345678901' : data?.dossier?.country_code === 'ES' ? 'ESB12345678' : data?.dossier?.country_code === 'GB' ? 'GB123456789' : 'DE123456789'}
+                          value={billingInfo.vatNumber}
+                          onChange={(e) => setBillingInfo({ ...billingInfo, vatNumber: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className="label text-sm">{t('mesDevis.contract.orderReference', 'Réf. commande')}</label>
+                        <input
+                          type="text"
+                          className="input"
+                          placeholder={t('mesDevis.contract.orderReferencePlaceholder', 'BC-2024-XXX')}
+                          value={billingInfo.orderReference}
+                          onChange={(e) => setBillingInfo({ ...billingInfo, orderReference: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    {/* Leitweg-ID pour Allemagne */}
+                    {data?.dossier?.country_code === 'DE' && (
+                      <div>
+                        <label className="label text-sm">{t('mesDevis.contract.leitwegId', 'Leitweg-ID (facturation publique DE)')}</label>
+                        <input
+                          type="text"
+                          className="input"
+                          placeholder="04011000-1234567890-12"
+                          value={billingInfo.leitwegId}
+                          onChange={(e) => setBillingInfo({ ...billingInfo, leitwegId: e.target.value })}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">
+                          {t('mesDevis.contract.leitwegIdHelp', 'Requis pour la facturation aux administrations allemandes (XRechnung)')}
+                        </p>
+                      </div>
+                    )}
+                    {/* Code DIR3 pour Espagne */}
+                    {data?.dossier?.country_code === 'ES' && (
+                      <div>
+                        <label className="label text-sm">{t('mesDevis.contract.dir3Code', 'Code DIR3 (facturation publique ES)')}</label>
+                        <input
+                          type="text"
+                          className="input"
+                          placeholder="L01234567"
+                          value={billingInfo.dir3Code}
+                          onChange={(e) => setBillingInfo({ ...billingInfo, dir3Code: e.target.value })}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">
+                          {t('mesDevis.contract.dir3CodeHelp', 'Requis pour la facturation aux administrations espagnoles (FACe)')}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2500,8 +2601,8 @@ export function MesDevisPage() {
                 optionsDetails.parking?.status === 'non_inclus' ||
                 optionsDetails.hebergement?.status === 'non_inclus') && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6">
-                  <h3 className="font-semibold text-amber-800 mb-4">Options supplémentaires</h3>
-                  <p className="text-sm text-amber-700 mb-4">Sélectionnez les options que vous souhaitez ajouter :</p>
+                  <h3 className="font-semibold text-amber-800 mb-4">{t('mesDevis.contract.additionalOptions')}</h3>
+                  <p className="text-sm text-amber-700 mb-4">{t('mesDevis.contract.selectOptions')}</p>
 
                   <div className="space-y-3">
                     {/* Péages */}
@@ -2514,7 +2615,7 @@ export function MesDevisPage() {
                             onChange={(e) => setSelectedOptions({ ...selectedOptions, peages: e.target.checked })}
                             className="w-5 h-5 accent-amber-500"
                           />
-                          <span className="font-medium">Péages</span>
+                          <span className="font-medium">{t('mesDevis.contract.tolls')}</span>
                         </div>
                         <span className="font-semibold text-amber-700">+{formatPrice(optionsDetails.peages.montant)}</span>
                       </label>
@@ -2531,8 +2632,8 @@ export function MesDevisPage() {
                             className="w-5 h-5 accent-amber-500"
                           />
                           <div>
-                            <span className="font-medium">Repas chauffeur</span>
-                            <span className="text-xs text-gray-500 ml-2">({formatPrice(optionsDetails.repas_chauffeur.montant)}/repas × {nbRepas} repas × {nbChauffeurs} chauffeur{nbChauffeurs > 1 ? 's' : ''})</span>
+                            <span className="font-medium">{t('mesDevis.contract.driverMeals')}</span>
+                            <span className="text-xs text-gray-500 ml-2">({formatPrice(optionsDetails.repas_chauffeur.montant)}/{t('mesDevis.contract.meal')} × {nbRepas} {t('mesDevis.contract.meals')} × {nbChauffeurs} {t('mesDevis.contract.driver')}{nbChauffeurs > 1 ? 's' : ''})</span>
                           </div>
                         </div>
                         <span className="font-semibold text-amber-700">+{formatPrice(optionsDetails.repas_chauffeur.montant * nbRepas * nbChauffeurs)}</span>
@@ -2549,7 +2650,7 @@ export function MesDevisPage() {
                             onChange={(e) => setSelectedOptions({ ...selectedOptions, parking: e.target.checked })}
                             className="w-5 h-5 accent-amber-500"
                           />
-                          <span className="font-medium">Parking</span>
+                          <span className="font-medium">{t('mesDevis.contract.parking')}</span>
                         </div>
                         <span className="font-semibold text-amber-700">+{formatPrice(optionsDetails.parking.montant)}</span>
                       </label>
@@ -2566,8 +2667,8 @@ export function MesDevisPage() {
                             className="w-5 h-5 accent-amber-500"
                           />
                           <div>
-                            <span className="font-medium">Hébergement chauffeur</span>
-                            <span className="text-xs text-gray-500 ml-2">({formatPrice(optionsDetails.hebergement.montant)}/nuit x {nbNuits} nuit{nbNuits > 1 ? 's' : ''} x {nbChauffeurs} chauffeur{nbChauffeurs > 1 ? 's' : ''})</span>
+                            <span className="font-medium">{t('mesDevis.contract.driverAccommodation')}</span>
+                            <span className="text-xs text-gray-500 ml-2">({formatPrice(optionsDetails.hebergement.montant)}/{t('mesDevis.contract.night')} x {nbNuits} {t('mesDevis.contract.nights')} x {nbChauffeurs} {t('mesDevis.contract.driver')}{nbChauffeurs > 1 ? 's' : ''})</span>
                           </div>
                         </div>
                         <span className="font-semibold text-amber-700">+{formatPrice(optionsDetails.hebergement.montant * nbNuits * nbChauffeurs)}</span>
@@ -2580,7 +2681,7 @@ export function MesDevisPage() {
               {/* 4. MOYEN DE PAIEMENT */}
               <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
                 <h3 className="font-semibold text-purple-dark mb-4">
-                  Moyen de paiement <span className="text-red-500">*</span>
+                  {t('mesDevis.contract.paymentMethod')} <span className="text-red-500">*</span>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button
@@ -2595,9 +2696,9 @@ export function MesDevisPage() {
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-2xl">💳</span>
-                      <span className="font-semibold text-purple-dark">Carte bancaire</span>
+                      <span className="font-semibold text-purple-dark">{t('mesDevis.contract.creditCard')}</span>
                     </div>
-                    <p className="text-sm text-gray-500">Paiement sécurisé immédiat</p>
+                    <p className="text-sm text-gray-500">{t('mesDevis.contract.securePayment')}</p>
                   </button>
 
                   <button
@@ -2612,19 +2713,19 @@ export function MesDevisPage() {
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-2xl">🏦</span>
-                      <span className="font-semibold text-purple-dark">Virement bancaire</span>
+                      <span className="font-semibold text-purple-dark">{t('mesDevis.contract.bankTransfer')}</span>
                     </div>
-                    <p className="text-sm text-gray-500">RIB fourni sur la proforma</p>
+                    <p className="text-sm text-gray-500">{t('mesDevis.contract.ribOnProforma')}</p>
                   </button>
                 </div>
 
                 {/* Afficher le RIB si virement sélectionné */}
                 {paymentMethod === 'virement' && (
                   <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                    <p className="text-sm font-semibold text-blue-800 mb-2">Coordonnées bancaires :</p>
+                    <p className="text-sm font-semibold text-blue-800 mb-2">{t('mesDevis.contract.bankDetails')} :</p>
                     <div className="text-sm text-blue-700 font-mono">
-                      <p>IBAN: FR76 3000 4015 9600 0101 0820 195</p>
-                      <p>BIC: BNPAFRPPXXX</p>
+                      <p>IBAN: {country?.bankIban || 'FR76 3000 4015 9600 0101 0820 195'}</p>
+                      <p>BIC: {country?.bankBic || 'BNPAFRPPXXX'}</p>
                     </div>
                   </div>
                 )}
@@ -2635,26 +2736,26 @@ export function MesDevisPage() {
                 {/* Résumé du prix */}
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Prix de base TTC</span>
+                    <span className="text-gray-600">{t('mesDevis.contract.basePriceTTC')}</span>
                     <span className="font-medium">{formatPrice(selectedDevis.devis.price_ttc)}</span>
                   </div>
                   {optionsTotal > 0 && (
                     <div className="flex justify-between text-sm text-amber-700">
-                      <span>Options sélectionnées</span>
+                      <span>{t('mesDevis.contract.selectedOptions')}</span>
                       <span className="font-medium">+{formatPrice(optionsTotal)}</span>
                     </div>
                   )}
                   <div className="border-t border-gray-300 pt-2 flex justify-between">
-                    <span className="font-semibold text-lg text-purple-dark">Total TTC</span>
+                    <span className="font-semibold text-lg text-purple-dark">{t('mesDevis.contract.totalTTC')}</span>
                     <span className="font-bold text-2xl text-purple-dark">{formatPrice(totalTTC)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-600">
-                    <span>{modalAcomptePercent === 100 ? 'Paiement total' : `Acompte (${modalAcomptePercent}%)`}</span>
+                    <span>{modalAcomptePercent === 100 ? t('mesDevis.contract.fullPayment') : `${t('mesDevis.contract.deposit')} (${modalAcomptePercent}%)`}</span>
                     <span className="font-semibold">{formatPrice(acompte)}</span>
                   </div>
                   {modalAcomptePercent < 100 && (
                     <div className="flex justify-between text-sm text-gray-600">
-                      <span>Solde avant départ</span>
+                      <span>{t('mesDevis.contract.balanceBeforeDeparture')}</span>
                       <span>{formatPrice(solde)}</span>
                     </div>
                   )}
@@ -2669,7 +2770,7 @@ export function MesDevisPage() {
                     className="w-5 h-5 accent-magenta mt-0.5"
                   />
                   <span className="text-sm">
-                    J'accepte les termes du contrat et les <a href="/cgv" target="_blank" className="text-magenta underline">conditions générales</a>
+                    {t('mesDevis.contract.acceptTerms')} <a href="/cgv" target="_blank" className="text-magenta underline">{t('mesDevis.contract.termsLink')}</a>
                   </span>
                 </label>
 
@@ -2683,7 +2784,7 @@ export function MesDevisPage() {
                       setSelectedOptions({ peages: false, repas_chauffeur: false, parking: false, hebergement: false })
                     }}
                   >
-                    Annuler
+                    {t('mesDevis.contract.cancel')}
                   </button>
                   <button
                     className="btn btn-success flex-1 text-lg py-3"
@@ -2691,12 +2792,12 @@ export function MesDevisPage() {
                     disabled={!isSignatureFormValid()}
                   >
                     <Check size={20} />
-                    Signer le contrat
+                    {t('mesDevis.contract.signContract')}
                   </button>
                 </div>
 
                 <p className="text-xs text-gray-400 text-center mt-3">
-                  En signant, votre signature électronique sera enregistrée avec votre adresse IP et la date.
+                  {t('mesDevis.contract.signatureDisclaimer')}
                 </p>
               </div>
             </>

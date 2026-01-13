@@ -6,6 +6,8 @@ import { useCreateOrUpdateVoyageInfo, useUpdateDossier } from '@/hooks/useSupaba
 import { ChatWidget } from '@/components/chat/ChatWidget'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
 import { formatDate, formatDateTime, formatTime, formatPrice, getVehicleTypeLabel } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
+import { useLocalizedPath } from '@/components/i18n'
 import type { Dossier, VoyageInfo, DossierWithRelations } from '@/types/database'
 
 // Helper pour extraire le détail MAD du special_requests
@@ -33,6 +35,8 @@ function updateMadDetailsInSpecialRequests(specialRequests: string | null | unde
 }
 
 export function InfosVoyagePage() {
+  const { t } = useTranslation()
+  const localizedPath = useLocalizedPath()
   const [searchParams] = useSearchParams()
   const reference = searchParams.get('ref') || ''
   const email = searchParams.get('email') || ''
@@ -139,12 +143,12 @@ export function InfosVoyagePage() {
     e.preventDefault()
 
     if (!voyageInfo.aller_date || !voyageInfo.aller_adresse_depart || !voyageInfo.aller_adresse_arrivee) {
-      alert('Veuillez remplir les informations de l\'aller')
+      alert(t('infosVoyage.alertFillOutward'))
       return
     }
 
     if (!voyageInfo.contact_nom || !voyageInfo.contact_tel) {
-      alert('Veuillez renseigner un contact sur place')
+      alert(t('infosVoyage.alertFillContact'))
       return
     }
 
@@ -199,7 +203,7 @@ export function InfosVoyagePage() {
       setSuccess(true)
     } catch (err) {
       console.error('Error saving voyage info:', err)
-      alert('Une erreur est survenue')
+      alert(t('infosVoyage.alertError'))
     }
   }
 
@@ -212,7 +216,7 @@ export function InfosVoyagePage() {
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-magenta border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">Chargement...</p>
+          <p className="text-gray-500">{t('infosVoyage.loading')}</p>
         </div>
       </div>
     )
@@ -224,13 +228,13 @@ export function InfosVoyagePage() {
         <div className="max-w-md mx-auto text-center">
           <div className="text-6xl mb-6">🔍</div>
           <h2 className="font-display text-2xl font-bold text-purple-dark mb-2">
-            Dossier introuvable
+            {t('infosVoyage.notFound')}
           </h2>
           <p className="text-gray-500 mb-6">
-            Vérifiez votre lien ou contactez-nous.
+            {t('infosVoyage.notFoundDescription')}
           </p>
-          <Link to="/" className="btn btn-primary">
-            Retour à l'accueil
+          <Link to={localizedPath('/')} className="btn btn-primary">
+            {t('infosVoyage.backToHome')}
           </Link>
         </div>
       </div>
@@ -251,7 +255,7 @@ export function InfosVoyagePage() {
         {/* Header */}
         <header className="bg-white border-b border-gray-200 py-4 px-6">
           <div className="max-w-6xl mx-auto flex justify-between items-center">
-            <Link to="/" className="flex items-center gap-3">
+            <Link to={localizedPath('/')} className="flex items-center gap-3">
               <img src="/logo-icon.svg" alt="Busmoov" className="w-10 h-10" />
               <span className="font-display text-xl font-bold gradient-text">Busmoov</span>
             </Link>
@@ -267,18 +271,18 @@ export function InfosVoyagePage() {
               </div>
               <div>
                 <h2 className="font-display text-xl font-bold text-emerald-600 mb-1">
-                  {success ? 'Informations validées !' : 'Informations envoyées'}
+                  {success ? t('infosVoyage.successTitle') : t('infosVoyage.sentTitle')}
                 </h2>
                 <p className="text-gray-600 text-sm">
                   {isAdminValidated
-                    ? 'Vos informations ont été validées par notre service. Vous recevrez votre feuille de route 24h avant le départ.'
-                    : 'Vos informations sont en cours de validation par notre service. Vous recevrez votre feuille de route 24h avant le départ.'
+                    ? t('infosVoyage.successDescriptionValidated')
+                    : t('infosVoyage.successDescriptionPending')
                   }
                 </p>
                 {info?.client_validated_at && (
                   <p className="text-xs text-gray-500 mt-1">
-                    Envoyées le {formatDateTime(info.client_validated_at)}
-                    {isAdminValidated && ` • Validées le ${formatDateTime(info.validated_at)}`}
+                    {t('infosVoyage.sentOn')} {formatDateTime(info.client_validated_at)}
+                    {isAdminValidated && ` • ${t('infosVoyage.validatedOn')} ${formatDateTime(info.validated_at)}`}
                   </p>
                 )}
               </div>
@@ -292,7 +296,7 @@ export function InfosVoyagePage() {
                 ? 'bg-emerald-100 text-emerald-700'
                 : 'bg-amber-100 text-amber-700'
             }`}>
-              {isAdminValidated ? '✓ Validé par Busmoov' : '⏳ En attente de validation'}
+              {isAdminValidated ? `✓ ${t('infosVoyage.statusValidated')}` : `⏳ ${t('infosVoyage.statusPending')}`}
             </span>
           </div>
 
@@ -302,13 +306,13 @@ export function InfosVoyagePage() {
             <div className="card p-6">
               <h3 className="font-display text-lg font-semibold text-magenta mb-4 flex items-center gap-2">
                 <MapPin size={20} />
-                Aller
+                {t('infosVoyage.outward')}
               </h3>
               <div className="space-y-4">
                 <div className="bg-gray-50 rounded-lg p-3">
                   <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                     <Calendar size={12} />
-                    Date et heure
+                    {t('infosVoyage.dateTime')}
                   </div>
                   <div className="font-medium text-gray-800">
                     {info?.aller_date ? formatDateTime(info.aller_date) : '-'}
@@ -317,16 +321,16 @@ export function InfosVoyagePage() {
                 <div className="bg-gray-50 rounded-lg p-3">
                   <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                     <Users size={12} />
-                    Passagers
+                    {t('infosVoyage.passengers')}
                   </div>
                   <div className="font-medium text-gray-800">
-                    {info?.aller_passagers || dossier?.passengers || '-'} personnes
+                    {info?.aller_passagers || dossier?.passengers || '-'} {t('infosVoyage.passengersUnit')}
                   </div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3">
                   <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                     <MapPin size={12} className="text-green-500" />
-                    Adresse de départ
+                    {t('infosVoyage.pickupAddress')}
                   </div>
                   <div className="font-medium text-gray-800">
                     {info?.aller_adresse_depart || '-'}
@@ -335,7 +339,7 @@ export function InfosVoyagePage() {
                 <div className="bg-gray-50 rounded-lg p-3">
                   <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                     <MapPin size={12} className="text-red-500" />
-                    Adresse d'arrivée
+                    {t('infosVoyage.destinationAddress')}
                   </div>
                   <div className="font-medium text-gray-800">
                     {info?.aller_adresse_arrivee || '-'}
@@ -349,13 +353,13 @@ export function InfosVoyagePage() {
               <div className="card p-6">
                 <h3 className="font-display text-lg font-semibold text-magenta mb-4 flex items-center gap-2">
                   <MapPin size={20} />
-                  Retour
+                  {t('infosVoyage.return')}
                 </h3>
                 <div className="space-y-4">
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                       <Calendar size={12} />
-                      Date et heure
+                      {t('infosVoyage.dateTime')}
                     </div>
                     <div className="font-medium text-gray-800">
                       {info?.retour_date ? formatDateTime(info.retour_date) : '-'}
@@ -364,16 +368,16 @@ export function InfosVoyagePage() {
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                       <Users size={12} />
-                      Passagers
+                      {t('infosVoyage.passengers')}
                     </div>
                     <div className="font-medium text-gray-800">
-                      {info?.retour_passagers || dossier?.passengers || '-'} personnes
+                      {info?.retour_passagers || dossier?.passengers || '-'} {t('infosVoyage.passengersUnit')}
                     </div>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                       <MapPin size={12} className="text-green-500" />
-                      Adresse de départ
+                      {t('infosVoyage.pickupAddress')}
                     </div>
                     <div className="font-medium text-gray-800">
                       {info?.retour_adresse_depart || '-'}
@@ -382,7 +386,7 @@ export function InfosVoyagePage() {
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                       <MapPin size={12} className="text-red-500" />
-                      Adresse d'arrivée
+                      {t('infosVoyage.destinationAddress')}
                     </div>
                     <div className="font-medium text-gray-800">
                       {info?.retour_adresse_arrivee || '-'}
@@ -396,24 +400,24 @@ export function InfosVoyagePage() {
             <div className="card p-6">
               <h3 className="font-display text-lg font-semibold text-purple-dark mb-4 flex items-center gap-2">
                 <Phone size={20} />
-                Contact sur place
+                {t('infosVoyage.contactOnSite')}
               </h3>
               <div className="space-y-4">
                 <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-1">Nom</div>
+                  <div className="text-xs text-gray-500 mb-1">{t('infosVoyage.lastName')}</div>
                   <div className="font-medium text-gray-800">
                     {info?.contact_prenom} {info?.contact_nom}
                   </div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-1">Téléphone</div>
+                  <div className="text-xs text-gray-500 mb-1">{t('infosVoyage.phone')}</div>
                   <div className="font-medium text-gray-800">
                     {info?.contact_tel || '-'}
                   </div>
                 </div>
                 {info?.contact_email && (
                   <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500 mb-1">Email</div>
+                    <div className="text-xs text-gray-500 mb-1">{t('infosVoyage.email')}</div>
                     <div className="font-medium text-gray-800">
                       {info.contact_email}
                     </div>
@@ -427,7 +431,7 @@ export function InfosVoyagePage() {
               <div className="card p-6">
                 <h3 className="font-display text-lg font-semibold text-purple-dark mb-4 flex items-center gap-2">
                   <Route size={20} />
-                  Détail mise à disposition
+                  {t('infosVoyage.madDetail')}
                 </h3>
                 <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
                   <div className="text-gray-800 whitespace-pre-wrap">
@@ -441,33 +445,33 @@ export function InfosVoyagePage() {
             <div className="card p-6">
               <h3 className="font-display text-lg font-semibold text-purple-dark mb-4 flex items-center gap-2">
                 <MessageSquare size={20} />
-                Options & Commentaires
+                {t('infosVoyage.optionsBaggage')}
               </h3>
               <div className="space-y-4">
                 {(info?.bagages || dossier?.luggage_type) && (
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                       <Briefcase size={12} />
-                      Bagages
+                      {t('infosVoyage.baggageType')}
                     </div>
                     <div className="font-medium text-gray-800">
-                      {info?.bagages === 'leger' ? 'Léger (sacs à main, petits sacs)' :
-                       info?.bagages === 'standard' ? 'Standard (valises cabine)' :
-                       info?.bagages === 'volumineux' ? 'Volumineux (grandes valises, équipements)' :
+                      {info?.bagages === 'leger' ? t('infosVoyage.baggageLight') :
+                       info?.bagages === 'standard' ? t('infosVoyage.baggageStandardOption') :
+                       info?.bagages === 'volumineux' ? t('infosVoyage.baggageHeavy') :
                        dossier?.luggage_type || '-'}
                     </div>
                   </div>
                 )}
                 {info?.commentaires && (
                   <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500 mb-1">Commentaires</div>
+                    <div className="text-xs text-gray-500 mb-1">{t('infosVoyage.comments')}</div>
                     <div className="text-gray-800 whitespace-pre-wrap">
                       {info.commentaires}
                     </div>
                   </div>
                 )}
                 {!info?.commentaires && !info?.bagages && !dossier?.luggage_type && (
-                  <p className="text-gray-500 text-sm italic">Aucune option ou commentaire</p>
+                  <p className="text-gray-500 text-sm italic">{t('infosVoyage.noOptionsComments')}</p>
                 )}
               </div>
             </div>
@@ -476,21 +480,21 @@ export function InfosVoyagePage() {
           {/* Bouton retour */}
           <div className="flex justify-center mt-8">
             <Link
-              to={`/mes-devis?ref=${reference}&email=${encodeURIComponent(email)}`}
+              to={`${localizedPath('/mes-devis')}?ref=${reference}&email=${encodeURIComponent(email)}`}
               className="btn btn-primary"
             >
               <ArrowLeft size={18} />
-              Retour à mon dossier
+              {t('infosVoyage.backToMyFolder')}
             </Link>
           </div>
         </div>
 
         {/* Chat Widget */}
-        <ChatWidget dossierId={dossier!.id} isClient={true} />
+        <ChatWidget dossierId={dossier!.id} isClient={true} countryCode={dossier?.country_code} />
 
         {/* Footer */}
         <footer className="text-center py-8 text-gray-500 text-sm">
-          © 2025 Busmoov - Une marque du groupe{' '}
+          © {t('infosVoyage.footerYear')} {t('infosVoyage.footerBrand')}{' '}
           <a href="https://www.centrale-autocar.com" className="text-magenta hover:underline">
             Centrale Autocar
           </a>
@@ -504,7 +508,7 @@ export function InfosVoyagePage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 py-4 px-6">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to={localizedPath('/')} className="flex items-center gap-3">
             <img src="/logo-icon.svg" alt="Busmoov" className="w-10 h-10" />
             <span className="font-display text-xl font-bold gradient-text">Busmoov</span>
           </Link>
@@ -514,12 +518,12 @@ export function InfosVoyagePage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="text-center mb-8">
-          <span className="badge badge-magenta mb-4">Dossier {dossier.reference}</span>
+          <span className="badge badge-magenta mb-4">{t('infosVoyage.dossier')} {dossier.reference}</span>
           <h1 className="font-display text-2xl font-bold text-magenta mb-2">
-            Validation devis
+            {t('infosVoyage.pageTitle')}
           </h1>
           <p className="text-gray-500">
-            Vérifiez et complétez les informations de votre voyage
+            {t('infosVoyage.pageSubtitle')}
           </p>
         </div>
 
@@ -527,9 +531,8 @@ export function InfosVoyagePage() {
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3">
           <Info size={24} className="text-blue-500 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-blue-800">
-            <strong className="text-blue-600">Comment ça marche ?</strong><br />
-            À gauche, vous voyez les informations de votre devis validé. À droite, vous pouvez préciser les adresses exactes et ajouter des commentaires.
-            Une fois validées, ces informations seront transmises au transporteur pour la feuille de route.
+            <strong className="text-blue-600">{t('infosVoyage.howItWorksTitle')}</strong><br />
+            {t('infosVoyage.howItWorksDescription')}
           </div>
         </div>
 
@@ -539,7 +542,7 @@ export function InfosVoyagePage() {
             <div className="card p-6 bg-gray-50">
               <h3 className="font-display text-lg font-semibold text-gray-600 mb-6 pb-4 border-b-2 border-gray-200 flex items-center gap-2">
                 <Bus size={20} className="text-gray-500" />
-                Devis initial
+                {t('infosVoyage.initialQuote')}
               </h3>
 
               <div className="space-y-6">
@@ -547,20 +550,20 @@ export function InfosVoyagePage() {
                 <div className="bg-gradient-to-br from-purple/5 to-magenta/10 rounded-xl p-4">
                   <h4 className="text-sm font-semibold text-purple-dark mb-3 flex items-center gap-2">
                     <Euro size={16} />
-                    Tarif validé
+                    {t('infosVoyage.validatedPrice')}
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Prix TTC</span>
+                      <span className="text-gray-600">{t('infosVoyage.priceTTC')}</span>
                       <span className="font-bold text-purple-dark text-xl">{formatPrice(dossier.price_ttc)}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-500">Véhicule</span>
+                      <span className="text-gray-500">{t('infosVoyage.vehicle')}</span>
                       <span className="font-medium">{getVehicleTypeLabel(dossier.vehicle_type)}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-500">Passagers</span>
-                      <span className="font-medium">{dossier.passengers} personnes</span>
+                      <span className="text-gray-500">{t('infosVoyage.passengers')}</span>
+                      <span className="font-medium">{dossier.passengers} {t('infosVoyage.passengersUnit')}</span>
                     </div>
                   </div>
                 </div>
@@ -569,19 +572,19 @@ export function InfosVoyagePage() {
                 <div>
                   <h4 className="text-sm font-semibold text-magenta mb-3 flex items-center gap-2">
                     <MapPin size={16} />
-                    Aller
+                    {t('infosVoyage.outward')}
                   </h4>
                   <div className="space-y-3">
                     <div className="bg-white rounded-lg p-3 border border-gray-200">
                       <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                         <Calendar size={12} />
-                        Date et heure de départ
+                        {t('infosVoyage.departureDateTimeLabel')}
                       </div>
                       <div className="font-medium text-gray-800">
                         {formatDate(dossier.departure_date)}
                         {(dossier.departure_time || demande?.departure_time) && (
                           <span className="ml-2 text-magenta font-semibold">
-                            à {dossier.departure_time || demande?.departure_time}
+                            {t('infosVoyage.at')} {dossier.departure_time || demande?.departure_time}
                           </span>
                         )}
                       </div>
@@ -589,7 +592,7 @@ export function InfosVoyagePage() {
                     <div className="bg-white rounded-lg p-3 border border-gray-200">
                       <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                         <MapPin size={12} className="text-green-500" />
-                        Départ
+                        {t('infosVoyage.departureLabel')}
                       </div>
                       <div className="font-medium text-gray-800">{dossier.departure}</div>
                       {(dossier.departure_address || demande?.departure_address) && (
@@ -601,7 +604,7 @@ export function InfosVoyagePage() {
                     <div className="bg-white rounded-lg p-3 border border-gray-200">
                       <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                         <MapPin size={12} className="text-red-500" />
-                        Arrivée
+                        {t('infosVoyage.arrivalLabel')}
                       </div>
                       <div className="font-medium text-gray-800">{dossier.arrival}</div>
                       {(dossier.arrival_address || demande?.arrival_address) && (
@@ -618,19 +621,19 @@ export function InfosVoyagePage() {
                   <div>
                     <h4 className="text-sm font-semibold text-magenta mb-3 flex items-center gap-2">
                       <MapPin size={16} />
-                      Retour
+                      {t('infosVoyage.return')}
                     </h4>
                     <div className="space-y-3">
                       <div className="bg-white rounded-lg p-3 border border-gray-200">
                         <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                           <Calendar size={12} />
-                          Date et heure de retour
+                          {t('infosVoyage.returnDateTimeLabel')}
                         </div>
                         <div className="font-medium text-gray-800">
                           {formatDate(dossier.return_date)}
                           {(dossier.return_time || demande?.return_time) && (
                             <span className="ml-2 text-magenta font-semibold">
-                              à {dossier.return_time || demande?.return_time}
+                              {t('infosVoyage.at')} {dossier.return_time || demande?.return_time}
                             </span>
                           )}
                         </div>
@@ -638,7 +641,7 @@ export function InfosVoyagePage() {
                       <div className="bg-white rounded-lg p-3 border border-gray-200">
                         <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                           <MapPin size={12} className="text-green-500" />
-                          Départ
+                          {t('infosVoyage.departureLabel')}
                         </div>
                         <div className="font-medium text-gray-800">{dossier.arrival}</div>
                         {(dossier.return_departure_address || demande?.return_departure_address) && (
@@ -650,7 +653,7 @@ export function InfosVoyagePage() {
                       <div className="bg-white rounded-lg p-3 border border-gray-200">
                         <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
                           <MapPin size={12} className="text-red-500" />
-                          Arrivée
+                          {t('infosVoyage.arrivalLabel')}
                         </div>
                         <div className="font-medium text-gray-800">{dossier.departure}</div>
                         {(dossier.return_arrival_address || demande?.return_arrival_address) && (
@@ -668,7 +671,7 @@ export function InfosVoyagePage() {
                   <div>
                     <h4 className="text-sm font-semibold text-magenta mb-3 flex items-center gap-2">
                       <Route size={16} />
-                      Détail mise à disposition
+                      {t('infosVoyage.madDetail')}
                     </h4>
                     <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
                       <div className="text-sm text-purple-800 whitespace-pre-wrap">
@@ -682,11 +685,11 @@ export function InfosVoyagePage() {
                 <div>
                   <h4 className="text-sm font-semibold text-magenta mb-3 flex items-center gap-2">
                     <Briefcase size={16} />
-                    Options & Bagages
+                    {t('infosVoyage.optionsBaggage')}
                   </h4>
                   <div className="bg-white rounded-lg p-3 border border-gray-200">
                     <div className="text-sm text-gray-600">
-                      {dossier.luggage_type || 'Bagages standard inclus'}
+                      {dossier.luggage_type || t('infosVoyage.baggageStandard')}
                     </div>
                     {dossier.special_requests && !dossier.special_requests.includes('=== DÉTAIL MISE À DISPOSITION ===') && (
                       <div className="mt-2 text-sm text-gray-500 italic">
@@ -700,7 +703,7 @@ export function InfosVoyagePage() {
                 <div>
                   <h4 className="text-sm font-semibold text-magenta mb-3 flex items-center gap-2">
                     <Users size={16} />
-                    Client
+                    {t('infosVoyage.client')}
                   </h4>
                   <div className="bg-white rounded-lg p-3 border border-gray-200 space-y-1">
                     <div className="font-medium text-gray-800">{dossier.client_name}</div>
@@ -715,7 +718,7 @@ export function InfosVoyagePage() {
             <div className="card p-6 border-2 border-magenta">
               <h3 className="font-display text-lg font-semibold text-magenta mb-6 pb-4 border-b-2 border-gray-200 flex items-center gap-2">
                 <Check size={20} className="text-magenta" />
-                Informations finales
+                {t('infosVoyage.finalInfo')}
               </h3>
 
               <div className="space-y-6">
@@ -723,11 +726,11 @@ export function InfosVoyagePage() {
                 <div>
                   <h4 className="text-sm font-semibold text-purple-dark mb-3 flex items-center gap-2">
                     <MapPin size={16} />
-                    Aller
+                    {t('infosVoyage.outward')}
                   </h4>
                   <div className="space-y-3">
                     <div>
-                      <label className="label">Date et heure de départ</label>
+                      <label className="label">{t('infosVoyage.departureDateTimeLabel')}</label>
                       <input
                         type="datetime-local"
                         value={voyageInfo.aller_date?.slice(0, 16) || ''}
@@ -737,7 +740,7 @@ export function InfosVoyagePage() {
                       />
                     </div>
                     <div>
-                      <label className="label">Nombre de passagers</label>
+                      <label className="label">{t('infosVoyage.numberOfPassengers')}</label>
                       <input
                         type="number"
                         value={voyageInfo.aller_passagers || ''}
@@ -749,23 +752,23 @@ export function InfosVoyagePage() {
                     </div>
                     <div>
                       <label className="label">
-                        Adresse de prise en charge <span className="text-gray-400 font-normal">(adresse précise)</span>
+                        {t('infosVoyage.pickupAddress')} <span className="text-gray-400 font-normal">({t('infosVoyage.pickupAddressHint')})</span>
                       </label>
                       <AddressAutocomplete
                         value={voyageInfo.aller_adresse_depart || ''}
                         onChange={(value) => handleChange('aller_adresse_depart', value)}
-                        placeholder="Ex: 12 rue de la Paix, 75001 Paris"
+                        placeholder={t('infosVoyage.pickupPlaceholder')}
                         className="input"
                       />
                     </div>
                     <div>
                       <label className="label">
-                        Adresse de destination <span className="text-gray-400 font-normal">(adresse précise)</span>
+                        {t('infosVoyage.destinationAddress')} <span className="text-gray-400 font-normal">({t('infosVoyage.destinationAddressHint')})</span>
                       </label>
                       <AddressAutocomplete
                         value={voyageInfo.aller_adresse_arrivee || ''}
                         onChange={(value) => handleChange('aller_adresse_arrivee', value)}
-                        placeholder="Ex: 45 avenue des Champs-Élysées, 75008 Paris"
+                        placeholder={t('infosVoyage.destinationPlaceholder')}
                         className="input"
                       />
                     </div>
@@ -777,11 +780,11 @@ export function InfosVoyagePage() {
                   <div>
                     <h4 className="text-sm font-semibold text-purple-dark mb-3 flex items-center gap-2">
                       <MapPin size={16} />
-                      Retour
+                      {t('infosVoyage.return')}
                     </h4>
                     <div className="space-y-3">
                       <div>
-                        <label className="label">Date et heure de retour</label>
+                        <label className="label">{t('infosVoyage.returnDateTimeLabel')}</label>
                         <input
                           type="datetime-local"
                           value={voyageInfo.retour_date?.slice(0, 16) || ''}
@@ -790,7 +793,7 @@ export function InfosVoyagePage() {
                         />
                       </div>
                       <div>
-                        <label className="label">Nombre de passagers</label>
+                        <label className="label">{t('infosVoyage.numberOfPassengers')}</label>
                         <input
                           type="number"
                           value={voyageInfo.retour_passagers || ''}
@@ -801,23 +804,23 @@ export function InfosVoyagePage() {
                       </div>
                       <div>
                         <label className="label">
-                          Adresse de prise en charge <span className="text-gray-400 font-normal">(adresse précise)</span>
+                          {t('infosVoyage.pickupAddress')} <span className="text-gray-400 font-normal">({t('infosVoyage.pickupAddressHint')})</span>
                         </label>
                         <AddressAutocomplete
                           value={voyageInfo.retour_adresse_depart || ''}
                           onChange={(value) => handleChange('retour_adresse_depart', value)}
-                          placeholder="Ex: 45 avenue des Champs-Élysées, 75008 Paris"
+                          placeholder={t('infosVoyage.destinationPlaceholder')}
                           className="input"
                         />
                       </div>
                       <div>
                         <label className="label">
-                          Adresse de destination <span className="text-gray-400 font-normal">(adresse précise)</span>
+                          {t('infosVoyage.destinationAddress')} <span className="text-gray-400 font-normal">({t('infosVoyage.destinationAddressHint')})</span>
                         </label>
                         <AddressAutocomplete
                           value={voyageInfo.retour_adresse_arrivee || ''}
                           onChange={(value) => handleChange('retour_adresse_arrivee', value)}
-                          placeholder="Ex: 12 rue de la Paix, 75001 Paris"
+                          placeholder={t('infosVoyage.pickupPlaceholder')}
                           className="input"
                         />
                       </div>
@@ -830,16 +833,16 @@ export function InfosVoyagePage() {
                   <div>
                     <h4 className="text-sm font-semibold text-purple-dark mb-3 flex items-center gap-2">
                       <Route size={16} />
-                      Détail mise à disposition
+                      {t('infosVoyage.madDetail')}
                     </h4>
                     <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
                       <p className="text-xs text-purple-600 mb-3">
-                        Modifiez ou complétez le programme de votre mise à disposition (étapes, horaires, adresses précises...)
+                        {t('infosVoyage.madEditHint')}
                       </p>
                       <textarea
                         value={madDetails}
                         onChange={(e) => setMadDetails(e.target.value)}
-                        placeholder="Décrivez le programme jour par jour, les étapes, les horaires approximatifs...&#10;&#10;Exemple:&#10;Jour 1: Départ Paris 8h → Visite Château de Chambord → Nuit à Tours&#10;Jour 2: Tours → Bordeaux avec arrêt à Cognac&#10;Jour 3: Bordeaux → Retour Paris"
+                        placeholder={t('infosVoyage.madPlaceholder')}
                         className="input min-h-[180px] text-sm resize-y"
                         rows={8}
                       />
@@ -851,40 +854,40 @@ export function InfosVoyagePage() {
                 <div>
                   <h4 className="text-sm font-semibold text-purple-dark mb-3 flex items-center gap-2">
                     <Phone size={16} />
-                    Contact sur place
+                    {t('infosVoyage.contactOnSite')}
                   </h4>
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="label">Nom</label>
+                        <label className="label">{t('infosVoyage.lastName')}</label>
                         <input
                           type="text"
                           value={voyageInfo.contact_nom || ''}
                           onChange={(e) => handleChange('contact_nom', e.target.value)}
                           className="input"
-                          placeholder="Nom"
+                          placeholder={t('infosVoyage.lastName')}
                           required
                         />
                       </div>
                       <div>
-                        <label className="label">Prénom</label>
+                        <label className="label">{t('infosVoyage.firstName')}</label>
                         <input
                           type="text"
                           value={voyageInfo.contact_prenom || ''}
                           onChange={(e) => handleChange('contact_prenom', e.target.value)}
                           className="input"
-                          placeholder="Prénom"
+                          placeholder={t('infosVoyage.firstName')}
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="label">Téléphone</label>
+                      <label className="label">{t('infosVoyage.phone')}</label>
                       <input
                         type="tel"
                         value={voyageInfo.contact_tel || ''}
                         onChange={(e) => handleChange('contact_tel', e.target.value)}
                         className="input"
-                        placeholder="06 XX XX XX XX"
+                        placeholder={t('infosVoyage.phonePlaceholder')}
                         required
                       />
                     </div>
@@ -895,24 +898,24 @@ export function InfosVoyagePage() {
                 <div>
                   <h4 className="text-sm font-semibold text-purple-dark mb-3 flex items-center gap-2">
                     <Briefcase size={16} />
-                    Options & Bagages
+                    {t('infosVoyage.optionsBaggage')}
                   </h4>
                   <div className="space-y-3">
                     <div>
-                      <label className="label">Type de bagages</label>
+                      <label className="label">{t('infosVoyage.baggageType')}</label>
                       <select
                         value={voyageInfo.bagages || dossier.luggage_type || 'leger'}
                         onChange={(e) => handleChange('bagages', e.target.value)}
                         className="input"
                       >
-                        <option value="leger">Léger (sacs à main, petits sacs)</option>
-                        <option value="standard">Standard (valises cabine)</option>
-                        <option value="volumineux">Volumineux (grandes valises, équipements)</option>
+                        <option value="leger">{t('infosVoyage.baggageLight')}</option>
+                        <option value="standard">{t('infosVoyage.baggageStandardOption')}</option>
+                        <option value="volumineux">{t('infosVoyage.baggageHeavy')}</option>
                       </select>
                     </div>
                     {dossier.special_requests && !dossier.special_requests.includes('=== DÉTAIL MISE À DISPOSITION ===') && (
                       <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                        <label className="label text-xs text-gray-500">Demande initiale</label>
+                        <label className="label text-xs text-gray-500">{t('infosVoyage.initialRequest')}</label>
                         <p className="text-sm text-gray-600 italic">"{dossier.special_requests}"</p>
                       </div>
                     )}
@@ -923,19 +926,18 @@ export function InfosVoyagePage() {
                 <div>
                   <h4 className="text-sm font-semibold text-purple-dark mb-3 flex items-center gap-2">
                     <MessageSquare size={16} />
-                    Commentaires
+                    {t('infosVoyage.comments')}
                   </h4>
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
                     <p className="text-xs text-amber-700">
-                      Indiquez ici toute information utile pour le chauffeur : point de rendez-vous précis,
-                      consignes particulières, accessibilité, etc.
+                      {t('infosVoyage.commentsHint')}
                     </p>
                   </div>
                   <textarea
                     value={voyageInfo.commentaires || ''}
                     onChange={(e) => handleChange('commentaires', e.target.value)}
                     className="input min-h-[120px] resize-y"
-                    placeholder="Ex: RDV devant l'entrée principale. Prévoir 10 minutes pour le chargement des bagages. Un passager en fauteuil roulant..."
+                    placeholder={t('infosVoyage.commentsPlaceholder')}
                   />
                 </div>
               </div>
@@ -945,11 +947,11 @@ export function InfosVoyagePage() {
           {/* Actions */}
           <div className="flex justify-center gap-4">
             <Link
-              to={`/mes-devis?ref=${reference}&email=${encodeURIComponent(email)}`}
+              to={`${localizedPath('/mes-devis')}?ref=${reference}&email=${encodeURIComponent(email)}`}
               className="btn btn-secondary"
             >
               <ArrowLeft size={18} />
-              Retour
+              {t('infosVoyage.back')}
             </Link>
             <button
               type="submit"
@@ -957,18 +959,18 @@ export function InfosVoyagePage() {
               disabled={createOrUpdateVoyageInfo.isPending}
             >
               <Check size={18} />
-              {createOrUpdateVoyageInfo.isPending ? 'Validation...' : 'Valider les informations'}
+              {createOrUpdateVoyageInfo.isPending ? t('infosVoyage.validating') : t('infosVoyage.validateInfo')}
             </button>
           </div>
         </form>
       </div>
 
       {/* Chat Widget */}
-      <ChatWidget dossierId={dossier.id} isClient={true} />
+      <ChatWidget dossierId={dossier.id} isClient={true} countryCode={dossier?.country_code} />
 
       {/* Footer */}
       <footer className="text-center py-8 text-gray-500 text-sm">
-        © 2025 Busmoov - Une marque du groupe{' '}
+        © {t('infosVoyage.footerYear')} {t('infosVoyage.footerBrand')}{' '}
         <a href="https://www.centrale-autocar.com" className="text-magenta hover:underline">
           Centrale Autocar
         </a>

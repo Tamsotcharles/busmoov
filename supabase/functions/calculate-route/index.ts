@@ -25,11 +25,13 @@ interface GeoCoords {
   lon: number
 }
 
-async function geocodeCity(city: string): Promise<GeoCoords | null> {
+async function geocodeCity(city: string, countryCode: string = 'fr', lang: string = 'fr'): Promise<GeoCoords | null> {
   if (!city) return null
   try {
+    // Construire l'URL avec filtre de pays si spécifié
+    const filterParam = countryCode ? `&filter=countrycode:${countryCode}` : ''
     const response = await fetch(
-      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=fr&limit=1&apiKey=${GEOAPIFY_API_KEY}`
+      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=1${filterParam}&apiKey=${GEOAPIFY_API_KEY}`
     )
     const data = await response.json()
     if (data.features && data.features.length > 0) {
@@ -61,7 +63,7 @@ Deno.serve(async (req) => {
       )
     }
 
-    const { departure, arrival } = await req.json()
+    const { departure, arrival, countryCode = 'fr' } = await req.json()
 
     if (!departure || !arrival) {
       return new Response(
@@ -70,10 +72,10 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Geocoder les deux villes
+    // Geocoder les deux villes avec le code pays
     const [depCoords, arrCoords] = await Promise.all([
-      geocodeCity(departure),
-      geocodeCity(arrival),
+      geocodeCity(departure, countryCode, countryCode),
+      geocodeCity(arrival, countryCode, countryCode),
     ])
 
     if (!depCoords || !arrCoords) {

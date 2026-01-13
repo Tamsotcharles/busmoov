@@ -1,6 +1,22 @@
 // useSupabase hooks - updated
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { generateClientAccessUrl } from '@/lib/utils'
+
+// Taux de TVA par pays pour le transport de passagers
+const COUNTRY_TVA_RATES: Record<string, number> = {
+  FR: 10,
+  ES: 10,
+  DE: 7,
+  GB: 0,
+  EN: 0, // Alias pour GB
+}
+
+// Helper pour obtenir le taux de TVA selon le pays
+function getTvaRateByCountry(countryCode?: string | null): number {
+  if (!countryCode) return 10 // Défaut France
+  return COUNTRY_TVA_RATES[countryCode] ?? 10
+}
 
 // Helper pour formater les dates pour les emails
 function formatDateForEmail(dateString: string | null | undefined): string {
@@ -94,6 +110,7 @@ export function useCreateDemande() {
 
       // 2. Créer automatiquement un dossier lié à cette demande
       const dossierReference = demandeData.reference.replace('DEM-', 'DOS-')
+      const countryCode = (demandeData as any).country_code || 'FR'
       const { data: dossierData, error: dossierError } = await supabase
         .from('dossiers')
         .insert({
@@ -114,6 +131,8 @@ export function useCreateDemande() {
           voyage_type: demandeData.voyage_type,
           special_requests: demandeData.special_requests,
           status: 'new',
+          country_code: countryCode,
+          tva_rate: getTvaRateByCountry(countryCode),
         })
         .select()
         .single()
@@ -179,6 +198,9 @@ export function useCreateDemande() {
 
         // 4. Envoyer l'email de confirmation avec les identifiants
         try {
+          // Déterminer la langue à partir du country_code
+          const language = ((demandeData as any).country_code || 'FR').toLowerCase()
+
           await supabase.functions.invoke('send-email', {
             body: {
               type: 'confirmation_demande',
@@ -192,11 +214,12 @@ export function useCreateDemande() {
                 departure_date: formatDateForEmail(demandeData.departure_date),
                 passengers: String(demandeData.passengers),
                 client_email: demandeData.client_email,
-                lien_espace_client: `${window.location.origin}/mes-devis?ref=${demandeData.reference}&email=${encodeURIComponent(demandeData.client_email)}`,
+                lien_espace_client: generateClientAccessUrl(demandeData.reference, demandeData.client_email, (demandeData as any).country_code),
+                language: language,
               }
             }
           })
-          console.log(`Email de confirmation envoyé à ${demandeData.client_email}`)
+          console.log(`Email de confirmation envoyé à ${demandeData.client_email} (langue: ${language})`)
         } catch (emailError) {
           console.error('Erreur envoi email confirmation:', emailError)
           // Ne pas bloquer si l'email échoue
@@ -830,6 +853,7 @@ export function useCreatePaiement() {
       payment_date: string
       reference?: string
       notes?: string
+      facture_id?: string
     }) => {
       const { data, error } = await supabase
         .from('paiements')
@@ -842,6 +866,7 @@ export function useCreatePaiement() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['paiements', data.contrat_id] })
       queryClient.invalidateQueries({ queryKey: ['contrats'] })
+      queryClient.invalidateQueries({ queryKey: ['factures'] })
     },
   })
 }
@@ -3067,4 +3092,184 @@ export async function createNotificationCRM(notification: CreateNotificationCRM)
 
   if (error) throw error
   return data
+}
+
+// ============ COUNTRIES / PAYS ============
+
+export interface Country {
+  code: string
+  name: string
+  language: string
+  currency: string
+  currency_symbol: string
+  vat_rate: number
+  vat_label: string
+  date_format: string
+  timezone: string
+  is_active: boolean
+  phone: string | null
+  phone_display: string | null
+  email: string | null
+  address: string | null
+  city: string | null
+  company_name: string | null
+  siret: string | null
+  tva_intra: string | null
+  invoice_prefix: string | null
+  invoice_next_number: number
+  proforma_prefix: string | null
+  proforma_next_number: number
+  bank_name: string | null
+  bank_iban: string | null
+  bank_bic: string | null
+  bank_beneficiary: string | null
+  created_at: string
+  updated_at: string
+}
+
+export function useCountries() {
+  return useQuery({
+    queryKey: ['countries'],
+    queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from('countries')
+        .select('*')
+        .order('code')
+
+      if (error) throw error
+      return data as Country[]
+    },
+  })
+}
+
+export function useCountry(code: string) {
+  return useQuery({
+    queryKey: ['country', code],
+    queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from('countries')
+        .select('*')
+        .eq('code', code)
+        .single()
+
+      if (error) throw error
+      return data as Country
+    },
+    enabled: !!code,
+  })
+}
+
+export function useUpdateCountry() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ code, updates }: { code: string; updates: Partial<Country> }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from('countries')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('code', code)
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as Country
+    },
+    onSuccess: (_, { code }) => {
+      queryClient.invalidateQueries({ queryKey: ['countries'] })
+      queryClient.invalidateQueries({ queryKey: ['country', code] })
+    },
+  })
+}
+
+// ============ COUNTRY CONTENT (CGV, mentions légales, etc.) ============
+
+export interface CountryContent {
+  id: string
+  country_code: string
+  content_type: string // 'cgv', 'mentions_legales', 'confidentialite', 'a_propos', 'devenir_partenaire'
+  title: string | null
+  content: string | null
+  version: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export function useCountryContent(countryCode: string, contentType: string) {
+  return useQuery({
+    queryKey: ['country-content', countryCode, contentType],
+    queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from('country_content')
+        .select('*')
+        .eq('country_code', countryCode)
+        .eq('content_type', contentType)
+        .single()
+
+      if (error && error.code !== 'PGRST116') throw error // PGRST116 = not found
+      return data as CountryContent | null
+    },
+    enabled: !!countryCode && !!contentType,
+  })
+}
+
+export function useAllCountryContent(countryCode: string) {
+  return useQuery({
+    queryKey: ['country-content-all', countryCode],
+    queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from('country_content')
+        .select('*')
+        .eq('country_code', countryCode)
+        .order('content_type')
+
+      if (error) throw error
+      return data as CountryContent[]
+    },
+    enabled: !!countryCode,
+  })
+}
+
+export function useUpdateCountryContent() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      countryCode,
+      contentType,
+      title,
+      content
+    }: {
+      countryCode: string
+      contentType: string
+      title: string
+      content: string
+    }) => {
+      // Upsert - insert or update
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from('country_content')
+        .upsert({
+          country_code: countryCode,
+          content_type: contentType,
+          title,
+          content,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'country_code,content_type'
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as CountryContent
+    },
+    onSuccess: (_, { countryCode, contentType }) => {
+      queryClient.invalidateQueries({ queryKey: ['country-content', countryCode, contentType] })
+      queryClient.invalidateQueries({ queryKey: ['country-content-all', countryCode] })
+    },
+  })
 }

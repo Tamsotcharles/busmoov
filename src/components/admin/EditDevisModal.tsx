@@ -3,6 +3,17 @@ import { Modal } from '@/components/ui/Modal'
 import { Info, ChevronDown, ChevronUp, MapPin, Luggage, Clock, Calendar, Euro, Percent, Car, Users, Calculator, Sparkles, AlertTriangle, UserCheck } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
+
+// Helper pour le taux de TVA selon le pays
+function getTvaRateByCountry(countryCode?: string | null): number {
+  switch (countryCode) {
+    case 'DE': return 7
+    case 'GB': return 0
+    case 'ES':
+    case 'FR':
+    default: return 10
+  }
+}
 import {
   calculerTarifComplet,
   calculerInfosTrajet,
@@ -507,8 +518,9 @@ export function EditDevisModal({
   // Fonction pour appliquer le tarif estimé
   const applyEstimatedPrice = () => {
     if (tarifEstime) {
-      // Les prix de la grille tarifaire sont TTC, on calcule le HT
-      const prixHT = Math.round(tarifEstime.prixFinal / 1.1 * 100) / 100
+      // Les prix de la grille tarifaire sont TTC, on calcule le HT selon le taux TVA du pays
+      const tvaRate = dossier?.tva_rate || getTvaRateByCountry(dossier?.country_code)
+      const prixHT = Math.round(tarifEstime.prixFinal / (1 + tvaRate / 100) * 100) / 100
       handleChange('price_ht', prixHT)
 
       // Appliquer aussi le nombre de chauffeurs calculé
@@ -557,7 +569,8 @@ export function EditDevisModal({
   const handleChange = (field: keyof Devis, value: any) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value }
-      const tva = field === 'tva_rate' ? value : prev.tva_rate || 10
+      const defaultTva = getTvaRateByCountry(dossier?.country_code)
+      const tva = field === 'tva_rate' ? value : prev.tva_rate || defaultTva
 
       // Prix vente : HT -> TTC
       if (field === 'price_ht') {
@@ -1151,10 +1164,12 @@ export function EditDevisModal({
               <label className="label text-blue-700">TVA (%)</label>
               <select
                 className="input"
-                value={formData.tva_rate || 10}
+                value={formData.tva_rate || getTvaRateByCountry(dossier?.country_code)}
                 onChange={(e) => handleChange('tva_rate', parseFloat(e.target.value))}
               >
-                <option value="10">10%</option>
+                <option value="0">0% (UK)</option>
+                <option value="7">7% (DE)</option>
+                <option value="10">10% (FR/ES)</option>
                 <option value="20">20%</option>
               </select>
             </div>

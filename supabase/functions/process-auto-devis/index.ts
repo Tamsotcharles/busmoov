@@ -5,6 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 const ALLOWED_ORIGINS = [
   'https://busmoov.com',
   'https://www.busmoov.com',
+  'https://busmoov.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
 ]
@@ -34,6 +35,23 @@ interface WorkflowStep {
   delay_hours: number
   marge_percent: number
   label: string
+}
+
+// Taux de TVA par pays (transport de voyageurs)
+const TVA_RATES: Record<string, number> = {
+  FR: 10, // France
+  ES: 10, // Espagne (IVA transporte de viajeros)
+  DE: 7,  // Allemagne (ermäßigter Steuersatz für Personenbeförderung)
+  GB: 0,  // Royaume-Uni (VAT 0% for passenger transport)
+  EN: 0,  // Alias pour GB (langue EN)
+}
+
+/**
+ * Obtient le taux de TVA selon le pays
+ */
+function getTvaRate(countryCode: string | null | undefined): number {
+  if (!countryCode) return TVA_RATES.FR
+  return TVA_RATES[countryCode] || TVA_RATES.FR
 }
 
 interface TarifAllerSimple {
@@ -482,13 +500,18 @@ function getMajorationPourDepartement(
 
 /**
  * Géocode une ville/adresse via Geoapify
+ * @param city Nom de la ville
+ * @param countryCode Code pays pour filtrer (ex: 'fr', 'es', 'de') - par défaut 'fr'
+ * @param lang Langue pour les résultats - par défaut 'fr'
  */
-async function geocodeCity(city: string): Promise<GeoCoords | null> {
+async function geocodeCity(city: string, countryCode: string = 'fr', lang: string = 'fr'): Promise<GeoCoords | null> {
   if (!city) return null
 
   try {
+    // Construire l'URL avec filtre de pays si spécifié
+    const filterParam = countryCode ? `&filter=countrycode:${countryCode}` : ''
     const response = await fetch(
-      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=fr&limit=1&apiKey=${GEOAPIFY_API_KEY}`
+      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=1${filterParam}&apiKey=${GEOAPIFY_API_KEY}`
     )
     const data = await response.json()
 
@@ -510,15 +533,18 @@ interface RouteResult {
 
 /**
  * Calcule la distance et le temps de trajet entre deux villes via Geoapify Routing API (mode bus)
+ * @param departure Ville de départ
+ * @param arrival Ville d'arrivée
+ * @param countryCode Code pays pour le géocodage (ex: 'fr', 'es', 'de') - par défaut 'fr'
  */
-async function calculateRoute(departure: string, arrival: string): Promise<RouteResult | null> {
+async function calculateRoute(departure: string, arrival: string, countryCode: string = 'fr'): Promise<RouteResult | null> {
   if (!departure || !arrival) return null
 
   try {
-    // Géocoder les deux villes
+    // Géocoder les deux villes avec le code pays
     const [depCoords, arrCoords] = await Promise.all([
-      geocodeCity(departure),
-      geocodeCity(arrival),
+      geocodeCity(departure, countryCode, countryCode),
+      geocodeCity(arrival, countryCode, countryCode),
     ])
 
     if (!depCoords || !arrCoords) {
@@ -1069,9 +1095,13 @@ Deno.serve(async (req) => {
 
       // Appliquer la majoration régionale
       const prixTTCAvecMarge = Math.round(prixAvantMajoration * (1 + majorationRegionDecimal))
-      const prixHT = Math.round(prixTTCAvecMarge / 1.1 * 100) / 100
+
+      // Calculer le prix HT selon le taux TVA du pays
+      const tvaRate = getTvaRate(dossier.country_code)
+      const prixHT = Math.round(prixTTCAvecMarge / (1 + tvaRate / 100) * 100) / 100
 
       console.log(`Prix grille: ${prixTTC}€, Prix achat: ${prixAchatTTC}€, Relais chauffeur: ${coutRelaisChauffeur}€, Marge ${margePercent}%: ${prixAvantMajoration}€`)
+      console.log(`  -> TVA ${tvaRate}% (pays: ${dossier.country_code || 'FR'}), Prix HT: ${prixHT}€, Prix TTC: ${prixTTCAvecMarge}€`)
       if (majorationRegionDecimal > 0) {
         console.log(`  -> Avec majoration région +${majorationInfo.majorationPercent}%: ${prixTTCAvecMarge}€ TTC`)
       }
@@ -1099,6 +1129,8 @@ Deno.serve(async (req) => {
           prix_avant_majoration: prixAvantMajoration,
           prix_final_ttc: prixTTCAvecMarge,
           prix_final_ht: prixHT,
+          tva_rate: tvaRate,
+          country_code: dossier.country_code || 'FR',
         })
         continue
       }
@@ -1115,7 +1147,7 @@ Deno.serve(async (req) => {
           price_ht: prixHT,
           price_ttc: prixTTCAvecMarge,
           price_achat_ttc: prixAchatTTC,
-          tva_rate: 10,
+          tva_rate: tvaRate,
           km: km.toString(),
           vehicle_type: vehicleType,
           nombre_cars: nombreCars,

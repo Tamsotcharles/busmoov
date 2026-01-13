@@ -6,6 +6,9 @@ import { supabase } from '@/lib/supabase'
 import { useCompanySettings } from '@/hooks/useSupabase'
 import { formatDate, formatPrice } from '@/lib/utils'
 import { Modal } from '@/components/ui/Modal'
+import { useTranslation } from 'react-i18next'
+import { useLocalizedPath } from '@/components/i18n'
+import { useCurrentCountry } from '@/hooks/useCountrySettings'
 
 interface DossierData {
   id: string
@@ -33,6 +36,9 @@ interface CGV {
 }
 
 export function RecapitulatifPage() {
+  const { t } = useTranslation()
+  const localizedPath = useLocalizedPath()
+  const { data: country } = useCurrentCountry()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const ref = searchParams.get('ref')
@@ -81,7 +87,7 @@ export function RecapitulatifPage() {
 
   const loadDossier = async () => {
     if (!ref || !email) {
-      setError('Paramètres manquants')
+      setError(t('recapitulatif.missingParams'))
       setLoading(false)
       return
     }
@@ -97,7 +103,7 @@ export function RecapitulatifPage() {
       if (error) throw error
       setDossier(data)
     } catch (err) {
-      setError('Dossier introuvable')
+      setError(t('recapitulatif.notFound'))
     } finally {
       setLoading(false)
     }
@@ -106,7 +112,7 @@ export function RecapitulatifPage() {
   const handlePayment = async () => {
     if (!dossier) return
     if (!acceptCGV) {
-      alert('Veuillez accepter les Conditions Générales de Vente pour continuer.')
+      alert(t('recapitulatif.alertAcceptCGV'))
       return
     }
 
@@ -129,13 +135,13 @@ export function RecapitulatifPage() {
       await new Promise(resolve => setTimeout(resolve, 2000))
 
       // Paiement gere via PayTweak dans PaymentPage.tsx
-      alert('Paiement simule avec succes ! Redirection vers la page de paiement.')
+      alert(t('recapitulatif.paymentSuccess'))
 
       // Redirect to dashboard
-      navigate(`/mes-devis?ref=${ref}&email=${encodeURIComponent(email || '')}`)
+      navigate(`${localizedPath('/mes-devis')}?ref=${ref}&email=${encodeURIComponent(email || '')}`)
     } catch (err) {
       console.error('Erreur lors du paiement:', err)
-      alert('Une erreur est survenue. Veuillez réessayer.')
+      alert(t('recapitulatif.paymentError'))
     } finally {
       setProcessing(false)
     }
@@ -146,7 +152,7 @@ export function RecapitulatifPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-magenta border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500">Chargement...</p>
+          <p className="text-gray-500">{t('recapitulatif.loading')}</p>
         </div>
       </div>
     )
@@ -158,11 +164,11 @@ export function RecapitulatifPage() {
         <div className="max-w-md mx-auto text-center">
           <div className="text-6xl mb-6">🔍</div>
           <h2 className="font-display text-2xl font-bold text-purple-dark mb-2">
-            Dossier introuvable
+            {t('recapitulatif.notFound')}
           </h2>
           <p className="text-gray-500 mb-6">{error}</p>
-          <Link to="/" className="btn btn-primary">
-            Retour à l'accueil
+          <Link to={localizedPath('/')} className="btn btn-primary">
+            {t('recapitulatif.backToHome')}
           </Link>
         </div>
       </div>
@@ -177,14 +183,14 @@ export function RecapitulatifPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 py-4 px-6 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to={localizedPath('/')} className="flex items-center gap-3">
             <img src="/logo-icon.svg" alt="Busmoov" className="w-10 h-10" />
             <span className="font-display text-xl font-bold gradient-text">Busmoov</span>
           </Link>
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-2 text-emerald-600">
               <Shield size={16} />
-              <span>Paiement sécurisé</span>
+              <span>{t('recapitulatif.securePayment')}</span>
             </div>
           </div>
         </div>
@@ -193,11 +199,11 @@ export function RecapitulatifPage() {
       <div className="max-w-6xl mx-auto py-8 px-4">
         {/* Back button */}
         <Link
-          to={`/mes-devis?ref=${ref}&email=${encodeURIComponent(email || '')}`}
+          to={`${localizedPath('/mes-devis')}?ref=${ref}&email=${encodeURIComponent(email || '')}`}
           className="inline-flex items-center gap-2 text-gray-600 hover:text-purple mb-6"
         >
           <ArrowLeft size={18} />
-          Retour à mes devis
+          {t('recapitulatif.backToQuotes')}
         </Link>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -205,7 +211,7 @@ export function RecapitulatifPage() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl p-6 shadow-sm sticky top-24">
               <h2 className="font-display text-lg font-bold text-purple-dark mb-6">
-                Récapitulatif de votre location
+                {t('recapitulatif.summaryTitle')}
               </h2>
 
               {/* Vehicle type */}
@@ -214,8 +220,8 @@ export function RecapitulatifPage() {
                   🚌
                 </div>
                 <div>
-                  <p className="font-semibold text-purple-dark">Autocar Tourisme 53-63</p>
-                  <p className="text-sm text-gray-500">{formatPrice(dossier.price_ttc || 0)} TTC</p>
+                  <p className="font-semibold text-purple-dark">{t('recapitulatif.autocarTourisme')}</p>
+                  <p className="text-sm text-gray-500">{formatPrice(dossier.price_ttc || 0)} {t('recapitulatif.ttc')}</p>
                 </div>
               </div>
 
@@ -224,25 +230,25 @@ export function RecapitulatifPage() {
                 <div className="flex items-start gap-3">
                   <MapPin size={18} className="text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-500">Trajet</p>
+                    <p className="text-sm text-gray-500">{t('recapitulatif.route')}</p>
                     <p className="font-medium">{dossier.departure} → {dossier.arrival}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Calendar size={18} className="text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-500">Date</p>
+                    <p className="text-sm text-gray-500">{t('recapitulatif.date')}</p>
                     <p className="font-medium">{formatDate(dossier.departure_date)}</p>
                     {dossier.return_date && (
-                      <p className="text-sm text-gray-500">Retour: {formatDate(dossier.return_date)}</p>
+                      <p className="text-sm text-gray-500">{t('recapitulatif.returnLabel')}: {formatDate(dossier.return_date)}</p>
                     )}
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Users size={18} className="text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-sm text-gray-500">Passagers</p>
-                    <p className="font-medium">{dossier.passengers} personnes</p>
+                    <p className="text-sm text-gray-500">{t('recapitulatif.passengers')}</p>
+                    <p className="font-medium">{dossier.passengers} {t('recapitulatif.passengersUnit')}</p>
                   </div>
                 </div>
               </div>
@@ -250,16 +256,16 @@ export function RecapitulatifPage() {
               {/* Total */}
               <div className="bg-gray-50 rounded-xl p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-gray-600">Prix total TTC</span>
+                  <span className="text-gray-600">{t('recapitulatif.totalPriceTTC')}</span>
                   <span className="font-bold text-purple-dark">{formatPrice(dossier.price_ttc || 0)}</span>
                 </div>
                 <div className="flex justify-between items-center text-magenta">
-                  <span className="font-medium">Acompte (30%)</span>
+                  <span className="font-medium">{t('recapitulatif.deposit30')}</span>
                   <span className="text-xl font-bold">{formatPrice(acompte)}</span>
                 </div>
                 {acceptPrevoyance && (
                   <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-200 text-sm">
-                    <span>Contrat prévoyance</span>
+                    <span>{t('recapitulatif.prevoyanceContract')}</span>
                     <span className="font-medium">+{formatPrice(prevoyancePrice)}</span>
                   </div>
                 )}
@@ -278,19 +284,18 @@ export function RecapitulatifPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="font-display text-lg font-bold text-teal-700">
-                      Contrat Prévoyance « Sérénité »
+                      {t('recapitulatif.prevoyanceTitle')}
                     </h3>
                     <span className="px-2 py-0.5 bg-teal-100 text-teal-700 text-xs font-medium rounded-full">
-                      Recommandé
+                      {t('recapitulatif.recommended')}
                     </span>
                   </div>
                   <p className="text-gray-600 mb-4">
-                    Réservez l'esprit tranquille grâce à notre contrat « sérénité ».
-                    Bénéficiez d'une annulation* jusqu'à 14 jours avant le départ sans aucun motif requis.
+                    {t('recapitulatif.prevoyanceDescription')}
                   </p>
                   <div className="text-sm text-gray-500 mb-4">
-                    <p>Tarif du contrat : <strong className="text-teal-600">{formatPrice(prevoyancePrice)} TTC</strong> au lieu de 69€ TTC.</p>
-                    <p className="text-xs mt-1">*En cas d'annulation, une franchise de 5% du montant de la réservation sera retenue en plus des frais de souscription du contrat prévoyance « sérénité ».</p>
+                    <p>{t('recapitulatif.prevoyancePrice')} <strong className="text-teal-600">{formatPrice(prevoyancePrice)} {t('recapitulatif.ttc')}</strong> {t('recapitulatif.prevoyanceInsteadOf')}</p>
+                    <p className="text-xs mt-1">{t('recapitulatif.prevoyanceNote')}</p>
                   </div>
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
@@ -300,7 +305,7 @@ export function RecapitulatifPage() {
                       className="w-5 h-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
                     />
                     <span className="text-sm font-medium text-gray-700">
-                      Cochez cette case pour bénéficier du contrat prévoyance « sérénité »
+                      {t('recapitulatif.prevoyanceCheckbox')}
                     </span>
                   </label>
                 </div>
@@ -310,10 +315,10 @@ export function RecapitulatifPage() {
             {/* Payment Method */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <h3 className="font-display text-lg font-bold text-purple-dark mb-4">
-                Payez 30% aujourd'hui pour finaliser votre commande
+                {t('recapitulatif.payToday')}
               </h3>
               <p className="text-gray-500 text-sm mb-6">
-                Un conseiller vous contactera pour le solde.
+                {t('recapitulatif.advisorContact')}
               </p>
 
               {/* Payment method tabs */}
@@ -328,7 +333,7 @@ export function RecapitulatifPage() {
                   }`}
                 >
                   <CreditCard size={20} />
-                  <span className="font-medium">Carte bancaire</span>
+                  <span className="font-medium">{t('recapitulatif.creditCard')}</span>
                 </button>
                 <button
                   type="button"
@@ -340,14 +345,14 @@ export function RecapitulatifPage() {
                   }`}
                 >
                   <Building size={20} />
-                  <span className="font-medium">Virement</span>
+                  <span className="font-medium">{t('recapitulatif.bankTransfer')}</span>
                 </button>
               </div>
 
               {paymentMethod === 'cb' ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="label">Numéro de carte</label>
+                    <label className="label">{t('recapitulatif.cardNumber')}</label>
                     <input
                       type="text"
                       value={cardNumber}
@@ -359,7 +364,7 @@ export function RecapitulatifPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="label">Date d'expiration</label>
+                      <label className="label">{t('recapitulatif.expiryDate')}</label>
                       <input
                         type="text"
                         value={cardExpiry}
@@ -374,7 +379,7 @@ export function RecapitulatifPage() {
                       />
                     </div>
                     <div>
-                      <label className="label">Code de sécurité</label>
+                      <label className="label">{t('recapitulatif.securityCode')}</label>
                       <input
                         type="text"
                         value={cardCvc}
@@ -396,7 +401,7 @@ export function RecapitulatifPage() {
                         className="w-5 h-5 rounded border-gray-300 text-purple focus:ring-purple mt-0.5"
                       />
                       <span className="text-sm text-gray-600">
-                        J'ai lu et j'accepte les{' '}
+                        {t('recapitulatif.acceptCGVPrefix')}{' '}
                         <button
                           type="button"
                           onClick={(e) => {
@@ -405,7 +410,7 @@ export function RecapitulatifPage() {
                           }}
                           className="text-purple font-medium hover:underline inline-flex items-center gap-1"
                         >
-                          Conditions Générales de Vente
+                          {t('recapitulatif.cgvLink')}
                           <ExternalLink size={12} />
                         </button>
                         {cgv && <span className="text-gray-400 text-xs ml-1">(v{cgv.version})</span>}
@@ -421,12 +426,12 @@ export function RecapitulatifPage() {
                     {processing ? (
                       <>
                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Traitement en cours...
+                        {t('recapitulatif.processing')}
                       </>
                     ) : (
                       <>
                         <Check size={20} />
-                        Payer {formatPrice(acompte + (acceptPrevoyance ? prevoyancePrice : 0))}
+                        {t('recapitulatif.pay')} {formatPrice(acompte + (acceptPrevoyance ? prevoyancePrice : 0))}
                       </>
                     )}
                   </button>
@@ -434,15 +439,15 @@ export function RecapitulatifPage() {
               ) : (
                 <div className="space-y-4">
                   <div className="bg-blue-50 rounded-xl p-6">
-                    <h4 className="font-semibold text-blue-800 mb-3">Coordonnées bancaires</h4>
+                    <h4 className="font-semibold text-blue-800 mb-3">{t('recapitulatif.bankDetails')}</h4>
                     <div className="space-y-2 text-sm">
-                      <p><span className="text-gray-500">IBAN:</span> <span className="font-mono font-medium">FR76 XXXX XXXX XXXX XXXX XXXX XXX</span></p>
-                      <p><span className="text-gray-500">BIC:</span> <span className="font-mono font-medium">BNPAFRPP</span></p>
-                      <p><span className="text-gray-500">Référence:</span> <span className="font-medium text-purple">{dossier.reference}</span></p>
-                      <p><span className="text-gray-500">Montant:</span> <span className="font-bold text-magenta">{formatPrice(acompte + (acceptPrevoyance ? prevoyancePrice : 0))}</span></p>
+                      <p><span className="text-gray-500">{t('recapitulatif.iban')}</span> <span className="font-mono font-medium">{country?.bankIban || 'FR76 XXXX XXXX XXXX XXXX XXXX XXX'}</span></p>
+                      <p><span className="text-gray-500">{t('recapitulatif.bic')}</span> <span className="font-mono font-medium">{country?.bankBic || 'BNPAFRPPXXX'}</span></p>
+                      <p><span className="text-gray-500">{t('recapitulatif.referenceLabel')}</span> <span className="font-medium text-purple">{dossier.reference}</span></p>
+                      <p><span className="text-gray-500">{t('recapitulatif.amountLabel')}</span> <span className="font-bold text-magenta">{formatPrice(acompte + (acceptPrevoyance ? prevoyancePrice : 0))}</span></p>
                     </div>
                     <p className="text-xs text-blue-600 mt-4">
-                      Votre réservation sera confirmée dès réception du virement (2-3 jours ouvrés).
+                      {t('recapitulatif.transferConfirmation')}
                     </p>
                   </div>
 
@@ -456,7 +461,7 @@ export function RecapitulatifPage() {
                         className="w-5 h-5 rounded border-gray-300 text-purple focus:ring-purple mt-0.5"
                       />
                       <span className="text-sm text-gray-600">
-                        J'ai lu et j'accepte les{' '}
+                        {t('recapitulatif.acceptCGVPrefix')}{' '}
                         <button
                           type="button"
                           onClick={(e) => {
@@ -465,7 +470,7 @@ export function RecapitulatifPage() {
                           }}
                           className="text-purple font-medium hover:underline inline-flex items-center gap-1"
                         >
-                          Conditions Générales de Vente
+                          {t('recapitulatif.cgvLink')}
                           <ExternalLink size={12} />
                         </button>
                         {cgv && <span className="text-gray-400 text-xs ml-1">(v{cgv.version})</span>}
@@ -479,11 +484,11 @@ export function RecapitulatifPage() {
               <div className="flex items-center justify-center gap-6 mt-6 pt-6 border-t border-gray-100">
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <Shield size={16} className="text-emerald-500" />
-                  Paiement sécurisé
+                  {t('recapitulatif.securePaymentBadge')}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <Check size={16} className="text-emerald-500" />
-                  SSL 256 bits
+                  {t('recapitulatif.ssl256')}
                 </div>
               </div>
             </div>
@@ -495,11 +500,11 @@ export function RecapitulatifPage() {
                   <Phone size={20} className="text-white" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-purple-dark mb-1">Besoin d'aide pour réserver ?</h4>
+                  <h4 className="font-semibold text-purple-dark mb-1">{t('recapitulatif.needHelp')}</h4>
                   <p className="text-sm text-gray-600 mb-2">
-                    Nos conseillers sont disponibles par téléphone pour vous aider à planifier votre voyage et à finaliser votre réservation.
+                    {t('recapitulatif.advisorAvailable')}
                   </p>
-                  <p className="text-lg font-bold text-magenta">{companySettings?.phone || '01 76 31 12 83'}</p>
+                  <p className="text-lg font-bold text-magenta">{country?.phoneDisplay || companySettings?.phone || '01 76 31 12 83'}</p>
                 </div>
               </div>
             </div>
@@ -511,7 +516,7 @@ export function RecapitulatifPage() {
       <Modal
         isOpen={showCGVModal}
         onClose={() => setShowCGVModal(false)}
-        title={cgv?.title || 'Conditions Générales de Vente'}
+        title={cgv?.title || t('recapitulatif.cgvLink')}
         size="xl"
       >
         <div className="max-h-[70vh] overflow-y-auto">
@@ -529,12 +534,12 @@ export function RecapitulatifPage() {
                 />
               </div>
               <p className="text-xs text-gray-400 mt-6 pt-4 border-t">
-                Version {cgv.version}
+                {t('recapitulatif.version')} {cgv.version}
               </p>
             </div>
           ) : (
             <p className="text-gray-500 text-center py-8">
-              Chargement des CGV...
+              {t('recapitulatif.loadingCGV')}
             </p>
           )}
         </div>
@@ -547,14 +552,14 @@ export function RecapitulatifPage() {
               className="w-5 h-5 rounded border-gray-300 text-purple focus:ring-purple"
             />
             <span className="text-sm font-medium text-gray-700">
-              J'accepte les CGV
+              {t('recapitulatif.acceptCGV')}
             </span>
           </label>
           <button
             onClick={() => setShowCGVModal(false)}
             className="btn btn-primary"
           >
-            {acceptCGV ? 'Continuer' : 'Fermer'}
+            {acceptCGV ? t('recapitulatif.continue') : t('recapitulatif.close')}
           </button>
         </div>
       </Modal>
