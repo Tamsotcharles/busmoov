@@ -126,6 +126,38 @@ export function TestRunnerPage() {
         .single()
 
       if (error) throw error
+
+      // Créer l'entrée auto-devis pour ce dossier (comme le fait useCreateDemande)
+      try {
+        const { data: defaultWorkflow } = await supabase
+          .from('workflow_devis_auto')
+          .select('id, steps')
+          .eq('is_default', true)
+          .eq('is_active', true)
+          .single()
+
+        if (defaultWorkflow) {
+          const steps = defaultWorkflow.steps as { delay_hours: number }[]
+          const firstStepDelay = steps?.[0]?.delay_hours || 0
+          const nextDevisAt = new Date(Date.now() + firstStepDelay * 60 * 60 * 1000).toISOString()
+
+          await supabase
+            .from('dossiers_auto_devis')
+            .insert({
+              dossier_id: data.id,
+              workflow_id: defaultWorkflow.id,
+              is_active: true,
+              current_step: 0,
+              next_devis_at: nextDevisAt,
+              devis_generes: [],
+              started_at: new Date().toISOString(),
+            })
+        }
+      } catch (autoDevisError) {
+        console.error('Erreur création auto-devis pour test:', autoDevisError)
+        // Ne pas bloquer si l'auto-devis échoue
+      }
+
       return data
     })
 
@@ -1025,6 +1057,36 @@ export function TestRunnerPage() {
         .single()
 
       if (error) throw error
+
+      // Créer l'entrée auto-devis pour ce dossier (comme le fait useCreateDemande)
+      try {
+        const { data: defaultWorkflow } = await supabase
+          .from('workflow_devis_auto')
+          .select('id, steps')
+          .eq('is_default', true)
+          .eq('is_active', true)
+          .single()
+
+        if (defaultWorkflow) {
+          const steps = defaultWorkflow.steps as { delay_hours: number }[]
+          const firstStepDelay = steps?.[0]?.delay_hours || 0
+          const nextDevisAt = new Date(Date.now() + firstStepDelay * 60 * 60 * 1000).toISOString()
+
+          await supabase
+            .from('dossiers_auto_devis')
+            .insert({
+              dossier_id: data.id,
+              workflow_id: defaultWorkflow.id,
+              is_active: true,
+              current_step: 0,
+              next_devis_at: nextDevisAt,
+              devis_generes: [],
+              started_at: new Date().toISOString(),
+            })
+        }
+      } catch (autoDevisError) {
+        console.error('Erreur création auto-devis pour test multi-cars:', autoDevisError)
+      }
 
       // Calculer le nombre de cars attendu
       const expectedCars = calculateNumberOfCars(passengers, 'standard')
