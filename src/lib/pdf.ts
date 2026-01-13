@@ -2732,6 +2732,312 @@ export async function generateFacturePDF(facture: FactureData, lang: string = 'f
   doc.save(`${prefix}_${facture.reference}.pdf`)
 }
 
+// Version qui retourne le PDF en base64 pour envoi par email
+export async function generateFacturePDFBase64(facture: FactureData, lang: string = 'fr'): Promise<{ base64: string; filename: string }> {
+  // Récupérer les infos pays basées sur country_code
+  const countryCode = facture.country_code || 'FR'
+  const countryInfo = await getCountryInfo(countryCode)
+
+  // Déterminer la langue à partir du pays si non spécifiée
+  const effectiveLang = lang || (countryCode === 'DE' ? 'de' : countryCode === 'ES' ? 'es' : countryCode === 'GB' ? 'en' : 'fr')
+
+  const COMPANY_INFO = await getCompanyInfo(countryCode)
+  const t = getPdfTranslations(effectiveLang)
+  const doc = new jsPDF({
+    format: 'a4',
+    orientation: 'portrait'
+  })
+  const pageWidth = doc.internal.pageSize.getWidth()
+  // Utiliser le taux TVA du pays (prioritaire pour garantir le bon taux légal), sinon celui de la facture
+  const tvaRate = countryInfo.vatRate ?? facture.tva_rate ?? 10
+  const vatLabel = countryInfo.vatLabel || t.vatRate
+  const tvaAmount = facture.amount_ttc - facture.amount_ht
+
+  // Couleurs Busmoov
+  const purpleDark = '#582C87'
+  const magenta = '#E91E8C'
+
+  // Déterminer le type de document
+  const isAvoir = facture.type === 'avoir'
+  const docTitle = isAvoir ? t.creditNote : t.invoice
+  const titleColor = isAvoir ? '#b42828' : purpleDark
+
+  // Récupérer nombre de cars et chauffeurs
+  const nombreCars = facture.nombre_cars || facture.dossier?.nombre_cars || 1
+  const nombreChauffeurs = facture.nombre_chauffeurs || facture.dossier?.nombre_chauffeurs || 1
+
+  // ========== HEADER - Logo grand à gauche ==========
+  await addLogoToPdf(doc, 15, 10, 50, 11)
+
+  // Infos émetteur à droite
+  let ey = 15
+  doc.setFontSize(9)
+  doc.setTextColor(60, 60, 60)
+  doc.setFont('helvetica', 'bold')
+  doc.text(COMPANY_INFO.legalName, pageWidth - 15, ey, { align: 'right' })
+  ey += 5
+  doc.setFont('helvetica', 'normal')
+  doc.text(COMPANY_INFO.address, pageWidth - 15, ey, { align: 'right' })
+  ey += 4
+  doc.text(COMPANY_INFO.zipCity, pageWidth - 15, ey, { align: 'right' })
+  ey += 4
+  doc.text(`Tél: ${COMPANY_INFO.phone}`, pageWidth - 15, ey, { align: 'right' })
+  ey += 4
+  doc.text(COMPANY_INFO.email, pageWidth - 15, ey, { align: 'right' })
+  ey += 4
+  doc.setFontSize(8)
+  doc.setTextColor(100, 100, 100)
+  doc.text(`SIRET: ${COMPANY_INFO.siret}`, pageWidth - 15, ey, { align: 'right' })
+  ey += 4
+  doc.text(`TVA: ${COMPANY_INFO.tvaIntracom}`, pageWidth - 15, ey, { align: 'right' })
+
+  // ========== TITRE FACTURE/AVOIR ==========
+  let y = 55
+  const titleRgb = hexToRgb(titleColor)
+  doc.setFontSize(22)
+  doc.setTextColor(titleRgb?.r || 88, titleRgb?.g || 44, titleRgb?.b || 135)
+  doc.setFont('helvetica', 'bold')
+
+  // Titre avec type de facture
+  if (!isAvoir) {
+    const typeLabel = facture.type === 'acompte' ? t.invoiceDeposit : t.invoiceBalance
+    doc.text(`${docTitle} ${typeLabel}`, 15, y)
+  } else {
+    doc.text(docTitle, 15, y)
+  }
+
+  // Références
+  y += 8
+  doc.setFontSize(10)
+  doc.setTextColor(60, 60, 60)
+  doc.setFont('helvetica', 'normal')
+  doc.text(`${t.number} ${facture.reference}`, 15, y)
+  doc.text(`${t.date} : ${formatDateLocalized(facture.created_at || new Date().toISOString(), effectiveLang)}`, 80, y)
+  if (facture.dossier?.reference) {
+    doc.text(`${t.dossier} : ${facture.dossier.reference}`, 140, y)
+  }
+
+  // ========== BLOC CLIENT ==========
+  y += 12
+  // Cadre client avec bordure
+  const clientBorderColor = hexToRgb(titleColor)
+  doc.setDrawColor(clientBorderColor?.r || 88, clientBorderColor?.g || 44, clientBorderColor?.b || 135)
+  doc.setLineWidth(0.5)
+  doc.rect(15, y, 85, 32)
+
+  // Header du bloc client
+  drawRect(doc, 15, y, 85, 8, titleColor)
+  doc.setFontSize(10)
+  doc.setTextColor(255, 255, 255)
+  doc.setFont('helvetica', 'bold')
+  doc.text(t.billedTo, 20, y + 5.5)
+
+  // Contenu client
+  let cy = y + 14
+  doc.setFontSize(9)
+  doc.setTextColor(0, 0, 0)
+  doc.setFont('helvetica', 'normal')
+  const clientName = facture.client_name || facture.dossier?.client_name || '-'
+  doc.setFont('helvetica', 'bold')
+  doc.text(clientName, 20, cy)
+  cy += 5
+  doc.setFont('helvetica', 'normal')
+  if (facture.client_address) {
+    doc.text(facture.client_address, 20, cy)
+    cy += 5
+  }
+  if (facture.client_zip || facture.client_city) {
+    doc.text(`${facture.client_zip || ''} ${facture.client_city || ''}`.trim(), 20, cy)
+  }
+
+  // ========== SECTION PRESTATION (tableau) ==========
+  y += 42
+
+  // Header Prestation
+  drawRect(doc, 15, y, pageWidth - 30, 8, titleColor)
+  doc.setFontSize(10)
+  doc.setTextColor(255, 255, 255)
+  doc.setFont('helvetica', 'bold')
+  doc.text(t.prestation, 20, y + 5.5)
+
+  y += 14
+
+  // Type de facture (Acompte / Solde / Avoir)
+  const factureTypeLabel = facture.type === 'acompte' ? `${t.deposit} (30%)` : facture.type === 'solde' ? t.balance : t.creditNote
+
+  doc.setFontSize(11)
+  doc.setTextColor(233, 30, 140) // Magenta
+  doc.setFont('helvetica', 'bold')
+  doc.text(factureTypeLabel, 17, y)
+
+  y += 10
+
+  // Si on a les infos du dossier, afficher les détails du trajet
+  if (facture.dossier) {
+    // Description du trajet - Départ
+    doc.setFontSize(9)
+    doc.setTextColor(88, 44, 135) // Purple
+    doc.setFont('helvetica', 'bold')
+    doc.text(t.departurePlace, 17, y)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(0, 0, 0)
+    const departureTextFact = facture.dossier.departure || '-'
+    const departureLinesFacture = doc.splitTextToSize(departureTextFact, 80)
+    doc.text(departureLinesFacture, 45, y)
+    y += departureLinesFacture.length * 4 + 4
+
+    // Description du trajet - Arrivée
+    doc.setTextColor(88, 44, 135) // Purple
+    doc.setFont('helvetica', 'bold')
+    doc.text(t.destinationPlace, 17, y)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(0, 0, 0)
+    const arrivalTextFact = facture.dossier.arrival || '-'
+    const arrivalLinesFacture = doc.splitTextToSize(arrivalTextFact, 80)
+    doc.text(arrivalLinesFacture, 45, y)
+    y += arrivalLinesFacture.length * 4 + 4
+
+    // Date du voyage
+    if (facture.dossier.departure_date) {
+      doc.setTextColor(88, 44, 135) // Purple
+      doc.setFont('helvetica', 'bold')
+      doc.text(t.date, 17, y)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(0, 0, 0)
+      doc.text(formatDateLocalized(facture.dossier.departure_date, effectiveLang), 45, y)
+      y += 6
+    }
+
+    // Ligne séparatrice légère
+    doc.setDrawColor(220, 220, 220)
+    doc.line(17, y, 100, y)
+    y += 5
+
+    // Informations véhicule et passagers en 2 colonnes
+    doc.setFontSize(8)
+
+    // Colonne gauche
+    doc.setTextColor(100, 100, 100)
+    doc.text(t.passengers, 17, y)
+    doc.setTextColor(0, 0, 0)
+    doc.text(`${facture.dossier.passengers || '-'} ${t.persons}`, 50, y)
+
+    // Colonne droite
+    doc.setTextColor(100, 100, 100)
+    doc.text(t.vehicle, 100, y)
+    doc.setTextColor(0, 0, 0)
+    doc.text(`${nombreCars} ${t.coach}${nombreCars > 1 ? 's' : ''}`, 130, y)
+
+    y += 5
+    doc.setTextColor(100, 100, 100)
+    doc.text(t.drivers, 100, y)
+    doc.setTextColor(0, 0, 0)
+    doc.text(`${nombreChauffeurs}`, 130, y)
+
+    y += 8
+  }
+
+  // ========== TABLEAU DES MONTANTS ==========
+  y += 5
+
+  // Cadre du tableau avec ombre légère
+  const tableWidth = 90
+  const tableX = pageWidth - tableWidth - 15
+  const tableY = y
+
+  // Fond du tableau
+  doc.setFillColor(248, 249, 250)
+  doc.rect(tableX, tableY, tableWidth, 32, 'F')
+
+  // Bordure
+  doc.setDrawColor(200, 200, 200)
+  doc.setLineWidth(0.3)
+  doc.rect(tableX, tableY, tableWidth, 32)
+
+  // Ligne HT
+  y = tableY + 7
+  doc.setFontSize(9)
+  doc.setTextColor(100, 100, 100)
+  doc.text(t.totalHT, tableX + 5, y)
+  doc.setTextColor(0, 0, 0)
+  doc.text(`${formatAmount(facture.amount_ht)} €`, tableX + tableWidth - 5, y, { align: 'right' })
+
+  // Ligne TVA
+  y += 8
+  doc.setTextColor(100, 100, 100)
+  doc.text(`${vatLabel} (${tvaRate}%)`, tableX + 5, y)
+  doc.setTextColor(0, 0, 0)
+  doc.text(`${formatAmount(tvaAmount)} €`, tableX + tableWidth - 5, y, { align: 'right' })
+
+  // Ligne de séparation avant total
+  y += 4
+  doc.setDrawColor(150, 150, 150)
+  doc.line(tableX + 5, y, tableX + tableWidth - 5, y)
+
+  // Total TTC - plus grand et en couleur
+  y += 9
+  const amountRgb = hexToRgb(isAvoir ? '#b42828' : magenta)
+  doc.setFontSize(12)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(amountRgb?.r || 233, amountRgb?.g || 30, amountRgb?.b || 140)
+  doc.text(t.totalTTC, tableX + 5, y)
+  doc.text(`${formatAmount(Math.abs(facture.amount_ttc))} €`, tableX + tableWidth - 5, y, { align: 'right' })
+
+  // Pour les avoirs, ajouter un signe négatif
+  if (isAvoir) {
+    doc.setFontSize(10)
+    doc.text('(à déduire)', tableX + 5, y + 5)
+  }
+
+  // ========== INFORMATIONS DE PAIEMENT (sauf pour avoir) ==========
+  if (!isAvoir) {
+    y = tableY + 50
+    // Cadre paiement
+    doc.setDrawColor(88, 44, 135)
+    doc.setLineWidth(0.5)
+    doc.rect(15, y, pageWidth - 30, 30)
+
+    const purpleLight = '#f3e8ff'
+    drawRect(doc, 15, y, pageWidth - 30, 8, purpleLight)
+    doc.setFontSize(9)
+    doc.setTextColor(88, 44, 135)
+    doc.setFont('helvetica', 'bold')
+    doc.text(t.paymentInfo, 20, y + 5.5)
+
+    y += 14
+    doc.setFontSize(8)
+    doc.setTextColor(60, 60, 60)
+    doc.setFont('helvetica', 'normal')
+
+    doc.setFont('helvetica', 'bold')
+    doc.text(`${t.iban} :`, 20, y)
+    doc.setFont('helvetica', 'normal')
+    doc.text(COMPANY_INFO.rib.iban, 40, y)
+
+    y += 5
+    doc.setFont('helvetica', 'bold')
+    doc.text(`${t.bic} :`, 20, y)
+    doc.setFont('helvetica', 'normal')
+    doc.text(COMPANY_INFO.rib.bic, 40, y)
+
+    y += 5
+    doc.setFont('helvetica', 'bold')
+    doc.text(`${t.reference} :`, 20, y)
+    doc.setFont('helvetica', 'normal')
+    doc.text(facture.reference, 50, y)
+  }
+
+  // ========== FOOTER ==========
+  drawFooter(doc, COMPANY_INFO)
+
+  const prefix = facture.type === 'acompte' ? 'Facture_Acompte' : facture.type === 'solde' ? 'Facture_Solde' : 'Avoir'
+  const filename = `${prefix}_${facture.reference}.pdf`
+
+  // Retourner le base64 au lieu de télécharger
+  const pdfBase64 = doc.output('datauristring').split(',')[1]
+  return { base64: pdfBase64, filename }
+}
+
 // =============================================
 // FEUILLE DE ROUTE PDF (Design Compact)
 // =============================================

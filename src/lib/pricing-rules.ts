@@ -864,7 +864,8 @@ export function calculerTarifComplet(params: CalculTarifParams): CalculTarifResu
 
   const prixAvantRush = prixVehicule + supplementJoursAvecCoef + supplementMad + infosTrajet.coutRelaisChauffeur
   const majorationTotale = majorationRushManuelle + result.majorationAutoRegion
-  const prixFinal = Math.round(prixAvantRush * (1 + majorationTotale))
+  // Multiplier par le nombre de cars pour obtenir le prix total
+  const prixFinal = Math.round(prixAvantRush * (1 + majorationTotale) * nombreCars)
 
   // Warning tranche proche
   let warningTranche: CalculTarifResult['warningTranche'] = null

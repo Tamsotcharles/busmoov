@@ -126,7 +126,7 @@ import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
 import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS } from '@/lib/utils'
-import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
+import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFacturePDFBase64, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
 import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
 import { ServiceClientelePage } from '@/components/admin/ServiceClientelePage'
@@ -2864,47 +2864,30 @@ L'équipe Busmoov`,
 
       console.log('PDF généré avec succès:', pdfFilename, '(', Math.round(pdfBase64.length / 1024), 'Ko)')
 
-      // Mode simulation en développement (localhost)
-      const isDevMode = window.location.hostname === 'localhost'
-
-      if (isDevMode) {
-        // SIMULATION : afficher les détails dans la console au lieu d'envoyer
-        console.log('=== SIMULATION ENVOI EMAIL ===')
-        console.log('Destinataire:', emailForm.to)
-        console.log('Sujet:', emailForm.subject)
-        console.log('Corps:', emailForm.body)
-        console.log('Pièce jointe:', pdfFilename, '(', Math.round(pdfBase64.length / 1024), 'Ko)')
-        console.log('==============================')
-
-        // Télécharger le PDF pour vérification
-        const link = document.createElement('a')
-        link.href = `data:application/pdf;base64,${pdfBase64}`
-        link.download = pdfFilename
-        link.click()
-
-        alert(`[SIMULATION] Email qui serait envoyé à: ${emailForm.to}\nSujet: ${emailForm.subject}\n\nLe PDF a été téléchargé pour vérification.`)
-      } else {
-        // Production : envoyer l'email via l'Edge Function avec le PDF en pièce jointe
-        const { error: emailError } = await supabase.functions.invoke('send-email', {
-          body: {
-            type: 'custom',
-            to: emailForm.to,
-            subject: emailForm.subject,
-            html_content: emailForm.body.replace(/\n/g, '<br>'),
-            attachments: [
-              {
-                filename: pdfFilename,
-                content: pdfBase64,
-                contentType: 'application/pdf',
-              }
-            ],
-          }
-        })
-
-        if (emailError) {
-          console.error('Erreur envoi email:', emailError)
-          // Continuer quand même si l'email échoue
+      // Envoyer l'email via l'Edge Function avec le PDF en pièce jointe
+      const { error: emailError } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'custom',
+          to: emailForm.to,
+          subject: emailForm.subject,
+          html_content: emailForm.body.replace(/\n/g, '<br>'),
+          data: {
+            dossier_id: dossier.id,
+            language: 'fr', // Emails fournisseurs toujours en français
+          },
+          attachments: [
+            {
+              filename: pdfFilename,
+              content: pdfBase64,
+              contentType: 'application/pdf',
+            }
+          ],
         }
+      })
+
+      if (emailError) {
+        console.error('Erreur envoi email:', emailError)
+        // Continuer quand même si l'email échoue
       }
 
       const now = new Date().toISOString()
@@ -3983,49 +3966,29 @@ L'équipe Busmoov`,
       const pdfLangFeuilleRoute = countryCodeFeuilleRoute === 'DE' ? 'de' : countryCodeFeuilleRoute === 'ES' ? 'es' : countryCodeFeuilleRoute === 'GB' ? 'en' : 'fr'
       const { base64: pdfBase64, filename: pdfFilename } = await generateFeuilleRoutePDFBase64(pdfData, pdfLangFeuilleRoute)
 
-      // Mode simulation en développement (localhost)
-      const isDevMode = window.location.hostname === 'localhost'
-
-      if (isDevMode) {
-        // SIMULATION : afficher les détails dans la console au lieu d'envoyer
-        console.log('=== SIMULATION ENVOI FEUILLE DE ROUTE ===')
-        console.log('Destinataire:', feuilleRouteEmailForm.to)
-        console.log('Sujet:', feuilleRouteEmailForm.subject)
-        console.log('Corps:', feuilleRouteEmailForm.body)
-        console.log('Pièce jointe:', pdfFilename, '(', Math.round(pdfBase64.length / 1024), 'Ko)')
-        console.log('==========================================')
-
-        // Télécharger le PDF pour vérification
-        const link = document.createElement('a')
-        link.href = `data:application/pdf;base64,${pdfBase64}`
-        link.download = pdfFilename
-        link.click()
-
-        alert(`[SIMULATION] Feuille de route qui serait envoyée à: ${feuilleRouteEmailForm.to}\nSujet: ${feuilleRouteEmailForm.subject}\n\nLe PDF a été téléchargé pour vérification.`)
-      } else {
-        // Production : envoyer l'email via l'Edge Function avec le PDF en pièce jointe
-        const { error: emailError } = await supabase.functions.invoke('send-email', {
-          body: {
-            type: 'custom',
-            to: feuilleRouteEmailForm.to,
-            subject: feuilleRouteEmailForm.subject,
-            html_content: feuilleRouteEmailForm.body.replace(/\n/g, '<br>'),
-            data: {
-              dossier_id: dossier.id,
-            },
-            attachments: [
-              {
-                filename: pdfFilename,
-                content: pdfBase64,
-                contentType: 'application/pdf',
-              }
-            ],
-          }
-        })
-
-        if (emailError) {
-          console.error('Erreur envoi email:', emailError)
+      // Envoyer l'email via l'Edge Function avec le PDF en pièce jointe
+      const { error: emailError } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'custom',
+          to: feuilleRouteEmailForm.to,
+          subject: feuilleRouteEmailForm.subject,
+          html_content: feuilleRouteEmailForm.body.replace(/\n/g, '<br>'),
+          data: {
+            dossier_id: dossier.id,
+            language: pdfLangFeuilleRoute, // Langue selon le pays du dossier
+          },
+          attachments: [
+            {
+              filename: pdfFilename,
+              content: pdfBase64,
+              contentType: 'application/pdf',
+            }
+          ],
         }
+      })
+
+      if (emailError) {
+        console.error('Erreur envoi email:', emailError)
       }
 
       // Marquer la feuille de route comme envoyée
@@ -15729,11 +15692,8 @@ function FacturesPage() {
         facture_acompte: factureAcompte,
       }, pdfLangNewFacture)
 
-      // Envoyer par email si demandé
-      if (factureForm.sendEmail && selectedDossier.client_email) {
-        // TODO: Implémenter l'envoi d'email via Edge Function
-        console.log('Email sera envoyé à:', selectedDossier.client_email)
-      }
+      // Note: L'envoi par email se fait via le bouton "Envoyer" sur la facture générée
+      // car il faut d'abord générer le PDF en base64 pour l'attacher à l'email
 
       // Recharger les données
       loadFactures()
@@ -15870,14 +15830,19 @@ L'équipe Busmoov`,
 
   // Envoyer la facture par email
   const handleSendFactureEmail = async () => {
-    if (!envoiFactureForm.to || !envoiFactureForm.subject || !envoiFactureForm.body) {
+    if (!envoiFactureForm.to || !envoiFactureForm.subject || !envoiFactureForm.body || !selectedFactureForEmail) {
       alert('Veuillez remplir tous les champs')
       return
     }
 
     setSendingEmail(true)
     try {
-      // Envoyer l'email via l'Edge Function
+      // Générer le PDF en base64
+      const countryCode = selectedFactureForEmail.country_code || selectedFactureForEmail.dossier?.country_code || 'FR'
+      const pdfLang = countryCode === 'DE' ? 'de' : countryCode === 'ES' ? 'es' : countryCode === 'GB' ? 'en' : 'fr'
+      const { base64: pdfBase64, filename: pdfFilename } = await generateFacturePDFBase64(selectedFactureForEmail, pdfLang)
+
+      // Envoyer l'email via l'Edge Function avec le PDF en pièce jointe
       const { error: emailError } = await supabase.functions.invoke('send-email', {
         body: {
           type: 'custom',
@@ -15886,7 +15851,15 @@ L'équipe Busmoov`,
           html_content: envoiFactureForm.body.replace(/\n/g, '<br>'),
           data: {
             dossier_id: selectedFactureForEmail?.dossier?.id || null,
+            language: pdfLang,
           },
+          attachments: [
+            {
+              filename: pdfFilename,
+              content: pdfBase64,
+              contentType: 'application/pdf',
+            }
+          ],
         }
       })
 
