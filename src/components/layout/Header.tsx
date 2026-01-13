@@ -17,7 +17,7 @@ const languages: { code: SupportedLanguage; flag: string; name: string }[] = [
   { code: 'en', flag: '🇬🇧', name: 'EN' },
 ]
 
-export function Header({ showAdminLink = true }: HeaderProps) {
+export function Header({ showAdminLink = false }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
   const langMenuDesktopRef = useRef<HTMLDivElement>(null)
