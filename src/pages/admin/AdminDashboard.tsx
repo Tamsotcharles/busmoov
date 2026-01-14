@@ -10197,8 +10197,8 @@ function NewDevisModal({
         calculateRouteInfo(dossier.departure, dossier.arrival)
           .then((routeInfo) => {
             if (routeInfo) {
-              // Calculer nombre de cars selon passagers
-              const nbCars = calculateNumberOfCars(dossier.passengers || 1, dossier.vehicle_type || 'standard')
+              // Calculer nombre de cars selon passagers et le type de véhicule auto-déterminé
+              const nbCars = calculateNumberOfCars(dossier.passengers || 1, autoVehicleType)
 
               // Déterminer si c'est un AR le même jour
               let isSameDay = false

@@ -513,8 +513,12 @@ export function MesDevisPage() {
               calculatePriceEstimate(info.distance)
 
               // Calcul local du nombre de cars (estimation avant réponse API)
-              // Utilise la fonction utilitaire qui gère la règle > 90 pax
-              const nbCars = calculateNumberOfCars(passengers)
+              // Pour ≤ 90 pax: 1 car suffit (on choisit le bon type de véhicule)
+              // Pour > 90 pax: plusieurs cars de 53 places
+              let nbCars = 1
+              if (passengers > 90) {
+                nbCars = Math.ceil(passengers / 53)
+              }
 
               // Déterminer si c'est un AR le même jour
               const departureDate = data.dossier?.departure_date || data.demande?.departure_date

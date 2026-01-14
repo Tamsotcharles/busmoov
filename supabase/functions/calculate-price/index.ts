@@ -579,40 +579,42 @@ async function calculerTarif(
         supplementHorsCadre = kmHorsCadre * T.PRIX_KM_SUPPLEMENTAIRE * 2;
       }
 
-      if (tranche) {
-        const supplementParJour = Number(tranche.supplement_jour) || T.SUPPLEMENT_JOUR_SANS_MAD;
+      if (!tranche) {
+        return { erreur: `Pas de tarif AR sans MAD trouvé pour ${distanceKm} km` };
+      }
 
-        if (nbJours > 6) {
-          joursSupplementaires = nbJours - 6;
-          supplementJours = joursSupplementaires * supplementParJour;
-          prixBase = Number(tranche.prix_6j) || 0;
-        } else {
-          const joursKey = `prix_${nbJours}j` as keyof TarifARSansMAD;
-          prixBase = Number(tranche[joursKey]) || 0;
+      const supplementParJour = Number(tranche.supplement_jour) || T.SUPPLEMENT_JOUR_SANS_MAD;
 
-          if (!prixBase) {
-            let dernierJourDispo = 0;
-            let dernierPrix = 0;
-            for (let j = nbJours - 1; j >= 2; j--) {
-              const key = `prix_${j}j` as keyof TarifARSansMAD;
-              const prix = Number(tranche[key]) || 0;
-              if (prix > 0) {
-                dernierJourDispo = j;
-                dernierPrix = prix;
-                break;
-              }
-            }
-            if (dernierPrix > 0) {
-              prixBase = dernierPrix;
-              joursSupplementaires = nbJours - dernierJourDispo;
-              supplementJours = joursSupplementaires * supplementParJour;
-            }
-          }
-        }
+      if (nbJours > 6) {
+        joursSupplementaires = nbJours - 6;
+        supplementJours = joursSupplementaires * supplementParJour;
+        prixBase = Number(tranche.prix_6j) || 0;
+      } else {
+        const joursKey = `prix_${nbJours}j` as keyof TarifARSansMAD;
+        prixBase = Number(tranche[joursKey]) || 0;
 
         if (!prixBase) {
-          return { erreur: 'Durée non disponible' };
+          let dernierJourDispo = 0;
+          let dernierPrix = 0;
+          for (let j = nbJours - 1; j >= 2; j--) {
+            const key = `prix_${j}j` as keyof TarifARSansMAD;
+            const prix = Number(tranche[key]) || 0;
+            if (prix > 0) {
+              dernierJourDispo = j;
+              dernierPrix = prix;
+              break;
+            }
+          }
+          if (dernierPrix > 0) {
+            prixBase = dernierPrix;
+            joursSupplementaires = nbJours - dernierJourDispo;
+            supplementJours = joursSupplementaires * supplementParJour;
+          }
         }
+      }
+
+      if (!prixBase) {
+        return { erreur: 'Durée non disponible' };
       }
 
       detailType = `AR ${nbJours} jours sans MAD`;
