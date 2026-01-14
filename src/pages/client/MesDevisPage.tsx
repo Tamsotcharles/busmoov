@@ -514,10 +514,26 @@ export function MesDevisPage() {
 
               // Calcul local du nombre de cars (estimation avant réponse API)
               // Pour ≤ 90 pax: 1 car suffit (on choisit le bon type de véhicule)
-              // Pour > 90 pax: plusieurs cars de 53 places
+              // Pour > 90 pax: optimiser la combinaison pour minimiser le coût
               let nbCars = 1
               if (passengers > 90) {
+                // Optimisation: chercher la meilleure combinaison
+                const vehicleTypes = [
+                  { capacity: 53, coef: 1.00 },
+                  { capacity: 63, coef: 1.15 },
+                  { capacity: 70, coef: 1.35 },
+                  { capacity: 90, coef: 1.70 },
+                ]
+                let bestCout = Math.ceil(passengers / 53) * 1.00
                 nbCars = Math.ceil(passengers / 53)
+                for (const v of vehicleTypes) {
+                  const n = Math.ceil(passengers / v.capacity)
+                  const cout = n * v.coef
+                  if (cout < bestCout) {
+                    bestCout = cout
+                    nbCars = n
+                  }
+                }
               }
 
               // Déterminer si c'est un AR le même jour

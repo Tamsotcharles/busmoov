@@ -120,47 +120,98 @@ function determinerTypeVehicule(passengers: number, capacites: CapaciteVehicule[
 }
 
 /**
+ * Pour > 90 passagers, trouve la combinaison optimale de véhicules
+ * qui minimise le coût total (nombre de cars × coefficient)
+ */
+function optimizeVehicleCombination(passengers: number): {
+  nombreCars: number
+  vehicleType: string
+  capaciteParCar: number
+  coefficient: number
+} {
+  // Types de véhicules disponibles pour les grands groupes
+  const vehicleTypes = [
+    { type: 'standard', capacity: 53, coef: 1.00 },
+    { type: '60-63', capacity: 63, coef: 1.15 },
+    { type: '70', capacity: 70, coef: 1.35 },
+    { type: '83-90', capacity: 90, coef: 1.70 },
+  ]
+
+  let bestOption = {
+    nombreCars: Math.ceil(passengers / 53),
+    vehicleType: 'standard',
+    capaciteParCar: 53,
+    coefficient: 1.00,
+    coutRelatif: Math.ceil(passengers / 53) * 1.00,
+  }
+
+  // Tester chaque type de véhicule homogène
+  for (const v of vehicleTypes) {
+    const nbCars = Math.ceil(passengers / v.capacity)
+    const coutRelatif = nbCars * v.coef
+
+    // Garder si moins cher
+    if (coutRelatif < bestOption.coutRelatif) {
+      bestOption = {
+        nombreCars: nbCars,
+        vehicleType: v.type,
+        capaciteParCar: v.capacity,
+        coefficient: v.coef,
+        coutRelatif,
+      }
+    }
+  }
+
+  return {
+    nombreCars: bestOption.nombreCars,
+    vehicleType: bestOption.vehicleType,
+    capaciteParCar: bestOption.capaciteParCar,
+    coefficient: bestOption.coefficient,
+  }
+}
+
+/**
  * Calcule le nombre de cars nécessaires selon le nombre de passagers
  *
  * RÈGLES IMPORTANTES:
  * - Pour ≤ 90 passagers : selon le type de véhicule
- * - Pour > 90 passagers : OBLIGATOIREMENT plusieurs cars de 50 places
- *   (il n'existe pas de car > 90 places en France)
+ * - Pour > 90 passagers : optimisation pour trouver la combinaison la moins chère
  */
 function calculateNumberOfCars(passengers: number, vehicleType: string): {
   nombreCars: number
   capaciteParCar: number
   vehicleTypeEffectif: string
+  coefficientEffectif: number
 } {
-  // Pour les groupes > 90 passagers, TOUJOURS plusieurs cars de 53 places
-  // (il n'existe pas de car > 90 places en France)
+  // Pour les groupes > 90 passagers, optimiser la combinaison
   if (passengers > 90) {
-    const CAPACITE_CAR_MULTI = 53
-    const nombreCars = Math.ceil(passengers / CAPACITE_CAR_MULTI)
+    const optimized = optimizeVehicleCombination(passengers)
     return {
-      nombreCars,
-      capaciteParCar: CAPACITE_CAR_MULTI,
-      vehicleTypeEffectif: 'standard'
+      nombreCars: optimized.nombreCars,
+      capaciteParCar: optimized.capaciteParCar,
+      vehicleTypeEffectif: optimized.vehicleType,
+      coefficientEffectif: optimized.coefficient,
     }
   }
 
-  // Capacités par type de véhicule pour les groupes ≤ 90 passagers
-  const capacities: Record<string, number> = {
-    minibus: 20,
-    standard: 53,
-    '60-63': 63,
-    '70': 70,
-    '83-90': 90,
-    autocar: 53,
+  // Capacités et coefficients par type de véhicule pour les groupes ≤ 90 passagers
+  const vehicleData: Record<string, { capacity: number; coef: number }> = {
+    minibus: { capacity: 20, coef: 0.65 },
+    standard: { capacity: 53, coef: 1.00 },
+    '60-63': { capacity: 63, coef: 1.15 },
+    '70': { capacity: 70, coef: 1.35 },
+    '83-90': { capacity: 90, coef: 1.70 },
+    autocar: { capacity: 53, coef: 1.00 },
   }
 
-  const capacity = capacities[vehicleType] || 53
-  const nombreCars = Math.ceil(passengers / capacity)
+  const data = vehicleData[vehicleType] || vehicleData.standard
+  const nombreCars = Math.ceil(passengers / data.capacity)
 
   return {
     nombreCars,
-    capaciteParCar: capacity,
-    vehicleTypeEffectif: vehicleType
+    capaciteParCar: data.capacity,
+    vehicleTypeEffectif: vehicleType,
+    coefficientEffectif: data.coef,
   }
 }
 

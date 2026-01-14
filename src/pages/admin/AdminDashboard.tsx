@@ -10169,9 +10169,27 @@ function NewDevisModal({
         }
 
         // Auto-sélectionner le bon type
-        // Pour > 90 pax, TOUJOURS utiliser plusieurs cars standard (53 places)
-        // car il n'existe pas de véhicule > 90 places
-        if (pax > 90) return 'standard'
+        // Pour > 90 pax, optimiser la combinaison de véhicules
+        if (pax > 90) {
+          // Chercher la combinaison la moins chère
+          const vehicleTypes = [
+            { type: 'standard', capacity: 53, coef: 1.00 },
+            { type: '60-63', capacity: 63, coef: 1.15 },
+            { type: '70', capacity: 70, coef: 1.35 },
+            { type: '83-90', capacity: 90, coef: 1.70 },
+          ]
+          let bestType = 'standard'
+          let bestCout = Math.ceil(pax / 53) * 1.00
+          for (const v of vehicleTypes) {
+            const nbCars = Math.ceil(pax / v.capacity)
+            const cout = nbCars * v.coef
+            if (cout < bestCout) {
+              bestCout = cout
+              bestType = v.type
+            }
+          }
+          return bestType
+        }
         if (pax <= 20) return 'minibus'
         if (pax <= 59) return 'standard'
         if (pax <= 63) return '60-63'

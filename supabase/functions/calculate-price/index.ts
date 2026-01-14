@@ -404,19 +404,39 @@ async function calculerTarif(
   // Grande capacité = 90 places max, Standard = 57 places max
   const CAPACITE_GRANDE = 90;
   const CAPACITE_STANDARD = 57;
-  // Pour les groupes > 90 pax, on utilise des cars de 50 places (il n'existe pas de car > 90 places)
-  const CAPACITE_MULTI_CARS = 50;
 
   // Calculer le nombre de cars nécessaire si nbPassagers est fourni et nombreCars non spécifié
   let nombreCarsCalcule = nombreCars;
   let capaciteMaxParCar = grandeCapaciteDispo ? CAPACITE_GRANDE : CAPACITE_STANDARD;
 
+  // Pour > 90 passagers, optimiser la combinaison de véhicules
+  function optimizeVehicleCombination(passengers: number): { nombreCars: number; capacite: number } {
+    const vehicleTypes = [
+      { capacity: 53, coef: 1.00 },
+      { capacity: 63, coef: 1.15 },
+      { capacity: 70, coef: 1.35 },
+      { capacity: 90, coef: 1.70 },
+    ];
+
+    let best = { nombreCars: Math.ceil(passengers / 53), capacite: 53, cout: Math.ceil(passengers / 53) * 1.00 };
+
+    for (const v of vehicleTypes) {
+      const nbCars = Math.ceil(passengers / v.capacity);
+      const cout = nbCars * v.coef;
+      if (cout < best.cout) {
+        best = { nombreCars: nbCars, capacite: v.capacity, cout };
+      }
+    }
+
+    return { nombreCars: best.nombreCars, capacite: best.capacite };
+  }
+
   if (params.nbPassagers && params.nbPassagers > 0 && !params.nombreCars) {
-    // Pour les groupes > 90 passagers, TOUJOURS utiliser plusieurs cars de 50 places
-    // (Il n'existe pas de car > 90 places en France)
+    // Pour les groupes > 90 passagers, optimiser la combinaison
     if (params.nbPassagers > 90) {
-      nombreCarsCalcule = Math.ceil(params.nbPassagers / CAPACITE_MULTI_CARS);
-      capaciteMaxParCar = CAPACITE_MULTI_CARS;
+      const optimized = optimizeVehicleCombination(params.nbPassagers);
+      nombreCarsCalcule = optimized.nombreCars;
+      capaciteMaxParCar = optimized.capacite;
     } else {
       // Si pas de nombreCars explicite, on le calcule automatiquement
       nombreCarsCalcule = Math.ceil(params.nbPassagers / capaciteMaxParCar);
