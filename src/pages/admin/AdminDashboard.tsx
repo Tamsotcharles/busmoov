@@ -10122,13 +10122,11 @@ function NewDevisModal({
         const depDateStr = dossier.departure_date.split('T')[0]
         const retDateStr = dossier.return_date.split('T')[0]
         if (depDateStr === retDateStr) {
+          // Même jour = AR 1 jour
           serviceType = 'ar_1j'
         } else {
-          const depDate = new Date(dossier.departure_date)
-          const retDate = new Date(dossier.return_date)
-          const diffDays = Math.round((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
-          if (diffDays <= 1) serviceType = 'ar_1j'
-          else serviceType = 'ar_sans_mad'
+          // Dates différentes = AR sans MAD (multi-jours)
+          serviceType = 'ar_sans_mad'
         }
       }
 
@@ -10171,11 +10169,14 @@ function NewDevisModal({
         }
 
         // Auto-sélectionner le bon type
+        // Pour > 90 pax, TOUJOURS utiliser plusieurs cars standard (53 places)
+        // car il n'existe pas de véhicule > 90 places
+        if (pax > 90) return 'standard'
         if (pax <= 20) return 'minibus'
         if (pax <= 59) return 'standard'
         if (pax <= 63) return '60-63'
         if (pax <= 70) return '70'
-        return '83-90' // Double étage pour > 70 pax
+        return '83-90' // Double étage pour 71-90 pax
       }
 
       const autoVehicleType = determineVehicleType(dossier.passengers || 1, dossier.vehicle_type)
