@@ -132,9 +132,10 @@ function calculateNumberOfCars(passengers: number, vehicleType: string): {
   capaciteParCar: number
   vehicleTypeEffectif: string
 } {
-  // Pour les groupes > 90 passagers, TOUJOURS plusieurs cars de 50 places
+  // Pour les groupes > 90 passagers, TOUJOURS plusieurs cars de 53 places
+  // (il n'existe pas de car > 90 places en France)
   if (passengers > 90) {
-    const CAPACITE_CAR_MULTI = 50
+    const CAPACITE_CAR_MULTI = 53
     const nombreCars = Math.ceil(passengers / CAPACITE_CAR_MULTI)
     return {
       nombreCars,
@@ -644,6 +645,7 @@ async function calculateRoute(departure: string, arrival: string, countryCode: s
 
 /**
  * Calculer le prix depuis les grilles tarifaires
+ * Retourne le prix TTC final ou null si pas de tarif trouvé
  */
 function calculatePriceFromGrid(
   km: number,
@@ -712,29 +714,21 @@ function calculatePriceFromGrid(
       }
     }
   } else if (serviceType === 'ar_sans_mad') {
-    // Si distance < 100 km, utiliser forfait journée × nb jours
+    // RÈGLE: Si distance < 100 km, calculer sur base tarif aller simple × 2
+    // Mais générer UN SEUL devis AR sans MAD (le client ne voit pas le calcul interne)
     const SEUIL_AR_SANS_MAD = 100
     if (km < SEUIL_AR_SANS_MAD) {
-      // Forfait journée basé sur petit km AR 1J
-      const PETIT_KM_SEUIL = 50
-      const PETIT_KM_BASE = 690 // € amplitude ≤5h
-      const PETIT_KM_AMPLITUDE_5H_PLUS_20 = 790 // € amplitude >5h et ≤20km
-      const PETIT_KM_AMPLITUDE_5H_PLUS_50 = 830 // € amplitude >5h et >20km
-
-      let forfaitJour = PETIT_KM_BASE
-      if (km <= 20) {
-        forfaitJour = PETIT_KM_AMPLITUDE_5H_PLUS_20
-      } else if (km <= PETIT_KM_SEUIL) {
-        forfaitJour = PETIT_KM_AMPLITUDE_5H_PLUS_50
+      // Chercher le prix aller simple dans la grille et multiplier par 2
+      const tarifAS = tarifs.allerSimple.find(t => km >= t.km_min && km <= t.km_max)
+      if (tarifAS) {
+        // Prix = tarif aller simple × 2 (mais UN SEUL devis pour le client)
+        prixBase = Number(tarifAS.prix_public) * 2
+        console.log(`AR sans MAD < 100km: tarif aller simple ${tarifAS.prix_public}€ × 2 = ${prixBase}€`)
       } else {
-        // Entre 50 et 100 km, utiliser grille AR 1J
-        const tarifAR1J = tarifs.ar1j.find(t => km >= t.km_min && km <= t.km_max)
-        if (tarifAR1J) {
-          forfaitJour = Number(tarifAR1J.prix_12h) || Number(tarifAR1J.prix_10h) || Number(tarifAR1J.prix_8h) || PETIT_KM_AMPLITUDE_5H_PLUS_50
-        }
+        // Fallback: si pas de tarif aller simple, retourner null
+        console.log(`AR sans MAD < 100km: pas de tarif aller simple trouvé pour ${km}km`)
+        return null
       }
-      prixBase = forfaitJour * dureeJours
-      console.log(`AR sans MAD < 100km: forfait journée ${forfaitJour}€ x ${dureeJours}j = ${prixBase}€`)
     } else {
       const tarif = tarifs.arSansMad.find(t => km >= t.km_min && km <= t.km_max)
       if (tarif) {
@@ -1114,7 +1108,7 @@ Deno.serve(async (req) => {
         console.log(`  -> Majoration région ${majorationInfo.regionNom}: +${majorationInfo.majorationPercent}%`)
       }
 
-      const prixTTC = calculatePriceFromGrid(
+      const priceResult = calculatePriceFromGrid(
         km,
         serviceType,
         amplitude,
@@ -1125,7 +1119,7 @@ Deno.serve(async (req) => {
         capacites
       )
 
-      if (!prixTTC) {
+      if (!priceResult) {
         console.log(`Pas de prix trouvé pour dossier ${dossier.reference} (km: ${km}, service: ${serviceType}, jours: ${dureeJours})`)
 
         // Flagger pour révision manuelle
@@ -1150,6 +1144,10 @@ Deno.serve(async (req) => {
         })
         continue
       }
+
+      // priceResult est maintenant directement le prix TTC (number)
+      // Pour AR sans MAD < 100km, le prix est déjà calculé comme aller simple × 2
+      const prixTTC = priceResult
 
       // Calculer le prix d'achat (retirer la marge de 30% incluse dans le prix public)
       const MARGE_GRILLE = 0.30 // 30% de marge dans le prix public
@@ -1205,7 +1203,10 @@ Deno.serve(async (req) => {
         continue
       }
 
-      // Créer le devis
+      // Créer UN SEUL devis (même pour AR sans MAD < 100km, le prix est calculé en interne comme aller simple × 2)
+      const transporteurId = TRANSPORTEURS_AUTO[currentStep % TRANSPORTEURS_AUTO.length]
+      const devisGeneres = autoDevis.devis_generes || []
+
       const devisRef = generateDevisReference()
 
       const { data: newDevis, error: devisError } = await supabase
@@ -1213,7 +1214,7 @@ Deno.serve(async (req) => {
         .insert({
           reference: devisRef,
           dossier_id: dossier.id,
-          transporteur_id: TRANSPORTEURS_AUTO[currentStep % TRANSPORTEURS_AUTO.length],
+          transporteur_id: transporteurId,
           price_ht: prixHT,
           price_ttc: prixTTCAvecMarge,
           price_achat_ttc: prixAchatTTC,
@@ -1221,7 +1222,7 @@ Deno.serve(async (req) => {
           km: km.toString(),
           vehicle_type: vehicleType,
           nombre_cars: nombreCars,
-          nombre_chauffeurs: nbChauffeurs, // Nombre total de chauffeurs pour tous les cars
+          nombre_chauffeurs: nbChauffeurs,
           service_type: serviceType,
           amplitude: amplitude,
           duree_jours: dureeJours,
@@ -1247,6 +1248,23 @@ Deno.serve(async (req) => {
         continue
       }
 
+      devisGeneres.push({
+        devis_id: newDevis.id,
+        step: currentStep + 1,
+        marge: margePercent,
+        km,
+        created_at: new Date().toISOString(),
+      })
+
+      // Timeline
+      await supabase
+        .from('timeline')
+        .insert({
+          dossier_id: dossier.id,
+          type: 'devis_sent',
+          content: `Devis auto ${devisRef} envoyé (${km} km, étape ${currentStep + 1}/${steps.length}, marge ${margePercent}%)`,
+        })
+
       // Calculer la prochaine étape
       const nextStep = currentStep + 1
       let nextDevisAt: string | null = null
@@ -1257,15 +1275,6 @@ Deno.serve(async (req) => {
       }
 
       // Mettre à jour l'auto-devis
-      const devisGeneres = autoDevis.devis_generes || []
-      devisGeneres.push({
-        devis_id: newDevis.id,
-        step: currentStep + 1,
-        marge: margePercent,
-        km,
-        created_at: new Date().toISOString(),
-      })
-
       await supabase
         .from('dossiers_auto_devis')
         .update({
@@ -1285,15 +1294,6 @@ Deno.serve(async (req) => {
           updated_at: new Date().toISOString(),
         })
         .eq('id', dossier.id)
-
-      // Ajouter entrée timeline
-      await supabase
-        .from('timeline')
-        .insert({
-          dossier_id: dossier.id,
-          type: 'devis_sent',
-          content: `Devis auto ${devisRef} envoyé (${km} km, étape ${currentStep + 1}/${steps.length}, marge ${margePercent}%)`,
-        })
 
       results.push({
         dossier_id: dossier.id,

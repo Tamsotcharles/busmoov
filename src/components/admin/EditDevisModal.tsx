@@ -475,6 +475,10 @@ export function EditDevisModal({
     const isHorsGrille = kmHorsGrille > 0
     const isPetitKm = km <= TARIFS_HORS_GRILLE.PETIT_KM_SEUIL && serviceType === 'ar_1j'
 
+    // Nombre de chauffeurs par car multiplié par le nombre de cars
+    const nbChauffeursParCar = infosTrajet?.nbChauffeurs || 1
+    const totalChauffeurs = nbChauffeursParCar * nombreCars
+
     return {
       prixBase: result.prixBase,
       coefficient: coeff,
@@ -485,7 +489,8 @@ export function EditDevisModal({
       supplementHorsGrille: result.supplementHorsCadre,
       majorationRegion: majorationRegion?.percent || 0,
       coutRelaisChauffeur: result.coutRelaisChauffeur,
-      nbChauffeurs: infosTrajet?.nbChauffeurs || 1,
+      nbChauffeurs: totalChauffeurs,
+      nbChauffeursParCar,
       raisonChauffeurs: infosTrajet?.raisonDeuxChauffeurs || '',
       isHorsGrille,
       isPetitKm,
@@ -1124,7 +1129,11 @@ export function EditDevisModal({
             {tarifEstime.nbChauffeurs > 1 && (
               <div className="mt-3 text-xs text-purple-600 flex items-center gap-2">
                 <UserCheck size={14} />
-                <span>2 chauffeurs nécessaires : {tarifEstime.raisonChauffeurs}</span>
+                <span>
+                  {tarifEstime.nbChauffeurs} chauffeurs nécessaires
+                  {tarifEstime.nombreCars > 1 && ` (${tarifEstime.nbChauffeursParCar} par car × ${tarifEstime.nombreCars} cars)`}
+                  {tarifEstime.nbChauffeursParCar > 1 && tarifEstime.raisonChauffeurs && ` — ${tarifEstime.raisonChauffeurs}`}
+                </span>
               </div>
             )}
 

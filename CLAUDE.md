@@ -248,6 +248,11 @@ npm run preview  # Prévisualisation du build
 - **Liens cliquables Exploitation** : Le numéro de dossier ouvre le dossier dans un nouvel onglet
 - **Deep linking dossiers** : URL `/admin?dossierId=xxx` ouvre directement un dossier spécifique
 - **Signature contrat via Edge Function** : Contourne les restrictions RLS pour la signature client
+- **Paiements Mollie** : Intégration Mollie pour les paiements en ligne (remplace PayTweak)
+- **Références devis uniformes** : Format `DEV-YYYYMM-XXXXXX` pour tous les devis (auto et manuels)
+- **Mobile responsive amélioré** : Grilles adaptatives sur InfosVoyagePage et RecapitulatifPage
+- **Logo scroll-to-top** : Clic sur le logo scroll vers le haut sur la homepage
+- **CGV multilingues** : Chargement des CGV selon pays et langue avec fallback
 
 ## Pages publiques
 
@@ -317,3 +322,67 @@ Chaque pays a sa propre configuration :
 - **Paramètres > Pays** : Configuration de chaque pays (CountrySettingsPage)
 - **Transporteurs** : Filtre par pays (FR, ES, DE, GB)
 - **Nouveau dossier** : Sélection du pays client
+
+## Système de références
+
+### Types de références
+| Préfixe | Description | Exemple | Visible par |
+|---------|-------------|---------|-------------|
+| `DEM-` | Demande interne | DEM-XXXXXX | Admin uniquement |
+| `DOS-` | Dossier client | DOS-XXXXXX | Client + Admin |
+| `DEV-` | Devis | DEV-YYYYMM-XXXXXX | Client + Admin |
+
+### Génération des références de devis
+Fonction utilitaire `generateDevisReference()` dans `src/lib/utils.ts` :
+- Format uniforme : `DEV-YYYYMM-XXXXXX` (ex: DEV-202601-ABC123)
+- Utilisée pour TOUS les devis (auto-générés ET manuels)
+- Le client ne peut PAS distinguer un devis auto d'un devis manuel
+
+### Transparence client
+Le client ne voit jamais :
+- Le champ `is_auto_generated` (uniquement côté admin)
+- La différence entre devis auto et manuel
+- Les références DEM- (demandes internes)
+
+## Paiements (Mollie)
+
+### Configuration
+Secrets Supabase requis :
+- `MOLLIE_API_KEY` : Clé API Mollie (live_xxx ou test_xxx)
+- `APP_URL` : URL de l'application (pour les redirections)
+
+### Flux de paiement
+1. Client accède à RecapitulatifPage
+2. Redirection vers Mollie pour paiement
+3. Webhook Mollie met à jour le statut
+4. Client redirigé vers page de confirmation
+
+## Hooks pays (`useCountrySettings.ts`)
+
+### Hooks disponibles
+- `useCountrySettings()` : Liste tous les pays configurés
+- `useCurrentCountry()` : Retourne le pays actuel (basé sur la langue)
+- `useCurrentCountryCode()` : Retourne le code pays (FR, ES, DE, GB)
+- `useCurrentCountryContent(type)` : Contenu légal du pays (mentions légales, confidentialité)
+
+### Tables de contenu par pays
+- `cgv` : Conditions Générales de Vente
+- `mentions_legales` : Mentions légales
+- `politique_confidentialite` : Politique de confidentialité
+
+Chaque table a les colonnes : `country_code`, `language`, `is_active`, `title`, `content`
+
+## Mobile responsive
+
+### Breakpoints Tailwind
+- `sm:` : 640px+ (petits écrans)
+- `md:` : 768px+ (tablettes)
+- `lg:` : 1024px+ (desktop)
+
+### Grilles adaptatives
+Utiliser `grid-cols-1 sm:grid-cols-2` pour les formulaires avec 2 colonnes sur desktop et 1 sur mobile.
+
+### iOS fixes (index.css)
+- `appearance-none` et `-webkit-appearance: none` sur les inputs
+- `font-size: 16px` pour éviter le zoom automatique
+- `min-height: 48px` sur les inputs date/time

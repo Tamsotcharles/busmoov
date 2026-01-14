@@ -794,61 +794,71 @@ export function calculerTarifComplet(params: CalculTarifParams): CalculTarifResu
     const grille = grilles.tarifsARSansMAD
     maxGrille = T.GRILLE_AR_SANS_MAD_MAX
 
+    // RÈGLE: Pour AR sans MAD < 100 km, utiliser le tarif aller simple × 2
+    // (le client ne voit pas ce calcul interne)
     if (distanceKm < T.GRILLE_AR_SANS_MAD_MIN) {
-      result.erreur = `Pour moins de ${T.GRILLE_AR_SANS_MAD_MIN} km sans MAD, utiliser le transfert`
-      return result
-    }
-
-    let tranche = grille.find(t => distanceKm > t.km_min && distanceKm <= t.km_max)
-
-    if (distanceKm > maxGrille) {
-      tranche = grille[grille.length - 1]
-      kmHorsCadre = distanceKm - maxGrille
-      supplementHorsCadre = kmHorsCadre * T.PRIX_KM_SUPPLEMENTAIRE * 2
-    }
-
-    if (tranche) {
-      const supplementParJour = Number(tranche.supplement_jour) || T.SUPPLEMENT_JOUR_SANS_MAD
-
-      if (nbJours > 6) {
-        joursSupplementaires = nbJours - 6
-        supplementJours = joursSupplementaires * supplementParJour
-        prixBase = Number(tranche.prix_6j) || 0
+      const tarifAS = grilles.tarifsAllerSimple.find(t => distanceKm > t.km_min && distanceKm <= t.km_max)
+      if (tarifAS) {
+        prixBase = Number(tarifAS.prix_public) * 2
+        detailType = `AR sans MAD (basé sur 2× aller simple)`
+        // Pas d'erreur, on continue avec le calcul final
       } else {
-        // Chercher le prix pour ce nombre de jours
-        const joursKey = `prix_${nbJours}j` as keyof TarifARSansMAD
-        prixBase = Number(tranche[joursKey]) || 0
+        result.erreur = `Pas de tarif aller simple trouvé pour ${distanceKm} km`
+        return result
+      }
+    } else {
+      // Distance >= 100 km: utiliser la grille AR sans MAD normale
+      let tranche = grille.find(t => distanceKm > t.km_min && distanceKm <= t.km_max)
 
-        // Si pas de prix pour ce nombre de jours, chercher le dernier prix disponible et ajouter les suppléments
-        if (!prixBase) {
-          // Chercher le plus grand nombre de jours disponible
-          let dernierJourDispo = 0
-          let dernierPrix = 0
-          for (let j = nbJours - 1; j >= 2; j--) {
-            const key = `prix_${j}j` as keyof TarifARSansMAD
-            const prix = Number(tranche[key]) || 0
-            if (prix > 0) {
-              dernierJourDispo = j
-              dernierPrix = prix
-              break
+      if (distanceKm > maxGrille) {
+        tranche = grille[grille.length - 1]
+        kmHorsCadre = distanceKm - maxGrille
+        supplementHorsCadre = kmHorsCadre * T.PRIX_KM_SUPPLEMENTAIRE * 2
+      }
+
+      if (tranche) {
+        const supplementParJour = Number(tranche.supplement_jour) || T.SUPPLEMENT_JOUR_SANS_MAD
+
+        if (nbJours > 6) {
+          joursSupplementaires = nbJours - 6
+          supplementJours = joursSupplementaires * supplementParJour
+          prixBase = Number(tranche.prix_6j) || 0
+        } else {
+          // Chercher le prix pour ce nombre de jours
+          const joursKey = `prix_${nbJours}j` as keyof TarifARSansMAD
+          prixBase = Number(tranche[joursKey]) || 0
+
+          // Si pas de prix pour ce nombre de jours, chercher le dernier prix disponible et ajouter les suppléments
+          if (!prixBase) {
+            // Chercher le plus grand nombre de jours disponible
+            let dernierJourDispo = 0
+            let dernierPrix = 0
+            for (let j = nbJours - 1; j >= 2; j--) {
+              const key = `prix_${j}j` as keyof TarifARSansMAD
+              const prix = Number(tranche[key]) || 0
+              if (prix > 0) {
+                dernierJourDispo = j
+                dernierPrix = prix
+                break
+              }
+            }
+
+            if (dernierPrix > 0) {
+              prixBase = dernierPrix
+              joursSupplementaires = nbJours - dernierJourDispo
+              supplementJours = joursSupplementaires * supplementParJour
             }
           }
+        }
 
-          if (dernierPrix > 0) {
-            prixBase = dernierPrix
-            joursSupplementaires = nbJours - dernierJourDispo
-            supplementJours = joursSupplementaires * supplementParJour
-          }
+        if (!prixBase) {
+          result.erreur = "Cette durée n'est pas disponible pour cette distance"
+          return result
         }
       }
 
-      if (!prixBase) {
-        result.erreur = "Cette durée n'est pas disponible pour cette distance"
-        return result
-      }
+      detailType = `AR ${nbJours} jours sans MAD`
     }
-
-    detailType = `AR ${nbJours} jours sans MAD`
   }
 
   // Calculs finaux

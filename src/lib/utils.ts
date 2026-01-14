@@ -8,6 +8,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Générer une référence de devis au format uniforme
+ * Format: DEV-YYYYMM-XXXXXX (ex: DEV-202601-ABC123)
+ */
+export function generateDevisReference(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase()
+  return `DEV-${year}${month}-${random}`
+}
+
 // Mapping langue -> locale date-fns
 const dateLocales: Record<string, typeof fr> = {
   fr: fr,

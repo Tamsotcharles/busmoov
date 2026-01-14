@@ -273,7 +273,7 @@ export function MultiStepQuoteForm() {
                 </div>
                 <span
                   className={cn(
-                    'text-xs mt-2 text-center max-w-20',
+                    'text-[10px] sm:text-xs mt-2 text-center max-w-16 sm:max-w-20 leading-tight',
                     isActive ? 'text-purple font-medium' : 'text-gray-400'
                   )}
                 >
@@ -302,14 +302,14 @@ export function MultiStepQuoteForm() {
             </h3>
 
             {/* Trip Type Toggle */}
-            <div className="flex bg-gray-100 rounded-xl p-1">
+            <div className="flex flex-col sm:flex-row bg-gray-100 rounded-xl p-1 gap-1 sm:gap-0">
               {(Object.keys(tripTypeLabels) as TripType[]).map((type) => (
                 <button
                   key={type}
                   type="button"
                   onClick={() => setTripType(type)}
                   className={cn(
-                    'flex-1 py-3 rounded-lg text-sm font-medium transition-all',
+                    'flex-1 py-3 px-2 rounded-lg text-sm font-medium transition-all text-center',
                     tripType === type
                       ? 'bg-white text-purple shadow-sm'
                       : 'text-gray-500 hover:text-gray-700'
@@ -341,9 +341,9 @@ export function MultiStepQuoteForm() {
             </div>
 
             {/* Dates & Times */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="label">{t('quoteForm.departureDate')} *</label>
+                <label className="label text-sm">{t('quoteForm.departureDate')} *</label>
                 <input
                   type="date"
                   name="departureDate"
@@ -355,7 +355,7 @@ export function MultiStepQuoteForm() {
                 />
               </div>
               <div>
-                <label className="label">{t('quoteForm.departureTime')}</label>
+                <label className="label text-sm">{t('quoteForm.departureTime')}</label>
                 <input
                   type="time"
                   name="departureTime"
@@ -367,9 +367,9 @@ export function MultiStepQuoteForm() {
             </div>
 
             {tripType !== 'one-way' && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="label">{t('quoteForm.returnDate')}</label>
+                  <label className="label text-sm">{t('quoteForm.returnDate')}</label>
                   <input
                     type="date"
                     name="returnDate"
@@ -380,7 +380,7 @@ export function MultiStepQuoteForm() {
                   />
                 </div>
                 <div>
-                  <label className="label">{t('quoteForm.returnTime')}</label>
+                  <label className="label text-sm">{t('quoteForm.returnTime')}</label>
                   <input
                     type="time"
                     name="returnTime"
@@ -556,9 +556,9 @@ export function MultiStepQuoteForm() {
               </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="label">{t('quoteForm.name')} *</label>
+                <label className="label text-sm">{t('quoteForm.name')} *</label>
                 <input
                   type="text"
                   name="name"
@@ -570,7 +570,7 @@ export function MultiStepQuoteForm() {
                 />
               </div>
               <div>
-                <label className="label">{t('quoteForm.company')}</label>
+                <label className="label text-sm">{t('quoteForm.company')}</label>
                 <input
                   type="text"
                   name="company"

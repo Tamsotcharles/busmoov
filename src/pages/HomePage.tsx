@@ -152,24 +152,24 @@ export function HomePage() {
             </p>
 
             {/* Stats */}
-            <div className="flex gap-12 mt-10">
-              <div>
-                <div className="font-display text-4xl font-bold text-purple">500+</div>
-                <div className="text-gray-500 text-sm">{t('stats.partners')}</div>
+            <div className="flex flex-wrap gap-6 sm:gap-8 lg:gap-12 mt-10">
+              <div className="min-w-[80px]">
+                <div className="font-display text-3xl sm:text-4xl font-bold text-purple">500+</div>
+                <div className="text-gray-500 text-xs sm:text-sm">{t('stats.partners')}</div>
               </div>
-              <div>
-                <div className="font-display text-4xl font-bold text-purple">50K+</div>
-                <div className="text-gray-500 text-sm">{t('stats.travelers')}</div>
+              <div className="min-w-[80px]">
+                <div className="font-display text-3xl sm:text-4xl font-bold text-purple">50K+</div>
+                <div className="text-gray-500 text-xs sm:text-sm">{t('stats.travelers')}</div>
               </div>
-              <div>
-                <div className="font-display text-4xl font-bold text-purple">4.8/5</div>
-                <div className="text-gray-500 text-sm">{t('stats.rating')}</div>
+              <div className="min-w-[80px]">
+                <div className="font-display text-3xl sm:text-4xl font-bold text-purple">4.8/5</div>
+                <div className="text-gray-500 text-xs sm:text-sm">{t('stats.rating')}</div>
               </div>
             </div>
           </div>
 
           {/* Quote Form */}
-          <div className="bg-white rounded-3xl p-8 shadow-2xl shadow-purple/10 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+          <div className="bg-white rounded-3xl p-4 sm:p-8 shadow-2xl shadow-purple/10 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
             <MultiStepQuoteForm />
           </div>
         </div>

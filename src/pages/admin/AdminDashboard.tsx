@@ -125,7 +125,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference } from '@/lib/utils'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFacturePDFBase64, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
 import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
@@ -2230,9 +2230,8 @@ function CreateDossierModal({
 
       // If transporteur and price are set, create a devis
       if (formData.transporteur_id && formData.price_ht > 0) {
-        const devisReference = `DEV-${Date.now().toString(36).toUpperCase()}`
         await createDevis.mutateAsync({
-          reference: devisReference,
+          reference: generateDevisReference(),
           dossier_id: dossierData.id,
           transporteur_id: formData.transporteur_id,
           price_ht: formData.price_ht,
@@ -7098,8 +7097,7 @@ L'équipe Busmoov`,
                                       const prixVenteTTC = Math.round(prixVenteHT * (1 + tvaRate / 100))
 
                                       // Générer référence devis
-                                      const now = new Date()
-                                      const refDevis = `DEV-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+                                      const refDevis = generateDevisReference()
 
                                       console.log('Création devis...', { prixAchatHT, prixVenteHT, refDevis })
 
@@ -10228,19 +10226,22 @@ function NewDevisModal({
   }, [dossier, isOpen])
 
   // Calculer la durée en jours - utiliser Date.UTC pour éviter les problèmes de timezone
+  // Prendre en compte les dates override du formulaire
   const dureeJours = useMemo(() => {
-    if (!dossier?.return_date || !dossier?.departure_date) return 1
+    const departureDate = formData.departure_date_override || dossier?.departure_date
+    const returnDate = formData.return_date_override || dossier?.return_date
+    if (!returnDate || !departureDate) return 1
     // Extraire uniquement YYYY-MM-DD pour éviter les problèmes de timezone
     // Les dates peuvent être au format ISO (T) ou PostgreSQL (espace)
-    const depDateStr = dossier.departure_date.substring(0, 10)
-    const retDateStr = dossier.return_date.substring(0, 10)
+    const depDateStr = departureDate.substring(0, 10)
+    const retDateStr = returnDate.substring(0, 10)
     const [depYear, depMonth, depDay] = depDateStr.split('-').map(Number)
     const [retYear, retMonth, retDay] = retDateStr.split('-').map(Number)
     const depDate = new Date(Date.UTC(depYear, depMonth - 1, depDay))
     const retDate = new Date(Date.UTC(retYear, retMonth - 1, retDay))
     const diffDays = Math.round((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
     return Math.max(1, diffDays + 1)
-  }, [dossier?.departure_date, dossier?.return_date])
+  }, [dossier?.departure_date, dossier?.return_date, formData.departure_date_override, formData.return_date_override])
 
   // Obtenir la ville de départ (override ou dossier)
   const villeDepartAvecCP = useMemo(() => {
@@ -10320,14 +10321,17 @@ function NewDevisModal({
   }, [formData.km, formData.service_type, formData.departure_time_override, formData.return_time_override, formData.departure_date_override, formData.return_date_override, dossier])
 
   // Mettre à jour automatiquement le nombre de chauffeurs selon les règles
+  // Le nombre de chauffeurs doit être multiplié par le nombre de cars
   useEffect(() => {
-    if (infosTrajet?.nbChauffeurs && infosTrajet.nbChauffeurs !== formData.nombre_chauffeurs) {
+    const nbChauffeursParCar = infosTrajet?.nbChauffeurs || 1
+    const totalChauffeurs = nbChauffeursParCar * (formData.nombre_cars || 1)
+    if (totalChauffeurs !== formData.nombre_chauffeurs) {
       setFormData(prev => ({
         ...prev,
-        nombre_chauffeurs: infosTrajet.nbChauffeurs,
+        nombre_chauffeurs: totalChauffeurs,
       }))
     }
-  }, [infosTrajet?.nbChauffeurs])
+  }, [infosTrajet?.nbChauffeurs, formData.nombre_cars])
 
   // Mettre à jour automatiquement le nombre de cars selon la capacité du véhicule et le nombre de passagers
   useEffect(() => {
@@ -10389,6 +10393,10 @@ function NewDevisModal({
     const isHorsGrille = kmHorsGrille > 0
     const isPetitKm = km <= TARIFS_HORS_GRILLE.PETIT_KM_SEUIL && serviceType === 'ar_1j'
 
+    // Nombre de chauffeurs par car multiplié par le nombre de cars
+    const nbChauffeursParCar = infosTrajet?.nbChauffeurs || 1
+    const totalChauffeurs = nbChauffeursParCar * nombreCars
+
     return {
       prixBase: result.prixBase,
       coefficient: coeff,
@@ -10398,7 +10406,8 @@ function NewDevisModal({
       supplementHorsGrille: result.supplementHorsCadre,
       majorationRegionPercent: majorationRegion?.percent || 0,
       coutRelaisChauffeur: result.coutRelaisChauffeur,
-      nbChauffeurs: infosTrajet?.nbChauffeurs || 1,
+      nbChauffeurs: totalChauffeurs,
+      nbChauffeursParCar,
       raisonChauffeurs: infosTrajet?.raisonDeuxChauffeurs || '',
       isHorsGrille,
       isPetitKm,
@@ -10428,11 +10437,10 @@ function NewDevisModal({
     }
 
     try {
-      const reference = `DEV-${Date.now().toString(36).toUpperCase()}`
       await createDevis.mutateAsync({
         dossier_id: dossier.id,
         transporteur_id: formData.transporteur_id,
-        reference,
+        reference: generateDevisReference(),
         price_ht: formData.price_ht,
         price_ttc: formData.price_ttc,
         price_achat_ht: formData.price_achat_ht || null,
@@ -10864,7 +10872,14 @@ function NewDevisModal({
               </button>
             </div>
 
-            {/* Alertes hors grille */}
+            {/* Alertes */}
+            {/* Alerte si AR 1 jour mais durée > 1 jour */}
+            {formData.service_type === 'ar_1j' && dureeJours > 1 && (
+              <div className="bg-red-100 border border-red-300 rounded p-2 mb-3 text-xs text-red-800">
+                <strong>⚠️ Attention</strong> : Type "AR 1 jour" sélectionné mais la durée est de <strong>{dureeJours} jours</strong>.
+                Utilisez "AR avec/sans MAD" pour un tarif multi-jours.
+              </div>
+            )}
             {tarifEstime.isPetitKm && (
               <div className="bg-orange-100 border border-orange-300 rounded p-2 mb-3 text-xs text-orange-800">
                 <strong>Petit km (≤50km AR 1j)</strong> : Tarif forfaitaire appliqué selon amplitude
@@ -10876,7 +10891,7 @@ function NewDevisModal({
               </div>
             )}
 
-            <div className="grid grid-cols-4 gap-4 text-sm">
+            <div className={`grid gap-4 text-sm ${(formData.service_type === 'ar_mad' || formData.service_type === 'ar_sans_mad') ? 'grid-cols-5' : 'grid-cols-4'}`}>
               <div>
                 <span className="text-purple-600">Prix grille TTC</span>
                 <p className="font-semibold text-purple-800">{formatPrice(tarifEstime.prixGrille || tarifEstime.prixBase)}</p>
@@ -10885,6 +10900,12 @@ function NewDevisModal({
                 <span className="text-purple-600">Coeff.</span>
                 <p className="font-semibold text-purple-800">×{tarifEstime.coefficient}</p>
               </div>
+              {(formData.service_type === 'ar_mad' || formData.service_type === 'ar_sans_mad') && (
+                <div>
+                  <span className="text-purple-600">Jours</span>
+                  <p className="font-semibold text-purple-800">{dureeJours}j</p>
+                </div>
+              )}
               <div>
                 <span className="text-purple-600">Cars</span>
                 <p className="font-semibold text-purple-800">×{tarifEstime.nombreCars}</p>
@@ -10923,7 +10944,11 @@ function NewDevisModal({
             {tarifEstime.nbChauffeurs > 1 && (
               <div className="mt-3 text-xs text-purple-600 flex items-center gap-2">
                 <Users size={14} />
-                <span>2 chauffeurs nécessaires : {tarifEstime.raisonChauffeurs}</span>
+                <span>
+                  {tarifEstime.nbChauffeurs} chauffeurs nécessaires
+                  {tarifEstime.nombreCars > 1 && ` (${tarifEstime.nbChauffeursParCar} par car × ${tarifEstime.nombreCars} cars)`}
+                  {tarifEstime.nbChauffeursParCar > 1 && tarifEstime.raisonChauffeurs && ` — ${tarifEstime.raisonChauffeurs}`}
+                </span>
               </div>
             )}
           </div>
@@ -14317,8 +14342,7 @@ L'équipe Busmoov`
       const prixVenteTTC = Math.round(prixVenteHT * (1 + tvaRate / 100))
 
       // Générer référence devis
-      const now = new Date()
-      const refDevis = `DEV-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+      const refDevis = generateDevisReference()
 
       // Marquer la demande comme "devis créé"
       await updateDemandeFournisseur.mutateAsync({

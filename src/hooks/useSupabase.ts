@@ -208,14 +208,18 @@ export function useCreateDemande() {
             to: demandeData.client_email,
             data: {
               client_name: demandeData.client_name,
-              reference: demandeData.reference,
+              // IMPORTANT: Utiliser la référence dossier (DOS-) au lieu de la demande (DEM-)
+              // Le client doit pouvoir accéder à son espace avec cette référence
+              reference: dossierData.reference,
               dossier_reference: dossierData.reference,
+              demande_reference: demandeData.reference, // Garder la ref demande en cas de besoin admin
               departure: demandeData.departure_city,
               arrival: demandeData.arrival_city,
               departure_date: formatDateForEmail(demandeData.departure_date),
               passengers: String(demandeData.passengers),
               client_email: demandeData.client_email,
-              lien_espace_client: generateClientAccessUrl(demandeData.reference, demandeData.client_email, (demandeData as any).country_code),
+              // Utiliser la référence dossier pour les liens
+              lien_espace_client: generateClientAccessUrl(dossierData.reference, demandeData.client_email, (demandeData as any).country_code),
               language: language,
             }
           }
