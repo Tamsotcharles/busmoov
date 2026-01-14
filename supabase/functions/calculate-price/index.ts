@@ -410,13 +410,19 @@ async function calculerTarif(
   let capaciteMaxParCar = grandeCapaciteDispo ? CAPACITE_GRANDE : CAPACITE_STANDARD;
 
   // Pour > 90 passagers, optimiser la combinaison de véhicules
-  function optimizeVehicleCombination(passengers: number): { nombreCars: number; capacite: number } {
-    const vehicleTypes = [
-      { capacity: 53, coef: 1.00 },
-      { capacity: 63, coef: 1.15 },
-      { capacity: 70, coef: 1.35 },
-      { capacity: 90, coef: 1.70 },
-    ];
+  // Prend en compte la disponibilité grande capacité dans la région
+  function optimizeVehicleCombination(passengers: number, gcDispo: boolean): { nombreCars: number; capacite: number } {
+    // Si grande capacité non dispo, on ne peut utiliser que le standard (53 places)
+    const vehicleTypes = gcDispo
+      ? [
+          { capacity: 53, coef: 1.00 },
+          { capacity: 63, coef: 1.15 },
+          { capacity: 70, coef: 1.35 },
+          { capacity: 90, coef: 1.70 },
+        ]
+      : [
+          { capacity: 53, coef: 1.00 },
+        ];
 
     let best = { nombreCars: Math.ceil(passengers / 53), capacite: 53, cout: Math.ceil(passengers / 53) * 1.00 };
 
@@ -434,7 +440,7 @@ async function calculerTarif(
   if (params.nbPassagers && params.nbPassagers > 0 && !params.nombreCars) {
     // Pour les groupes > 90 passagers, optimiser la combinaison
     if (params.nbPassagers > 90) {
-      const optimized = optimizeVehicleCombination(params.nbPassagers);
+      const optimized = optimizeVehicleCombination(params.nbPassagers, grandeCapaciteDispo);
       nombreCarsCalcule = optimized.nombreCars;
       capaciteMaxParCar = optimized.capacite;
     } else {

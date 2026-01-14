@@ -1900,13 +1900,15 @@ const VEHICLE_CAPACITIES: Record<string, number> = {
  * Pour > 90 passagers, trouve la combinaison optimale de véhicules
  * qui minimise le coût total (nombre de cars × coefficient moyen)
  *
- * Combinaisons possibles :
+ * @param grandeCapaciteDispo - Si false, limite aux véhicules standard (53 places)
+ *
+ * Combinaisons possibles (si grande capacité dispo) :
  * - N cars standard (53 places, coef 1.00)
  * - N cars 60-63 places (63 places, coef 1.15)
  * - N cars 70 places (70 places, coef 1.35)
- * - Mix de différents types
+ * - N cars 83-90 places (90 places, coef 1.70)
  */
-export function optimizeVehicleCombination(passengers: number): {
+export function optimizeVehicleCombination(passengers: number, grandeCapaciteDispo: boolean = true): {
   nombreCars: number
   vehicleType: string
   capaciteParCar: number
@@ -1915,13 +1917,18 @@ export function optimizeVehicleCombination(passengers: number): {
   coutRelatif: number
   explication: string
 } {
-  // Types de véhicules disponibles pour les grands groupes (du plus petit au plus grand)
-  const vehicleTypes = [
-    { type: 'standard', capacity: 53, coef: 1.00 },
-    { type: '60-63', capacity: 63, coef: 1.15 },
-    { type: '70', capacity: 70, coef: 1.35 },
-    { type: '83-90', capacity: 90, coef: 1.70 },
-  ]
+  // Types de véhicules disponibles pour les grands groupes
+  // Si grande capacité non dispo dans la région, on limite à standard (53 places)
+  const vehicleTypes = grandeCapaciteDispo
+    ? [
+        { type: 'standard', capacity: 53, coef: 1.00 },
+        { type: '60-63', capacity: 63, coef: 1.15 },
+        { type: '70', capacity: 70, coef: 1.35 },
+        { type: '83-90', capacity: 90, coef: 1.70 },
+      ]
+    : [
+        { type: 'standard', capacity: 53, coef: 1.00 },
+      ]
 
   let bestOption = {
     nombreCars: Math.ceil(passengers / 53),

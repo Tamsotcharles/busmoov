@@ -122,20 +122,27 @@ function determinerTypeVehicule(passengers: number, capacites: CapaciteVehicule[
 /**
  * Pour > 90 passagers, trouve la combinaison optimale de véhicules
  * qui minimise le coût total (nombre de cars × coefficient)
+ *
+ * @param grandeCapaciteDispo - Si false, limite aux véhicules <= 57 places (standard)
  */
-function optimizeVehicleCombination(passengers: number): {
+function optimizeVehicleCombination(passengers: number, grandeCapaciteDispo: boolean = true): {
   nombreCars: number
   vehicleType: string
   capaciteParCar: number
   coefficient: number
 } {
-  // Types de véhicules disponibles pour les grands groupes
-  const vehicleTypes = [
-    { type: 'standard', capacity: 53, coef: 1.00 },
-    { type: '60-63', capacity: 63, coef: 1.15 },
-    { type: '70', capacity: 70, coef: 1.35 },
-    { type: '83-90', capacity: 90, coef: 1.70 },
-  ]
+  // Types de véhicules disponibles
+  // Si grande capacité non dispo dans la région, on limite à standard (53 places)
+  const vehicleTypes = grandeCapaciteDispo
+    ? [
+        { type: 'standard', capacity: 53, coef: 1.00 },
+        { type: '60-63', capacity: 63, coef: 1.15 },
+        { type: '70', capacity: 70, coef: 1.35 },
+        { type: '83-90', capacity: 90, coef: 1.70 },
+      ]
+    : [
+        { type: 'standard', capacity: 53, coef: 1.00 },
+      ]
 
   let bestOption = {
     nombreCars: Math.ceil(passengers / 53),
@@ -176,8 +183,10 @@ function optimizeVehicleCombination(passengers: number): {
  * RÈGLES IMPORTANTES:
  * - Pour ≤ 90 passagers : selon le type de véhicule
  * - Pour > 90 passagers : optimisation pour trouver la combinaison la moins chère
+ *
+ * @param grandeCapaciteDispo - Si false, limite aux véhicules <= 57 places
  */
-function calculateNumberOfCars(passengers: number, vehicleType: string): {
+function calculateNumberOfCars(passengers: number, vehicleType: string, grandeCapaciteDispo: boolean = true): {
   nombreCars: number
   capaciteParCar: number
   vehicleTypeEffectif: string
@@ -185,7 +194,7 @@ function calculateNumberOfCars(passengers: number, vehicleType: string): {
 } {
   // Pour les groupes > 90 passagers, optimiser la combinaison
   if (passengers > 90) {
-    const optimized = optimizeVehicleCombination(passengers)
+    const optimized = optimizeVehicleCombination(passengers, grandeCapaciteDispo)
     return {
       nombreCars: optimized.nombreCars,
       capaciteParCar: optimized.capaciteParCar,
@@ -204,13 +213,19 @@ function calculateNumberOfCars(passengers: number, vehicleType: string): {
     autocar: { capacity: 53, coef: 1.00 },
   }
 
-  const data = vehicleData[vehicleType] || vehicleData.standard
+  // Si grande capacité non dispo et véhicule > 57 places demandé, forcer standard
+  let effectiveType = vehicleType
+  if (!grandeCapaciteDispo && ['60-63', '70', '83-90'].includes(vehicleType)) {
+    effectiveType = 'standard'
+  }
+
+  const data = vehicleData[effectiveType] || vehicleData.standard
   const nombreCars = Math.ceil(passengers / data.capacity)
 
   return {
     nombreCars,
     capaciteParCar: data.capacity,
-    vehicleTypeEffectif: vehicleType,
+    vehicleTypeEffectif: effectiveType,
     coefficientEffectif: data.coef,
   }
 }
@@ -1104,15 +1119,21 @@ Deno.serve(async (req) => {
 
       const serviceType = detectServiceType(dossier) as ServiceType
       const dureeJours = calculateDureeJours(dossier)
+
+      // Extraire le département pour vérifier la disponibilité grande capacité
+      const departement = extraireDepartement(dossier.departure)
+      const regionInfo = majorationsRegions.find(m => m.region_code === departement)
+      const grandeCapaciteDispo = regionInfo?.grande_capacite_dispo ?? true // Par défaut dispo
+
       // Déterminer le type de véhicule automatiquement selon le nombre de passagers
       const passengers = dossier.passengers || 50
       const vehicleTypeInitial = dossier.vehicle_type || determinerTypeVehicule(passengers, capacites)
 
       // CALCUL DYNAMIQUE DU NOMBRE DE CARS
-      // Pour > 90 passagers : obligatoirement plusieurs cars de 50 places
-      const carsInfo = calculateNumberOfCars(passengers, vehicleTypeInitial)
+      // Pour > 90 passagers : optimisation selon disponibilité grande capacité
+      const carsInfo = calculateNumberOfCars(passengers, vehicleTypeInitial, grandeCapaciteDispo)
       const nombreCars = carsInfo.nombreCars
-      const vehicleType = carsInfo.vehicleTypeEffectif // Peut changer si > 90 pax
+      const vehicleType = carsInfo.vehicleTypeEffectif // Peut changer si > 90 pax ou si grande capa non dispo
 
       // Récupérer les horaires du dossier (si disponibles)
       const heureDepart = dossier.departure_time || null
@@ -1143,8 +1164,7 @@ Deno.serve(async (req) => {
         amplitude = determinerAmplitudeGrille(infosTrajet.amplitudeJournee)
       }
 
-      // Calculer la majoration régionale
-      const departement = extraireDepartement(dossier.departure)
+      // Calculer la majoration régionale (réutilise le département extrait plus haut)
       const majorationInfo = getMajorationPourDepartement(departement, majorationsRegions)
       const majorationRegionDecimal = majorationInfo.majorationPercent / 100
 
