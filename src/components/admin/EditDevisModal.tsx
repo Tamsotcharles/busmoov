@@ -462,16 +462,20 @@ export function EditDevisModal({
     const vehicleType = vehicleOptimization?.vehicleType || formData.vehicle_type || 'standard'
     const nombreCars = vehicleOptimization?.nombreCars || formData.nombre_cars || 1
 
+    console.log('[DEBUG tarifEstime] km:', km, 'grilles:', !!grilles, 'vehicleOptimization:', vehicleOptimization)
+
     if (km <= 0 || !grilles) return null
 
     // Trouver le coefficient véhicule - priorité à l'optimisation
     let coeff = 1
     if (vehicleOptimization) {
       coeff = vehicleOptimization.coefficient
+      console.log('[DEBUG] Using vehicleOptimization coefficient:', coeff, 'from', vehicleOptimization)
     } else {
       const vehiculeFromCapacites = capacitesVehicules.find(c => c.code === vehicleType)
       const vehiculeFromCoeff = coefficientsVehicules.find(c => c.code === vehicleType)
       coeff = vehiculeFromCapacites?.coefficient || vehiculeFromCoeff?.coefficient || 1
+      console.log('[DEBUG] Fallback coefficient:', coeff, 'vehicleType:', vehicleType, 'capacites:', vehiculeFromCapacites, 'coeffs:', vehiculeFromCoeff)
     }
 
     // Déterminer l'amplitude automatiquement si AR 1 jour et non spécifiée
