@@ -526,6 +526,8 @@ export function calculerInfosTrajet(
     if (tempsAttenteSurPlace < 0) tempsAttenteSurPlace = 0
 
     if (typeService === 'ar_1j' || estMemeJour) {
+      // Amplitude = (Heure départ retour + Temps trajet retour) - Heure départ aller
+      // C'est le temps de travail total du chauffeur (départ dépôt → retour dépôt)
       amplitudeJournee = (minutesRetourDepot - minutesDepartMatin) / 60
     }
   }

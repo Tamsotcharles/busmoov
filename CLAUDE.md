@@ -386,3 +386,100 @@ Utiliser `grid-cols-1 sm:grid-cols-2` pour les formulaires avec 2 colonnes sur d
 - `appearance-none` et `-webkit-appearance: none` sur les inputs
 - `font-size: 16px` pour éviter le zoom automatique
 - `min-height: 48px` sur les inputs date/time
+
+## Règles de tarification (IMPORTANT)
+
+### Principe fondamental
+**⚠️ TOUS LES PRIX DES GRILLES SONT TTC, PAS HT !**
+
+Les tables `tarifs_aller_simple`, `tarifs_ar_1j`, `tarifs_ar_mad`, `tarifs_ar_sans_mad` contiennent des prix TTC.
+
+### Types de service
+1. **Aller simple** : Trajet unique dans un sens
+2. **AR 1 jour** : Aller-retour le même jour
+3. **AR avec MAD** : Aller-retour sur plusieurs jours, le car RESTE sur place (Mise À Disposition)
+4. **AR sans MAD** : Aller-retour sur plusieurs jours, le car REPART entre les trajets
+
+**⚠️ Ne JAMAIS supposer une MAD sauf si explicitement mentionné par le client !**
+
+### Règles de sélection du type de service
+
+#### AR sans MAD < 100 km → 2 × aller simple
+Pour les AR sans MAD avec distance < 100 km, utiliser **2 × tarif aller simple** (la grille AR sans MAD commence à 100 km).
+
+#### AR avec MAD minimum 70 km
+La grille AR MAD commence à 70 km. En dessous, utiliser le tarif journée.
+
+#### Petits km AR 1 jour (≤ 50 km)
+- Base : **690 € TTC**
+- Si amplitude > 5h ET distance ≤ 20 km : **790 € TTC**
+- Si amplitude > 5h ET distance > 20 km : **830 € TTC**
+
+### Coefficients véhicules (depuis table `capacites_vehicules`)
+| Code | Capacité | Coefficient |
+|------|----------|-------------|
+| minibus | 8-20 pax | 0.90 |
+| standard | 21-59 pax | 1.00 |
+| 60-63 | 60-63 pax | 1.15 |
+| 70 | 64-70 pax | 1.30 |
+| 83-90 | 71-90 pax | 1.70 |
+
+### Majorations régionales (depuis table `majorations_regions`)
+- **0%** : IDF (75, 77, 78, 91-95), 06, 13, 31, 33, 34, 44, 57, 59, 62, 66, 67, 69, 73, 74, 76
+- **5%** : 30, 83, 84
+- **10%** : 01, 02, 04, 05, 10, 14, 25-28, 32, 35, 37-40, 42, 45, 47, 50, 51, 53, 54, 60, 61, 64, 65, 68, 70, 72, 89
+- **15%** : 22, 29, 49, 56 (Bretagne)
+
+### Km hors grille
+- Prix par km supplémentaire : **3 € × 2** (aller-retour) = **6 € TTC/km**
+- Supplément jour MAD (> 6 jours) : **800 € TTC/jour**
+- Supplément jour sans MAD (> 6 jours) : **600 € TTC/jour**
+
+### Calcul de l'amplitude horaire (AR 1 jour)
+
+**Amplitude = (Heure départ retour + Temps trajet retour) - Heure départ aller**
+
+C'est le temps de travail total du chauffeur, du départ du dépôt jusqu'au retour au dépôt.
+
+Exemple :
+- Départ aller 09:00
+- Trajet aller 1h → Arrivée destination 10:00
+- Départ retour 16:30
+- Trajet retour 1h → Retour dépôt 17:30
+- **Amplitude = 17:30 - 09:00 = 8h30** → Grille **≤10h**
+
+### Temps de conduite (règles chauffeur)
+
+**Temps de conduite = Durée réelle du trajet** (somme des temps de conduite aller + retour)
+
+| Calcul | Formule | Utilisation |
+|--------|---------|-------------|
+| Amplitude horaire | (Heure départ retour + Temps trajet retour) - Heure départ aller | Choix grille (8h/10h/12h) |
+| Temps de conduite | Somme des temps de trajet réels | Règles chauffeur, pauses |
+
+### Règles chauffeurs
+| Paramètre | Valeur |
+|-----------|--------|
+| Conduite continue max | 4h30 (jour) / 4h (nuit 22h-6h) |
+| Conduite max/jour | 9h (extension 10h max 2×/semaine) |
+| Amplitude max 1 chauffeur | 12h |
+| Amplitude max avec coupure ≥ 3h | 14h |
+| Coût 2ème chauffeur | **500 € TTC** par transfert |
+
+### Calcul type d'un devis
+1. Déterminer le type de service (aller simple, AR 1J, AR MAD, AR sans MAD)
+2. Vérifier si < seuil minimum → appliquer règle alternative (ex: 2×AS pour AR sans MAD < 100km)
+3. Trouver la tranche kilométrique dans la grille
+4. Appliquer le coefficient véhicule
+5. Ajouter la majoration régionale si applicable
+6. Ajouter les km hors grille si distance > max grille
+7. Ajouter coût 2ème chauffeur si amplitude/conduite dépasse les seuils
+8. **Le résultat est TTC**
+
+### TVA par pays
+| Pays | TVA Transport |
+|------|---------------|
+| France (FR) | 10% |
+| Espagne (ES) | 10% |
+| Allemagne (DE) | 7% |
+| Royaume-Uni (GB) | 0% |
