@@ -10268,6 +10268,36 @@ function NewDevisModal({
     return formData.departure_override || dossier?.departure || null
   }, [formData.departure_override, dossier?.departure])
 
+  // Obtenir la ville d'arrivée (override ou dossier)
+  const villeArriveeAvecCP = useMemo(() => {
+    return formData.arrival_override || dossier?.arrival || null
+  }, [formData.arrival_override, dossier?.arrival])
+
+  // Recalculer la distance quand les villes override changent
+  useEffect(() => {
+    // Ne recalculer que si une des villes a été modifiée manuellement (override)
+    if (!formData.departure_override && !formData.arrival_override) return
+
+    const departure = formData.departure_override || dossier?.departure
+    const arrival = formData.arrival_override || dossier?.arrival
+
+    if (departure && arrival && departure.length > 3 && arrival.length > 3) {
+      setIsLoadingDistance(true)
+      calculateRouteInfo(departure, arrival)
+        .then((routeInfo) => {
+          if (routeInfo && routeInfo.distance) {
+            setFormData(prev => ({
+              ...prev,
+              km: String(Math.round(routeInfo.distance)),
+            }))
+          }
+        })
+        .finally(() => {
+          setIsLoadingDistance(false)
+        })
+    }
+  }, [formData.departure_override, formData.arrival_override])
+
   // Calculer la majoration régionale
   const majorationRegion = useMemo(() => {
     if (!villeDepartAvecCP || majorationsRegions.length === 0) return null

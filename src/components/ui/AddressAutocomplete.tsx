@@ -25,9 +25,14 @@ export function AddressAutocomplete({
   className = '',
 }: AddressAutocompleteProps) {
   const { i18n } = useTranslation()
-  const { data: apiKey } = useGeoapifyKey()
+  const { data: apiKeyFromDb } = useGeoapifyKey()
 
-  const currentLang = i18n.language || 'fr'
+  // Fallback direct sur la variable d'environnement si la DB ne retourne rien
+  const apiKey = apiKeyFromDb || import.meta.env.VITE_GEOAPIFY_API_KEY || ''
+  // Valider la langue - Geoapify n'accepte que les codes ISO valides (fr, en, es, de, etc.)
+  const validLangs = ['fr', 'en', 'es', 'de', 'it', 'pt', 'nl', 'pl', 'ru', 'ja', 'zh']
+  const rawLang = i18n.language?.split('-')[0] || 'fr' // Extraire "fr" de "fr-FR"
+  const currentLang = validLangs.includes(rawLang) ? rawLang : 'fr'
 
   const [query, setQuery] = useState(value)
   const [suggestions, setSuggestions] = useState<GeoapifySuggestion[]>([])
@@ -66,9 +71,8 @@ export function AddressAutocomplete({
 
     setIsLoading(true)
     try {
-      const response = await fetch(
-        `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(searchQuery)}&lang=${currentLang}&limit=5&apiKey=${apiKey}`
-      )
+      const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(searchQuery)}&lang=${currentLang}&limit=5&apiKey=${apiKey}`
+      const response = await fetch(url)
       const data = await response.json()
 
       if (data.features) {
