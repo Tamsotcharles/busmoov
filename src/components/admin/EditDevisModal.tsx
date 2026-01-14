@@ -548,6 +548,19 @@ export function EditDevisModal({
     dossier,
   ])
 
+  // Mettre à jour automatiquement le nombre de chauffeurs selon les règles
+  // Le nombre de chauffeurs doit être multiplié par le nombre de cars
+  useEffect(() => {
+    const nbChauffeursParCar = infosTrajet?.nbChauffeurs || 1
+    const totalChauffeurs = nbChauffeursParCar * (formData.nombre_cars || 1)
+    if (totalChauffeurs !== formData.nombre_chauffeurs) {
+      setFormData(prev => ({
+        ...prev,
+        nombre_chauffeurs: totalChauffeurs,
+      }))
+    }
+  }, [infosTrajet?.nbChauffeurs, formData.nombre_cars])
+
   // Fonction pour appliquer le tarif estimé
   const applyEstimatedPrice = () => {
     if (tarifEstime) {

@@ -10783,7 +10783,10 @@ function NewDevisModal({
                   if (maxPax > 0) {
                     const grandeCapaciteDispo = majorationRegion?.grandeCapaciteDispo ?? true
                     const optimized = optimizeVehicleCombination(maxPax, grandeCapaciteDispo)
-                    setFormData({ ...formData, pax_aller: pax, vehicle_type: optimized.vehicleType, nombre_cars: optimized.nombreCars })
+                    // Calculer le nombre de chauffeurs (nb chauffeurs par car × nb cars)
+                    const nbChauffeursParCar = infosTrajet?.nbChauffeurs || 1
+                    const totalChauffeurs = nbChauffeursParCar * optimized.nombreCars
+                    setFormData({ ...formData, pax_aller: pax, vehicle_type: optimized.vehicleType, nombre_cars: optimized.nombreCars, nombre_chauffeurs: totalChauffeurs })
                   } else {
                     setFormData({ ...formData, pax_aller: pax })
                   }
@@ -10808,7 +10811,10 @@ function NewDevisModal({
                   if (maxPax > 0) {
                     const grandeCapaciteDispo = majorationRegion?.grandeCapaciteDispo ?? true
                     const optimized = optimizeVehicleCombination(maxPax, grandeCapaciteDispo)
-                    setFormData({ ...formData, pax_retour: pax, vehicle_type: optimized.vehicleType, nombre_cars: optimized.nombreCars })
+                    // Calculer le nombre de chauffeurs (nb chauffeurs par car × nb cars)
+                    const nbChauffeursParCar = infosTrajet?.nbChauffeurs || 1
+                    const totalChauffeurs = nbChauffeursParCar * optimized.nombreCars
+                    setFormData({ ...formData, pax_retour: pax, vehicle_type: optimized.vehicleType, nombre_cars: optimized.nombreCars, nombre_chauffeurs: totalChauffeurs })
                   } else {
                     setFormData({ ...formData, pax_retour: pax })
                   }
