@@ -14,13 +14,17 @@ import {
   calculerInfosTrajet,
   extraireDepartement,
   determinerAmplitudeGrille,
+  optimizeVehicleCombination,
+  calculateOptimalCars,
   type GrillesTarifaires,
   type MajorationRegion,
   type ServiceType,
   type AmplitudeType,
   type InfosTrajet,
   type CalculTarifResult,
+  type VehicleOptimizationResult,
   TARIFS_HORS_GRILLE,
+  VEHICLE_TYPES,
 } from '@/lib/pricing-rules'
 
 // =============================================
@@ -496,7 +500,8 @@ export function usePricingRulesWithRoute(params: UsePricingRulesWithRouteParams 
 }
 
 // =============================================
-// CONSTANTES EXPORTÉES
+// CONSTANTES ET FONCTIONS EXPORTÉES
 // =============================================
 
-export { TARIFS_HORS_GRILLE }
+export { TARIFS_HORS_GRILLE, VEHICLE_TYPES, optimizeVehicleCombination, calculateOptimalCars }
+export type { VehicleOptimizationResult }
