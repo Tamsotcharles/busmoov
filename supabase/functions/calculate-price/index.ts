@@ -409,32 +409,58 @@ async function calculerTarif(
   let nombreCarsCalcule = nombreCars;
   let capaciteMaxParCar = grandeCapaciteDispo ? CAPACITE_GRANDE : CAPACITE_STANDARD;
 
-  // Pour > 90 passagers, optimiser la combinaison de véhicules
+  // Pour > 90 passagers, optimiser la combinaison de véhicules (avec mix)
   // Prend en compte la disponibilité grande capacité dans la région
-  function optimizeVehicleCombination(passengers: number, gcDispo: boolean): { nombreCars: number; capacite: number } {
-    // Si grande capacité non dispo, on ne peut utiliser que le standard (53 places)
+  function optimizeVehicleCombination(passengers: number, gcDispo: boolean): { nombreCars: number; capacite: number; coutTotal: number } {
+    // Types de véhicules disponibles (triés par capacité décroissante)
     const vehicleTypes = gcDispo
       ? [
-          { capacity: 53, coef: 1.00 },
-          { capacity: 63, coef: 1.15 },
-          { capacity: 70, coef: 1.35 },
           { capacity: 90, coef: 1.70 },
+          { capacity: 70, coef: 1.35 },
+          { capacity: 63, coef: 1.15 },
+          { capacity: 53, coef: 1.00 },
         ]
       : [
           { capacity: 53, coef: 1.00 },
         ];
 
-    let best = { nombreCars: Math.ceil(passengers / 53), capacite: 53, cout: Math.ceil(passengers / 53) * 1.00 };
+    // Résultat par défaut: tous en standard
+    const defaultNbCars = Math.ceil(passengers / 53);
+    let best = { nombreCars: defaultNbCars, capacite: 53, coutTotal: defaultNbCars * 1.00 };
 
-    for (const v of vehicleTypes) {
-      const nbCars = Math.ceil(passengers / v.capacity);
-      const cout = nbCars * v.coef;
-      if (cout < best.cout) {
-        best = { nombreCars: nbCars, capacite: v.capacity, cout };
+    // Générer toutes les combinaisons (max 5 cars)
+    const maxCars = Math.min(defaultNbCars, 5);
+
+    function generateCombos(types: typeof vehicleTypes, n: number): typeof vehicleTypes[] {
+      if (n === 0) return [[]];
+      if (n === 1) return types.map(t => [t]);
+      const result: typeof vehicleTypes[] = [];
+      for (let i = 0; i < types.length; i++) {
+        const subs = generateCombos(types.slice(i), n - 1);
+        for (const sub of subs) {
+          result.push([types[i], ...sub]);
+        }
+      }
+      return result;
+    }
+
+    for (let nbCars = 1; nbCars <= maxCars; nbCars++) {
+      const combos = generateCombos(vehicleTypes, nbCars);
+
+      for (const combo of combos) {
+        const totalCap = combo.reduce((s, v) => s + v.capacity, 0);
+        if (totalCap >= passengers) {
+          const coutTotal = combo.reduce((s, v) => s + v.coef, 0);
+          if (coutTotal < best.coutTotal) {
+            // Capacité moyenne pour l'affichage
+            const avgCap = Math.round(totalCap / nbCars);
+            best = { nombreCars: nbCars, capacite: avgCap, coutTotal };
+          }
+        }
       }
     }
 
-    return { nombreCars: best.nombreCars, capacite: best.capacite };
+    return best;
   }
 
   if (params.nbPassagers && params.nbPassagers > 0 && !params.nombreCars) {

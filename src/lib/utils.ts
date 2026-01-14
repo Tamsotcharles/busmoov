@@ -1852,11 +1852,12 @@ function formatDuration(minutes: number): string {
  */
 export function calculateNumberOfCars(
   passengers: number,
-  vehicleType?: string
+  vehicleType?: string,
+  grandeCapaciteDispo: boolean = true
 ): number {
-  // Pour les groupes > 90 passagers, utiliser l'optimisation
+  // Pour les groupes > 90 passagers, utiliser l'optimisation avec combinaisons mixtes
   if (passengers > 90) {
-    const optimized = optimizeVehicleCombination(passengers)
+    const optimized = optimizeVehicleCombination(passengers, grandeCapaciteDispo)
     return optimized.nombreCars
   }
 
@@ -1870,7 +1871,13 @@ export function calculateNumberOfCars(
     autocar: 53, // par défaut
   }
 
-  const capacity = capacities[vehicleType || 'autocar'] || 53
+  // Si grande capacité non dispo et véhicule > 57 places demandé, forcer standard
+  let effectiveType = vehicleType || 'autocar'
+  if (!grandeCapaciteDispo && ['60-63', '70', '83-90'].includes(effectiveType)) {
+    effectiveType = 'standard'
+  }
+
+  const capacity = capacities[effectiveType] || 53
   return Math.ceil(passengers / capacity)
 }
 
@@ -1897,16 +1904,36 @@ const VEHICLE_CAPACITIES: Record<string, number> = {
 }
 
 /**
+ * Génère toutes les combinaisons de n véhicules parmi les types disponibles
+ * (combinaisons avec répétition, ordonnées)
+ */
+function generateVehicleCombinations<T>(types: T[], n: number): T[][] {
+  if (n === 0) return [[]]
+  if (n === 1) return types.map(t => [t])
+
+  const result: T[][] = []
+  for (let i = 0; i < types.length; i++) {
+    const subCombinations = generateVehicleCombinations(types.slice(i), n - 1)
+    for (const sub of subCombinations) {
+      result.push([types[i], ...sub])
+    }
+  }
+  return result
+}
+
+/**
  * Pour > 90 passagers, trouve la combinaison optimale de véhicules
- * qui minimise le coût total (nombre de cars × coefficient moyen)
+ * qui minimise le coût total (somme des coefficients)
+ *
+ * Supporte les COMBINAISONS MIXTES (ex: 1×63 + 1×53 pour 110 pax = coût 2.15)
  *
  * @param grandeCapaciteDispo - Si false, limite aux véhicules standard (53 places)
  *
- * Combinaisons possibles (si grande capacité dispo) :
- * - N cars standard (53 places, coef 1.00)
- * - N cars 60-63 places (63 places, coef 1.15)
- * - N cars 70 places (70 places, coef 1.35)
- * - N cars 83-90 places (90 places, coef 1.70)
+ * Types de véhicules disponibles (si grande capacité dispo) :
+ * - standard (53 places, coef 1.00)
+ * - 60-63 (63 places, coef 1.15)
+ * - 70 (70 places, coef 1.35)
+ * - 83-90 (90 places, coef 1.70)
  */
 export function optimizeVehicleCombination(passengers: number, grandeCapaciteDispo: boolean = true): {
   nombreCars: number
@@ -1916,72 +1943,119 @@ export function optimizeVehicleCombination(passengers: number, grandeCapaciteDis
   placesTotal: number
   coutRelatif: number
   explication: string
+  detail: string
 } {
-  // Types de véhicules disponibles pour les grands groupes
-  // Si grande capacité non dispo dans la région, on limite à standard (53 places)
+  // Types de véhicules disponibles (triés par capacité décroissante pour l'algo)
   const vehicleTypes = grandeCapaciteDispo
     ? [
-        { type: 'standard', capacity: 53, coef: 1.00 },
-        { type: '60-63', capacity: 63, coef: 1.15 },
-        { type: '70', capacity: 70, coef: 1.35 },
         { type: '83-90', capacity: 90, coef: 1.70 },
+        { type: '70', capacity: 70, coef: 1.35 },
+        { type: '60-63', capacity: 63, coef: 1.15 },
+        { type: 'standard', capacity: 53, coef: 1.00 },
       ]
     : [
         { type: 'standard', capacity: 53, coef: 1.00 },
       ]
 
-  let bestOption = {
-    nombreCars: Math.ceil(passengers / 53),
+  // Résultat par défaut: tous en standard
+  const defaultNbCars = Math.ceil(passengers / 53)
+  let bestResult = {
+    nombreCars: defaultNbCars,
     vehicleType: 'standard',
     capaciteParCar: 53,
     coefficient: 1.00,
-    placesTotal: Math.ceil(passengers / 53) * 53,
-    coutRelatif: Math.ceil(passengers / 53) * 1.00,
-    explication: ''
+    placesTotal: defaultNbCars * 53,
+    coutRelatif: defaultNbCars * 1.00,
+    explication: '',
+    detail: `${defaultNbCars}× standard (53 pl.)`
   }
 
-  // Tester chaque type de véhicule homogène
-  for (const v of vehicleTypes) {
-    const nbCars = Math.ceil(passengers / v.capacity)
-    const coutRelatif = nbCars * v.coef
+  // Tester toutes les combinaisons possibles (max 5 cars pour limiter la complexité)
+  const maxCars = Math.min(defaultNbCars, 5)
 
-    // Garder si moins cher
-    if (coutRelatif < bestOption.coutRelatif) {
-      bestOption = {
-        nombreCars: nbCars,
-        vehicleType: v.type,
-        capaciteParCar: v.capacity,
-        coefficient: v.coef,
-        placesTotal: nbCars * v.capacity,
-        coutRelatif,
-        explication: ''
+  for (let nbCars = 1; nbCars <= maxCars; nbCars++) {
+    // Générer toutes les combinaisons de nbCars véhicules (avec mixtes)
+    const combinations = generateVehicleCombinations(vehicleTypes, nbCars)
+
+    for (const combo of combinations) {
+      const totalCapacity = combo.reduce((sum, v) => sum + v.capacity, 0)
+
+      // Vérifier que la capacité totale suffit
+      if (totalCapacity >= passengers) {
+        const coutTotal = combo.reduce((sum, v) => sum + v.coef, 0)
+
+        if (coutTotal < bestResult.coutRelatif) {
+          // Compter les véhicules par type pour le détail
+          const countByType: Record<string, number> = {}
+          for (const v of combo) {
+            countByType[v.type] = (countByType[v.type] || 0) + 1
+          }
+
+          // Construire le détail
+          const detailParts: string[] = []
+          for (const [type, count] of Object.entries(countByType)) {
+            const cap = vehicleTypes.find(v => v.type === type)?.capacity || 53
+            detailParts.push(`${count}× ${type} (${cap} pl.)`)
+          }
+
+          // Type principal = celui avec le plus de cars, sinon le plus grand
+          let mainType = 'standard'
+          let maxCount = 0
+          for (const [type, count] of Object.entries(countByType)) {
+            if (count > maxCount) {
+              maxCount = count
+              mainType = type
+            }
+          }
+
+          const mainVehicle = vehicleTypes.find(v => v.type === mainType) || vehicleTypes[vehicleTypes.length - 1]
+
+          bestResult = {
+            nombreCars: nbCars,
+            vehicleType: mainType,
+            capaciteParCar: mainVehicle.capacity,
+            coefficient: coutTotal / nbCars, // Coefficient moyen
+            placesTotal: totalCapacity,
+            coutRelatif: coutTotal,
+            explication: '',
+            detail: detailParts.join(' + ')
+          }
+        }
       }
     }
   }
 
-  bestOption.explication = `${passengers} pax → ${bestOption.nombreCars}× ${bestOption.vehicleType} (${bestOption.capaciteParCar} pl.)`
+  bestResult.explication = `${passengers} pax → ${bestResult.detail} (coût ${bestResult.coutRelatif.toFixed(2)})`
 
-  return bestOption
+  return bestResult
 }
 
 /**
  * Calcule le nombre de cars avec détails complets
  * Utilisé pour l'affichage et les devis
+ *
+ * @param grandeCapaciteDispo - Si false, limite aux véhicules standard (53 places)
  */
-export function calculateCarsDetails(passengers: number, vehicleType?: string): {
+export function calculateCarsDetails(
+  passengers: number,
+  vehicleType?: string,
+  grandeCapaciteDispo: boolean = true
+): {
   nombreCars: number
   capaciteParCar: number
   vehicleTypeEffectif: string
   explication: string
+  detail?: string
 } {
-  // Pour les groupes > 90 passagers, optimiser la combinaison
+  // Pour les groupes > 90 passagers, optimiser la combinaison (avec mixtes)
   if (passengers > 90) {
-    const optimized = optimizeVehicleCombination(passengers)
+    const optimized = optimizeVehicleCombination(passengers, grandeCapaciteDispo)
     return {
       nombreCars: optimized.nombreCars,
       capaciteParCar: optimized.capaciteParCar,
       vehicleTypeEffectif: optimized.vehicleType,
-      explication: optimized.explication
+      explication: optimized.explication,
+      detail: optimized.detail
     }
   }
 
@@ -1995,7 +2069,12 @@ export function calculateCarsDetails(passengers: number, vehicleType?: string): 
     autocar: 53,
   }
 
-  const vehicleTypeEffectif = vehicleType || 'autocar'
+  // Si grande capacité non dispo et véhicule > 57 places demandé, forcer standard
+  let vehicleTypeEffectif = vehicleType || 'autocar'
+  if (!grandeCapaciteDispo && ['60-63', '70', '83-90'].includes(vehicleTypeEffectif)) {
+    vehicleTypeEffectif = 'standard'
+  }
+
   const capacity = capacities[vehicleTypeEffectif] || 53
   const nombreCars = Math.ceil(passengers / capacity)
 
@@ -2003,7 +2082,8 @@ export function calculateCarsDetails(passengers: number, vehicleType?: string): 
     nombreCars,
     capaciteParCar: capacity,
     vehicleTypeEffectif,
-    explication: `${passengers} passagers → ${nombreCars} car(s) de ${capacity} places`
+    explication: `${passengers} passagers → ${nombreCars} car(s) de ${capacity} places`,
+    detail: `${nombreCars}× ${vehicleTypeEffectif} (${capacity} pl.)`
   }
 }
 
