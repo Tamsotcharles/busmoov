@@ -457,16 +457,22 @@ export function EditDevisModal({
     const km = parseInt(formData.km?.toString() || '0') || 0
     const serviceType = (formData.service_type || 'aller_simple') as ServiceType
     const amplitude = formData.amplitude as AmplitudeType | null
-    // Utiliser le véhicule du formulaire, ou le premier de la liste des capacités, ou 'standard' par défaut
-    const vehicleType = formData.vehicle_type || (capacitesVehicules.length > 0 ? capacitesVehicules[0].code : 'standard')
-    const nombreCars = formData.nombre_cars || 1
+
+    // PRIORITÉ à l'optimisation si disponible, sinon valeurs du formulaire
+    const vehicleType = vehicleOptimization?.vehicleType || formData.vehicle_type || 'standard'
+    const nombreCars = vehicleOptimization?.nombreCars || formData.nombre_cars || 1
 
     if (km <= 0 || !grilles) return null
 
-    // Trouver le coefficient véhicule
-    const vehiculeFromCapacites = capacitesVehicules.find(c => c.code === vehicleType)
-    const vehiculeFromCoeff = coefficientsVehicules.find(c => c.code === vehicleType)
-    const coeff = vehiculeFromCapacites?.coefficient || vehiculeFromCoeff?.coefficient || 1
+    // Trouver le coefficient véhicule - priorité à l'optimisation
+    let coeff = 1
+    if (vehicleOptimization) {
+      coeff = vehicleOptimization.coefficient
+    } else {
+      const vehiculeFromCapacites = capacitesVehicules.find(c => c.code === vehicleType)
+      const vehiculeFromCoeff = coefficientsVehicules.find(c => c.code === vehicleType)
+      coeff = vehiculeFromCapacites?.coefficient || vehiculeFromCoeff?.coefficient || 1
+    }
 
     // Déterminer l'amplitude automatiquement si AR 1 jour et non spécifiée
     let amplitudeUtilisee = amplitude
@@ -546,6 +552,7 @@ export function EditDevisModal({
     majorationRegion,
     infosTrajet,
     dossier,
+    vehicleOptimization,
   ])
 
   // Mettre à jour automatiquement le nombre de chauffeurs selon les règles
@@ -568,6 +575,12 @@ export function EditDevisModal({
       const tvaRate = dossier?.tva_rate || getTvaRateByCountry(dossier?.country_code)
       const prixHT = Math.round(tarifEstime.prixFinal / (1 + tvaRate / 100) * 100) / 100
       handleChange('price_ht', prixHT)
+
+      // Appliquer le type de véhicule et nombre de cars de l'optimisation
+      if (vehicleOptimization) {
+        handleChange('vehicle_type', vehicleOptimization.vehicleType)
+        handleChange('nombre_cars', vehicleOptimization.nombreCars)
+      }
 
       // Appliquer aussi le nombre de chauffeurs calculé
       if (tarifEstime.nbChauffeurs && tarifEstime.nbChauffeurs > (formData.nombre_chauffeurs || 1)) {
