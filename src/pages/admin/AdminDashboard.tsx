@@ -81,6 +81,7 @@ import {
   chargerMajorationsRegions,
   extraireDepartement,
   determinerAmplitudeGrille,
+  optimizeVehicleCombination,
   type GrillesTarifaires,
   type MajorationRegion as PricingMajorationRegion,
   type ServiceType as PricingServiceType,
@@ -10284,6 +10285,14 @@ function NewDevisModal({
     return { percent: 0, nom: null, grandeCapaciteDispo: true, departement: dept }
   }, [villeDepartAvecCP, majorationsRegions])
 
+  // Calculer l'optimisation véhicule pour le nombre de passagers
+  const vehicleOptimization = useMemo(() => {
+    const passengers = Math.max(formData.pax_aller || 0, formData.pax_retour || 0)
+    if (passengers <= 0) return null
+    const grandeCapaciteDispo = majorationRegion?.grandeCapaciteDispo ?? true
+    return optimizeVehicleCombination(passengers, grandeCapaciteDispo)
+  }, [formData.pax_aller, formData.pax_retour, majorationRegion])
+
   // Construire les grilles au format GrillesTarifaires
   const grilles: GrillesTarifaires | null = useMemo(() => {
     // Au moins une grille doit être remplie
@@ -10770,10 +10779,11 @@ function NewDevisModal({
                 onChange={(e) => {
                   const pax = parseInt(e.target.value) || 0
                   const maxPax = Math.max(pax, formData.pax_retour || 0)
-                  // Pour > 90 passagers, forcer le type "standard" et recalculer les cars
-                  if (maxPax > 90) {
-                    const nbCars = Math.ceil(maxPax / 53)
-                    setFormData({ ...formData, pax_aller: pax, vehicle_type: 'standard', nombre_cars: nbCars })
+                  // Optimiser automatiquement le nombre de cars et type véhicule
+                  if (maxPax > 0) {
+                    const grandeCapaciteDispo = majorationRegion?.grandeCapaciteDispo ?? true
+                    const optimized = optimizeVehicleCombination(maxPax, grandeCapaciteDispo)
+                    setFormData({ ...formData, pax_aller: pax, vehicle_type: optimized.vehicleType, nombre_cars: optimized.nombreCars })
                   } else {
                     setFormData({ ...formData, pax_aller: pax })
                   }
@@ -10794,10 +10804,11 @@ function NewDevisModal({
                 onChange={(e) => {
                   const pax = parseInt(e.target.value) || 0
                   const maxPax = Math.max(pax, formData.pax_aller || 0)
-                  // Pour > 90 passagers, forcer le type "standard" et recalculer les cars
-                  if (maxPax > 90) {
-                    const nbCars = Math.ceil(maxPax / 53)
-                    setFormData({ ...formData, pax_retour: pax, vehicle_type: 'standard', nombre_cars: nbCars })
+                  // Optimiser automatiquement le nombre de cars et type véhicule
+                  if (maxPax > 0) {
+                    const grandeCapaciteDispo = majorationRegion?.grandeCapaciteDispo ?? true
+                    const optimized = optimizeVehicleCombination(maxPax, grandeCapaciteDispo)
+                    setFormData({ ...formData, pax_retour: pax, vehicle_type: optimized.vehicleType, nombre_cars: optimized.nombreCars })
                   } else {
                     setFormData({ ...formData, pax_retour: pax })
                   }
@@ -10812,17 +10823,17 @@ function NewDevisModal({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="label">Type véhicule</label>
-            {/* Pour > 90 passagers, forcer "standard" et désactiver le select */}
-            {Math.max(formData.pax_aller || 0, formData.pax_retour || 0) > 90 ? (
+            {/* Pour > 90 passagers, afficher l'optimisation mixte */}
+            {vehicleOptimization && vehicleOptimization.nombreCars > 1 ? (
               <div>
                 <input
                   type="text"
-                  className="input bg-gray-100"
-                  value="Standard (53 places) × plusieurs cars"
+                  className="input bg-purple-50 text-purple-800 font-medium"
+                  value={vehicleOptimization.detail}
                   disabled
                 />
-                <p className="text-xs text-orange-600 mt-1">
-                  Pour 90+ passagers : obligatoirement plusieurs cars standard de 53 places
+                <p className="text-xs text-purple-600 mt-1">
+                  Optimisation {Math.max(formData.pax_aller || 0, formData.pax_retour || 0)} pax : coût {vehicleOptimization.coutRelatif.toFixed(2)}
                 </p>
               </div>
             ) : (
