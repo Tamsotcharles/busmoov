@@ -1902,16 +1902,6 @@ export function MesDevisPage() {
                           </div>
                         </div>
 
-                        {/* Prix par car si plusieurs */}
-                        {(devis.nombre_cars || 1) > 1 && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm text-blue-700">{t('mesDevis.quote.pricePerCar')}</span>
-                              <span className="font-bold text-blue-800">{formatPrice(devis.price_ttc / (devis.nombre_cars || 1))}</span>
-                            </div>
-                          </div>
-                        )}
-
                         {/* Ce qui est inclus / non inclus */}
                         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
                           <div className="text-sm font-semibold text-emerald-800 mb-2">{t('mesDevis.quote.included')}</div>

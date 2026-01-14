@@ -128,9 +128,9 @@ export const TARIFS_HORS_GRILLE = {
 
 export const VEHICLE_TYPES = [
   { type: '83-90', capacity: 90, coef: 1.70 },
-  { type: '70', capacity: 70, coef: 1.35 },
+  { type: '70', capacity: 70, coef: 1.30 },
   { type: '60-63', capacity: 63, coef: 1.15 },
-  { type: 'standard', capacity: 53, coef: 1.00 },
+  { type: 'standard', capacity: 57, coef: 1.00 },
 ] as const
 
 // =============================================
@@ -175,31 +175,34 @@ export interface VehicleOptimizationResult {
  * Pour > 90 passagers, trouve la combinaison optimale de véhicules
  * qui minimise le coût total (somme des coefficients)
  *
- * Supporte les COMBINAISONS MIXTES (ex: 1×63 + 1×53 pour 110 pax = coût 2.15)
+ * Supporte les COMBINAISONS MIXTES (ex: 1×63 + 1×57 pour 110 pax = coût 2.15)
  *
  * @param passengers - Nombre de passagers
- * @param grandeCapaciteDispo - Si false, limite aux véhicules standard (53 places)
+ * @param grandeCapaciteDispo - Si false, limite aux véhicules standard (57 places)
  */
 export function optimizeVehicleCombination(
   passengers: number,
   grandeCapaciteDispo: boolean = true
 ): VehicleOptimizationResult {
+  // Capacité standard = 57 places
+  const STANDARD_CAPACITY = 57
+
   // Types de véhicules disponibles (triés par capacité décroissante)
   const vehicleTypes: VehicleType[] = grandeCapaciteDispo
     ? [...VEHICLE_TYPES]
-    : [{ type: 'standard', capacity: 53, coef: 1.00 }]
+    : [{ type: 'standard', capacity: STANDARD_CAPACITY, coef: 1.00 }]
 
   // Résultat par défaut: tous en standard
-  const defaultNbCars = Math.ceil(passengers / 53)
+  const defaultNbCars = Math.ceil(passengers / STANDARD_CAPACITY)
   let bestResult: VehicleOptimizationResult & { coutTotal: number } = {
     nombreCars: defaultNbCars,
     vehicleType: 'standard',
-    capaciteParCar: 53,
+    capaciteParCar: STANDARD_CAPACITY,
     coefficient: 1.00,
-    placesTotal: defaultNbCars * 53,
+    placesTotal: defaultNbCars * STANDARD_CAPACITY,
     coutRelatif: defaultNbCars * 1.00,
     coutTotal: defaultNbCars * 1.00,
-    detail: `${defaultNbCars}× standard (53 pl.)`
+    detail: `${defaultNbCars}× standard (${STANDARD_CAPACITY} pl.)`
   }
 
   // Tester toutes les combinaisons possibles (max 5 cars)
@@ -224,7 +227,7 @@ export function optimizeVehicleCombination(
           // Construire le détail
           const detailParts: string[] = []
           for (const [type, count] of Object.entries(countByType)) {
-            const cap = vehicleTypes.find(v => v.type === type)?.capacity || 53
+            const cap = vehicleTypes.find(v => v.type === type)?.capacity || STANDARD_CAPACITY
             detailParts.push(`${count}× ${type} (${cap} pl.)`)
           }
 
@@ -276,11 +279,11 @@ export function calculateOptimalCars(
   // Capacités par type de véhicule pour ≤ 90 passagers
   const capacities: Record<string, number> = {
     minibus: 20,
-    standard: 53,
+    standard: 57,
     '60-63': 63,
     '70': 70,
     '83-90': 90,
-    autocar: 53,
+    autocar: 57,
   }
 
   // Si grande capacité non dispo, forcer standard
@@ -289,7 +292,7 @@ export function calculateOptimalCars(
     effectiveType = 'standard'
   }
 
-  const capacity = capacities[effectiveType] || 53
+  const capacity = capacities[effectiveType] || 57
   return Math.ceil(passengers / capacity)
 }
 
