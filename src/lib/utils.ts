@@ -1854,11 +1854,11 @@ export function calculateNumberOfCars(
   passengers: number,
   vehicleType?: string
 ): number {
-  // Pour les groupes > 90 passagers, TOUJOURS utiliser plusieurs cars de 50 places
+  // Pour les groupes > 90 passagers, TOUJOURS utiliser plusieurs cars de 53 places (standard)
   // (Il n'existe pas de car > 90 places en France)
   if (passengers > 90) {
-    // Capacité optimale pour plusieurs cars = 50 places (standard autocar)
-    const CAPACITE_CAR_MULTI = 50
+    // Capacité optimale pour plusieurs cars = 53 places (standard autocar)
+    const CAPACITE_CAR_MULTI = 53
     return Math.ceil(passengers / CAPACITE_CAR_MULTI)
   }
 
@@ -1886,9 +1886,9 @@ export function calculateCarsDetails(passengers: number, vehicleType?: string): 
   vehicleTypeEffectif: string
   explication: string
 } {
-  // Pour les groupes > 90 passagers, TOUJOURS plusieurs cars de 50 places
+  // Pour les groupes > 90 passagers, TOUJOURS plusieurs cars de 53 places (standard)
   if (passengers > 90) {
-    const CAPACITE_CAR_MULTI = 50
+    const CAPACITE_CAR_MULTI = 53
     const nombreCars = Math.ceil(passengers / CAPACITE_CAR_MULTI)
     return {
       nombreCars,

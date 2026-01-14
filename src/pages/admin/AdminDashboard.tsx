@@ -10748,7 +10748,17 @@ function NewDevisModal({
                 className="input"
                 min={1}
                 value={formData.pax_aller || ''}
-                onChange={(e) => setFormData({ ...formData, pax_aller: parseInt(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const pax = parseInt(e.target.value) || 0
+                  const maxPax = Math.max(pax, formData.pax_retour || 0)
+                  // Pour > 90 passagers, forcer le type "standard" et recalculer les cars
+                  if (maxPax > 90) {
+                    const nbCars = Math.ceil(maxPax / 53)
+                    setFormData({ ...formData, pax_aller: pax, vehicle_type: 'standard', nombre_cars: nbCars })
+                  } else {
+                    setFormData({ ...formData, pax_aller: pax })
+                  }
+                }}
                 placeholder="Nb passagers"
               />
             </div>
@@ -10762,7 +10772,17 @@ function NewDevisModal({
                 className="input"
                 min={1}
                 value={formData.pax_retour || ''}
-                onChange={(e) => setFormData({ ...formData, pax_retour: parseInt(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const pax = parseInt(e.target.value) || 0
+                  const maxPax = Math.max(pax, formData.pax_aller || 0)
+                  // Pour > 90 passagers, forcer le type "standard" et recalculer les cars
+                  if (maxPax > 90) {
+                    const nbCars = Math.ceil(maxPax / 53)
+                    setFormData({ ...formData, pax_retour: pax, vehicle_type: 'standard', nombre_cars: nbCars })
+                  } else {
+                    setFormData({ ...formData, pax_retour: pax })
+                  }
+                }}
                 placeholder="Nb passagers"
               />
             </div>
@@ -10773,27 +10793,42 @@ function NewDevisModal({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="label">Type véhicule</label>
-            <select
-              className="input"
-              value={formData.vehicle_type}
-              onChange={(e) => setFormData({ ...formData, vehicle_type: e.target.value })}
-            >
-              {capacitesVehicules.length > 0 ? (
-                capacitesVehicules.map((v) => (
-                  <option key={v.code} value={v.code}>
-                    {v.label} ({v.places_min}-{v.places_max} places) - coeff {v.coefficient}
-                  </option>
-                ))
-              ) : (
-                <>
-                  <option value="minibus">Minibus (8-20 places)</option>
-                  <option value="standard">Standard (21-59 places)</option>
-                  <option value="60-63">60-63 places</option>
-                  <option value="70">70 places</option>
-                  <option value="83-90">Double étage (83-90 places)</option>
-                </>
-              )}
-            </select>
+            {/* Pour > 90 passagers, forcer "standard" et désactiver le select */}
+            {Math.max(formData.pax_aller || 0, formData.pax_retour || 0) > 90 ? (
+              <div>
+                <input
+                  type="text"
+                  className="input bg-gray-100"
+                  value="Standard (53 places) × plusieurs cars"
+                  disabled
+                />
+                <p className="text-xs text-orange-600 mt-1">
+                  Pour 90+ passagers : obligatoirement plusieurs cars standard de 53 places
+                </p>
+              </div>
+            ) : (
+              <select
+                className="input"
+                value={formData.vehicle_type}
+                onChange={(e) => setFormData({ ...formData, vehicle_type: e.target.value })}
+              >
+                {capacitesVehicules.length > 0 ? (
+                  capacitesVehicules.map((v) => (
+                    <option key={v.code} value={v.code}>
+                      {v.label} ({v.places_min}-{v.places_max} places) - coeff {v.coefficient}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="minibus">Minibus (8-20 places)</option>
+                    <option value="standard">Standard (21-59 places)</option>
+                    <option value="60-63">60-63 places</option>
+                    <option value="70">70 places</option>
+                    <option value="83-90">Double étage (83-90 places)</option>
+                  </>
+                )}
+              </select>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
