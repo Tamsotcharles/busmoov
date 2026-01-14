@@ -20,6 +20,7 @@ import {
   extraireDepartement,
   determinerAmplitudeGrille,
   chargerMajorationsRegions,
+  optimizeVehicleCombination,
   type GrillesTarifaires,
   type MajorationRegion,
   type ServiceType,
@@ -275,6 +276,21 @@ export function EditDevisModal({
         ? extractDetailMAD(dossier?.special_requests)
         : devis.detail_mad || ''
 
+      // Calculer l'optimisation véhicule pour les passagers
+      // Note: on calcule la disponibilité grande capacité directement ici car majorationRegion n'est pas encore défini
+      const passengers = devis.pax_aller || paxFromDossier || 0
+      let grandeCapaciteDispo = true
+      if (dossier?.departure && majorationsRegions.length > 0) {
+        const dept = extraireDepartement(dossier.departure)
+        if (dept) {
+          const region = majorationsRegions.find(m => m.region_code === dept)
+          grandeCapaciteDispo = region?.grande_capacite_dispo ?? true
+        }
+      }
+      const optimized = passengers > 0
+        ? optimizeVehicleCombination(passengers, grandeCapaciteDispo)
+        : null
+
       setFormData({
         ...devis,
         options_details: (devis.options_details as DevisOptionsDetails | null) || DEFAULT_OPTIONS,
@@ -284,9 +300,12 @@ export function EditDevisModal({
         pax_aller: devis.pax_aller || paxFromDossier,
         pax_retour: devis.pax_retour || paxFromDossier,
         detail_mad: detailMAD,
+        // Optimiser nombre de cars et type véhicule si non définis
+        nombre_cars: devis.nombre_cars || optimized?.nombreCars || 1,
+        vehicle_type: devis.vehicle_type || optimized?.vehicleType || 'standard',
       })
     }
-  }, [devis, dossier, kmFromDossier, paxFromDossier])
+  }, [devis, dossier, kmFromDossier, paxFromDossier, majorationsRegions])
 
   // Calculer la durée en jours à partir des dates du dossier
   function calculateDureeJours(dos: DossierWithRelations | null | undefined): number {
@@ -423,6 +442,15 @@ export function EditDevisModal({
 
     return calculerInfosTrajet(km, heureDepart, heureRetour, dateDepart, dateRetour, serviceType)
   }, [formData.km, formData.service_type, (formData as any).departure_time_override, (formData as any).return_time_override, (formData as any).departure_date_override, (formData as any).return_date_override, dossier])
+
+  // Calcul de l'optimisation véhicule recommandée
+  const vehicleOptimization = useMemo(() => {
+    const passengers = formData.pax_aller || paxFromDossier || 0
+    if (passengers <= 0) return null
+
+    const grandeCapaciteDispo = majorationRegion?.grandeCapaciteDispo ?? true
+    return optimizeVehicleCombination(passengers, grandeCapaciteDispo)
+  }, [formData.pax_aller, paxFromDossier, majorationRegion])
 
   // Calculer le tarif estimé selon les grilles tarifaires (nouvelle version)
   const tarifEstime = useMemo(() => {
@@ -603,6 +631,17 @@ export function EditDevisModal({
         }
         if (prev.price_achat_ht) {
           updated.price_achat_ttc = Math.round(prev.price_achat_ht * (1 + newTva / 100) * 100) / 100
+        }
+      }
+
+      // Si on change le nombre de passagers, optimiser automatiquement le nombre de cars
+      if (field === 'pax_aller') {
+        const passengers = value as number
+        if (passengers > 0) {
+          const grandeCapaciteDispo = majorationRegion?.grandeCapaciteDispo ?? true
+          const optimized = optimizeVehicleCombination(passengers, grandeCapaciteDispo)
+          updated.nombre_cars = optimized.nombreCars
+          updated.vehicle_type = optimized.vehicleType
         }
       }
 
@@ -984,7 +1023,7 @@ export function EditDevisModal({
         {/* Nombre de cars et chauffeurs */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="label">Nombre de cars</label>
+            <label className="label">Nb cars</label>
             <input
               type="number"
               className="input"
@@ -994,7 +1033,7 @@ export function EditDevisModal({
             />
           </div>
           <div>
-            <label className="label">Nombre de chauffeurs</label>
+            <label className="label">Nb chauffeurs</label>
             <input
               type="number"
               className="input"
@@ -1004,6 +1043,14 @@ export function EditDevisModal({
             />
           </div>
         </div>
+
+        {/* Info optimisation véhicule */}
+        {vehicleOptimization && (formData.pax_aller || paxFromDossier) > 0 && (
+          <p className="text-xs text-purple-600">
+            <Car size={12} className="inline mr-1" />
+            Optimisation {formData.pax_aller || paxFromDossier} pax : <strong>{vehicleOptimization.detail}</strong> (coût {vehicleOptimization.coutRelatif.toFixed(2)})
+          </p>
+        )}
 
         {/* Alertes majoration régionale et véhicule */}
         {majorationRegion && majorationRegion.percent > 0 && (
