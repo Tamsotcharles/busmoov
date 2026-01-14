@@ -268,29 +268,30 @@ export function EditDevisModal({
     }
   }, [isOpen])
 
-  // Initialiser le formulaire quand le devis change
+  // Initialiser le formulaire quand le devis change OU quand on crée un nouveau devis
   useEffect(() => {
-    if (devis) {
-      // Extraire le détail MAD depuis special_requests du dossier si circuit
-      const detailMAD = (dossier?.trip_mode === 'circuit' || dossier?.special_requests)
-        ? extractDetailMAD(dossier?.special_requests)
-        : devis.detail_mad || ''
+    // Extraire le détail MAD depuis special_requests du dossier si circuit
+    const detailMAD = (dossier?.trip_mode === 'circuit' || dossier?.special_requests)
+      ? extractDetailMAD(dossier?.special_requests)
+      : devis?.detail_mad || ''
 
-      // Calculer l'optimisation véhicule pour les passagers
-      // Note: on calcule la disponibilité grande capacité directement ici car majorationRegion n'est pas encore défini
-      const passengers = devis.pax_aller || paxFromDossier || 0
-      let grandeCapaciteDispo = true
-      if (dossier?.departure && majorationsRegions.length > 0) {
-        const dept = extraireDepartement(dossier.departure)
-        if (dept) {
-          const region = majorationsRegions.find(m => m.region_code === dept)
-          grandeCapaciteDispo = region?.grande_capacite_dispo ?? true
-        }
+    // Calculer l'optimisation véhicule pour les passagers
+    // Note: on calcule la disponibilité grande capacité directement ici car majorationRegion n'est pas encore défini
+    const passengers = devis?.pax_aller || paxFromDossier || 0
+    let grandeCapaciteDispo = true
+    if (dossier?.departure && majorationsRegions.length > 0) {
+      const dept = extraireDepartement(dossier.departure)
+      if (dept) {
+        const region = majorationsRegions.find(m => m.region_code === dept)
+        grandeCapaciteDispo = region?.grande_capacite_dispo ?? true
       }
-      const optimized = passengers > 0
-        ? optimizeVehicleCombination(passengers, grandeCapaciteDispo)
-        : null
+    }
+    const optimized = passengers > 0
+      ? optimizeVehicleCombination(passengers, grandeCapaciteDispo)
+      : null
 
+    if (devis) {
+      // Édition d'un devis existant
       setFormData({
         ...devis,
         options_details: (devis.options_details as DevisOptionsDetails | null) || DEFAULT_OPTIONS,
@@ -303,6 +304,18 @@ export function EditDevisModal({
         // Optimiser nombre de cars et type véhicule si non définis
         nombre_cars: devis.nombre_cars || optimized?.nombreCars || 1,
         vehicle_type: devis.vehicle_type || optimized?.vehicleType || 'standard',
+      })
+    } else if (dossier) {
+      // Nouveau devis - initialiser avec les valeurs du dossier
+      setFormData({
+        options_details: DEFAULT_OPTIONS,
+        service_type: detectServiceType(null, dossier),
+        km: kmFromDossier,
+        pax_aller: paxFromDossier,
+        pax_retour: paxFromDossier,
+        detail_mad: detailMAD,
+        nombre_cars: optimized?.nombreCars || 1,
+        vehicle_type: optimized?.vehicleType || 'standard',
       })
     }
   }, [devis, dossier, kmFromDossier, paxFromDossier, majorationsRegions])
@@ -462,20 +475,16 @@ export function EditDevisModal({
     const vehicleType = vehicleOptimization?.vehicleType || formData.vehicle_type || 'standard'
     const nombreCars = vehicleOptimization?.nombreCars || formData.nombre_cars || 1
 
-    console.log('[DEBUG tarifEstime] km:', km, 'grilles:', !!grilles, 'vehicleOptimization:', vehicleOptimization)
-
     if (km <= 0 || !grilles) return null
 
     // Trouver le coefficient véhicule - priorité à l'optimisation
     let coeff = 1
     if (vehicleOptimization) {
       coeff = vehicleOptimization.coefficient
-      console.log('[DEBUG] Using vehicleOptimization coefficient:', coeff, 'from', vehicleOptimization)
     } else {
       const vehiculeFromCapacites = capacitesVehicules.find(c => c.code === vehicleType)
       const vehiculeFromCoeff = coefficientsVehicules.find(c => c.code === vehicleType)
       coeff = vehiculeFromCapacites?.coefficient || vehiculeFromCoeff?.coefficient || 1
-      console.log('[DEBUG] Fallback coefficient:', coeff, 'vehicleType:', vehicleType, 'capacites:', vehiculeFromCapacites, 'coeffs:', vehiculeFromCoeff)
     }
 
     // Déterminer l'amplitude automatiquement si AR 1 jour et non spécifiée
