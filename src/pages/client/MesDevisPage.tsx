@@ -2184,8 +2184,8 @@ export function MesDevisPage() {
         </div>
       </div>
 
-      {/* Chat Widget */}
-      {data.type === 'dossier' && data.dossier && (() => {
+      {/* Chat Widget - Affiché uniquement si le dossier a des devis */}
+      {data.type === 'dossier' && data.dossier && data.devis.length > 0 && (() => {
         // Vérifier si un contrat est signé (dossier validé avec un fournisseur)
         const hasSignedContract = !!data.dossier?.contract_signed_at
         const acceptedDevisData = data.devis.find(d => d.status === 'accepted')
