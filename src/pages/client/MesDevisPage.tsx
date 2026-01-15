@@ -353,17 +353,21 @@ export function MesDevisPage() {
 
   // Ref pour éviter les race conditions lors du chargement des données
   const loadDataRequestRef = useRef(0)
+  const refreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     if (searched && reference && email) {
       // Incrémenter le compteur de requête pour invalider les requêtes précédentes
       const currentRequest = ++loadDataRequestRef.current
 
-      const loadDataWithCancellation = async () => {
+      const loadDataWithCancellation = async (isAutoRefresh = false) => {
         if (!reference || !email) return
 
-        setLoading(true)
-        setError(null)
+        // Ne pas afficher le loading pour l'auto-refresh
+        if (!isAutoRefresh) {
+          setLoading(true)
+          setError(null)
+        }
 
         try {
           // Vérifier si cette requête est toujours la plus récente
@@ -487,7 +491,21 @@ export function MesDevisPage() {
         }
       }
 
+      // Premier chargement
       loadDataWithCancellation()
+
+      // Auto-refresh toutes les 10 secondes pour recevoir les nouveaux devis en temps réel
+      refreshIntervalRef.current = setInterval(() => {
+        loadDataWithCancellation(true)
+      }, 10000)
+
+      // Cleanup
+      return () => {
+        if (refreshIntervalRef.current) {
+          clearInterval(refreshIntervalRef.current)
+          refreshIntervalRef.current = null
+        }
+      }
     }
   }, [searched, reference, email])
 
