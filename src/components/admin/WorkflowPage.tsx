@@ -227,12 +227,12 @@ export function WorkflowPage() {
   const loadAutomationSettings = async () => {
     try {
       const { data, error } = await supabase
-        .from('automation_settings')
+        .from('automation_settings' as any)
         .select('*')
         .order('key')
 
       if (error) throw error
-      setAutomationSettings((data as AutomationSetting[]) || [])
+      setAutomationSettings((data as unknown as AutomationSetting[]) || [])
     } catch (err) {
       console.error('Error loading automation settings:', err)
     }
@@ -241,7 +241,7 @@ export function WorkflowPage() {
   const toggleAutomation = async (setting: AutomationSetting) => {
     try {
       const { error } = await supabase
-        .from('automation_settings')
+        .from('automation_settings' as any)
         .update({ enabled: !setting.enabled, updated_at: new Date().toISOString() })
         .eq('id', setting.id)
 
@@ -256,7 +256,7 @@ export function WorkflowPage() {
   const updateAutomationConfig = async (setting: AutomationSetting, newConfig: Record<string, unknown>) => {
     try {
       const { error } = await supabase
-        .from('automation_settings')
+        .from('automation_settings' as any)
         .update({ config: newConfig, updated_at: new Date().toISOString() })
         .eq('id', setting.id)
 
