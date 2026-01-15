@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Bell, Check, CheckCheck, Info, Truck, Euro, XCircle, ChevronDown, ChevronUp, ExternalLink, CreditCard, FileSignature } from 'lucide-react'
+import { Bell, Check, CheckCheck, Info, Truck, Euro, XCircle, ChevronDown, ChevronUp, ExternalLink, CreditCard, FileSignature, MessageCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -10,7 +10,7 @@ interface NotificationCRM {
   created_at: string
   dossier_id: string | null
   dossier_reference: string | null
-  type: 'infos_voyage' | 'contact_chauffeur' | 'tarif_fournisseur' | 'refus_fournisseur' | 'paiement_echoue' | 'contrat_signe'
+  type: 'infos_voyage' | 'contact_chauffeur' | 'tarif_fournisseur' | 'refus_fournisseur' | 'paiement_echoue' | 'contrat_signe' | 'nouveau_message'
   title: string
   description: string | null
   source_type: string | null
@@ -57,6 +57,12 @@ const TYPE_CONFIG = {
     color: 'text-purple-600',
     bgColor: 'bg-purple-100',
     label: 'Contrat signé',
+  },
+  nouveau_message: {
+    icon: MessageCircle,
+    color: 'text-cyan-600',
+    bgColor: 'bg-cyan-100',
+    label: 'Message',
   },
 }
 

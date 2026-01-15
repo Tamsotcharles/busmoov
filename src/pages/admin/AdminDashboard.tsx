@@ -66,7 +66,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useQueryClient } from '@tanstack/react-query'
-import { useDossiers, useTransporteurs, useDashboardStats, useAllDevis, useUpdateDossier, useCreateDossier, useCreateDevis, useDevisByDossier, useUpdateDevis, useDeleteDevis, useContrats, useDeleteContrat, useCreatePaiement, useDeletePaiement, useTimeline, useAddTimelineEntry, useVoyageInfo, useCreateOrUpdateVoyageInfo, useDemandesFournisseurs, useAllDemandesFournisseurs, useCreateDemandeFournisseur, useUpdateDemandeFournisseur, useDeleteDemandeFournisseur, useUpdateTransporteur, useCreateTransporteur, useDeleteTransporteur, useWorkflowsDevisAuto, useCreateWorkflow, useUpdateWorkflow, useDeleteWorkflow, useDossierAutoDevis, useActivateAutoDevis, useDeactivateAutoDevis, useDefaultWorkflow, useAllDossiersAutoDevis, useCreateFacture, useDemandesChauffeur, useMarkFeuilleRouteEnvoyee, useContratByDossier, usePaiementsByContrat, useFacturesByDossier, usePaiementsFournisseurs, useCreatePaiementFournisseur, useDeletePaiementFournisseur, useRappels, useCreateRappel, useUpdateRappel, useDeleteRappel, generateChauffeurToken } from '@/hooks/useSupabase'
+import { useDossiers, useTransporteurs, useDashboardStats, useAllDevis, useUpdateDossier, useCreateDossier, useCreateDevis, useDevisByDossier, useUpdateDevis, useDeleteDevis, useContrats, useDeleteContrat, useCreatePaiement, useDeletePaiement, useTimeline, useAddTimelineEntry, useVoyageInfo, useCreateOrUpdateVoyageInfo, useDemandesFournisseurs, useAllDemandesFournisseurs, useCreateDemandeFournisseur, useUpdateDemandeFournisseur, useDeleteDemandeFournisseur, useUpdateTransporteur, useCreateTransporteur, useDeleteTransporteur, useWorkflowsDevisAuto, useCreateWorkflow, useUpdateWorkflow, useDeleteWorkflow, useDossierAutoDevis, useActivateAutoDevis, useDeactivateAutoDevis, useDefaultWorkflow, useAllDossiersAutoDevis, useCreateFacture, useDemandesChauffeur, useMarkFeuilleRouteEnvoyee, useContratByDossier, usePaiementsByContrat, useFacturesByDossier, usePaiementsFournisseurs, useCreatePaiementFournisseur, useDeletePaiementFournisseur, useRappels, useCreateRappel, useUpdateRappel, useDeleteRappel, generateChauffeurToken, useUnreadMessagesCount } from '@/hooks/useSupabase'
 import { DemandeContactChauffeurModal } from '@/components/admin/DemandeContactChauffeurModal'
 import { CronSettingsSection } from '@/components/admin/CronSettingsSection'
 import { EditDevisModal } from '@/components/admin/EditDevisModal'
@@ -514,6 +514,7 @@ export function AdminDashboard() {
   const { data: allDemandesFournisseurs = [] } = useAllDemandesFournisseurs()
   const { data: allDossiersAutoDevis = [] } = useAllDossiersAutoDevis()
   const { data: paiementsFournisseurs = [] } = usePaiementsFournisseurs()
+  const { data: unreadMessagesCount = 0 } = useUnreadMessagesCount()
   const updateDevisMain = useUpdateDevis()
   const queryClient = useQueryClient()
 
@@ -823,6 +824,11 @@ export function AdminDashboard() {
               {item.id === 'exploitation' && nouveauxTarifsCount > 0 && (
                 <span className="ml-auto bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
                   {nouveauxTarifsCount}
+                </span>
+              )}
+              {item.id === 'messages' && unreadMessagesCount > 0 && (
+                <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
+                  {unreadMessagesCount}
                 </span>
               )}
             </button>

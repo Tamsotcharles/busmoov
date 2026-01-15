@@ -706,6 +706,31 @@ export function useSendMessage() {
           type: 'message',
           content: `💬 ${senderLabel}${devisInfo}: "${data.content.substring(0, 100)}${data.content.length > 100 ? '...' : ''}"`,
         })
+
+        // Créer une notification CRM si c'est un message du client
+        if (data.sender === 'client') {
+          // Récupérer les infos du dossier pour la notification
+          const { data: dossier } = await supabase
+            .from('dossiers')
+            .select('reference, client_name')
+            .eq('id', data.dossier_id)
+            .single()
+
+          if (dossier) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (supabase as any).from('notifications_crm').insert({
+              dossier_id: data.dossier_id,
+              dossier_reference: dossier.reference,
+              type: 'nouveau_message',
+              title: `Nouveau message de ${dossier.client_name}`,
+              description: data.content.substring(0, 200) + (data.content.length > 200 ? '...' : ''),
+              source_type: 'client',
+              source_name: dossier.client_name,
+              is_read: false,
+              metadata: { message_id: data.id, devis_id: data.devis_id }
+            })
+          }
+        }
       }
 
       return data
@@ -718,6 +743,12 @@ export function useSendMessage() {
       }
       // Invalider la timeline aussi
       queryClient.invalidateQueries({ queryKey: ['timeline', data.dossier_id] })
+      // Invalider les notifications CRM pour mettre à jour le compteur
+      if (data.sender === 'client') {
+        queryClient.invalidateQueries({ queryKey: ['notifications-crm'] })
+        queryClient.invalidateQueries({ queryKey: ['notifications-crm-unread-count'] })
+        queryClient.invalidateQueries({ queryKey: ['messages-unread-count'] })
+      }
     },
   })
 }
@@ -3097,6 +3128,26 @@ export async function createNotificationCRM(notification: CreateNotificationCRM)
 
   if (error) throw error
   return data
+}
+
+// ============ MESSAGES CHAT ============
+
+// Hook pour compter les messages non lus par l'admin
+export function useUnreadMessagesCount() {
+  return useQuery({
+    queryKey: ['messages-unread-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('read_by_admin', false)
+        .eq('sender', 'client') // Seulement les messages des clients
+
+      if (error) throw error
+      return count || 0
+    },
+    refetchInterval: 15000, // Rafraîchir toutes les 15 secondes
+  })
 }
 
 // ============ COUNTRIES / PAYS ============
