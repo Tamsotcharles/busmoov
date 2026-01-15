@@ -707,8 +707,7 @@ export function MesDevisPage() {
 
       // Générer la proforma PDF avec les données retournées par l'Edge Function
       const contractData = result.data
-      const countryCode = contractData.dossier?.country_code || data.dossier.country_code || 'FR'
-      const pdfLang = countryCode.toLowerCase()
+      const pdfLang = i18n.language as 'fr' | 'es' | 'de' | 'en'
       await generateContratPDF({
         reference: contractData.proforma_reference,
         price_ttc: contractData.price_ttc,
@@ -1355,7 +1354,7 @@ export function MesDevisPage() {
                         passengers: data.dossier.passengers,
                         transporteur: acceptedDevis.transporteur || undefined,
                       },
-                    }, (data.dossier.country_code || 'FR').toLowerCase())
+                    }, i18n.language as 'fr' | 'es' | 'de' | 'en')
                   }
                 }}
                 className="card p-6 text-center cursor-pointer hover:shadow-lg transition-all bg-emerald-50 border-emerald-200 hover:border-emerald-400"
@@ -1541,7 +1540,7 @@ export function MesDevisPage() {
                             client_email: data.dossier.client_email,
                             total_ttc: data.dossier.price_ttc || devisAccepte?.price_ttc || null,
                           } : null
-                        }, (data.dossier?.country_code || 'FR').toLowerCase())
+                        }, i18n.language as 'fr' | 'es' | 'de' | 'en')
                       }}
                       className="btn btn-sm bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1"
                     >
@@ -1651,7 +1650,7 @@ export function MesDevisPage() {
                       chauffeur_retour_immatriculation: voyageInfo.chauffeur_retour_immatriculation,
                       contact_nom: voyageInfo.contact_nom,
                       contact_tel: voyageInfo.contact_tel,
-                    }, (data.dossier.country_code || 'FR').toLowerCase())
+                    }, i18n.language as 'fr' | 'es' | 'de' | 'en')
                   }
                 }}
                 className="btn bg-purple-600 text-white hover:bg-purple-700 flex items-center gap-2"
@@ -2143,7 +2142,7 @@ export function MesDevisPage() {
                                     return_time: data.dossier.return_time || undefined,
                                   },
                                   commentaires: devis.client_notes || devis.options || undefined,
-                                }, (data.dossier.country_code || 'FR').toLowerCase())
+                                }, i18n.language as 'fr' | 'es' | 'de' | 'en')
                               }
                             }}
                           >
@@ -2399,7 +2398,7 @@ export function MesDevisPage() {
                       return_time: data.dossier.return_time || undefined,
                     },
                     commentaires: selectedDevis.devis.client_notes || selectedDevis.devis.options || undefined,
-                  }, (data.dossier.country_code || 'FR').toLowerCase())
+                  }, i18n.language as 'fr' | 'es' | 'de' | 'en')
                 }
               }}
               className="w-full btn btn-secondary flex items-center justify-center gap-2"
