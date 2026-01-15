@@ -19,7 +19,11 @@ import {
   Timer,
   AlertCircle,
   CheckCircle2,
-  Loader2
+  Loader2,
+  Settings2,
+  Bell,
+  ToggleLeft,
+  ToggleRight,
 } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { formatDate } from '@/lib/utils'
@@ -110,15 +114,74 @@ interface EmailTemplate {
   is_active: boolean
 }
 
+interface AutomationSetting {
+  id: string
+  key: string
+  enabled: boolean
+  config: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+const AUTOMATION_CONFIGS: Record<string, {
+  label: string
+  description: string
+  icon: React.ReactNode
+  color: string
+  fields: { key: string; label: string; type: 'number' | 'boolean'; unit?: string; min?: number; max?: number }[]
+}> = {
+  offre_flash_reminder: {
+    label: 'Relance offre flash',
+    description: 'Envoie automatiquement une relance avant l\'expiration d\'une offre flash',
+    icon: <Zap className="w-5 h-5" />,
+    color: 'magenta',
+    fields: [
+      { key: 'hours_before_expiry', label: 'Heures avant expiration', type: 'number', unit: 'h', min: 1, max: 24 },
+      { key: 'max_reminders', label: 'Nombre max de relances', type: 'number', min: 1, max: 3 },
+    ],
+  },
+  quote_reminder: {
+    label: 'Relance devis',
+    description: 'Relance automatique si le client n\'a pas répondu après envoi des devis',
+    icon: <FileText className="w-5 h-5" />,
+    color: 'amber',
+    fields: [
+      { key: 'days_after_sent', label: 'Jours après envoi', type: 'number', unit: 'j', min: 1, max: 14 },
+      { key: 'max_reminders', label: 'Nombre max de relances', type: 'number', min: 1, max: 3 },
+    ],
+  },
+  payment_reminder: {
+    label: 'Relance paiement',
+    description: 'Relance automatique si l\'acompte n\'est pas payé après signature',
+    icon: <Clock className="w-5 h-5" />,
+    color: 'orange',
+    fields: [
+      { key: 'days_after_signature', label: 'Jours après signature', type: 'number', unit: 'j', min: 1, max: 14 },
+      { key: 'days_before_departure', label: 'Jours avant départ (solde)', type: 'number', unit: 'j', min: 7, max: 60 },
+    ],
+  },
+  info_voyage_reminder: {
+    label: 'Relance infos voyage',
+    description: 'Relance automatique si le client n\'a pas fourni ses infos voyage',
+    icon: <Users className="w-5 h-5" />,
+    color: 'cyan',
+    fields: [
+      { key: 'days_before_departure', label: 'Jours avant départ', type: 'number', unit: 'j', min: 3, max: 30 },
+    ],
+  },
+}
+
 export function WorkflowPage() {
   const [rules, setRules] = useState<WorkflowRule[]>([])
   const [executions, setExecutions] = useState<WorkflowExecution[]>([])
   const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([])
+  const [automationSettings, setAutomationSettings] = useState<AutomationSetting[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedRule, setSelectedRule] = useState<WorkflowRule | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState<'rules' | 'history' | 'scheduler'>('rules')
+  const [isRunningAutomation, setIsRunningAutomation] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'rules' | 'history' | 'scheduler' | 'automations'>('automations')
 
   // État pour le planificateur cron
   const [cronJobs, setCronJobs] = useState<CronJob[]>([])
@@ -158,7 +221,84 @@ export function WorkflowPage() {
     loadRules()
     loadExecutions()
     loadEmailTemplates()
+    loadAutomationSettings()
   }, [])
+
+  const loadAutomationSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('automation_settings')
+        .select('*')
+        .order('key')
+
+      if (error) throw error
+      setAutomationSettings((data as AutomationSetting[]) || [])
+    } catch (err) {
+      console.error('Error loading automation settings:', err)
+    }
+  }
+
+  const toggleAutomation = async (setting: AutomationSetting) => {
+    try {
+      const { error } = await supabase
+        .from('automation_settings')
+        .update({ enabled: !setting.enabled, updated_at: new Date().toISOString() })
+        .eq('id', setting.id)
+
+      if (error) throw error
+      await loadAutomationSettings()
+    } catch (err) {
+      console.error('Error toggling automation:', err)
+      alert('Erreur lors de la modification')
+    }
+  }
+
+  const updateAutomationConfig = async (setting: AutomationSetting, newConfig: Record<string, unknown>) => {
+    try {
+      const { error } = await supabase
+        .from('automation_settings')
+        .update({ config: newConfig, updated_at: new Date().toISOString() })
+        .eq('id', setting.id)
+
+      if (error) throw error
+      await loadAutomationSettings()
+    } catch (err) {
+      console.error('Error updating automation config:', err)
+      alert('Erreur lors de la sauvegarde')
+    }
+  }
+
+  const runAutomationNow = async (automationKey: string) => {
+    setIsRunningAutomation(automationKey)
+    try {
+      const { data, error } = await supabase.functions.invoke('scheduled-reminders', {
+        body: { automation: automationKey },
+      })
+
+      if (error) throw error
+
+      const result = data?.results?.[automationKey]
+      if (result) {
+        if (result.sent > 0) {
+          alert(`${result.sent} relance(s) envoyée(s) sur ${result.processed} dossier(s) traité(s)`)
+        } else if (result.processed > 0) {
+          alert(`${result.processed} dossier(s) vérifié(s), aucune relance nécessaire`)
+        } else {
+          alert('Aucun dossier à traiter')
+        }
+        if (result.errors?.length > 0) {
+          console.error('Erreurs:', result.errors)
+        }
+      } else {
+        alert('Automatisation exécutée')
+      }
+    } catch (err: unknown) {
+      console.error('Error running automation:', err)
+      alert(`Erreur: ${err instanceof Error ? err.message : 'Erreur inconnue'}`)
+    } finally {
+      setIsRunningAutomation(null)
+    }
+  }
 
   const loadEmailTemplates = async () => {
     try {
@@ -547,7 +687,158 @@ export function WorkflowPage() {
           <Timer className="w-4 h-4" />
           Planificateur
         </button>
+        <button
+          onClick={() => setActiveTab('automations')}
+          className={`pb-3 px-1 font-medium transition-colors flex items-center gap-2 ${
+            activeTab === 'automations'
+              ? 'text-magenta border-b-2 border-magenta'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <Bell className="w-4 h-4" />
+          Automatisations
+        </button>
       </div>
+
+      {/* Automations Tab */}
+      {activeTab === 'automations' && (
+        <div className="space-y-6">
+          {/* Info Card */}
+          <div className="card p-4 bg-gradient-to-r from-magenta/5 to-purple/5 border-magenta/20">
+            <div className="flex items-start gap-3">
+              <Bell className="w-5 h-5 text-magenta mt-0.5" />
+              <div>
+                <h3 className="font-medium text-purple-dark">Relances automatiques</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Configurez les relances automatiques pour vos offres flash, devis, paiements et infos voyage.
+                  Les automatisations sont exécutées toutes les heures par le planificateur.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Automation Cards */}
+          <div className="grid gap-4">
+            {automationSettings.map((setting) => {
+              const config = AUTOMATION_CONFIGS[setting.key]
+              if (!config) return null
+
+              return (
+                <div
+                  key={setting.id}
+                  className={`card p-4 transition-all ${setting.enabled ? 'border-green-200 bg-green-50/30' : 'opacity-70'}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className={`p-2 rounded-lg ${setting.enabled ? `bg-${config.color}/10` : 'bg-gray-100'}`}>
+                        {config.icon}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-gray-900">{config.label}</h3>
+                          {setting.enabled ? (
+                            <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              Active
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-500 rounded-full">
+                              Inactive
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">{config.description}</p>
+
+                        {/* Configuration Fields */}
+                        <div className="flex flex-wrap gap-4 mt-4">
+                          {config.fields.map((field) => (
+                            <div key={field.key} className="flex items-center gap-2">
+                              <label className="text-sm text-gray-600">{field.label}:</label>
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  className="w-16 px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-magenta/20 focus:border-magenta"
+                                  min={field.min}
+                                  max={field.max}
+                                  value={(setting.config[field.key] as number) || 0}
+                                  onChange={(e) => {
+                                    const newConfig = { ...setting.config, [field.key]: parseInt(e.target.value) || 0 }
+                                    updateAutomationConfig(setting, newConfig)
+                                  }}
+                                />
+                                {field.unit && <span className="text-sm text-gray-500">{field.unit}</span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {/* Run Now Button */}
+                      <button
+                        onClick={() => runAutomationNow(setting.key)}
+                        disabled={!setting.enabled || isRunningAutomation === setting.key}
+                        className={`p-2 rounded-lg transition-colors ${
+                          setting.enabled
+                            ? 'hover:bg-blue-50 text-blue-600'
+                            : 'text-gray-300 cursor-not-allowed'
+                        }`}
+                        title="Exécuter maintenant"
+                      >
+                        {isRunningAutomation === setting.key ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <Play className="w-5 h-5" />
+                        )}
+                      </button>
+
+                      {/* Toggle Button */}
+                      <button
+                        onClick={() => toggleAutomation(setting)}
+                        className={`p-1 rounded-lg transition-colors ${
+                          setting.enabled
+                            ? 'text-green-600 hover:bg-green-50'
+                            : 'text-gray-400 hover:bg-gray-100'
+                        }`}
+                        title={setting.enabled ? 'Désactiver' : 'Activer'}
+                      >
+                        {setting.enabled ? (
+                          <ToggleRight className="w-8 h-8" />
+                        ) : (
+                          <ToggleLeft className="w-8 h-8" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+
+            {automationSettings.length === 0 && (
+              <div className="card p-8 text-center text-gray-500">
+                <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <p>Aucune automatisation configurée</p>
+                <p className="text-sm mt-2">Les automatisations seront disponibles après la migration de la base de données.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Cron Info */}
+          <div className="card p-4 bg-amber-50 border-amber-200">
+            <div className="flex items-start gap-3">
+              <Timer className="w-5 h-5 text-amber-600 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-amber-900">Planification</h3>
+                <p className="text-sm text-amber-700 mt-1">
+                  Les automatisations sont vérifiées toutes les heures. Pour une exécution manuelle immédiate,
+                  cliquez sur le bouton <Play className="w-3 h-3 inline" /> à côté de chaque automatisation.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Rules Tab */}
       {activeTab === 'rules' && (
