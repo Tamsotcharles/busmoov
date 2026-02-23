@@ -722,7 +722,7 @@ export function MesDevisPage() {
         billing_zip: contractData.billing_info.zip,
         billing_city: contractData.billing_info.city,
         billing_country: contractData.billing_info.country,
-        country_code: countryCode,
+        country_code: data.dossier?.country_code,
         nombre_chauffeurs: contractData.nombre_chauffeurs,
         nombre_cars: contractData.nombre_cars,
         tva_rate: contractData.tva_rate,

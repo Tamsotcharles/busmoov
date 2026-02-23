@@ -18232,7 +18232,7 @@ function WorkflowsSettingsTab() {
                       {step.notify_client && (
                         <>
                           <span className="text-gray-400">|</span>
-                          <Mail size={14} className="text-green-500" title="Email envoyé au client" />
+                          <Mail size={14} className="text-green-500" />
                         </>
                       )}
                     </div>
