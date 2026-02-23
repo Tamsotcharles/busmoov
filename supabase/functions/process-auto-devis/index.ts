@@ -35,6 +35,7 @@ interface WorkflowStep {
   delay_hours: number
   marge_percent: number
   label: string
+  notify_client?: boolean
 }
 
 // Taux de TVA par pays (transport de voyageurs)
@@ -914,7 +915,10 @@ function detectServiceType(dossier: any): string {
   if (dossier.return_date && dossier.departure_date) {
     const depDate = new Date(dossier.departure_date)
     const retDate = new Date(dossier.return_date)
-    const diffDays = Math.ceil((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
+    // Normaliser à minuit pour comparer les jours calendaires uniquement
+    depDate.setUTCHours(0, 0, 0, 0)
+    retDate.setUTCHours(0, 0, 0, 0)
+    const diffDays = Math.round((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
     if (diffDays === 0) return 'ar_1j'
     return 'ar_sans_mad'
   }
@@ -929,7 +933,11 @@ function calculateDureeJours(dossier: any): number {
   if (!dossier.return_date || !dossier.departure_date) return 1
   const depDate = new Date(dossier.departure_date)
   const retDate = new Date(dossier.return_date)
-  const diffDays = Math.ceil((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
+  // Normaliser à minuit pour ne comparer que les jours calendaires
+  // (les timestamps contiennent l'heure de départ/retour qui fausse le calcul)
+  depDate.setUTCHours(0, 0, 0, 0)
+  retDate.setUTCHours(0, 0, 0, 0)
+  const diffDays = Math.round((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24))
   return Math.max(1, diffDays + 1)
 }
 
@@ -1399,6 +1407,55 @@ Deno.serve(async (req) => {
           type: 'devis_sent',
           content: `Devis auto ${devisRef} envoyé (${km} km, étape ${currentStep + 1}/${steps.length}, marge ${margePercent}%)`,
         })
+
+      // Envoyer email de notification au client si configuré dans l'étape
+      if (step.notify_client && dossier.client_email && !dryRun) {
+        try {
+          const countryCode = (dossier.country_code || 'FR').toUpperCase()
+          const emailLanguage = countryCode.toLowerCase()
+          const langPrefix = countryCode === 'ES' ? 'es' : countryCode === 'DE' ? 'de' : countryCode === 'GB' ? 'en' : 'fr'
+          const baseUrl = 'https://busmoov.com'
+          const clientUrl = `${baseUrl}/${langPrefix}/mes-devis?ref=${encodeURIComponent(dossier.reference)}&email=${encodeURIComponent(dossier.client_email)}`
+
+          // Compter les devis envoyés pour ce dossier
+          const { count: sentDevisCount } = await supabase
+            .from('devis')
+            .select('id', { count: 'exact', head: true })
+            .eq('dossier_id', dossier.id)
+            .eq('status', 'sent')
+
+          const departureDateFormatted = dossier.departure_date
+            ? new Date(dossier.departure_date).toLocaleDateString('fr-FR')
+            : 'N/A'
+
+          const { error: emailError } = await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'quote_sent',
+              to: dossier.client_email,
+              data: {
+                client_name: dossier.client_name || 'Client',
+                reference: dossier.reference,
+                departure: dossier.departure || 'N/A',
+                arrival: dossier.arrival || 'N/A',
+                departure_date: departureDateFormatted,
+                passengers: String(dossier.passengers || 0),
+                nb_devis: String(sentDevisCount || 1),
+                lien_espace_client: clientUrl,
+                dossier_id: dossier.id,
+                language: emailLanguage,
+              },
+            }
+          })
+
+          if (emailError) {
+            console.error(`Erreur envoi email notification pour ${dossier.reference}:`, emailError)
+          } else {
+            console.log(`Email notification envoyé au client pour ${dossier.reference} (étape ${currentStep + 1})`)
+          }
+        } catch (emailErr) {
+          console.error(`Exception envoi email pour ${dossier.reference}:`, emailErr)
+        }
+      }
 
       // Calculer la prochaine étape
       const nextStep = currentStep + 1

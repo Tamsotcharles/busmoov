@@ -110,6 +110,7 @@ interface WorkflowStep {
   delay_hours: number
   marge_percent: number
   label: string
+  notify_client?: boolean
 }
 
 interface WorkflowDevisAuto {
@@ -18094,7 +18095,7 @@ function WorkflowsSettingsTab() {
     queryClient.invalidateQueries({ queryKey: ['workflows_devis_auto'] })
   }
 
-  const updateStep = (index: number, field: keyof WorkflowStep, value: string | number) => {
+  const updateStep = (index: number, field: keyof WorkflowStep, value: string | number | boolean) => {
     const newSteps = [...editSteps]
     newSteps[index] = { ...newSteps[index], [field]: value }
     // Mettre à jour le label automatiquement
@@ -18109,7 +18110,7 @@ function WorkflowsSettingsTab() {
     const newDelay = lastStep ? lastStep.delay_hours + 6 : 3
     setEditSteps([
       ...editSteps,
-      { delay_hours: newDelay, marge_percent: 20, label: `Devis ${editSteps.length + 1} (+${newDelay}h, 20%)` }
+      { delay_hours: newDelay, marge_percent: 20, label: `Devis ${editSteps.length + 1} (+${newDelay}h, 20%)`, notify_client: false }
     ])
   }
 
@@ -18228,6 +18229,12 @@ function WorkflowsSettingsTab() {
                       <span className="font-medium">+{step.delay_hours}h</span>
                       <span className="text-gray-400">|</span>
                       <span className="text-orange font-medium">{step.marge_percent}%</span>
+                      {step.notify_client && (
+                        <>
+                          <span className="text-gray-400">|</span>
+                          <Mail size={14} className="text-green-500" title="Email envoyé au client" />
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -18295,7 +18302,8 @@ function WorkflowsSettingsTab() {
         <div className="space-y-4">
           <div className="bg-gray-50 p-3 rounded-lg text-sm text-gray-600">
             <strong>Délai:</strong> Temps après la création du dossier pour envoyer le devis<br/>
-            <strong>Marge:</strong> Pourcentage de marge appliqué sur le prix d'achat
+            <strong>Marge:</strong> Pourcentage de marge appliqué sur le prix d'achat<br/>
+            <strong>Notifier client:</strong> Envoie un email automatique au client quand le devis est créé
           </div>
 
           <div className="space-y-3">
@@ -18304,7 +18312,7 @@ function WorkflowsSettingsTab() {
                 <div className="w-8 h-8 bg-purple text-white rounded-full flex items-center justify-center font-bold text-sm">
                   {idx + 1}
                 </div>
-                <div className="flex-1 grid grid-cols-2 gap-3">
+                <div className="flex-1 grid grid-cols-3 gap-3">
                   <div>
                     <label className="text-xs text-gray-500">Délai (heures)</label>
                     <input
@@ -18325,6 +18333,17 @@ function WorkflowsSettingsTab() {
                       min={0}
                       max={100}
                     />
+                  </div>
+                  <div className="flex items-end pb-1">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={step.notify_client || false}
+                        onChange={(e) => updateStep(idx, 'notify_client', e.target.checked)}
+                        className="w-4 h-4 rounded border-gray-300 text-purple focus:ring-purple"
+                      />
+                      <span className="text-xs text-gray-600">Notifier client</span>
+                    </label>
                   </div>
                 </div>
                 <button

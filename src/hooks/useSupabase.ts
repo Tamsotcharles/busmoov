@@ -1537,6 +1537,7 @@ export interface WorkflowStep {
   delay_hours: number
   marge_percent: number
   label: string
+  notify_client?: boolean
 }
 
 export interface WorkflowDevisAuto {
