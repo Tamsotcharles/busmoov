@@ -482,30 +482,61 @@ export function EmailTemplatesPage() {
   }
 
   const demoValues: Record<string, string> = {
+    // Client
     client_name: 'Jean Dupont',
+    client_email: 'jean.dupont@email.com',
     reference: 'BUS-2025-001',
+    dossier_reference: 'DOS-ABC123',
+    // Voyage
     departure: 'Paris',
     arrival: 'Lyon',
     departure_date: '15 janvier 2025',
+    departure_address: '12 Rue de Rivoli, 75001 Paris',
+    arrival_address: '45 Place Bellecour, 69002 Lyon',
+    return_date: '17 janvier 2025',
     passengers: '45',
+    // Devis
     nb_devis: '3',
+    devis_recap: '• Devis 1 : 1 150 € TTC\n• Devis 2 : 1 250 € TTC\n• Devis 3 : 1 380 € TTC',
+    // Prix
     prix_ttc: '1 250',
     prix_barre: '1 500',
+    total_ttc: '1 250 €',
     validite_heures: '24',
+    // Paiement
     montant_acompte: '375',
     montant_solde: '875',
-    date_limite: '8 janvier 2025',
+    reste_a_regler: '875 €',
+    // Chauffeur
     chauffeur_name: 'Michel Dupont',
     chauffeur_phone: '06 12 34 56 78',
     chauffeur_immat: 'AB-123-CD',
+    // Transporteur
     transporteur: 'Autocars Express',
+    transporteur_name: 'Autocars Express',
+    // Fournisseur
+    type_prestation: 'Aller-retour avec MAD',
+    trip_mode: 'Aller-retour',
+    vehicle_type: 'Autocar standard (53 places)',
+    prix_achat: '950 € HT',
+    nb_cars: '1',
+    nb_chauffeurs: '1',
+    duree_jours: '3',
+    detail_mad: 'Mise à disposition du 15 au 17 janvier',
+    heure_depart: '08:00',
+    heure_retour: '18:00',
+    label_date_depart: 'Date de départ',
+    label_date_retour: 'Date de retour',
+    special_requests: 'Climatisation, WiFi',
+    // Liens
     lien_espace_client: '#',
     lien_paiement: '#',
     lien_infos_voyage: '#',
+    lien_formulaire: '#',
+    lien_validation: '#',
+    // Contact
     phone_display: '+33 1 86 65 01 45',
     email: 'infos@busmoov.com',
-    total_ttc: '1 250 €',
-    reste_a_regler: '875 €',
   }
 
   /** Replace {{t:key}} and {{variable}} placeholders for preview */
