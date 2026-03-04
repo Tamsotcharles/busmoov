@@ -502,6 +502,10 @@ export function EmailTemplatesPage() {
     lien_espace_client: '#',
     lien_paiement: '#',
     lien_infos_voyage: '#',
+    phone_display: '+33 1 86 65 01 45',
+    email: 'infos@busmoov.com',
+    total_ttc: '1 250 €',
+    reste_a_regler: '875 €',
   }
 
   /** Replace {{t:key}} and {{variable}} placeholders for preview */
