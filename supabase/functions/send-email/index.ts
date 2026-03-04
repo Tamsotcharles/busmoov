@@ -29,6 +29,8 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
     quotesReadyIntro: 'Bonne nouvelle ! Nous avons préparé des devis personnalisés pour votre demande de transport.',
     viewQuotes: 'Voir mes devis',
     quotesCount: 'devis disponible(s)',
+    accessReminder: 'Vous pouvez également accéder à vos devis depuis',
+    withReference: 'avec la référence',
 
     // Détails voyage
     tripDetails: 'Détails du voyage',
@@ -179,6 +181,8 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
     quotesReadyIntro: '¡Buenas noticias! Hemos preparado presupuestos personalizados para su solicitud de transporte.',
     viewQuotes: 'Ver mis presupuestos',
     quotesCount: 'presupuesto(s) disponible(s)',
+    accessReminder: 'También puede acceder a sus presupuestos desde',
+    withReference: 'con la referencia',
 
     // Détails voyage
     tripDetails: 'Detalles del viaje',
@@ -329,6 +333,8 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
     quotesReadyIntro: 'Gute Nachrichten! Wir haben personalisierte Angebote für Ihre Transportanfrage vorbereitet.',
     viewQuotes: 'Meine Angebote ansehen',
     quotesCount: 'Angebot(e) verfügbar',
+    accessReminder: 'Sie können auch über unsere Website auf Ihre Angebote zugreifen:',
+    withReference: 'mit der Referenz',
 
     // Détails voyage
     tripDetails: 'Reisedetails',
@@ -479,6 +485,8 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
     quotesReadyIntro: 'Great news! We have prepared personalized quotes for your transport request.',
     viewQuotes: 'View my quotes',
     quotesCount: 'quote(s) available',
+    accessReminder: 'You can also access your quotes from',
+    withReference: 'using reference',
 
     // Trip details
     tripDetails: 'Trip details',
