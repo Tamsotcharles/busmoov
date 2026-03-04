@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Mail, Edit2, Eye, Save, X, Code, Send, CheckCircle, AlertCircle } from 'lucide-react'
+import { Mail, Edit2, Eye, Save, X, Code, Send, CheckCircle, AlertCircle, FileText, Monitor } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
-import { formatDate } from '@/lib/utils'
 
 interface EmailTemplate {
   id: string
@@ -13,12 +12,23 @@ interface EmailTemplate {
   body: string
   content: string | null
   html_content: string | null
+  language: string | null
   variables: Array<{ name: string; description: string }> | null
   is_active: boolean | null
   type: string | null
   created_at: string | null
   updated_at: string | null
 }
+
+type Language = 'fr' | 'es' | 'de' | 'en'
+type EditorTab = 'text' | 'html' | 'preview'
+
+const LANGUAGES: { code: Language; label: string; flag: string }[] = [
+  { code: 'fr', label: 'FR', flag: '🇫🇷' },
+  { code: 'es', label: 'ES', flag: '🇪🇸' },
+  { code: 'de', label: 'DE', flag: '🇩🇪' },
+  { code: 'en', label: 'EN', flag: '🇬🇧' },
+]
 
 export function EmailTemplatesPage() {
   const [templates, setTemplates] = useState<EmailTemplate[]>([])
@@ -31,12 +41,16 @@ export function EmailTemplatesPage() {
   const [testEmail, setTestEmail] = useState('')
   const [testStatus, setTestStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [testError, setTestError] = useState('')
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>('fr')
+  const [editorTab, setEditorTab] = useState<EditorTab>('text')
+  const [langCounts, setLangCounts] = useState<Record<Language, number>>({ fr: 0, es: 0, de: 0, en: 0 })
 
   // Form state
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     subject: '',
+    body: '',
     html_content: '',
   })
 
@@ -53,8 +67,16 @@ export function EmailTemplatesPage() {
         .order('name', { ascending: true })
 
       if (error) throw error
-      // Cast to EmailTemplate array since we added new columns
-      setTemplates((data as unknown as EmailTemplate[]) || [])
+      const all = (data as unknown as EmailTemplate[]) || []
+      setTemplates(all)
+
+      // Count templates per language
+      const counts: Record<Language, number> = { fr: 0, es: 0, de: 0, en: 0 }
+      all.forEach(t => {
+        const lang = (t.language || 'fr') as Language
+        if (lang in counts) counts[lang]++
+      })
+      setLangCounts(counts)
     } catch (err) {
       console.error('Erreur chargement templates:', err)
     } finally {
@@ -62,14 +84,19 @@ export function EmailTemplatesPage() {
     }
   }
 
+  const filteredTemplates = templates.filter(t => (t.language || 'fr') === selectedLanguage)
+
   const handleEdit = (template: EmailTemplate) => {
     setSelectedTemplate(template)
     setFormData({
       name: template.name,
       description: template.description || '',
       subject: template.subject,
-      html_content: template.html_content || template.body || '',
+      body: template.body || '',
+      html_content: template.html_content || '',
     })
+    // Default to text tab, or html if there's custom html_content but no body
+    setEditorTab(template.html_content && !template.body ? 'html' : 'text')
     setIsEditing(true)
   }
 
@@ -78,15 +105,31 @@ export function EmailTemplatesPage() {
 
     setIsSaving(true)
     try {
-      const { error } = await supabase
-        .from('email_templates')
-        .update({
+      let updateData: Record<string, string | null>
+
+      if (editorTab === 'html' || (editorTab === 'preview' && formData.html_content)) {
+        // HTML mode: save html_content and sync body
+        updateData = {
           name: formData.name,
           description: formData.description,
           subject: formData.subject,
           html_content: formData.html_content,
-          body: formData.html_content, // Garder body sync pour compatibilité
-        })
+          body: formData.body || formData.html_content,
+        }
+      } else {
+        // Text mode: save body, clear html_content so send-email uses body
+        updateData = {
+          name: formData.name,
+          description: formData.description,
+          subject: formData.subject,
+          body: formData.body,
+          html_content: null,
+        }
+      }
+
+      const { error } = await supabase
+        .from('email_templates')
+        .update(updateData)
         .eq('id', selectedTemplate.id)
 
       if (error) throw error
@@ -127,7 +170,6 @@ export function EmailTemplatesPage() {
     setTestError('')
 
     try {
-      // Préparer des données de test
       const testData: Record<string, string | number> = {}
       if (selectedTemplate.variables) {
         selectedTemplate.variables.forEach(v => {
@@ -182,7 +224,6 @@ export function EmailTemplatesPage() {
               testData[v.name] = `[${v.name}]`
           }
         })
-        // Ajouter les liens (avec préfixe de langue français par défaut pour les tests)
         testData['lien_espace_client'] = 'https://busmoov.com/fr/mes-devis?ref=TEST'
         testData['lien_paiement'] = 'https://busmoov.com/fr/paiement?ref=TEST'
         testData['lien_infos_voyage'] = 'https://busmoov.com/fr/infos-voyage?ref=TEST'
@@ -212,11 +253,49 @@ export function EmailTemplatesPage() {
     }
   }
 
-  // Remplacer les variables dans le HTML pour la preview
+  // Replace variables in HTML/body for preview
   const getPreviewHtml = (template: EmailTemplate): string => {
     let html = template.html_content || template.body || ''
 
-    // Remplacer les variables par des valeurs de démonstration
+    const demoValues: Record<string, string> = {
+      client_name: 'Jean Dupont',
+      reference: 'BUS-2025-001',
+      departure: 'Paris',
+      arrival: 'Lyon',
+      departure_date: '15 janvier 2025',
+      passengers: '45',
+      nb_devis: '3',
+      prix_ttc: '1 250',
+      prix_barre: '1 500',
+      validite_heures: '24',
+      montant_acompte: '375',
+      montant_solde: '875',
+      date_limite: '8 janvier 2025',
+      chauffeur_name: 'Michel Dupont',
+      chauffeur_phone: '06 12 34 56 78',
+      chauffeur_immat: 'AB-123-CD',
+      transporteur: 'Autocars Express',
+      lien_espace_client: '#',
+      lien_paiement: '#',
+      lien_infos_voyage: '#',
+    }
+
+    Object.entries(demoValues).forEach(([key, value]) => {
+      html = html.replace(new RegExp(`{{${key}}}`, 'g'), value)
+    })
+
+    return html
+  }
+
+  // Build preview from current form data (for in-editor preview)
+  const getEditorPreviewHtml = (): string => {
+    let html = formData.html_content || formData.body || ''
+
+    // If in text mode and no html_content, wrap body in basic HTML for readability
+    if (!formData.html_content && formData.body) {
+      html = `<div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; color: #333;">${formData.body.replace(/\n/g, '<br/>')}</div>`
+    }
+
     const demoValues: Record<string, string> = {
       client_name: 'Jean Dupont',
       reference: 'BUS-2025-001',
@@ -284,18 +363,45 @@ export function EmailTemplatesPage() {
         </div>
       </div>
 
+      {/* Language tabs */}
+      <div className="flex gap-2">
+        {LANGUAGES.map(lang => (
+          <button
+            key={lang.code}
+            onClick={() => setSelectedLanguage(lang.code)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors ${
+              selectedLanguage === lang.code
+                ? 'bg-magenta text-white shadow-sm'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            <span>{lang.flag}</span>
+            <span>{lang.label}</span>
+            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+              selectedLanguage === lang.code
+                ? 'bg-white/20 text-white'
+                : 'bg-gray-100 text-gray-500'
+            }`}>
+              {langCounts[lang.code]}
+            </span>
+          </button>
+        ))}
+      </div>
+
       {/* Liste des templates */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">{templates.length} templates configurés</h2>
+          <h2 className="font-semibold text-gray-900">
+            {filteredTemplates.length} template{filteredTemplates.length > 1 ? 's' : ''} {LANGUAGES.find(l => l.code === selectedLanguage)?.flag}
+          </h2>
         </div>
         <div className="divide-y divide-gray-100">
-          {templates.length === 0 ? (
+          {filteredTemplates.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
-              Aucun template d'email configuré
+              Aucun template pour cette langue
             </div>
           ) : (
-            templates.map((template) => (
+            filteredTemplates.map((template) => (
               <div
                 key={template.id}
                 className="p-4 flex items-center justify-between hover:bg-gray-50"
@@ -312,6 +418,11 @@ export function EmailTemplatesPage() {
                       <span className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded font-mono">
                         {template.key}
                       </span>
+                      {template.html_content && (
+                        <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full">
+                          HTML
+                        </span>
+                      )}
                       {template.is_active && (
                         <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
                           Actif
@@ -397,14 +508,13 @@ export function EmailTemplatesPage() {
           {/* Variables disponibles */}
           {selectedTemplate?.variables && selectedTemplate.variables.length > 0 && (
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">Variables disponibles :</p>
+              <p className="text-sm font-medium text-gray-700 mb-2">Variables disponibles (cliquer pour copier) :</p>
               <div className="flex flex-wrap gap-2">
                 {selectedTemplate.variables.map((v, i) => (
                   <button
                     key={i}
                     type="button"
                     onClick={() => {
-                      // Copier dans le presse-papier
                       navigator.clipboard.writeText(`{{${v.name}}}`)
                     }}
                     className="text-xs bg-white border border-gray-200 px-2 py-1 rounded hover:bg-purple/10 hover:border-purple transition-colors"
@@ -417,18 +527,86 @@ export function EmailTemplatesPage() {
             </div>
           )}
 
+          {/* Editor tabs */}
           <div>
-            <label className="label">Contenu HTML</label>
-            <textarea
-              className="input font-mono text-sm"
-              rows={16}
-              value={formData.html_content}
-              onChange={(e) => setFormData({ ...formData, html_content: e.target.value })}
-              placeholder="<!DOCTYPE html>..."
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Code HTML complet de l'email avec styles inline
-            </p>
+            <div className="flex border-b border-gray-200 mb-3">
+              <button
+                onClick={() => setEditorTab('text')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                  editorTab === 'text'
+                    ? 'border-magenta text-magenta'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <FileText size={16} />
+                Texte
+              </button>
+              <button
+                onClick={() => setEditorTab('html')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                  editorTab === 'html'
+                    ? 'border-magenta text-magenta'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Code size={16} />
+                HTML avancé
+              </button>
+              <button
+                onClick={() => setEditorTab('preview')}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                  editorTab === 'preview'
+                    ? 'border-magenta text-magenta'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Monitor size={16} />
+                Aperçu
+              </button>
+            </div>
+
+            {editorTab === 'text' && (
+              <div>
+                <textarea
+                  className="input text-sm"
+                  rows={14}
+                  value={formData.body}
+                  onChange={(e) => setFormData({ ...formData, body: e.target.value })}
+                  placeholder="Bonjour {{client_name}},&#10;&#10;Vos devis sont prêts..."
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Texte simple avec variables {'{{variable}}'}. Pas besoin de HTML.
+                </p>
+              </div>
+            )}
+
+            {editorTab === 'html' && (
+              <div>
+                <textarea
+                  className="input font-mono text-sm"
+                  rows={14}
+                  value={formData.html_content}
+                  onChange={(e) => setFormData({ ...formData, html_content: e.target.value })}
+                  placeholder="<!DOCTYPE html>..."
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Code HTML complet avec styles inline. Mode avancé pour une mise en page personnalisée.
+                </p>
+              </div>
+            )}
+
+            {editorTab === 'preview' && (
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 text-sm text-gray-500">
+                  Aperçu avec données fictives
+                </div>
+                <iframe
+                  srcDoc={getEditorPreviewHtml()}
+                  className="w-full h-[350px] border-0 bg-white"
+                  title="Editor preview"
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
