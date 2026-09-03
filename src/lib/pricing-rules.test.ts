@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   extraireDepartement,
   determineVehicleType,
+  determineServiceType,
   estDepartementProblematique,
   aDoubleEtageDispo,
   determinerAmplitudeGrille,
@@ -164,6 +165,45 @@ describe('optimizeVehicleCombination', () => {
     const result = optimizeVehicleCombination(150, false)
     expect(result.capaciteParCar).toBe(59) // capacite standard (capacites_vehicules)
     expect(result.placesTotal).toBeGreaterThanOrEqual(150)
+  })
+})
+
+describe('determineServiceType', () => {
+  it('aller simple pour un one-way', () => {
+    expect(determineServiceType({ trip_mode: 'one-way' })).toBe('aller_simple')
+  })
+
+  it('MAD pour un circuit (seul choix explicite qui donne une MAD)', () => {
+    expect(determineServiceType({ trip_mode: 'circuit' })).toBe('ar_mad')
+  })
+
+  it('aller-retour meme jour -> ar_1j', () => {
+    expect(determineServiceType({
+      trip_mode: 'round-trip',
+      departure_date: '2026-09-18T06:00:00Z',
+      return_date: '2026-09-18T16:30:00Z',
+    })).toBe('ar_1j')
+  })
+
+  it('aller-retour jours differents -> ar_sans_mad', () => {
+    expect(determineServiceType({
+      trip_mode: 'round-trip',
+      departure_date: '2026-09-18T06:00:00Z',
+      return_date: '2026-09-20T16:30:00Z',
+    })).toBe('ar_sans_mad')
+  })
+
+  it('cas DOS-001051BA48 : round-trip meme jour -> ar_1j, jamais aller_simple', () => {
+    expect(determineServiceType({
+      trip_mode: 'round-trip',
+      departure_date: '2026-09-18T06:00:00Z',
+      return_date: '2026-09-18T16:30:00Z',
+    })).not.toBe('aller_simple')
+  })
+
+  it('sans retour -> aller simple', () => {
+    expect(determineServiceType({ trip_mode: null, departure_date: '2026-09-18T06:00:00Z' })).toBe('aller_simple')
+    expect(determineServiceType(null)).toBe('aller_simple')
   })
 })
 

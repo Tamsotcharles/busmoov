@@ -268,6 +268,40 @@ export function optimizeVehicleCombination(
  * Utilise les combinaisons mixtes pour > 90 passagers
  */
 /**
+ * Détermine le type de service à partir des données du dossier.
+ *
+ * Reprend la logique de detectServiceType de process-auto-devis, pour que
+ * les devis créés manuellement dans l'admin portent le même service_type
+ * que les devis auto. Sans lui, un devis manuel avait service_type null,
+ * et la proforma retombait sur « aller simple ».
+ *
+ * Règle métier (CLAUDE.md) : ne jamais supposer une MAD. Seul trip_mode
+ * 'circuit' — un choix explicite — donne 'ar_mad'.
+ */
+export function determineServiceType(dossier: {
+  trip_mode?: string | null
+  departure_date?: string | null
+  return_date?: string | null
+  return_time?: string | null
+} | null | undefined): ServiceType {
+  const tripMode = dossier?.trip_mode
+  if (tripMode === 'one-way') return 'aller_simple'
+  if (tripMode === 'circuit') return 'ar_mad'
+
+  if (dossier?.return_date && dossier?.departure_date) {
+    const dep = new Date(dossier.departure_date)
+    const ret = new Date(dossier.return_date)
+    dep.setUTCHours(0, 0, 0, 0)
+    ret.setUTCHours(0, 0, 0, 0)
+    const diffDays = Math.round((ret.getTime() - dep.getTime()) / (1000 * 60 * 60 * 24))
+    return diffDays === 0 ? 'ar_1j' : 'ar_sans_mad'
+  }
+
+  // Aller simple si pas de retour ; ar_1j par défaut sinon.
+  return dossier?.return_date || dossier?.return_time ? 'ar_1j' : 'aller_simple'
+}
+
+/**
  * Détermine le type de véhicule adapté au nombre de passagers.
  *
  * Tranches de la table capacites_vehicules (alignées sur CLAUDE.md) :

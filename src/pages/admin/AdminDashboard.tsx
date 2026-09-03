@@ -88,6 +88,7 @@ import {
   type AmplitudeType as PricingAmplitudeType,
   TARIFS_HORS_GRILLE,
   determineVehicleType,
+  determineServiceType,
 } from '@/lib/pricing-rules'
 import type { Transporteur, FeuilleRouteType, Devis } from '@/types/database'
 
@@ -2248,6 +2249,10 @@ function CreateDossierModal({
           price_achat_ht: formData.price_achat_ht || null,
           price_achat_ttc: formData.price_achat_ttc || null,
           tva_rate: formData.tva_rate,
+          // Renseigner le type de service et de vehicule des la creation :
+          // sinon la proforma retombe sur « aller simple » (devis manuel).
+          service_type: determineServiceType(dossierData),
+          vehicle_type: determineVehicleType(dossierData.passengers || 1, dossierData.vehicle_type),
           status: 'draft',
           validity_days: 30,
         })
@@ -7120,6 +7125,8 @@ L'équipe Busmoov`,
                                         price_achat_ht: prixAchatHT,
                                         price_achat_ttc: prixAchatTTC,
                                         tva_rate: tvaRate,
+                                        service_type: determineServiceType(dossier),
+                                        vehicle_type: determineVehicleType(dossier.passengers || 1, dossier.vehicle_type),
                                         status: 'pending',
                                         validity_days: 30,
                                       })
@@ -14427,6 +14434,8 @@ L'équipe Busmoov`
         price_achat_ht: prixAchatHT,
         price_achat_ttc: prixAchatTTC,
         tva_rate: tvaRate,
+        service_type: determineServiceType(dossier),
+        vehicle_type: determineVehicleType(dossier.passengers || 1, dossier.vehicle_type),
         status: 'pending',
         validity_days: 30,
       })
