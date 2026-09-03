@@ -1094,6 +1094,7 @@ export interface Database {
           contrat_id: string | null
           created_at: string | null
           dossier_id: string | null
+          facture_origine_id: string | null
           id: string
           paid_at: string | null
           reference: string
@@ -1109,6 +1110,7 @@ export interface Database {
           contrat_id?: string | null
           created_at?: string | null
           dossier_id?: string | null
+          facture_origine_id?: string | null
           id?: string
           paid_at?: string | null
           reference?: string
@@ -1124,6 +1126,7 @@ export interface Database {
           contrat_id?: string | null
           created_at?: string | null
           dossier_id?: string | null
+          facture_origine_id?: string | null
           id?: string
           paid_at?: string | null
           reference?: string
@@ -1132,7 +1135,18 @@ export interface Database {
           type?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          // Ajoutee a la main : la migration
+          // 20260903_avoir_facture_origine.sql n'est pas encore appliquee,
+          // donc `supabase gen types` ne voit pas encore cette cle.
+          {
+            foreignKeyName: "factures_facture_origine_id_fkey"
+            columns: ["facture_origine_id"]
+            isOneToOne: false
+            referencedRelation: "factures"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       majorations_regions: {
         Row: {

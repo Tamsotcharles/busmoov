@@ -92,7 +92,9 @@ serve(async (req) => {
       case 'factures':
         const { data: factures } = await supabase
           .from('factures')
-          .select('*')
+          // facture_origine : pour un avoir, la facture rectifiee, qui doit
+          // figurer sur le document remis au client.
+          .select('*, facture_origine:factures!facture_origine_id(reference)')
           .eq('dossier_id', dossierId)
           .order('created_at', { ascending: false })
         result = { factures }
@@ -140,7 +142,7 @@ serve(async (req) => {
           supabase.from('dossiers').select('*').eq('id', dossierId).single(),
           supabase.from('devis').select('*, transporteur:transporteurs(name, rating)').eq('dossier_id', dossierId),
           supabase.from('paiements').select('*').eq('dossier_id', dossierId),
-          supabase.from('factures').select('*').eq('dossier_id', dossierId),
+          supabase.from('factures').select('*, facture_origine:factures!facture_origine_id(reference)').eq('dossier_id', dossierId),
           supabase.from('voyage_infos').select('*').eq('dossier_id', dossierId).single(),
           supabase.from('contrats').select('*').eq('dossier_id', dossierId).single()
         ])

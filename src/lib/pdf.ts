@@ -14,6 +14,7 @@ interface PdfTranslations {
   contract: string
   roadmap: string
   creditNote: string
+  creditNoteFor: string
   // Headers
   number: string
   date: string
@@ -179,6 +180,7 @@ const PDF_TRANSLATIONS: Record<PdfLanguage, PdfTranslations> = {
     contract: 'CONTRAT',
     roadmap: 'FEUILLE DE ROUTE',
     creditNote: 'AVOIR',
+    creditNoteFor: 'Avoir sur facture',
     number: 'N°',
     date: 'Date',
     dossier: 'Dossier',
@@ -323,6 +325,7 @@ const PDF_TRANSLATIONS: Record<PdfLanguage, PdfTranslations> = {
     contract: 'CONTRATO',
     roadmap: 'HOJA DE RUTA',
     creditNote: 'NOTA DE CRÉDITO',
+    creditNoteFor: 'Nota de crédito sobre la factura',
     number: 'N°',
     date: 'Fecha',
     dossier: 'Expediente',
@@ -467,6 +470,7 @@ const PDF_TRANSLATIONS: Record<PdfLanguage, PdfTranslations> = {
     contract: 'VERTRAG',
     roadmap: 'ROUTENPLAN',
     creditNote: 'GUTSCHRIFT',
+    creditNoteFor: 'Gutschrift zur Rechnung',
     number: 'Nr.',
     date: 'Datum',
     dossier: 'Akte',
@@ -611,6 +615,7 @@ const PDF_TRANSLATIONS: Record<PdfLanguage, PdfTranslations> = {
     contract: 'CONTRACT',
     roadmap: 'TRIP SHEET',
     creditNote: 'CREDIT NOTE',
+    creditNoteFor: 'Credit note for invoice',
     number: 'No.',
     date: 'Date',
     dossier: 'File',
@@ -2265,6 +2270,8 @@ export async function generateContratPDF(contrat: ContratData, lang: string = 'f
 interface FactureData {
   reference: string
   type: 'acompte' | 'solde' | 'avoir'
+  /** Pour un avoir : la facture rectifiée, mentionnée sur le document. */
+  facture_origine?: { reference: string } | null
   amount_ht: number
   amount_ttc: number
   tva_rate?: number | null
@@ -2385,6 +2392,16 @@ export async function generateFacturePDF(facture: FactureData, lang: string = 'f
   doc.text(`${t.date} : ${formatDateLocalized(facture.created_at || new Date().toISOString(), effectiveLang)}`, 80, y)
   if (facture.dossier?.reference) {
     doc.text(`${t.dossier} : ${facture.dossier.reference}`, 140, y)
+  }
+
+  // Un avoir doit mentionner la facture qu'il rectifie. Depuis le passage
+  // a une numerotation sequentielle neutre, plus rien d'autre ne relie les
+  // deux documents.
+  if (isAvoir && facture.facture_origine?.reference) {
+    y += 5
+    doc.setFont('helvetica', 'bold')
+    doc.text(`${t.creditNoteFor} ${t.number} ${facture.facture_origine.reference}`, 15, y)
+    doc.setFont('helvetica', 'normal')
   }
 
   // ========== BLOC CLIENT ==========
@@ -2815,6 +2832,16 @@ export async function generateFacturePDFBase64(facture: FactureData, lang: strin
   doc.text(`${t.date} : ${formatDateLocalized(facture.created_at || new Date().toISOString(), effectiveLang)}`, 80, y)
   if (facture.dossier?.reference) {
     doc.text(`${t.dossier} : ${facture.dossier.reference}`, 140, y)
+  }
+
+  // Un avoir doit mentionner la facture qu'il rectifie. Depuis le passage
+  // a une numerotation sequentielle neutre, plus rien d'autre ne relie les
+  // deux documents.
+  if (isAvoir && facture.facture_origine?.reference) {
+    y += 5
+    doc.setFont('helvetica', 'bold')
+    doc.text(`${t.creditNoteFor} ${t.number} ${facture.facture_origine.reference}`, 15, y)
+    doc.setFont('helvetica', 'normal')
   }
 
   // ========== BLOC CLIENT ==========

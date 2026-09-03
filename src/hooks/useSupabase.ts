@@ -802,7 +802,10 @@ export function useFacturesByDossier(dossierId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('factures')
-        .select('*')
+        // facture_origine : pour un avoir, la facture rectifiee. Elle doit
+        // figurer sur le document, la numerotation sequentielle ne portant
+        // plus l'information.
+        .select('*, facture_origine:factures!facture_origine_id(reference)')
         .eq('dossier_id', dossierId)
         .order('created_at', { ascending: false })
       if (error) throw error
@@ -977,6 +980,7 @@ export function useFactures() {
         .from('factures')
         .select(`
           *,
+          facture_origine:factures!facture_origine_id(reference),
           dossier:dossiers(
             *,
             contrat:contrats(*),

@@ -4741,6 +4741,10 @@ L'équipe Busmoov`
         dossier_id: dossier.id,
         contrat_id: contrat.id,
         reference: avoirReference,
+        // Un avoir doit mentionner la facture qu'il rectifie. Depuis le
+        // passage a une numerotation sequentielle neutre, c'est le seul
+        // lien qui subsiste entre les deux documents.
+        facture_origine_id: selectedFactureForAvoir.id,
         type: 'avoir',
         amount_ht: -Math.abs(montantHT),
         amount_ttc: -Math.abs(montantTTC),
@@ -6143,6 +6147,7 @@ L'équipe Busmoov`
                                   generateFacturePDF({
                                     reference: facture.reference,
                                     type: facture.type as 'acompte' | 'solde' | 'avoir',
+                                    facture_origine: facture.facture_origine,
                                     client_name: dossier.client_name,
                                     client_address: dossier.billing_address || '',
                                     client_zip: dossier.billing_zip || '',
@@ -15892,6 +15897,7 @@ function FacturesPage() {
       await generateFacturePDF({
         reference: facture.reference,
         type: facture.type,
+        facture_origine: facture.facture_origine,
         amount_ht: facture.amount_ht,
         amount_ttc: facture.amount_ttc,
         tva_rate: facture.tva_rate,
