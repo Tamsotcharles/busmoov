@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "check:secrets": "bash scripts/check-secrets.sh",
+    "hooks:install": "git config core.hooksPath .githooks && echo 'Hook pre-commit actif (blocage des secrets).'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.89.0",

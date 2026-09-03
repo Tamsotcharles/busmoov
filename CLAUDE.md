@@ -100,7 +100,7 @@ Conditions pour envoyer une demande chauffeur :
 ## Système d'emails automatiques
 
 ### Architecture
-- **Edge Function `send-email`** : Envoi d'emails via Gmail API (Google Workspace)
+- **Edge Function `send-email`** : Envoi d'emails via **Resend** (pas Gmail — voir plus bas)
 - **Edge Function `process-auto-devis`** : Génération automatique de devis + notification client
 - **Table `email_templates`** : Templates HTML éditables depuis l'admin
 - **Page admin `EmailTemplatesPage`** : Interface de gestion des templates (Paramètres > Emails)
@@ -150,11 +150,33 @@ Les templates supportent la syntaxe Handlebars pour les conditions :
 {{/if}}
 ```
 
-### Configuration Gmail API
+### Configuration Resend
 Secrets Supabase requis :
-- `GOOGLE_SERVICE_ACCOUNT_EMAIL` : Email du compte de service
-- `GOOGLE_PRIVATE_KEY` : Clé privée du compte de service
-- `GMAIL_SENDER_EMAIL` : Email d'envoi (infos@busmoov.com)
+- `RESEND_API_KEY` : Clé API Resend
+- `EMAIL_FROM` : Expéditeur (défaut `Busmoov <infos@busmoov.com>`)
+
+⚠️ L'envoi **ne passe pas par Gmail**. La migration Gmail API → Resend date du
+7 janvier 2026 (commit `84d50a9`). Google Workspace ne sert qu'à la **réception**
+(les MX pointent vers `aspmx.l.google.com`) ; côté envoi, le SPF autorise
+`resend.com` / `amazonses.com` et la clé DKIM publiée est `resend._domainkey`
+(`google._domainkey` est absent).
+
+### Contrôle d'accès de `send-email`
+La clé `anon` est publique : elle n'authentifie personne. `send-email` lit donc
+le rôle dans le JWT et n'accepte que `authenticated` (équipe connectée) ou
+`service_role` (appels internes entre Edge Functions).
+
+Le type `custom` laisse l'appelant fixer sujet, corps HTML et pièces jointes.
+Sans session authentifiée, il n'est accepté que si chaque destinataire est :
+- une adresse interne `busmoov.*` (formulaires contact, partenariat, message client), ou
+- le `client_email` du dossier passé dans `data.dossier_id`, **vérifié en base**
+  (envoi de la feuille de route depuis la page fournisseur).
+
+Sans cette garde, la fonction est un relais d'emails ouvert sous le domaine
+Busmoov, avec SPF/DKIM valides.
+
+**Les Edge Functions appelant `send-email` doivent s'authentifier en
+`service_role`, jamais avec la clé `anon`.**
 
 ### Templates manuels (ServiceClientelePage)
 Pour les relances manuelles depuis le Service Clientèle :
@@ -180,17 +202,45 @@ Dans `supabase/functions/` :
 
 | Fonction | Description |
 |----------|-------------|
-| `send-email` | Envoi d'emails via Gmail API avec support Handlebars |
-| `sign-contract` | Signature de contrat (contourne RLS) |
-| `calculate-price` | Calcul de prix côté serveur |
+| `send-email` | Envoi d'emails via **Resend** avec support Handlebars |
+| `sign-contract` | Signature de contrat (service_role, contourne RLS) |
+| `calculate-price` | Calcul de prix côté serveur (grilles confidentielles) |
+| `calculate-route` | Distance et durée d'un trajet |
 | `process-auto-devis` | Génération automatique de devis |
-| `resend-webhook` | Webhook pour tracking emails Resend |
+| `process-workflow` | Exécution des règles de workflow |
+| `scheduled-reminders` | Relances planifiées |
+| `quote-reminders` | Relances sur devis non signés |
+| `daily-chauffeur-request` | Demandes d'infos chauffeur quotidiennes |
+| `auto-complete-dossiers` | Clôture automatique + demande d'avis |
+| `create-payment-link` | Création d'un lien de paiement Mollie |
+| `mollie-webhook` | Webhook de paiement Mollie |
+| `resend-webhook` | Webhook de tracking emails Resend |
+| `get-emails` | Lecture des emails |
+
+#### ⚠️ Fonctions déployées mais absentes du dépôt
+Ces trois fonctions répondent en production sans que leur source soit versionnée.
+Personne ne peut les relire ni les auditer, et un redéploiement depuis le dépôt
+ne les recréerait pas. À récupérer via `npx supabase functions download <nom>`.
+
+| Fonction | Rôle supposé |
+|----------|--------------|
+| `validate-client-access` | Contrôle d'accès à l'espace client |
+| `get-client-data` | Lecture des données client |
+| `change-admin-password` | Changement de mot de passe admin |
 
 ### Déploiement Edge Functions
 ```bash
-npx supabase functions deploy send-email --project-ref rsxfmokwmwujercgpnfu
-npx supabase functions deploy sign-contract --project-ref rsxfmokwmwujercgpnfu
+npx supabase login   # requis : les déploiements ne sont pas anonymes
+npx supabase functions deploy <nom> --project-ref rsxfmokwmwujercgpnfu
 ```
+
+**Ordres de déploiement à respecter** — certains changements créent une
+dépendance entre le front et les fonctions, ou entre fonctions :
+
+| Changement | Ordre |
+|------------|-------|
+| Nouveau paramètre exigé par une fonction | **front d'abord**, puis la fonction (l'ancienne version ignore un champ en trop ; l'inverse casse) |
+| Durcissement de l'auth de `send-email` | **`sign-contract` et `quote-reminders` d'abord**, puis `send-email` (sinon les confirmations tombent en 401) |
 
 ## Conventions de code
 
@@ -232,7 +282,7 @@ npm run preview  # Prévisualisation du build
 
 ## Dernières fonctionnalités ajoutées
 
-- **Système d'emails automatiques** : Edge Functions pour envoi d'emails via Gmail API
+- **Système d'emails automatiques** : Edge Functions pour envoi d'emails via Resend
 - **Templates d'emails éditables** : Interface admin pour personnaliser les emails (Paramètres > Emails)
 - **Syntaxe Handlebars dans templates** : Support des conditions `{{#if}}...{{else}}...{{/if}}`
 - **Notification devis prêts** : Email automatique au client quand ses devis sont générés

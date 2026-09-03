@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Un seul run par branche : un nouveau push annule le precedent.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Types, lint et build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer les dependances
+        run: npm ci
+
+      # Bloquant : tsc passe aujourd'hui sans erreur, toute regression
+      # de typage doit arreter la CI.
+      - name: Verification des types
+        run: npx tsc -b
+
+      # Bloquant : le build doit toujours produire un bundle.
+      - name: Build de production
+        run: npm run build
+
+      # Non bloquant pour l'instant : ~600 problemes preexistants
+      # (majoritairement des `any`). Passer en bloquant une fois la dette
+      # resorbee, ou restreindre aux fichiers modifies.
+      - name: Lint (informatif)
+        run: npx eslint . || true
+        continue-on-error: true
+
+  i18n:
+    name: Parite des traductions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Les 4 langues doivent exposer exactement les memes cles. Une cle
+      # ajoutee en francais et oubliee ailleurs affiche l'identifiant brut
+      # au client, sans que rien n'echoue au build.
+      - name: Comparer les cles des locales
+        run: node scripts/check-i18n.mjs
+
+  secrets:
+    name: Absence de secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Necessaire pour diffier contre la base de la PR.
+          fetch-depth: 0
+
+      # Le depot est public : meme garde que le hook pre-commit local,
+      # pour couvrir les commits pousses avec --no-verify.
+      - name: Scanner les fichiers modifies
+        run: |
+          base="${{ github.event.pull_request.base.sha || github.event.before }}"
+          # Premier push sur une branche : `before` vaut 40 zeros.
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            base="$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)"
+          fi
+          echo "Comparaison depuis $base"
+          bash scripts/check-secrets.sh "$base"

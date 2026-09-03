@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 #
-# Bloque le commit si un secret est detecte dans les fichiers indexes.
+# Bloque si un secret est detecte dans les lignes ajoutees.
 # Le depot Busmoov est PUBLIC : tout secret commite est considere comme fuite.
 #
-# Installation : npm run hooks:install
+# Deux modes :
+#   ./scripts/check-secrets.sh            fichiers indexes (hook pre-commit)
+#   ./scripts/check-secrets.sh <base_ref> diff depuis base_ref (CI)
+#
+# Installation du hook : npm run hooks:install
 # Contournement ponctuel (a eviter) : git commit --no-verify
 #
 set -uo pipefail
+
+BASE_REF="${1:-}"
 
 # Motifs de secrets. Format : "libelle|regex_eregrep"
 PATTERNS=(
@@ -28,7 +34,11 @@ is_excluded() {
   esac
 }
 
-staged=$(git diff --cached --name-only --diff-filter=ACM)
+if [ -n "$BASE_REF" ]; then
+  staged=$(git diff --name-only --diff-filter=ACM "$BASE_REF" HEAD)
+else
+  staged=$(git diff --cached --name-only --diff-filter=ACM)
+fi
 [ -z "$staged" ] && exit 0
 
 found=0
@@ -37,7 +47,11 @@ while IFS= read -r file; do
   is_excluded "$file" && continue
 
   # Ne scanner que les lignes ajoutees, pas le fichier entier.
-  added=$(git diff --cached -U0 -- "$file" | grep '^+' | grep -v '^+++')
+  if [ -n "$BASE_REF" ]; then
+    added=$(git diff -U0 "$BASE_REF" HEAD -- "$file" | grep '^+' | grep -v '^+++')
+  else
+    added=$(git diff --cached -U0 -- "$file" | grep '^+' | grep -v '^+++')
+  fi
   [ -z "$added" ] && continue
 
   for entry in "${PATTERNS[@]}"; do
