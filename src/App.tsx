@@ -3,8 +3,8 @@ import { useEffect, lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { HomePage } from '@/pages/HomePage'
 import { useAuth } from '@/hooks/useAuth'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { ABTestProvider } from '@/components/ab-testing'
-import { LanguageRouter } from '@/components/i18n'
 import { supportedLanguages, defaultLanguage, type SupportedLanguage } from '@/lib/i18n'
 
 // Chargement paresseux de toutes les routes sauf HomePage.
@@ -128,6 +128,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 // Routes publiques (avec préfixe de langue)
 function PublicRoutes() {
   return (
+    <ErrorBoundary scope="public-route">
     <Suspense fallback={<RouteFallback />}>
     <Routes>
       <Route path="/" element={<HomePage />} />
@@ -163,6 +164,7 @@ function PublicRoutes() {
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
     </Suspense>
+    </ErrorBoundary>
   )
 }
 
@@ -182,7 +184,11 @@ export default function App() {
               path="/admin/*"
               element={
                 <AdminRoute>
-                  <AdminDashboard />
+                  {/* Filet dedie : une erreur du back-office ne doit pas
+                      renvoyer un ecran blanc a l'equipe en pleine saisie. */}
+                  <ErrorBoundary scope="admin">
+                    <AdminDashboard />
+                  </ErrorBoundary>
                 </AdminRoute>
               }
             />
