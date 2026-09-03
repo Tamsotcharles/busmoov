@@ -5613,9 +5613,9 @@ L'équipe Busmoov`
                     <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                       <label className="label text-xs text-gray-500">Mode de paiement</label>
                       <p className="text-xl font-semibold text-gray-700">
-                        {dossier.payment_method === 'virement'
+                        {(dossier as any).payment_method === 'virement'
                           ? 'Virement bancaire'
-                          : dossier.payment_method === 'cb'
+                          : (dossier as any).payment_method === 'cb'
                             ? 'Carte bancaire'
                             : '—'}
                       </p>
