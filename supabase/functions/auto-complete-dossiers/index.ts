@@ -153,10 +153,16 @@ async function sendReviewRequestEmail(
     const baseUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://busmoov.com'
     const reviewUrl = `${baseUrl}/avis?token=${reviewToken}`
 
-    // Envoyer via la fonction send-email qui gère la traduction automatique
-    const { error } = await supabase.functions.invoke('send-email', {
-      headers: { Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}` },
-      body: {
+    // fetch direct + service_role explicite (pattern fiable, comme
+    // sign-contract). supabase.functions.invoke edge->edge s'est revele
+    // fragile.
+    const resp = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}`,
+      },
+      body: JSON.stringify({
         type: 'review_request',
         to: dossier.client_email,
         data: {
@@ -166,11 +172,11 @@ async function sendReviewRequestEmail(
           review_url: reviewUrl,
           language: language,
         },
-      },
+      }),
     })
 
-    if (error) {
-      console.error('Error sending review email:', error)
+    if (!resp.ok) {
+      console.error('Error sending review email:', await resp.text())
       return false
     }
 

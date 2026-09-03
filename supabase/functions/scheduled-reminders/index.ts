@@ -21,6 +21,21 @@ function getCorsHeaders(origin: string | null) {
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
+// Envoi via send-email en fetch direct + service_role explicite.
+// supabase.functions.invoke edge->edge s'est revele fragile ; ce pattern
+// est celui de sign-contract / quote-reminders.
+async function sendEmailViaHttp(payload: unknown): Promise<string | null> {
+  const resp = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${supabaseServiceKey}`,
+    },
+    body: JSON.stringify(payload),
+  })
+  return resp.ok ? null : await resp.text()
+}
+
 interface AutomationSetting {
   key: string
   enabled: boolean
@@ -112,9 +127,7 @@ async function processOffreFlashReminders(
     const clientAccessUrl = `${baseUrl}/${emailLanguage}/espace-client?ref=${encodeURIComponent(dossier.reference)}&email=${encodeURIComponent(dossier.client_email)}`
 
     // Envoyer l'email de relance
-    const { error: emailError } = await supabase.functions.invoke('send-email', {
-            headers: { Authorization: `Bearer ${supabaseServiceKey}` },
-      body: {
+    const emailError = await sendEmailViaHttp({
         type: 'offre_flash_reminder',
         to: dossier.client_email,
         data: {
@@ -131,11 +144,10 @@ async function processOffreFlashReminders(
           dossier_id: dossier.id,
           language: emailLanguage,
         },
-      },
-    })
+      })
 
     if (emailError) {
-      result.errors.push(`Erreur email ${dossier.reference}: ${emailError.message}`)
+      result.errors.push(`Erreur email ${dossier.reference}: ${emailError}`)
       continue
     }
 
@@ -245,9 +257,7 @@ async function processQuoteReminders(
 
     const nbDevis = (dossier.devis as { id: string; status: string }[]).filter(d => d.status === 'sent').length
 
-    const { error: emailError } = await supabase.functions.invoke('send-email', {
-            headers: { Authorization: `Bearer ${supabaseServiceKey}` },
-      body: {
+    const emailError = await sendEmailViaHttp({
         type: 'quote_reminder',
         to: dossier.client_email,
         data: {
@@ -262,11 +272,10 @@ async function processQuoteReminders(
           dossier_id: dossier.id,
           language: emailLanguage,
         },
-      },
-    })
+      })
 
     if (emailError) {
-      result.errors.push(`Erreur email ${dossier.reference}: ${emailError.message}`)
+      result.errors.push(`Erreur email ${dossier.reference}: ${emailError}`)
       continue
     }
 
@@ -361,9 +370,7 @@ async function processPaymentReminders(
       const baseUrl = Deno.env.get('APP_URL') || 'https://busmoov.com'
       const paymentUrl = `${baseUrl}/${emailLanguage}/recapitulatif/${dossier.id}`
 
-      const { error: emailError } = await supabase.functions.invoke('send-email', {
-            headers: { Authorization: `Bearer ${supabaseServiceKey}` },
-        body: {
+      const emailError = await sendEmailViaHttp({
           type: 'payment_reminder',
           to: dossier.client_email,
           data: {
@@ -378,11 +385,10 @@ async function processPaymentReminders(
             dossier_id: dossier.id,
             language: emailLanguage,
           },
-        },
-      })
+        })
 
       if (emailError) {
-        result.errors.push(`Erreur email acompte ${dossier.reference}: ${emailError.message}`)
+        result.errors.push(`Erreur email acompte ${dossier.reference}: ${emailError}`)
         continue
       }
 
@@ -458,9 +464,7 @@ async function processPaymentReminders(
       const baseUrl = Deno.env.get('APP_URL') || 'https://busmoov.com'
       const paymentUrl = `${baseUrl}/${emailLanguage}/recapitulatif/${dossier.id}`
 
-      const { error: emailError } = await supabase.functions.invoke('send-email', {
-            headers: { Authorization: `Bearer ${supabaseServiceKey}` },
-        body: {
+      const emailError = await sendEmailViaHttp({
           type: 'rappel_solde',
           to: dossier.client_email,
           data: {
@@ -476,11 +480,10 @@ async function processPaymentReminders(
             dossier_id: dossier.id,
             language: emailLanguage,
           },
-        },
-      })
+        })
 
       if (emailError) {
-        result.errors.push(`Erreur email solde ${dossier.reference}: ${emailError.message}`)
+        result.errors.push(`Erreur email solde ${dossier.reference}: ${emailError}`)
         continue
       }
 
@@ -569,9 +572,7 @@ async function processInfoVoyageReminders(
     const baseUrl = Deno.env.get('APP_URL') || 'https://busmoov.com'
     const infosVoyageUrl = `${baseUrl}/${emailLanguage}/infos-voyage/${dossier.id}`
 
-    const { error: emailError } = await supabase.functions.invoke('send-email', {
-            headers: { Authorization: `Bearer ${supabaseServiceKey}` },
-      body: {
+    const emailError = await sendEmailViaHttp({
         type: 'info_request',
         to: dossier.client_email,
         data: {
@@ -586,11 +587,10 @@ async function processInfoVoyageReminders(
           dossier_id: dossier.id,
           language: emailLanguage,
         },
-      },
-    })
+      })
 
     if (emailError) {
-      result.errors.push(`Erreur email ${dossier.reference}: ${emailError.message}`)
+      result.errors.push(`Erreur email ${dossier.reference}: ${emailError}`)
       continue
     }
 
