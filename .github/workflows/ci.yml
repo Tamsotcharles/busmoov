@@ -30,6 +30,11 @@ jobs:
       - name: Verification des types
         run: npx tsc -b
 
+      # Bloquant : couvre la tarification et le formatage des montants,
+      # c'est-a-dire ce qui decide du prix facture au client.
+      - name: Tests unitaires
+        run: npm test
+
       # Bloquant : le build doit toujours produire un bundle.
       - name: Build de production
         run: npm run build

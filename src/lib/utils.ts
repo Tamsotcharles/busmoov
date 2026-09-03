@@ -76,16 +76,11 @@ export function formatPrice(amount: number | null | undefined): string {
   }).format(amount)
 }
 
-// Version pour PDF - remplace les espaces insécables par des espaces normaux
-export function formatPricePDF(amount: number | null | undefined): string {
-  if (amount === null || amount === undefined) return '-'
-  const formatted = new Intl.NumberFormat('fr-FR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount)
-  // Remplace l'espace insécable par un espace normal
-  return formatted.replace(/\u00A0/g, ' ') + ' EUR'
-}
+// NOTE : formatPricePDF a été supprimée ici. Elle n'était plus appelée et son
+// remplacement d'espaces était cassé : il ne ciblait que U+00A0 alors qu'Intl
+// produit U+202F (espace fine insécable) comme séparateur de milliers en fr-FR.
+// Le formatage des montants dans les PDF passe par formatAmount() dans pdf.ts,
+// qui traite correctement les deux caractères.
 
 export function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '-'

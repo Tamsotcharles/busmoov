@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf'
-import { formatDate, formatDateTime, formatPricePDF, formatDateLocalized } from './utils'
+import { formatDateLocalized } from './utils'
 import { supabase } from './supabase'
 import type { CompanySettings } from '@/types/database'
 
