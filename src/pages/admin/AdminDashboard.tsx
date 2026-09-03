@@ -9863,29 +9863,56 @@ function SendEmailForm({
     loadTemplates()
   }, [])
 
+  // Jeu complet de variables du dossier pour les emails. Auparavant seule
+  // une poignee de variables etait fournie (client_name, reference, trajet,
+  // date, price_ttc, liens) : passengers, total_ttc, montant_acompte,
+  // montant_solde... restaient bruts ({{passengers}}) dans le mail.
+  const buildEmailData = (): Record<string, string> => {
+    const prixTTC = dossier.price_ttc || 0
+    const acompte = (dossier as any).acompte_amount || 0
+    const solde = (dossier as any).solde_amount ?? (prixTTC - acompte)
+    const d = dossier as any
+    return {
+      client_name: dossier.client_name || '',
+      reference: dossier.reference || '',
+      departure: dossier.departure || '',
+      arrival: dossier.arrival || '',
+      departure_date: formatDate(dossier.departure_date),
+      return_date: d.return_date ? formatDate(d.return_date) : '',
+      departure_time: d.departure_time || '',
+      return_time: d.return_time || '',
+      heure_depart: d.departure_time || '',
+      heure_retour: d.return_time || '',
+      passengers: String(dossier.passengers ?? ''),
+      vehicle_type: d.vehicle_type || '',
+      nombre_cars: String(d.nombre_cars ?? ''),
+      nb_cars: String(d.nombre_cars ?? ''),
+      luggage_type: d.luggage_type || '',
+      total_ttc: formatPrice(prixTTC),
+      price_ttc: formatPrice(prixTTC),
+      montant_acompte: formatPrice(acompte),
+      montant_solde: formatPrice(solde),
+      reste_a_payer: formatPrice(solde),
+      reste_a_regler: formatPrice(solde),
+      lien_espace_client: generateClientAccessUrl(dossier.reference, dossier.client_email, dossier.country_code),
+      lien_paiement: generatePaymentUrl(dossier.reference, dossier.client_email, dossier.country_code),
+      lien_infos_voyage: generateInfosVoyageUrl(dossier.reference, dossier.client_email, dossier.country_code),
+    }
+  }
+
   const handleTemplateChange = (templateKey: string) => {
     setSelectedTemplate(templateKey)
     const template = templates.find(t => t.key === templateKey)
     if (template) {
-      // Remplacer les variables
-      let subj = template.subject
-      let bod = template.body
+      // Apercu : substituer toutes les variables connues du dossier.
+      let subj = template.subject || ''
+      let bod = template.html_content || template.body || ''
+      const data = buildEmailData()
 
-      const vars = {
-        '{{client_name}}': dossier.client_name,
-        '{{reference}}': dossier.reference,
-        '{{departure}}': dossier.departure,
-        '{{arrival}}': dossier.arrival,
-        '{{departure_date}}': formatDate(dossier.departure_date),
-        '{{price_ttc}}': formatPrice(dossier.price_ttc || 0),
-        '{{lien_espace_client}}': generateClientAccessUrl(dossier.reference, dossier.client_email, dossier.country_code),
-        '{{lien_paiement}}': generatePaymentUrl(dossier.reference, dossier.client_email, dossier.country_code),
-        '{{lien_infos_voyage}}': generateInfosVoyageUrl(dossier.reference, dossier.client_email, dossier.country_code),
-      }
-
-      Object.entries(vars).forEach(([key, value]) => {
-        subj = subj.replace(new RegExp(key, 'g'), value || '')
-        bod = bod.replace(new RegExp(key, 'g'), value || '')
+      Object.entries(data).forEach(([key, value]) => {
+        const re = new RegExp(`{{${key}}}`, 'g')
+        subj = subj.replace(re, value || '')
+        bod = bod.replace(re, value || '')
       })
 
       setSubject(subj)
@@ -9904,7 +9931,10 @@ function SendEmailForm({
       // Déterminer la langue à partir du pays
       const emailLanguage = (dossier.country_code || 'FR').toLowerCase()
 
-      // Envoyer via Edge Function send-email
+      // Envoyer via Edge Function send-email avec le jeu COMPLET de
+      // variables : sinon passengers, total_ttc, montant_acompte... restent
+      // bruts dans le mail (send-email recharge le template et le substitue
+      // avec ce data).
       const { error } = await supabase.functions.invoke('send-email', {
         body: {
           type: selectedTemplate || 'custom',
@@ -9912,14 +9942,7 @@ function SendEmailForm({
           subject: subject,
           html_content: body.replace(/\n/g, '<br>'),
           data: {
-            client_name: dossier.client_name,
-            reference: dossier.reference,
-            departure: dossier.departure,
-            arrival: dossier.arrival,
-            departure_date: formatDate(dossier.departure_date),
-            lien_espace_client: generateClientAccessUrl(dossier.reference, dossier.client_email, dossier.country_code),
-            lien_paiement: generatePaymentUrl(dossier.reference, dossier.client_email, dossier.country_code),
-            lien_infos_voyage: generateInfosVoyageUrl(dossier.reference, dossier.client_email, dossier.country_code),
+            ...buildEmailData(),
             dossier_id: dossier.id,
             language: emailLanguage,
           },
