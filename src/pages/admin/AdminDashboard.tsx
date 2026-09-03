@@ -3063,75 +3063,6 @@ L'équipe Busmoov`,
     }
   }
 
-  // Valider et envoyer au fournisseur
-  const handleValidateAndSend = async () => {
-    const transporteur = transporteurs.find(t => t.id === dossier.transporteur_id)
-    if (!transporteur) {
-      alert('Aucun transporteur assigné à ce dossier')
-      return
-    }
-
-    if (!confirm(`Valider les informations et les envoyer à ${transporteur.name} ?\n\nLe dossier passera en "Attente chauffeur".`)) {
-      return
-    }
-
-    try {
-      const now = new Date().toISOString()
-      // Mettre à jour le voyage_info avec validation admin
-      // Ne garder que les champs valides pour la table voyage_infos
-      // editData ne contient que certains champs éditables, les autres viennent de voyageInfo
-      await updateVoyageInfo.mutateAsync({
-        dossier_id: dossier.id,
-        aller_date: editData.aller_date || voyageInfo.aller_date,
-        aller_heure: voyageInfo.aller_heure,
-        aller_adresse_depart: editData.aller_adresse_depart || voyageInfo.aller_adresse_depart,
-        aller_adresse_arrivee: editData.aller_adresse_arrivee || voyageInfo.aller_adresse_arrivee,
-        aller_passagers: editData.aller_passagers || voyageInfo.aller_passagers,
-        retour_date: editData.retour_date || voyageInfo.retour_date,
-        retour_heure: voyageInfo.retour_heure,
-        retour_adresse_depart: editData.retour_adresse_depart || voyageInfo.retour_adresse_depart,
-        retour_adresse_arrivee: editData.retour_adresse_arrivee || voyageInfo.retour_adresse_arrivee,
-        retour_passagers: editData.retour_passagers || voyageInfo.retour_passagers,
-        contact_nom: editData.contact_nom || voyageInfo.contact_nom,
-        contact_prenom: editData.contact_prenom || voyageInfo.contact_prenom,
-        contact_tel: editData.contact_tel || voyageInfo.contact_tel,
-        contact_email: voyageInfo.contact_email,
-        commentaires: editData.commentaires || voyageInfo.commentaires,
-        validated_at: now,
-        admin_validated_at: now,
-        sent_to_supplier_at: now,
-      })
-
-      // Passer le dossier en attente chauffeur + mettre à jour les dates si modifiées
-      const updatedDossierData2: any = {
-        id: dossier.id,
-        status: 'pending-driver',
-      }
-      // Mettre à jour departure_date si modifié dans infos voyage
-      if (editData.aller_date || voyageInfo.aller_date) {
-        updatedDossierData2.departure_date = editData.aller_date || voyageInfo.aller_date
-      }
-      // Mettre à jour return_date si modifié dans infos voyage
-      if (editData.retour_date || voyageInfo.retour_date) {
-        updatedDossierData2.return_date = editData.retour_date || voyageInfo.retour_date
-      }
-      await updateDossier.mutateAsync(updatedDossierData2)
-
-      await addTimelineEntry.mutateAsync({
-        dossier_id: dossier.id,
-        type: 'status_change',
-        content: `Infos voyage validées et envoyées à ${transporteur.name}`,
-      })
-
-      queryClient.invalidateQueries({ queryKey: ['dossier', dossier.id] })
-      queryClient.invalidateQueries({ queryKey: ['dossiers'] })
-      queryClient.invalidateQueries({ queryKey: ['voyageInfo', dossier.id] })
-      alert('Informations envoyées au fournisseur !')
-    } catch (error) {
-      console.error('Erreur validation:', error)
-      alert('Erreur lors de la validation')
-    }
-  }
 
   // Demander confirmation au fournisseur (envoyer les infos voyage)
   const handleRequestSupplierConfirmation = async () => {
@@ -3192,6 +3123,15 @@ L'équipe Busmoov`,
   const isValidatedByAdmin = !!voyageInfo.admin_validated_at
   const isPendingDriver = dossier.status === 'pending-driver'
   const isCompleted = dossier.status === 'completed'
+
+  // BPA confirme = un fournisseur a RECONFIRME (etape 2), pas seulement
+  // « validated » (etape 1, admin a envoye le BPA). On ne doit pas envoyer
+  // les infos voyage ni passer en attente chauffeur tant qu'aucun
+  // fournisseur n'a confirme sa disponibilite.
+  const { data: demandesFournisseursDossier = [] } = useDemandesFournisseurs(dossier.id)
+  const hasBpaConfirme = demandesFournisseursDossier.some(
+    (df: any) => df.bpa_received_at || df.status === 'bpa_received',
+  )
 
   return (
     <div className={cn(
@@ -3518,12 +3458,23 @@ L'équipe Busmoov`,
             </button>
             <button
               onClick={() => openEmailModal('demande_chauffeur')}
-              className="btn btn-success flex items-center gap-2"
+              disabled={!hasBpaConfirme}
+              title={hasBpaConfirme ? undefined : "Aucun fournisseur n'a confirmé son BPA : impossible de valider tant que la disponibilité n'est pas confirmée."}
+              className={cn(
+                "btn btn-success flex items-center gap-2",
+                !hasBpaConfirme && "opacity-50 cursor-not-allowed",
+              )}
             >
               <CheckCircle size={16} />
               {isValidatedByAdmin ? 'Mettre à jour & Renvoyer' : 'Valider & Passer en attente chauffeur'}
             </button>
           </div>
+        )}
+        {!isCompleted && !hasBpaConfirme && (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2">
+            ⚠️ Aucun fournisseur n'a encore confirmé son BPA. La validation des infos voyage
+            et le passage en attente chauffeur sont bloqués tant que la disponibilité n'est pas confirmée.
+          </p>
         )}
       </div>
 
