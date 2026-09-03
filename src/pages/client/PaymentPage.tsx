@@ -226,6 +226,9 @@ export function PaymentPage() {
   // Déterminer le montant à payer
   const montantAPayer = typeParam === 'solde' ? resteAPayer : (acomptePaye ? resteAPayer : acompteAmount)
   const isPayingSolde = typeParam === 'solde' || acomptePaye
+  // Paiement total : l'acompte couvre tout le prix (depart proche). On parle
+  // alors de « totalité », pas d'« acompte ».
+  const isPaiementTotal = !isPayingSolde && acompteAmount >= prixTTC
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -250,9 +253,20 @@ export function PaymentPage() {
         {/* Page Header */}
         <div className="text-center mb-8">
           <h1 className="font-display text-3xl font-bold text-purple-dark mb-2">
-            {soldePaye ? t('payment.fullPayment') : isPayingSolde ? t('payment.balancePayment') : t('payment.depositPayment')}
+            {soldePaye
+              ? t('payment.fullPayment')
+              : isPayingSolde
+                ? t('payment.balancePayment')
+                : isPaiementTotal
+                  ? t('payment.fullAmountPayment')
+                  : t('payment.depositPayment')}
           </h1>
           <p className="text-gray-500">{t('payment.dossier')} {dossier.reference}</p>
+          {!soldePaye && (
+            <p className="mt-3 inline-block bg-amber-50 text-amber-800 text-sm font-medium px-4 py-2 rounded-full border border-amber-200">
+              {t('payment.within48h')}
+            </p>
+          )}
         </div>
 
         {/* Si tout est payé, afficher un message de succès */}
@@ -339,7 +353,7 @@ export function PaymentPage() {
             {!soldePaye && (
               <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                 <span className="font-medium text-purple-dark">
-                  {isPayingSolde ? t('payment.balanceRemaining') : t('payment.depositToPayLabel')}
+                  {isPayingSolde ? t('payment.balanceRemaining') : isPaiementTotal ? t('payment.fullAmountToPayLabel') : t('payment.depositToPayLabel')}
                 </span>
                 <span className="font-bold text-xl text-magenta">{formatPrice(montantAPayer)}</span>
               </div>
@@ -375,10 +389,22 @@ export function PaymentPage() {
                     <p className="text-sm text-gray-500">{t('payment.immediateSecure')}</p>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="Mastercard" className="h-6" />
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/200px-Visa_Inc._logo.svg.png" alt="Visa" className="h-6" />
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/American_Express_logo_%282018%29.svg/200px-American_Express_logo_%282018%29.svg.png" alt="Amex" className="h-6" />
+                {/* Badges CB en SVG inline : les anciennes images pointaient
+                    vers Wikimedia (hotlink bloque -> images cassees). */}
+                <div className="flex gap-2 items-center">
+                  <svg width="40" height="26" viewBox="0 0 40 26" aria-label="Visa" role="img">
+                    <rect width="40" height="26" rx="4" fill="#1A1F71" />
+                    <text x="20" y="17" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="bold" fontFamily="Arial, sans-serif" fontStyle="italic">VISA</text>
+                  </svg>
+                  <svg width="40" height="26" viewBox="0 0 40 26" aria-label="Mastercard" role="img">
+                    <rect width="40" height="26" rx="4" fill="#F7F7F7" stroke="#E0E0E0" />
+                    <circle cx="17" cy="13" r="7" fill="#EB001B" />
+                    <circle cx="23" cy="13" r="7" fill="#F79E1B" fillOpacity="0.85" />
+                  </svg>
+                  <svg width="40" height="26" viewBox="0 0 40 26" aria-label="American Express" role="img">
+                    <rect width="40" height="26" rx="4" fill="#2E77BC" />
+                    <text x="20" y="16" textAnchor="middle" fill="#fff" fontSize="8" fontWeight="bold" fontFamily="Arial, sans-serif">AMEX</text>
+                  </svg>
                 </div>
               </div>
 

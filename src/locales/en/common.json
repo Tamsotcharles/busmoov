@@ -374,7 +374,13 @@
       "tripCompleted": "Trip completed"
     },
     "errorOccurred": "An error occurred",
-    "supportMessageError": "An error occurred while sending the message. Please try again."
+    "supportMessageError": "An error occurred while sending the message. Please try again.",
+    "awaitingPayment": "Awaiting payment",
+    "totalToPay": "Total to pay",
+    "depositToPay": "Deposit to pay",
+    "paymentWithin48h": "⚠️ Payment must be made within 48 hours to confirm your booking",
+    "payByTransfer": "Pay by transfer",
+    "payNow": "Pay now"
   },
   "payment": {
     "loading": "Loading...",
@@ -431,7 +437,10 @@
     "processingDays": "Processing time: 2-3 working days",
     "copied": "Copied!",
     "copyAllInfo": "Copy all information",
-    "paymentQuestion": "Question about payment?"
+    "paymentQuestion": "Question about payment?",
+    "fullAmountPayment": "Full payment",
+    "fullAmountToPayLabel": "Total to pay",
+    "within48h": "Payment to be made within 48 hours"
   },
   "mesDevis": {
     "pageTitle": "View my quotes",

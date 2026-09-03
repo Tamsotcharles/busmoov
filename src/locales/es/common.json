@@ -374,7 +374,13 @@
       "tripCompleted": "Viaje completado"
     },
     "errorOccurred": "Se ha producido un error",
-    "supportMessageError": "Se ha producido un error al enviar el mensaje. Por favor, inténtelo de nuevo."
+    "supportMessageError": "Se ha producido un error al enviar el mensaje. Por favor, inténtelo de nuevo.",
+    "awaitingPayment": "Pendiente de pago",
+    "totalToPay": "Total a pagar",
+    "depositToPay": "Anticipo a pagar",
+    "paymentWithin48h": "⚠️ El pago debe realizarse en un plazo de 48 horas para validar su reserva",
+    "payByTransfer": "Pagar por transferencia",
+    "payNow": "Pagar ahora"
   },
   "payment": {
     "loading": "Cargando...",
@@ -431,7 +437,10 @@
     "processingDays": "Tiempo de procesamiento: 2-3 días laborables",
     "copied": "¡Copiado!",
     "copyAllInfo": "Copiar toda la información",
-    "paymentQuestion": "¿Una pregunta sobre el pago?"
+    "paymentQuestion": "¿Una pregunta sobre el pago?",
+    "fullAmountPayment": "Pago de la totalidad",
+    "fullAmountToPayLabel": "Total a pagar",
+    "within48h": "Pago a realizar en un plazo de 48 horas"
   },
   "mesDevis": {
     "pageTitle": "Consultar mis presupuestos",

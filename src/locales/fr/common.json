@@ -374,7 +374,13 @@
       "tripCompleted": "Voyage terminé"
     },
     "errorOccurred": "Une erreur est survenue",
-    "supportMessageError": "Une erreur est survenue lors de l'envoi du message. Veuillez réessayer."
+    "supportMessageError": "Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.",
+    "awaitingPayment": "En attente de paiement",
+    "totalToPay": "Total à régler",
+    "depositToPay": "Acompte à régler",
+    "paymentWithin48h": "⚠️ Règlement à effectuer sous 48 heures pour valider votre réservation",
+    "payByTransfer": "Régler par virement",
+    "payNow": "Régler maintenant"
   },
   "payment": {
     "loading": "Chargement...",
@@ -431,7 +437,10 @@
     "processingDays": "Délai de traitement : 2-3 jours ouvrés",
     "copied": "Copié !",
     "copyAllInfo": "Copier toutes les informations",
-    "paymentQuestion": "Une question sur le paiement ?"
+    "paymentQuestion": "Une question sur le paiement ?",
+    "fullAmountPayment": "Paiement de la totalité",
+    "fullAmountToPayLabel": "Total à régler",
+    "within48h": "Règlement à effectuer sous 48 heures"
   },
   "mesDevis": {
     "pageTitle": "Consulter mes devis",

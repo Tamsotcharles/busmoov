@@ -374,7 +374,13 @@
       "tripCompleted": "Reise abgeschlossen"
     },
     "errorOccurred": "Ein Fehler ist aufgetreten",
-    "supportMessageError": "Beim Senden der Nachricht ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+    "supportMessageError": "Beim Senden der Nachricht ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+    "awaitingPayment": "Zahlung ausstehend",
+    "totalToPay": "Gesamtbetrag zu zahlen",
+    "depositToPay": "Anzahlung zu zahlen",
+    "paymentWithin48h": "⚠️ Zahlung innerhalb von 48 Stunden erforderlich, um Ihre Buchung zu bestätigen",
+    "payByTransfer": "Per Überweisung zahlen",
+    "payNow": "Jetzt zahlen"
   },
   "payment": {
     "loading": "Wird geladen...",
@@ -431,7 +437,10 @@
     "processingDays": "Bearbeitungszeit: 2-3 Werktage",
     "copied": "Kopiert!",
     "copyAllInfo": "Alle Informationen kopieren",
-    "paymentQuestion": "Eine Frage zur Zahlung?"
+    "paymentQuestion": "Eine Frage zur Zahlung?",
+    "fullAmountPayment": "Vollständige Zahlung",
+    "fullAmountToPayLabel": "Gesamtbetrag zu zahlen",
+    "within48h": "Zahlung innerhalb von 48 Stunden"
   },
   "mesDevis": {
     "pageTitle": "Meine Angebote einsehen",

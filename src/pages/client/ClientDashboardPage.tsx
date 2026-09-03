@@ -811,6 +811,38 @@ export function ClientDashboardPage() {
                       )
                     })}
 
+                    {/* En attente de paiement : contrat signé, acompte/total non réglé.
+                        Consigne claire (montant + délai 48h) et bouton de paiement. */}
+                    {dossier.status === 'pending-payment' && (() => {
+                      const prixTTC = dossier.price_ttc || 0
+                      const acompte = (dossier as any).acompte_amount || 0
+                      const estTotal = acompte >= prixTTC && acompte > 0
+                      const montant = acompte > 0 ? acompte : prixTTC
+                      const estVirement = (dossier as any).payment_method === 'virement'
+                      return (
+                        <div className="mt-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-lg">
+                          <h4 className="font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                            ⏳ {t('dashboard.awaitingPayment')}
+                          </h4>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="text-gray-700">
+                              {estTotal ? t('dashboard.totalToPay') : t('dashboard.depositToPay')}
+                            </span>
+                            <span className="font-bold text-magenta text-lg">{formatPrice(montant)}</span>
+                          </div>
+                          <p className="text-sm font-medium text-amber-900 mt-2">
+                            {t('dashboard.paymentWithin48h')}
+                          </p>
+                          <Link
+                            to={localizedPath(`/paiement?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`)}
+                            className="btn btn-primary w-full mt-3 justify-center"
+                          >
+                            {estVirement ? t('dashboard.payByTransfer') : t('dashboard.payNow')}
+                          </Link>
+                        </div>
+                      )
+                    })()}
+
                     {/* Détails du paiement si acompte payé (pending-reservation ou bpa-received) */}
                     {(dossier.status === 'pending-reservation' || dossier.status === 'bpa-received') && dossier.paiements && dossier.paiements.length > 0 && (
                       <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
