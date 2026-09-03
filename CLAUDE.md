@@ -228,6 +228,61 @@ ne les recréerait pas. À récupérer via `npx supabase functions download <nom
 | `get-client-data` | Lecture des données client |
 | `change-admin-password` | Changement de mot de passe admin |
 
+## Migrations de base de données
+
+### ⚠️ L'historique local et distant ne sont pas alignés
+
+La base porte **109 migrations qui ne sont pas dans ce dépôt** : elles ont été
+appliquées via l'interface Supabase. Conséquence directe :
+
+- `supabase db push` **échoue** (`LegacyDbPushMissingLocalError`) — c'est un
+  échec sain, il refuse plutôt que de faire des dégâts ;
+- `supabase db pull` échoue pour la même raison ;
+- le dépôt **ne permet pas de reconstruire la base** à partir de zéro.
+
+Le CLI suggère de réparer avec `migration repair --status reverted` sur les
+109 versions. **Ne pas le faire sans décision explicite** : cela supprimerait
+109 lignes de l'historique de production, seule trace de ce qui a été appliqué.
+
+### Appliquer une migration
+
+Le dossier `supabase/migrations/` ne doit contenir que des migrations
+**réellement suivies**. Procédure :
+
+```bash
+# 1. Nommer avec un préfixe de 14 chiffres (obligatoire, sinon non suivi)
+#    Format : AAAAMMJJHHMMSS_description.sql
+# 2. Appliquer le fichier de façon ciblée
+npx supabase db query --linked -f supabase/migrations/<fichier>.sql
+# 3. L'enregistrer dans l'historique
+npx supabase migration repair --status applied <les_14_chiffres> --linked
+# 4. Vérifier
+npx supabase migration list --linked
+```
+
+Un préfixe à 8 chiffres (`20241229_nom.sql`) n'est **pas** suivi par le CLI et
+provoque des collisions de version.
+
+### `supabase/migrations-archive/`
+
+17 migrations de déc. 2024 – janv. 2026, appliquées manuellement, sorties du
+dossier suivi. **Ne jamais les remettre ni les rejouer** : deux d'entre elles
+contiennent 14 et 9 instructions qui réécriraient les templates d'emails de
+production. Voir le README du dossier.
+
+### Privilèges par défaut Supabase — piège récurrent
+
+Le schéma `public` porte un `ALTER DEFAULT PRIVILEGES` qui accorde
+automatiquement `EXECUTE` à `anon`, `authenticated` et `service_role` sur
+**chaque fonction créée**, et tous les droits sur chaque table.
+
+`REVOKE ALL ... FROM PUBLIC` ne suffit donc pas : ce sont des droits explicites
+au rôle. Il faut révoquer nommément :
+
+```sql
+REVOKE EXECUTE ON FUNCTION public.ma_fonction() FROM anon;
+```
+
 ### Déploiement Edge Functions
 ```bash
 npx supabase login   # requis : les déploiements ne sont pas anonymes
