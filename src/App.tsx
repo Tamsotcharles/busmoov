@@ -223,9 +223,14 @@ function LanguageWrapper() {
   const pathLang = location.pathname.split('/')[1]
 
   if (!supportedLanguages.includes(pathLang as SupportedLanguage)) {
-    // Langue invalide, rediriger vers la langue par défaut
-    const restOfPath = location.pathname.replace(/^\/[^/]+/, '')
-    return <Navigate to={`/${defaultLanguage}${restOfPath}${location.search}${location.hash}`} replace />
+    // Premier segment ≠ langue : c'est un lien profond SANS prefixe de
+    // langue (/fournisseur/proposition-tarif?token=..., /validation-bpa...),
+    // typiquement clique depuis un email. L'ancienne version amputait ce
+    // premier segment en le prenant pour une langue invalide : le lien
+    // devenait /fr/proposition-tarif, route inexistante, et le fallback
+    // renvoyait le transporteur sur la page d'accueil. On prefixe donc le
+    // chemin COMPLET par la langue par defaut.
+    return <Navigate to={`/${defaultLanguage}${location.pathname}${location.search}${location.hash}`} replace />
   }
 
   return <PublicRoutes />
