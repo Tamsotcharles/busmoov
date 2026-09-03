@@ -67,7 +67,14 @@ COMMENT ON FUNCTION public.next_facture_reference() IS
 -- 3) Seuls les comptes authentifies (equipe) peuvent facturer.
 --    anon n'a aucune raison de consommer des numeros : chaque appel
 --    incremente le compteur et creerait des trous dans la sequence.
+--
+--    /!\ Le REVOKE sur anon est indispensable et ne peut pas etre deduit
+--    du REVOKE ... FROM PUBLIC. Le schema public de Supabase porte un
+--    ALTER DEFAULT PRIVILEGES qui accorde EXECUTE a anon, authenticated
+--    et service_role sur CHAQUE fonction creee. C'est un droit explicite
+--    au role, que REVOKE ... FROM PUBLIC ne touche pas.
 REVOKE ALL ON FUNCTION public.next_facture_reference() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.next_facture_reference() FROM anon;
 GRANT EXECUTE ON FUNCTION public.next_facture_reference() TO authenticated, service_role;
 
 -- 4) Garantir l'unicite au niveau du schema, pas seulement du code.
