@@ -1867,21 +1867,38 @@ export async function generateContratPDF(contrat: ContratData, lang: string = 'f
 
   y += 14
 
-  // Type de trajet basé sur service_type ou trip_mode
-  // IMPORTANT: Vérifier d'abord circuit/mise_disposition car ils peuvent avoir des dates de retour
+  // Type de trajet basé sur service_type (devis) ou trip_mode (dossier).
+  // Ces deux champs utilisent des vocabulaires DIFFERENTS, tous deux
+  // normalises ici :
+  //   devis.service_type : aller_simple / ar_1j / ar_mad / ar_sans_mad
+  //   dossier.trip_mode  : one-way / round-trip / circuit
+  // IMPORTANT: verifier la mise a disposition en premier (elle a aussi une
+  // date de retour).
   const serviceType = contrat.service_type || contrat.dossier?.trip_mode
+  const hasReturnDate = !!contrat.dossier?.return_date
+  const hasReturnTime = !!contrat.dossier?.return_time
+
+  const isMiseADispo =
+    serviceType === 'circuit' || serviceType === 'mise_disposition' || serviceType === 'ar_mad'
+
+  // Aller-retour : tout ce qui n'est pas MAD et porte un libelle A/R
+  // connu, OU (a defaut de libelle exploitable) la presence d'une date de
+  // retour. Un aller simple n'a pas de date de retour : ce filet corrige
+  // le cas ou service_type valait 'round-trip'/'ar_1j', non reconnu
+  // auparavant, qui faisait afficher « aller simple » sur la proforma.
+  const isAllerRetour =
+    !isMiseADispo &&
+    (['aller_retour', 'round-trip', 'ar_1j', 'ar_sans_mad'].includes(serviceType || '') ||
+      hasReturnDate ||
+      hasReturnTime)
+
   let typeTrajet = t.tripOneWay
-  // ar_mad = aller-retour mise à disposition (circuit multi-jours)
-  const isMiseADispo = serviceType === 'circuit' || serviceType === 'mise_disposition' || serviceType === 'ar_mad'
   if (isMiseADispo) {
     typeTrajet = t.tripMAD
     if (contrat.duree_jours && contrat.duree_jours > 1) {
       typeTrajet += ` (${contrat.duree_jours} ${t.tripMADDays})`
     }
-  } else if (serviceType === 'aller_retour') {
-    typeTrajet = t.tripRoundTrip
-  } else if (contrat.dossier?.return_date || contrat.dossier?.return_time) {
-    // Seulement si pas de trip_mode spécifié, on déduit du return_date
+  } else if (isAllerRetour) {
     typeTrajet = t.tripRoundTrip
   }
 
@@ -1936,10 +1953,9 @@ export async function generateContratPDF(contrat: ContratData, lang: string = 'f
   const departTimeContract = contrat.dossier?.departure_time ? ` ${contrat.dossier.departure_time}` : ''
   doc.text(`${departDateContract}${departTimeContract}`, 45, y)
 
-  // Date de fin/retour - afficher pour tous les types si une date de retour existe
-  const hasReturnDate = !!contrat.dossier?.return_date
-  const hasReturnTime = !!contrat.dossier?.return_time
-  const isAllerRetour = serviceType === 'aller_retour' || (!serviceType && !isMiseADispo && (hasReturnDate || hasReturnTime))
+  // hasReturnDate / hasReturnTime / isAllerRetour sont definis plus haut,
+  // avec le typeTrajet, pour rester coherents entre le titre et la ligne
+  // d'article de la proforma.
 
   if (hasReturnDate || hasReturnTime) {
     y += 5
