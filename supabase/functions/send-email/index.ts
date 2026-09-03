@@ -841,36 +841,69 @@ function replaceVariables(text: string, variables: Record<string, string>, langu
     result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), safeValue)
   }
 
-  // 3. Conditionnels Handlebars, EN BOUCLE.
-  // Un seul passage ne suffit pas : sur des {{#if}} imbriques, le motif
-  // non glouton ferme le bloc externe sur le {{/if}} du bloc interne, et
-  // les restes ({{#if heure_retour}}... et son {{/if}} orphelin) partaient
-  // BRUTS dans l'email — constate en production sur les demandes de tarif
-  // aux transporteurs. On repete jusqu'a stabilite, comme le fait deja le
-  // moteur cote client (substituteTemplateVariables dans utils.ts).
+  // 3. Conditionnels Handlebars, via un parseur qui EQUILIBRE les {{/if}}.
+  // Les regex non-gloutonnes echouaient sur deux cas rencontres en prod :
+  // les {{#if}} imbriques, et un {{#if}} sans else place avant un
+  // {{#if}}...{{else}} — le premier absorbait le {{else}} du second, si
+  // bien que le RIB d'un virement ne s'affichait pas. Un parseur qui
+  // trouve le {{/if}} correspondant traite les deux correctement.
   const isTruthy = (varName: string) => {
     const value = variables[varName]
     return Boolean(value) && value !== '' && value !== 'false' && value !== 'null' && value !== 'undefined'
   }
-
-  let previousResult = ''
-  let iterations = 0
-  while (previousResult !== result && iterations < 10) {
-    previousResult = result
-    iterations++
-
-    // D'abord les blocs avec {{else}}, puis ceux sans
-    result = result.replace(
-      /\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{else\}\}([\s\S]*?)\{\{\/if\}\}/g,
-      (_match, varName, ifContent, elseContent) => (isTruthy(varName) ? ifContent : elseContent),
-    )
-    result = result.replace(
-      /\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g,
-      (_match, varName, content) => (isTruthy(varName) ? content : ''),
-    )
-  }
+  result = resolveConditionals(result, isTruthy)
 
   return result
+}
+
+/**
+ * Resout les blocs {{#if x}}...{{else}}...{{/if}} en trouvant, pour chaque
+ * {{#if}}, le {{/if}} qui lui correspond (en tenant compte de
+ * l'imbrication) et le {{else}} au meme niveau. Recursif sur le contenu
+ * retenu, donc les blocs imbriques sont resolus.
+ */
+function resolveConditionals(text: string, isTruthy: (v: string) => boolean): string {
+  const open = /\{\{#if\s+(\w+)\}\}/
+  let out = ''
+  let rest = text
+
+  for (;;) {
+    const m = rest.match(open)
+    if (!m) return out + rest
+
+    out += rest.slice(0, m.index)
+    const varName = m[1]
+    const i = (m.index ?? 0) + m[0].length
+
+    // Parcourir jusqu'au {{/if}} correspondant, en reperant le {{else}}
+    // du meme niveau.
+    let depth = 1
+    let elseIdx = -1
+    let endIdx = -1
+    const token = /\{\{#if\s+\w+\}\}|\{\{else\}\}|\{\{\/if\}\}/g
+    token.lastIndex = i
+    let t: RegExpExecArray | null
+    while ((t = token.exec(rest)) !== null) {
+      if (t[0].startsWith('{{#if')) depth++
+      else if (t[0] === '{{else}}') { if (depth === 1 && elseIdx === -1) elseIdx = t.index }
+      else { // {{/if}}
+        depth--
+        if (depth === 0) { endIdx = t.index; break }
+      }
+    }
+
+    if (endIdx === -1) {
+      // Pas de fermeture : on laisse le reste tel quel (template malforme).
+      return out + rest.slice(m.index)
+    }
+
+    const ifContent = rest.slice(i, elseIdx === -1 ? endIdx : elseIdx)
+    const elseContent = elseIdx === -1 ? '' : rest.slice(elseIdx + '{{else}}'.length, endIdx)
+    const chosen = isTruthy(varName) ? ifContent : elseContent
+    // Resoudre recursivement les conditionnels imbriques du contenu retenu.
+    out += resolveConditionals(chosen, isTruthy)
+    rest = rest.slice(endIdx + '{{/if}}'.length)
+  }
 }
 
 /**
@@ -906,7 +939,7 @@ async function loadCompanyContact(
 
   const { data, error } = await supabaseClient
     .from('countries')
-    .select('company_name, phone, phone_display, email, address, city')
+    .select('company_name, phone, phone_display, email, address, city, bank_name, bank_iban, bank_bic, bank_beneficiary')
     .eq('code', code)
     .maybeSingle()
 
@@ -922,6 +955,12 @@ async function loadCompanyContact(
     phone: data.phone || FALLBACK_CONTACT.phone,
     email: data.email || FALLBACK_CONTACT.email,
     company_address: adresse || FALLBACK_CONTACT.company_address,
+    // RIB de l'entite : disponible pour tous les templates (RIB de virement)
+    // sans que chaque appelant ait a le fournir.
+    bank_name: data.bank_name || '',
+    iban: data.bank_iban || '',
+    bic: data.bank_bic || '',
+    bank_beneficiary: data.bank_beneficiary || data.company_name || '',
   }
 }
 

@@ -9872,7 +9872,14 @@ function SendEmailForm({
     const acompte = (dossier as any).acompte_amount || 0
     const solde = (dossier as any).solde_amount ?? (prixTTC - acompte)
     const d = dossier as any
+    // Acompte vs paiement total (meme logique que la fiche contrat / sign-contract)
+    const pct = prixTTC > 0 ? Math.round((acompte / prixTTC) * 100) : 0
+    const estPaiementTotal = pct >= 100
     return {
+      montant_a_payer: formatPrice(acompte),
+      libelle_paiement: estPaiementTotal ? 'le paiement total' : `un acompte de ${pct}%`,
+      is_paiement_total: estPaiementTotal ? 'true' : '',
+      is_acompte: estPaiementTotal ? '' : 'true',
       client_name: dossier.client_name || '',
       reference: dossier.reference || '',
       departure: dossier.departure || '',
@@ -10019,13 +10026,31 @@ function SendEmailForm({
       </div>
 
       <div>
-        <label className="label">Contenu</label>
-        <textarea
-          className="input min-h-40"
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          placeholder="Contenu de l'email..."
-        />
+        <label className="label">Aperçu</label>
+        {/* Aperçu rendu du mail. Le contenu (html_content des templates)
+            est du HTML : l'afficher dans une iframe le rend lisible au lieu
+            du code brut, et isole ses styles de la page admin. */}
+        {body.trim().startsWith('<') ? (
+          <iframe
+            title="Aperçu de l'email"
+            className="w-full min-h-80 border border-gray-200 rounded-lg bg-white"
+            sandbox=""
+            srcDoc={body}
+          />
+        ) : (
+          <div className="border border-gray-200 rounded-lg bg-white p-4 min-h-40 whitespace-pre-wrap text-sm">
+            {body || <span className="text-gray-400">Sélectionnez un template…</span>}
+          </div>
+        )}
+        <details className="mt-2">
+          <summary className="text-xs text-gray-500 cursor-pointer">Modifier le contenu (HTML)</summary>
+          <textarea
+            className="input min-h-40 mt-2 font-mono text-xs"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder="Contenu de l'email..."
+          />
+        </details>
       </div>
 
       <div className="flex justify-end gap-3 pt-4">
