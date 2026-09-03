@@ -133,63 +133,17 @@ export function PropositionTarifPage() {
     }
 
     try {
-      // Récupérer la demande fournisseur avec les infos du dossier
-      const { data: demande, error: demandeError } = await (supabase as any)
-        .from('demandes_fournisseurs')
-        .select(`
-          id,
-          status,
-          prix_propose,
-          validation_token,
-          transporteur_id,
-          dossier:dossiers (
-            id,
-            reference,
-            departure,
-            arrival,
-            departure_date,
-            departure_time,
-            return_date,
-            return_time,
-            passengers,
-            trip_mode,
-            special_requests,
-            vehicle_type,
-            nombre_cars,
-            nombre_chauffeurs,
-            wifi,
-            wc,
-            accessibility,
-            luggage_type,
-            country_code,
-            tva_rate,
-            devis (
-              service_type,
-              nombre_cars,
-              nombre_chauffeurs,
-              duree_jours,
-              vehicle_type,
-              km,
-              status
-            )
-          ),
-          transporteur:transporteurs (
-            id,
-            name
-          )
-        `)
-        .eq('id', demandeId)
-        .single()
+      // L'acces passe par une Edge Function : la page tournait auparavant
+      // sur la cle anon et la RLS de demandes_fournisseurs bloquait tout —
+      // le lien envoye aux transporteurs n'a jamais pu aboutir. Le token
+      // est verifie cote serveur, en service_role.
+      const { data: fnData, error: fnError } = await supabase.functions.invoke('proposition-tarif', {
+        body: { action: 'get', demande_id: demandeId, token },
+      })
 
-      if (demandeError || !demande) {
+      const demande = fnData?.demande
+      if (fnError || !fnData?.success || !demande) {
         setError(t('fournisseur.requestNotFound'))
-        setLoading(false)
-        return
-      }
-
-      // Vérifier le token
-      if (demande.validation_token !== token) {
-        setError(t('fournisseur.invalidValidationLink'))
         setLoading(false)
         return
       }
@@ -283,44 +237,13 @@ export function PropositionTarifPage() {
 
     try {
       // Mettre à jour la demande avec le prix proposé
-      const { error: updateError } = await (supabase as any)
-        .from('demandes_fournisseurs')
-        .update({
-          prix_propose: prix,
-          status: 'tarif_recu',
-          tarif_received_at: new Date().toISOString(),
-        })
-        .eq('id', demandeId)
-        .eq('validation_token', token)
-
-      if (updateError) throw updateError
-
-      // Ajouter une entrée dans la timeline
-      if (demandeInfo) {
-        const tvaRate = demandeInfo.dossier.tva_rate ?? getTvaRateByCountry(demandeInfo.dossier.country_code)
-        const prixHT = Math.round((prix / (1 + tvaRate / 100)) * 100) / 100
-        await supabase
-          .from('timeline')
-          .insert({
-            dossier_id: demandeInfo.dossier.id,
-            type: 'note',
-            content: `Proposition tarifaire reçue de ${demandeInfo.transporteur.name} : ${formatPrice(prix)} TTC (${formatPrice(prixHT)} HT)`,
-          })
-
-        // Créer une notification CRM
-        await (supabase as any)
-          .from('notifications_crm')
-          .insert({
-            dossier_id: demandeInfo.dossier.id,
-            dossier_reference: demandeInfo.dossier.reference,
-            type: 'tarif_fournisseur',
-            title: `Tarif reçu: ${formatPrice(prix)} TTC`,
-            description: `${demandeInfo.transporteur.name} a proposé ${formatPrice(prix)} TTC (${formatPrice(prixHT)} HT) pour le trajet ${demandeInfo.dossier.departure} → ${demandeInfo.dossier.arrival}`,
-            source_type: 'transporteur',
-            source_name: demandeInfo.transporteur.name,
-            source_id: demandeInfo.transporteur.id,
-            metadata: { prix_ttc: prix, prix_ht: prixHT }
-          })
+      // Ecriture cote serveur : token verifie, timeline et notification
+      // CRM creees par l'Edge Function (la RLS bloque l'anon en direct).
+      const { data: submitData, error: submitError } = await supabase.functions.invoke('proposition-tarif', {
+        body: { action: 'submit', demande_id: demandeId, token, prix },
+      })
+      if (submitError || !submitData?.success) {
+        throw submitError || new Error(submitData?.error || 'submit failed')
       }
 
       setSuccess(true)
@@ -344,40 +267,13 @@ export function PropositionTarifPage() {
     setError(null)
 
     try {
-      // Mettre à jour la demande avec le statut refusé
-      const { error: updateError } = await (supabase as any)
-        .from('demandes_fournisseurs')
-        .update({
-          status: 'non_disponible',
-          refused_at: new Date().toISOString(),
-        })
-        .eq('id', demandeId)
-        .eq('validation_token', token)
-
-      if (updateError) throw updateError
-
-      // Ajouter une entrée dans la timeline
-      await supabase
-        .from('timeline')
-        .insert({
-          dossier_id: demandeInfo.dossier.id,
-          type: 'note',
-          content: `${demandeInfo.transporteur.name} a décliné la demande de tarif (non disponible)`,
-        })
-
-      // Créer une notification CRM
-      await (supabase as any)
-        .from('notifications_crm')
-        .insert({
-          dossier_id: demandeInfo.dossier.id,
-          dossier_reference: demandeInfo.dossier.reference,
-          type: 'refus_fournisseur',
-          title: `Refus de ${demandeInfo.transporteur.name}`,
-          description: `${demandeInfo.transporteur.name} n'est pas disponible pour le trajet ${demandeInfo.dossier.departure} → ${demandeInfo.dossier.arrival} du ${formatDate(demandeInfo.dossier.departure_date)}`,
-          source_type: 'transporteur',
-          source_name: demandeInfo.transporteur.name,
-          source_id: demandeInfo.transporteur.id,
-        })
+      // Meme chemin serveur que la soumission.
+      const { data: refuseData, error: refuseError } = await supabase.functions.invoke('proposition-tarif', {
+        body: { action: 'refuse', demande_id: demandeId, token },
+      })
+      if (refuseError || !refuseData?.success) {
+        throw refuseError || new Error(refuseData?.error || 'refuse failed')
+      }
 
       setRefused(true)
     } catch (err) {
