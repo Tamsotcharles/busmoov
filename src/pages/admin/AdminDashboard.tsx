@@ -4728,9 +4728,13 @@ L'équipe Busmoov`
         montantTVA = montantTTC - montantHT
       }
 
-      // Générer la référence de l'avoir
-      const avoirNumber = (factures?.filter((f: any) => f.type === 'avoir').length || 0) + 1
-      const avoirReference = `AV-${dossier.reference}-${String(avoirNumber).padStart(2, '0')}`
+      // Un avoir est juridiquement une facture : il prend un numéro de la
+      // même séquence continue que les acomptes et les soldes, jamais un
+      // compteur à part. L'ancien calcul (nombre d'avoirs du dossier + 1)
+      // était en plus non atomique et repartait à 01 sur chaque dossier.
+      // Le document reste explicitement identifié comme un avoir : le PDF
+      // titre « AVOIR » via t.creditNote, dans les quatre langues.
+      const avoirReference = await generateFactureReference()
 
       // Créer l'avoir (montants négatifs)
       const { error } = await supabase.from('factures').insert({
