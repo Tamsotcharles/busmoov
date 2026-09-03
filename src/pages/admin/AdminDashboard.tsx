@@ -628,8 +628,11 @@ export function AdminDashboard() {
       )
       if (demandesDossier.length === 0) return
 
-      // Vérifier si un fournisseur a déjà été validé (BPA reçu) pour ce dossier
-      const hasFournisseurValide = demandesDossier.some((df: any) => df.status === 'bpa_received')
+      // Vérifier si un fournisseur a déjà été validé (BPA) pour ce dossier
+      // (même règle que le reste : bpa_received_at OU status='bpa_received').
+      const hasFournisseurValide = demandesDossier.some(
+        (df: any) => df.bpa_received_at || df.status === 'bpa_received'
+      )
       if (hasFournisseurValide) return // Ne pas afficher les opportunités si fournisseur déjà validé
 
       // Trouver le meilleur prix
@@ -637,10 +640,13 @@ export function AdminDashboard() {
         (current.prix_propose || 0) < (best.prix_propose || Infinity) ? current : best
       )
 
-      // Calculer la marge si on a un prix de vente (marge calculée en HT)
-      const prixFournisseurHT = meilleureDemande.prix_propose || 0
+      // prix_propose est en TTC : le ramener en HT avant tout calcul de
+      // marge. L'ancien code le prenait pour du HT et faisait
+      // margeEstimee = vente HT - achat TTC (melange HT/TTC interdit par
+      // CLAUDE.md), ce qui sous-evaluait la marge.
       const tvaRate = dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
-      const prixFournisseurTTC = prixFournisseurHT * (1 + tvaRate / 100)
+      const prixFournisseurTTC = meilleureDemande.prix_propose || 0
+      const prixFournisseurHT = prixFournisseurTTC / (1 + tvaRate / 100)
 
       if (dossier.price_ht && dossier.price_ht > 0 && prixFournisseurHT > 0) {
         const margeEstimee = dossier.price_ht - prixFournisseurHT
