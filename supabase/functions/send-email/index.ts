@@ -124,6 +124,7 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
     orderConfirmationIntro: 'Suite à votre proposition, nous vous confirmons la réservation suivante :',
     serviceType: 'Type de prestation',
     at: 'à',
+    luggage: 'Bagages',
     duration: 'Durée',
     days: 'jour(s)',
     madDetail: 'Détail mise à disposition',
@@ -276,6 +277,7 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
     orderConfirmationIntro: 'Tras su propuesta, le confirmamos la siguiente reserva:',
     serviceType: 'Tipo de servicio',
     at: 'a las',
+    luggage: 'Equipaje',
     duration: 'Duración',
     days: 'día(s)',
     madDetail: 'Detalle puesta a disposición',
@@ -428,6 +430,7 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
     orderConfirmationIntro: 'Nach Ihrem Angebot bestätigen wir Ihnen folgende Buchung:',
     serviceType: 'Art der Leistung',
     at: 'um',
+    luggage: 'Gepäck',
     duration: 'Dauer',
     days: 'Tag(e)',
     madDetail: 'Details zur Verfügung',
@@ -580,6 +583,7 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
     orderConfirmationIntro: 'Following your proposal, we confirm the following booking:',
     serviceType: 'Service type',
     at: 'at',
+    luggage: 'Luggage',
     duration: 'Duration',
     days: 'day(s)',
     madDetail: 'Disposal details',
@@ -837,24 +841,34 @@ function replaceVariables(text: string, variables: Record<string, string>, langu
     result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), safeValue)
   }
 
-  // 3. IMPORTANT: Traiter d'abord les blocs avec {{else}}, puis ceux sans
-  // Gérer {{#if variable}}...{{else}}...{{/if}}
-  result = result.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{else\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, varName, ifContent, elseContent) => {
+  // 3. Conditionnels Handlebars, EN BOUCLE.
+  // Un seul passage ne suffit pas : sur des {{#if}} imbriques, le motif
+  // non glouton ferme le bloc externe sur le {{/if}} du bloc interne, et
+  // les restes ({{#if heure_retour}}... et son {{/if}} orphelin) partaient
+  // BRUTS dans l'email — constate en production sur les demandes de tarif
+  // aux transporteurs. On repete jusqu'a stabilite, comme le fait deja le
+  // moteur cote client (substituteTemplateVariables dans utils.ts).
+  const isTruthy = (varName: string) => {
     const value = variables[varName]
-    if (value && value !== '' && value !== 'false' && value !== 'null' && value !== 'undefined') {
-      return ifContent
-    }
-    return elseContent
-  })
+    return Boolean(value) && value !== '' && value !== 'false' && value !== 'null' && value !== 'undefined'
+  }
 
-  // 4. Gérer les conditions Handlebars simples {{#if variable}}...{{/if}} (sans else)
-  result = result.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (match, varName, content) => {
-    const value = variables[varName]
-    if (value && value !== '' && value !== 'false' && value !== 'null' && value !== 'undefined') {
-      return content
-    }
-    return ''
-  })
+  let previousResult = ''
+  let iterations = 0
+  while (previousResult !== result && iterations < 10) {
+    previousResult = result
+    iterations++
+
+    // D'abord les blocs avec {{else}}, puis ceux sans
+    result = result.replace(
+      /\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{else\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      (_match, varName, ifContent, elseContent) => (isTruthy(varName) ? ifContent : elseContent),
+    )
+    result = result.replace(
+      /\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g,
+      (_match, varName, content) => (isTruthy(varName) ? content : ''),
+    )
+  }
 
   return result
 }

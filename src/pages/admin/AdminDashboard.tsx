@@ -8840,12 +8840,23 @@ L'équipe Busmoov`)
                             departure: dossier.departure,
                             arrival: dossier.arrival,
                             departure_date: formatDate(dossier.departure_date),
-                            departure_time: dossier.departure_time || '--:--',
-                            return_date: dossier.return_date ? formatDate(dossier.return_date) : 'Non défini',
-                            return_time: dossier.return_time || '--:--',
+                            // Le template attend heure_depart / heure_retour et les
+                            // encadre de {{#if}} : envoyer '' (pas '--:--') quand
+                            // l'horaire manque, pour que la mention disparaisse.
+                            heure_depart: dossier.departure_time || '',
+                            heure_retour: dossier.return_time || '',
+                            departure_time: dossier.departure_time || '',
+                            return_time: dossier.return_time || '',
+                            return_date: dossier.return_date ? formatDate(dossier.return_date) : '',
                             passengers: dossier.passengers?.toString() || '0',
                             vehicle_type: devisAccepte?.vehicle_type || 'standard',
                             nb_cars: devisAccepte?.nombre_cars?.toString() || '1',
+                            luggage_type: dossier.luggage_type || '',
+                            // Le template affiche {{lien_proposition}} : c'est ce
+                            // lien, porteur du token, qui permet au transporteur de
+                            // saisir son tarif. L'ancien nom lien_proposition_tarif
+                            // n'etait lu par aucun template : le lien disparaissait.
+                            lien_proposition: lienPropositionTarif,
                             lien_proposition_tarif: lienPropositionTarif,
                             dossier_id: dossier.id,
                           },
