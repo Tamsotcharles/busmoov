@@ -34,3 +34,6 @@ supabase/.temp
 
 .vercel
 .env*.local
+
+# Claude Code — permissions locales par poste (peut capter des secrets)
+.claude/settings.local.json
