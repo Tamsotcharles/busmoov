@@ -127,7 +127,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference } from '@/lib/utils'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFacturePDFBase64, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
 import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
@@ -4485,15 +4485,6 @@ L'équipe Busmoov`
 
   // === HANDLERS PAIEMENTS & FACTURES ===
 
-  const generateFactureReference = (type: 'acompte' | 'solde' | 'avoir') => {
-    const now = new Date()
-    const year = now.getFullYear().toString().slice(-2)
-    const month = (now.getMonth() + 1).toString().padStart(2, '0')
-    const prefix = type === 'acompte' ? 'FA' : type === 'solde' ? 'FS' : 'AV'
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-    return `${prefix}-${year}${month}-${random}`
-  }
-
   const handleAddPaiement = async () => {
     if (!contrat || paiementForm.amount === 0) return
 
@@ -4657,7 +4648,7 @@ L'équipe Busmoov`
       const finalAmountTTC = factureForm.type === 'avoir' ? -Math.abs(amountTTC) : amountTTC
       const amountHT = Math.round((finalAmountTTC / (1 + tvaRate / 100)) * 100) / 100
       const amountTVA = Math.round((finalAmountTTC - amountHT) * 100) / 100
-      const reference = generateFactureReference(factureForm.type)
+      const reference = await generateFactureReference()
 
       const clientName = factureForm.client_name || dossier.client_name || ''
       const clientAddress = factureForm.client_address || dossier.billing_address || ''
@@ -15670,15 +15661,6 @@ function FacturesPage() {
   }
 
   // Générer la référence de facture
-  const generateFactureReference = (type: 'acompte' | 'solde' | 'avoir') => {
-    const now = new Date()
-    const year = now.getFullYear().toString().slice(-2)
-    const month = (now.getMonth() + 1).toString().padStart(2, '0')
-    const prefix = type === 'acompte' ? 'FA' : type === 'solde' ? 'FS' : 'AV'
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-    return `${prefix}-${year}${month}-${random}`
-  }
-
   // Créer et télécharger la facture
   const handleCreateFacture = async () => {
     if (!selectedDossier) return
@@ -15712,7 +15694,7 @@ function FacturesPage() {
       const amountHT = Math.round((finalAmountTTC / (1 + tvaRate / 100)) * 100) / 100
       const amountTVA = Math.round((finalAmountTTC - amountHT) * 100) / 100
 
-      const reference = generateFactureReference(factureForm.type)
+      const reference = await generateFactureReference()
 
       // Utiliser les infos client du formulaire ou celles du dossier
       const clientName = factureForm.client_name || selectedDossier.client_name || ''

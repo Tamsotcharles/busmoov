@@ -76,6 +76,35 @@ export function formatPrice(amount: number | null | undefined): string {
   }).format(amount)
 }
 
+/**
+ * Attribue le prochain numéro de facture au format NUMERO-MOIS-ANNEE
+ * (ex. `1000-09-2026`).
+ *
+ * Le numéro est délivré par la base via une séquence Postgres, jamais
+ * calculé ici. Deux raisons :
+ *
+ * 1. Atomicité — deux admins qui facturent en même temps doivent obtenir
+ *    deux numéros distincts. Un compteur côté client ne peut pas le
+ *    garantir, et l'ancienne version tirait 3 chiffres au hasard : au-delà
+ *    d'une trentaine de factures dans le mois, la collision devenait
+ *    probable.
+ * 2. Conformité — l'article 242 nonies A de l'annexe II au CGI impose une
+ *    séquence chronologique continue, sans rupture.
+ *
+ * En cas d'échec on lève : mieux vaut refuser d'émettre la facture que de
+ * lui donner un numéro douteux.
+ */
+export async function generateFactureReference(): Promise<string> {
+  const { data, error } = await supabase.rpc('next_facture_reference')
+
+  if (error || !data) {
+    throw new Error(
+      `Impossible d'attribuer un numéro de facture : ${error?.message ?? 'réponse vide'}`
+    )
+  }
+  return data
+}
+
 // NOTE : formatPricePDF a été supprimée ici. Elle n'était plus appelée et son
 // remplacement d'espaces était cassé : il ne ciblait que U+00A0 alors qu'Intl
 // produit U+202F (espace fine insécable) comme séparateur de milliers en fr-FR.

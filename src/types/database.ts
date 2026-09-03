@@ -1955,6 +1955,14 @@ export interface Database {
         Returns: string
       }
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
+      // Ajoutee a la main : la migration
+      // 20260903_facture_numerotation_sequentielle.sql n'est pas encore
+      // appliquee, donc `supabase gen types` ne la voit pas. A conserver
+      // telle quelle lors de la prochaine regeneration.
+      next_facture_reference: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
