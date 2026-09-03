@@ -1,9 +1,24 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Domaines autorisés pour CORS
+const ALLOWED_ORIGINS = [
+  'https://busmoov.com',
+  'https://www.busmoov.com',
+  'https://busmoov.fr',
+  'https://www.busmoov.fr',
+  'https://busmoov.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+]
+
+function getCorsHeaders(origin: string | null) {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  }
 }
 
 // Helper pour obtenir le préfixe de langue à partir du code pays
@@ -25,6 +40,9 @@ function generateLocalizedUrl(baseUrl: string, path: string, countryCode: string
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('origin')
+  const corsHeaders = getCorsHeaders(origin)
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -40,6 +58,7 @@ serve(async (req) => {
     const {
       dossier_id,
       devis_id,
+      client_email,
       signataire_name,
       billing_info,
       e_invoice_info,
@@ -50,7 +69,7 @@ serve(async (req) => {
     } = body
 
     // Validation
-    if (!dossier_id || !devis_id || !signataire_name) {
+    if (!dossier_id || !devis_id || !signataire_name || !client_email) {
       return new Response(
         JSON.stringify({ error: 'Paramètres manquants' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -71,14 +90,51 @@ serve(async (req) => {
       )
     }
 
+    // GARDE 1 — Preuve de possession du dossier.
+    // Cette fonction tourne en service_role et contourne donc la RLS : sans
+    // cette verification, connaitre l'UUID du dossier (il circule dans les
+    // URLs et les emails) suffirait a signer a la place du client.
+    // Meme niveau de preuve que le reste de l'espace client (reference + email).
+    if (
+      (dossier.client_email ?? '').trim().toLowerCase() !==
+      String(client_email).trim().toLowerCase()
+    ) {
+      console.warn(`Signature refusee : email non concordant pour le dossier ${dossier_id}`)
+      return new Response(
+        JSON.stringify({ error: 'Accès non autorisé à ce dossier' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // GARDE 2 — Idempotence.
+    // Sans cela, rejouer la requete cree PRO-xxx-2, -3... et reecrit a chaque
+    // fois le prix et le statut du dossier.
+    if (dossier.contract_signed_at) {
+      console.warn(`Signature refusee : dossier ${dossier_id} deja signe le ${dossier.contract_signed_at}`)
+      return new Response(
+        JSON.stringify({
+          error: 'Ce dossier a déjà été signé',
+          already_signed: true,
+          signed_at: dossier.contract_signed_at,
+        }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Récupérer le devis
+    // GARDE 3 — le devis doit appartenir au dossier signe. Sans le filtre
+    // dossier_id, on pouvait signer un dossier en passant l'id d'un devis
+    // moins cher appartenant a un autre dossier : le prix de CE devis etait
+    // alors ecrit dans le dossier et le contrat.
     const { data: devis, error: devisError } = await supabaseAdmin
       .from('devis')
       .select('*')
       .eq('id', devis_id)
+      .eq('dossier_id', dossier_id)
       .single()
 
     if (devisError || !devis) {
+      console.warn(`Signature refusee : devis ${devis_id} introuvable ou non rattache au dossier ${dossier_id}`)
       return new Response(
         JSON.stringify({ error: 'Devis non trouvé' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

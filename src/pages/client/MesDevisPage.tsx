@@ -675,6 +675,9 @@ export function MesDevisPage() {
         body: {
           dossier_id: data.dossier.id,
           devis_id: selectedDevis.devis.id,
+          // Preuve de possession du dossier : l'Edge Function tourne en
+          // service_role, elle refuse la signature si l'email ne correspond pas.
+          client_email: email.trim().toLowerCase(),
           signataire_name: signataireName,
           billing_info: {
             address: billingInfo.address,
@@ -698,7 +701,28 @@ export function MesDevisPage() {
 
       if (fnError) {
         console.error('Erreur Edge Function:', fnError)
-        throw new Error(fnError.message || 'Erreur lors de la signature')
+        // invoke() n'expose pas le corps des reponses non-2xx : on le relit
+        // pour distinguer un vrai echec d'un refus attendu (deja signe, 403).
+        let serverError: { error?: string; already_signed?: boolean } | null = null
+        const ctx = (fnError as { context?: Response }).context
+        if (ctx && typeof ctx.json === 'function') {
+          try {
+            serverError = await ctx.clone().json()
+          } catch {
+            // corps non-JSON : on retombe sur le message generique
+          }
+        }
+
+        // Double-clic ou retour arriere : le contrat existe deja, ce n'est
+        // pas une erreur pour le client. On recharge pour afficher son etat.
+        if (serverError?.already_signed) {
+          alert(t('mesDevis.errors.alreadySigned'))
+          setContractModalOpen(false)
+          await loadData()
+          return
+        }
+
+        throw new Error(serverError?.error || fnError.message || 'Erreur lors de la signature')
       }
 
       if (!result?.success) {
