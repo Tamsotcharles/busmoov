@@ -87,6 +87,7 @@ import {
   type ServiceType as PricingServiceType,
   type AmplitudeType as PricingAmplitudeType,
   TARIFS_HORS_GRILLE,
+  determineVehicleType,
 } from '@/lib/pricing-rules'
 import type { Transporteur, FeuilleRouteType, Devis } from '@/types/database'
 
@@ -7183,7 +7184,7 @@ L'équipe Busmoov`,
                                     const devisAvecInfos = dossier.devis?.find((d: any) => d.status === 'accepted')
                                       || dossier.devis?.find((d: any) => d.transporteur_id === demande.transporteur_id)
                                       || dossier.devis?.[0]
-                                    const nbCars = devisAvecInfos?.nombre_cars || calculateNumberOfCars(dossier.passengers || 1, dossier.vehicle_type || 'standard')
+                                    const nbCars = devisAvecInfos?.nombre_cars || calculateNumberOfCars(dossier.passengers || 1, determineVehicleType(dossier.passengers || 1, dossier.vehicle_type))
                                     const nbChauffeurs = devisAvecInfos?.nombre_chauffeurs || nbCars
 
                                     // Générer les données d'email avec le template depuis la base de données
@@ -8665,7 +8666,7 @@ L'équipe Busmoov`,
                     'Aller-Retour avec mise à disposition': 'Aller-Retour avec mise à disposition',
                   }
                   const tripModeLabel = tripModeLabels[d.trip_mode || ''] || d.trip_mode || ''
-                  const nbCars = calculateNumberOfCars(d.passengers || 1, d.vehicle_type || 'standard')
+                  const nbCars = calculateNumberOfCars(d.passengers || 1, determineVehicleType(d.passengers || 1, d.vehicle_type))
                   const madDetailsText = extractMadDetails(d.special_requests)
                   setMessageTemplateDF(`Bonjour,
 
@@ -10161,64 +10162,8 @@ function NewDevisModal({
       // Déterminer automatiquement le type de véhicule selon le nombre de passagers
       // Si le dossier a déjà un type défini ET qu'il est cohérent avec le nb de pax, on le garde
       // Sinon on auto-sélectionne le bon type
-      const determineVehicleType = (pax: number, existingType?: string | null): string => {
-        // Normaliser le type existant (convertir les labels en codes)
-        const typeMapping: Record<string, string> = {
-          'Minibus': 'minibus',
-          'Grand Car': 'standard',
-          'Autocar': 'standard',
-          'Autocar Standard': 'standard',
-          'autocar': 'standard',
-          'autocar-standard': 'standard',
-          'autocar_standard': 'standard',
-        }
-        const normalizedType = existingType ? (typeMapping[existingType] || existingType) : null
-
-        // Vérifier si le type existant est cohérent avec le nb de pax
-        const typeCapacities: Record<string, { min: number; max: number }> = {
-          'minibus': { min: 1, max: 20 },
-          'standard': { min: 21, max: 59 },
-          '60-63': { min: 60, max: 63 },
-          '70': { min: 64, max: 70 },
-          '83-90': { min: 71, max: 90 },
-        }
-
-        if (normalizedType && typeCapacities[normalizedType]) {
-          const cap = typeCapacities[normalizedType]
-          if (pax >= cap.min && pax <= cap.max) {
-            return normalizedType // Le type existant est cohérent
-          }
-        }
-
-        // Auto-sélectionner le bon type
-        // Pour > 90 pax, optimiser la combinaison de véhicules
-        if (pax > 90) {
-          // Chercher la combinaison la moins chère
-          const vehicleTypes = [
-            { type: 'standard', capacity: 53, coef: 1.00 },
-            { type: '60-63', capacity: 63, coef: 1.15 },
-            { type: '70', capacity: 70, coef: 1.35 },
-            { type: '83-90', capacity: 90, coef: 1.70 },
-          ]
-          let bestType = 'standard'
-          let bestCout = Math.ceil(pax / 53) * 1.00
-          for (const v of vehicleTypes) {
-            const nbCars = Math.ceil(pax / v.capacity)
-            const cout = nbCars * v.coef
-            if (cout < bestCout) {
-              bestCout = cout
-              bestType = v.type
-            }
-          }
-          return bestType
-        }
-        if (pax <= 20) return 'minibus'
-        if (pax <= 59) return 'standard'
-        if (pax <= 63) return '60-63'
-        if (pax <= 70) return '70'
-        return '83-90' // Double étage pour 71-90 pax
-      }
-
+      // determineVehicleType vient de pricing-rules : tranches et
+      // coefficients uniques, alignes sur capacites_vehicules.
       const autoVehicleType = determineVehicleType(dossier.passengers || 1, dossier.vehicle_type)
 
       setFormData(prev => ({
@@ -14136,7 +14081,7 @@ function ExploitationPage({
         'Aller-Retour avec mise à disposition': 'Aller-Retour avec mise à disposition',
       }
       const tripModeLabel = tripModeLabels[d.trip_mode || ''] || d.trip_mode || ''
-      const nbCars = calculateNumberOfCars(d.passengers || 1, d.vehicle_type || 'standard')
+      const nbCars = calculateNumberOfCars(d.passengers || 1, determineVehicleType(d.passengers || 1, d.vehicle_type))
       const madDetailsText = extractMadDetails(d.special_requests)
 
       return `Bonjour,
@@ -14335,7 +14280,7 @@ L'équipe Busmoov`
     const devisAvecInfos = dossier.devis?.find((d: any) => d.status === 'accepted')
       || dossier.devis?.find((d: any) => d.transporteur_id === demande.transporteur_id)
       || dossier.devis?.[0]
-    const nbCars = devisAvecInfos?.nombre_cars || calculateNumberOfCars(dossier.passengers || 1, dossier.vehicle_type || 'standard')
+    const nbCars = devisAvecInfos?.nombre_cars || calculateNumberOfCars(dossier.passengers || 1, determineVehicleType(dossier.passengers || 1, dossier.vehicle_type))
     const nbChauffeurs = devisAvecInfos?.nombre_chauffeurs || nbCars
 
     // Générer les données d'email avec le template depuis la base de données

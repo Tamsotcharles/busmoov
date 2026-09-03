@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   extraireDepartement,
+  determineVehicleType,
   estDepartementProblematique,
   aDoubleEtageDispo,
   determinerAmplitudeGrille,
@@ -163,6 +164,46 @@ describe('optimizeVehicleCombination', () => {
     const result = optimizeVehicleCombination(150, false)
     expect(result.capaciteParCar).toBe(59) // capacite standard (capacites_vehicules)
     expect(result.placesTotal).toBeGreaterThanOrEqual(150)
+  })
+})
+
+describe('determineVehicleType', () => {
+  it('choisit la tranche de la table capacites_vehicules', () => {
+    expect(determineVehicleType(15)).toBe('minibus')
+    expect(determineVehicleType(54)).toBe('standard')
+    expect(determineVehicleType(59)).toBe('standard')
+    expect(determineVehicleType(60)).toBe('60-63')
+    expect(determineVehicleType(63)).toBe('60-63')
+    expect(determineVehicleType(64)).toBe('70')
+    expect(determineVehicleType(70)).toBe('70')
+    expect(determineVehicleType(71)).toBe('83-90')
+    expect(determineVehicleType(90)).toBe('83-90')
+  })
+
+  it('60 passagers = UN car de 60-63, jamais 2 standards', () => {
+    // Bug constate : 4 chemins de l'admin forçaient 'standard' quand le
+    // dossier n'avait pas de type, donc 60 pax -> 2 cars -> devis double.
+    const type = determineVehicleType(60, null)
+    expect(type).toBe('60-63')
+    expect(calculateOptimalCars(60, type)).toBe(1)
+  })
+
+  it('respecte un type explicite quand il est coherent avec les passagers', () => {
+    expect(determineVehicleType(61, '60-63')).toBe('60-63')
+    expect(determineVehicleType(45, 'standard')).toBe('standard')
+    expect(determineVehicleType(68, '70')).toBe('70')
+  })
+
+  it('corrige un type incoherent avec le nombre de passagers', () => {
+    // 'standard' pour 60 pax est incoherent (tranche 21-59) : remplace.
+    expect(determineVehicleType(60, 'standard')).toBe('60-63')
+    expect(determineVehicleType(95, 'minibus')).not.toBe('minibus')
+  })
+
+  it('normalise les libelles historiques', () => {
+    expect(determineVehicleType(40, 'Autocar')).toBe('standard')
+    expect(determineVehicleType(40, 'Grand Car')).toBe('standard')
+    expect(determineVehicleType(15, 'Minibus')).toBe('minibus')
   })
 })
 

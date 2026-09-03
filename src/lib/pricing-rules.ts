@@ -267,6 +267,55 @@ export function optimizeVehicleCombination(
  * Calcule le nombre de cars optimal pour un groupe de passagers
  * Utilise les combinaisons mixtes pour > 90 passagers
  */
+/**
+ * Détermine le type de véhicule adapté au nombre de passagers.
+ *
+ * Tranches de la table capacites_vehicules (alignées sur CLAUDE.md) :
+ * minibus 8-20, standard 21-59, 60-63, 70 (64-70), 83-90 (71-90).
+ * Au-delà de 90, la combinaison la moins chère est calculée par
+ * optimizeVehicleCombination.
+ *
+ * Si un type existant est fourni ET cohérent avec le nombre de passagers,
+ * il est respecté (choix explicite de l'admin). S'il est incohérent — cas
+ * typique : « standard » par défaut pour 60 passagers, qui déclenchait un
+ * 2e car et doublait le devis — il est remplacé par la bonne tranche.
+ */
+export function determineVehicleType(pax: number, existingType?: string | null): string {
+  // Normaliser les libellés historiques vers les codes de la table
+  const typeMapping: Record<string, string> = {
+    'Minibus': 'minibus',
+    'Grand Car': 'standard',
+    'Autocar': 'standard',
+    'Autocar Standard': 'standard',
+    'autocar': 'standard',
+    'autocar-standard': 'standard',
+    'autocar_standard': 'standard',
+  }
+  const normalizedType = existingType ? (typeMapping[existingType] || existingType) : null
+
+  const typeCapacities: Record<string, { min: number; max: number }> = {
+    minibus: { min: 1, max: 20 },
+    standard: { min: 21, max: 59 },
+    '60-63': { min: 60, max: 63 },
+    '70': { min: 64, max: 70 },
+    '83-90': { min: 71, max: 90 },
+  }
+
+  if (normalizedType && typeCapacities[normalizedType]) {
+    const cap = typeCapacities[normalizedType]
+    if (pax >= cap.min && pax <= cap.max) {
+      return normalizedType
+    }
+  }
+
+  if (pax > 90) return optimizeVehicleCombination(pax).vehicleType
+  if (pax <= 20) return 'minibus'
+  if (pax <= 59) return 'standard'
+  if (pax <= 63) return '60-63'
+  if (pax <= 70) return '70'
+  return '83-90'
+}
+
 export function calculateOptimalCars(
   passengers: number,
   vehicleType?: string,
