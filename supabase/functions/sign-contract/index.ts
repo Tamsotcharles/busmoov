@@ -366,6 +366,21 @@ serve(async (req) => {
         ? generateLocalizedUrl(baseUrl, '/paiement', countryCode, { ref: dossier.reference, email: dossier.client_email })
         : null
 
+      // Coordonnees bancaires de l'entite du pays, pour le RIB en cas de
+      // virement. Lues en base, jamais ecrites en dur.
+      const { data: countryData } = await supabaseAdmin
+        .from('countries')
+        .select('bank_name, bank_iban, bank_bic, bank_beneficiary')
+        .eq('code', (countryCode || 'FR').toUpperCase())
+        .maybeSingle()
+
+      // Montant a regler maintenant : calculatedAcompte vaut deja le total
+      // quand le depart est proche (paiement 100%). Le libelle doit alors
+      // dire « paiement total », pas « acompte ».
+      const eur = (n: number) =>
+        new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n)
+      const isPaiementTotal = acomptePercent >= 100
+
       const emailPayload = {
         type: 'confirmation_reservation',
         to: dossier.client_email,
@@ -376,13 +391,27 @@ serve(async (req) => {
           arrival: dossier.arrival,
           departure_date: formatDate(dossier.departure_date),
           passengers: String(dossier.passengers),
-          total_ttc: `${finalPriceTTC}€`,
-          montant_acompte: `${calculatedAcompte}€`,
-          montant_solde: calculatedSolde > 0 ? `${calculatedSolde}€` : '',
+          total_ttc: eur(finalPriceTTC),
+          // Montant a payer sous 48h et son intitule
+          montant_a_payer: eur(calculatedAcompte),
+          montant_acompte: eur(calculatedAcompte),
+          montant_solde: calculatedSolde > 0 ? eur(calculatedSolde) : '',
+          acompte_percent: String(acomptePercent),
+          is_paiement_total: isPaiementTotal ? 'true' : '',
+          is_acompte: isPaiementTotal ? '' : 'true',
+          // Intitule pret a afficher : « paiement total » ou « acompte de X% »
+          libelle_paiement: isPaiementTotal
+            ? 'le paiement total'
+            : `un acompte de ${acomptePercent}%`,
           lien_espace_client: lienEspaceClient,
           lien_paiement: lienPaiement || '',
           payment_method: payment_method === 'cb' ? 'Carte bancaire' : 'Virement bancaire',
           is_virement: payment_method === 'virement' ? 'true' : '',
+          // RIB (affiche seulement si virement dans le template)
+          bank_name: countryData?.bank_name || '',
+          iban: countryData?.bank_iban || '',
+          bic: countryData?.bank_bic || '',
+          bank_beneficiary: countryData?.bank_beneficiary || '',
           dossier_id: dossier_id,
           language: getLanguageFromCountry(countryCode),
         },
