@@ -859,6 +859,58 @@ function replaceVariables(text: string, variables: Record<string, string>, langu
   return result
 }
 
+/**
+ * Coordonnées de l'entité Busmoov du pays concerné, lues dans les
+ * paramètres plutôt qu'écrites en dur : un changement de numéro ou
+ * d'adresse depuis Parametres > Pays doit se refleter dans les emails.
+ *
+ * Les transporteurs comme les clients sont locaux a chaque pays, d'ou la
+ * resolution par langue de l'email.
+ */
+const COUNTRY_BY_LANGUAGE: Record<string, string> = {
+  fr: 'FR',
+  es: 'ES',
+  de: 'DE',
+  en: 'GB',
+}
+
+// Dernier recours si la table countries est injoignable. Doit rester
+// aligne sur la ligne FR de countries.
+const FALLBACK_CONTACT = {
+  company_name: 'BUSMOOV SAS',
+  phone_display: '01 76 31 12 83',
+  phone: '+33176311283',
+  email: 'infos@busmoov.com',
+  company_address: '41 Rue Barrault, 75013 Paris',
+}
+
+async function loadCompanyContact(
+  supabaseClient: ReturnType<typeof createClient>,
+  language: string,
+): Promise<Record<string, string>> {
+  const code = COUNTRY_BY_LANGUAGE[language] ?? 'FR'
+
+  const { data, error } = await supabaseClient
+    .from('countries')
+    .select('company_name, phone, phone_display, email, address, city')
+    .eq('code', code)
+    .maybeSingle()
+
+  if (error || !data) {
+    console.warn(`Coordonnees pays ${code} introuvables, repli sur les valeurs FR`)
+    return { ...FALLBACK_CONTACT }
+  }
+
+  const adresse = [data.address, data.city].filter(Boolean).join(', ')
+  return {
+    company_name: data.company_name || FALLBACK_CONTACT.company_name,
+    phone_display: data.phone_display || data.phone || FALLBACK_CONTACT.phone_display,
+    phone: data.phone || FALLBACK_CONTACT.phone,
+    email: data.email || FALLBACK_CONTACT.email,
+    company_address: adresse || FALLBACK_CONTACT.company_address,
+  }
+}
+
 // Types d'emails autorisés sans authentification JWT (formulaires publics)
 const PUBLIC_EMAIL_TYPES = [
   'confirmation_demande',  // Confirmation après soumission formulaire devis
@@ -1005,12 +1057,17 @@ serve(async (req: Request) => {
     // Langue pour les traductions
     const language = data?.language || 'fr'
 
-    // Variables par défaut (coordonnées Busmoov) - ajoutées à tous les emails
+    // Coordonnées de l'entité, lues dans les paramètres (table countries).
+    // Elles etaient auparavant ecrites en dur ici, et fausses sur quatre
+    // points : telephone (01 76 42 05 06 au lieu de 01 76 31 12 83), email
+    // de contact, raison sociale, et une adresse inventee (123 Rue de la
+    // Republique). Chaque signature d'email portait donc de mauvaises
+    // coordonnees, sans aucun lien avec l'ecran Parametres > Pays.
+    const contact = await loadCompanyContact(supabaseClient, language)
+
+    // Variables par défaut - ajoutées à tous les emails
     const defaultVariables: Record<string, string> = {
-      phone_display: '01 76 42 05 06',
-      email: 'contact@busmoov.com',
-      company_name: 'Busmoov',
-      company_address: '123 Rue de la République, 75001 Paris',
+      ...contact,
       current_year: new Date().getFullYear().toString(),
     }
 

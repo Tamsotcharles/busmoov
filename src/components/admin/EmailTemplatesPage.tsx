@@ -534,9 +534,14 @@ export function EmailTemplatesPage() {
     lien_infos_voyage: '#',
     lien_formulaire: '#',
     lien_validation: '#',
-    // Contact
-    phone_display: '+33 1 86 65 01 45',
+    // Contact — doit refléter Paramètres > Pays (entité FR). L'aperçu
+    // affichait auparavant un numéro (+33 1 86 65 01 45) qui ne
+    // correspondait ni aux paramètres ni à ce qui partait réellement.
+    company_name: 'BUSMOOV SAS',
+    phone_display: '01 76 31 12 83',
+    phone: '+33176311283',
     email: 'infos@busmoov.com',
+    company_address: '41 Rue Barrault, 75013 Paris',
   }
 
   /** Replace {{t:key}} and {{variable}} placeholders for preview */
