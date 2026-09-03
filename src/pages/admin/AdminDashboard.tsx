@@ -5610,6 +5610,16 @@ L'équipe Busmoov`
                         {formatPrice(resteAPayer)}
                       </p>
                     </div>
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <label className="label text-xs text-gray-500">Mode de paiement</label>
+                      <p className="text-xl font-semibold text-gray-700">
+                        {dossier.payment_method === 'virement'
+                          ? 'Virement bancaire'
+                          : dossier.payment_method === 'cb'
+                            ? 'Carte bancaire'
+                            : '—'}
+                      </p>
+                    </div>
                   </div>
 
                   {/* Signature du contrat */}
@@ -9875,11 +9885,16 @@ function SendEmailForm({
     // Acompte vs paiement total (meme logique que la fiche contrat / sign-contract)
     const pct = prixTTC > 0 ? Math.round((acompte / prixTTC) * 100) : 0
     const estPaiementTotal = pct >= 100
+    // Mode de paiement du dossier : conditionne l'affichage du RIB (virement)
+    // ou du bouton CB dans les templates.
+    const isVirement = d.payment_method === 'virement'
     return {
       montant_a_payer: formatPrice(acompte),
       libelle_paiement: estPaiementTotal ? 'le paiement total' : `un acompte de ${pct}%`,
       is_paiement_total: estPaiementTotal ? 'true' : '',
       is_acompte: estPaiementTotal ? '' : 'true',
+      is_virement: isVirement ? 'true' : '',
+      payment_method: isVirement ? 'Virement bancaire' : 'Carte bancaire',
       client_name: dossier.client_name || '',
       reference: dossier.reference || '',
       departure: dossier.departure || '',
