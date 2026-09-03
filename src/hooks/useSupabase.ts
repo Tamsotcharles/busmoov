@@ -130,6 +130,18 @@ export function useCreateDemande() {
           trip_mode: demandeData.trip_type === 'one-way' ? 'one-way' : demandeData.trip_type === 'circuit' ? 'circuit' : 'round-trip',
           voyage_type: demandeData.voyage_type,
           special_requests: demandeData.special_requests,
+          // Ces champs existaient dans les deux tables mais n'etaient jamais
+          // copies : le client les renseignait, l'admin voyait « - » et les
+          // emails transporteurs partaient sans (ex. « Bagages : » absent).
+          luggage_type: (demandeData as any).luggage_type || null,
+          vehicle_type: (demandeData as any).vehicle_type || null,
+          wifi: (demandeData as any).wifi ?? null,
+          wc: (demandeData as any).wc ?? null,
+          accessibility: (demandeData as any).accessibility ?? null,
+          departure_address: (demandeData as any).departure_address || null,
+          arrival_address: (demandeData as any).arrival_address || null,
+          return_departure_address: (demandeData as any).return_departure_address || null,
+          return_arrival_address: (demandeData as any).return_arrival_address || null,
           status: 'new',
           country_code: countryCode,
           tva_rate: getTvaRateByCountry(countryCode),
