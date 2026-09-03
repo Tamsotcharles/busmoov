@@ -681,15 +681,56 @@ export function AdminDashboard() {
       return matchesDateFrom && matchesDateTo
     })
 
+    // Prix d'achat HT a partir d'un prix_propose fournisseur (TTC).
+    const achatHT = (prixProposeTTC: number, tvaRate: number | null | undefined) =>
+      prixProposeTTC / (1 + (tvaRate ?? 10) / 100)
+
+    // Un BPA est valide si une demande fournisseur du dossier porte
+    // bpa_received_at OU status='bpa_received' (meme regle que
+    // ServiceClientelePage).
+    let margeGeneree = 0 // marge reelle : dossiers a BPA valide
+    let margePotentielle = 0 // marge estimee : signes client sans BPA, meilleure offre
+    const dossiersBpaIds = new Set<string>()
+
+    for (const d of dossiersWithRevenue) {
+      const venteHT = d.price_ht || 0
+      const demandes = allDemandesFournisseurs.filter((df: any) => df.dossier_id === d.id)
+
+      const bpaValide = demandes.find(
+        (df: any) => (df.bpa_received_at || df.status === 'bpa_received') && df.prix_propose,
+      )
+
+      if (bpaValide) {
+        // Marge generee : achat = prix_propose du fournisseur dont le BPA
+        // est valide.
+        margeGeneree += venteHT - achatHT(Number(bpaValide.prix_propose) || 0, d.tva_rate)
+        dossiersBpaIds.add(d.id)
+      } else {
+        // Marge potentielle : meilleure offre = prix_propose le plus bas
+        // (marge la plus elevee) parmi les offres recues sur ce dossier.
+        const offres = demandes
+          .filter((df: any) => df.prix_propose)
+          .map((df: any) => achatHT(df.prix_propose, d.tva_rate))
+        if (offres.length > 0) {
+          margePotentielle += venteHT - Math.min(...offres)
+        }
+      }
+    }
+
     return {
       count: dossiersWithRevenue.length,
       totalRevenue: dossiersWithRevenue.reduce((sum, d) => sum + (d.price_ttc || 0), 0),
-      // Marge = Prix Vente HT - Prix Achat HT (price_achat est en HT)
-      totalMargin: dossiersWithRevenue.reduce((sum, d) => sum + ((d.price_ht || 0) - (d.price_achat || 0)), 0),
+      // Marge generee = BPA valide (marge reelle sécurisée).
+      margeGeneree,
+      // Marge potentielle = signes client sans BPA encore, meilleure offre.
+      margePotentielle,
+      countBpa: dossiersBpaIds.size,
+      // Retro-compat : ancien champ, desormais la marge generee.
+      totalMargin: margeGeneree,
       // IDs des dossiers pour le filtre cliquable
       dossierIds: new Set(dossiersWithRevenue.map(d => d.id)),
     }
-  }, [dossiers, statsDateFrom, statsDateTo])
+  }, [dossiers, allDemandesFournisseurs, statsDateFrom, statsDateTo])
 
   // Filtrer les dossiers avec les filtres croisés
   const filteredDossiers = useMemo(() => {
@@ -1086,7 +1127,7 @@ export function AdminDashboard() {
                     )}
                   </div>
                 </div>
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div
                     className={cn(
                       "p-4 bg-blue-50 rounded-xl cursor-pointer transition-all hover:shadow-md",
@@ -1120,12 +1161,20 @@ export function AdminDashboard() {
                     title={showOnlyStatsDossiers ? "Cliquez pour voir tous les dossiers" : "Cliquez pour filtrer sur ces dossiers"}
                   >
                     <p className="text-xs text-emerald-600 uppercase tracking-wide mb-1">Marge générée</p>
-                    <p className="font-display text-2xl font-bold text-emerald-600">{formatPrice(statsFiltered.totalMargin)}</p>
+                    <p className="font-display text-2xl font-bold text-emerald-600">{formatPrice(statsFiltered.margeGeneree)}</p>
                     <p className="text-xs text-emerald-500 mt-1">
-                      {statsFiltered.totalRevenue > 0
-                        ? `${((statsFiltered.totalMargin / statsFiltered.totalRevenue) * 100).toFixed(1)}% du CA`
-                        : 'marge HT'}
+                      {statsFiltered.countBpa > 0
+                        ? `${statsFiltered.countBpa} dossier${statsFiltered.countBpa > 1 ? 's' : ''} BPA validé${statsFiltered.countBpa > 1 ? 's' : ''}`
+                        : 'BPA validé (marge réelle)'}
                     </p>
+                  </div>
+                  <div
+                    className="p-4 bg-amber-50 rounded-xl transition-all"
+                    title="Marge estimée sur les dossiers signés par le client dont le BPA fournisseur n'est pas encore validé, selon la meilleure offre reçue"
+                  >
+                    <p className="text-xs text-amber-600 uppercase tracking-wide mb-1">Marge potentielle</p>
+                    <p className="font-display text-2xl font-bold text-amber-600">{formatPrice(statsFiltered.margePotentielle)}</p>
+                    <p className="text-xs text-amber-500 mt-1">signés client, hors BPA</p>
                   </div>
                 </div>
                 {showOnlyStatsDossiers && (
@@ -5523,14 +5572,29 @@ L'équipe Busmoov`
                       <label className="label text-xs text-gray-500">Prix TTC</label>
                       <p className="text-2xl font-bold text-purple-dark">{formatPrice(contrat.price_ttc)}</p>
                     </div>
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <label className="label text-xs text-gray-500">Acompte (30%)</label>
-                      <p className="text-xl font-semibold text-gray-700">{formatPrice(contrat.acompte_amount || 0)}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <label className="label text-xs text-gray-500">Solde</label>
-                      <p className="text-xl font-semibold text-gray-700">{formatPrice(contrat.solde_amount ?? ((contrat.price_ttc || 0) - (contrat.acompte_amount || 0)))}</p>
-                    </div>
+                    {(() => {
+                      // Libelle dynamique : quand l'acompte couvre 100% du prix
+                      // (depart proche), c'est un paiement total, pas un acompte
+                      // « (30%) » comme l'affichait l'ancien libelle en dur.
+                      const prixTTC = contrat.price_ttc || 0
+                      const acompte = contrat.acompte_amount || 0
+                      const pct = prixTTC > 0 ? Math.round((acompte / prixTTC) * 100) : 0
+                      const estPaiementTotal = pct >= 100
+                      return (
+                        <>
+                          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                            <label className="label text-xs text-gray-500">
+                              {estPaiementTotal ? 'Paiement total' : `Acompte (${pct}%)`}
+                            </label>
+                            <p className="text-xl font-semibold text-gray-700">{formatPrice(acompte)}</p>
+                          </div>
+                          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                            <label className="label text-xs text-gray-500">Solde</label>
+                            <p className="text-xl font-semibold text-gray-700">{estPaiementTotal ? formatPrice(0) : formatPrice(contrat.solde_amount ?? (prixTTC - acompte))}</p>
+                          </div>
+                        </>
+                      )
+                    })()}
                     <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                       <label className="label text-xs text-gray-500">Reste à payer</label>
                       <p className={cn(
