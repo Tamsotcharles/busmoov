@@ -1428,8 +1428,17 @@ Deno.serve(async (req) => {
             ? new Date(dossier.departure_date).toLocaleDateString('fr-FR')
             : 'N/A'
 
-          const { error: emailError } = await supabase.functions.invoke('send-email', {
-            body: {
+          // fetch direct plutot que supabase.functions.invoke : l'invoke
+          // edge->edge echouait silencieusement (quote_sent n'est plus parti
+          // depuis fevrier). C'est le pattern fiable, deja utilise par
+          // sign-contract et quote-reminders.
+          const emailResp = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+            },
+            body: JSON.stringify({
               type: 'quote_sent',
               to: dossier.client_email,
               data: {
@@ -1444,8 +1453,9 @@ Deno.serve(async (req) => {
                 dossier_id: dossier.id,
                 language: emailLanguage,
               },
-            }
+            }),
           })
+          const emailError = emailResp.ok ? null : await emailResp.text()
 
           if (emailError) {
             console.error(`Erreur envoi email notification pour ${dossier.reference}:`, emailError)

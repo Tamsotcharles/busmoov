@@ -945,20 +945,30 @@ function isInternalAddress(address: string): boolean {
 }
 
 /**
- * Un JWT Supabase porte son role dans le payload. La cle anon est
- * PUBLIQUE (elle est dans le bundle navigateur) : la presence d'un
- * Bearer ne prouve donc rien. Seul un jeton de session reelle, de role
- * "authenticated", identifie un membre de l'equipe connecte.
+ * La cle anon est PUBLIQUE (elle est dans le bundle navigateur) : la
+ * presence d'un Bearer ne prouve rien. Un appel est authentifie si :
+ *
+ *  - le Bearer EST la cle service_role (appels internes entre Edge
+ *    Functions) : comparaison directe, sans decodage. C'est le point qui
+ *    manquait — l'ancienne version tentait de decoder le service_role
+ *    comme un JWT role=service_role, ce qui echouait selon la forme de la
+ *    cle et renvoyait 401 a tous les emails envoyes depuis une edge
+ *    function (quote_sent, rappels, avis...) ;
+ *  - ou le token est un JWT de role "authenticated" non expire (membre de
+ *    l'equipe connecte cote admin).
  */
 function isAuthenticatedSession(authHeader: string | null): boolean {
   if (!authHeader?.startsWith('Bearer ')) return false
   const token = authHeader.slice(7).trim()
+
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  if (serviceRoleKey && token === serviceRoleKey) return true
+
   const parts = token.split('.')
   if (parts.length !== 3) return false
   try {
     const padded = parts[1].replace(/-/g, '+').replace(/_/g, '/')
     const payload = JSON.parse(atob(padded.padEnd(Math.ceil(padded.length / 4) * 4, '=')))
-    // Le service_role appelle aussi cette fonction (Edge Functions internes).
     if (payload.role !== 'authenticated' && payload.role !== 'service_role') return false
     if (typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now()) return false
     return true

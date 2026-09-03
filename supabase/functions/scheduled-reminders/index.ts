@@ -113,6 +113,7 @@ async function processOffreFlashReminders(
 
     // Envoyer l'email de relance
     const { error: emailError } = await supabase.functions.invoke('send-email', {
+            headers: { Authorization: `Bearer ${supabaseServiceKey}` },
       body: {
         type: 'offre_flash_reminder',
         to: dossier.client_email,
@@ -245,6 +246,7 @@ async function processQuoteReminders(
     const nbDevis = (dossier.devis as { id: string; status: string }[]).filter(d => d.status === 'sent').length
 
     const { error: emailError } = await supabase.functions.invoke('send-email', {
+            headers: { Authorization: `Bearer ${supabaseServiceKey}` },
       body: {
         type: 'quote_reminder',
         to: dossier.client_email,
@@ -360,6 +362,7 @@ async function processPaymentReminders(
       const paymentUrl = `${baseUrl}/${emailLanguage}/recapitulatif/${dossier.id}`
 
       const { error: emailError } = await supabase.functions.invoke('send-email', {
+            headers: { Authorization: `Bearer ${supabaseServiceKey}` },
         body: {
           type: 'payment_reminder',
           to: dossier.client_email,
@@ -456,6 +459,7 @@ async function processPaymentReminders(
       const paymentUrl = `${baseUrl}/${emailLanguage}/recapitulatif/${dossier.id}`
 
       const { error: emailError } = await supabase.functions.invoke('send-email', {
+            headers: { Authorization: `Bearer ${supabaseServiceKey}` },
         body: {
           type: 'rappel_solde',
           to: dossier.client_email,
@@ -566,6 +570,7 @@ async function processInfoVoyageReminders(
     const infosVoyageUrl = `${baseUrl}/${emailLanguage}/infos-voyage/${dossier.id}`
 
     const { error: emailError } = await supabase.functions.invoke('send-email', {
+            headers: { Authorization: `Bearer ${supabaseServiceKey}` },
       body: {
         type: 'info_request',
         to: dossier.client_email,

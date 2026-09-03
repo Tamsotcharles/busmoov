@@ -155,6 +155,7 @@ async function sendReviewRequestEmail(
 
     // Envoyer via la fonction send-email qui gère la traduction automatique
     const { error } = await supabase.functions.invoke('send-email', {
+      headers: { Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''}` },
       body: {
         type: 'review_request',
         to: dossier.client_email,
