@@ -9907,23 +9907,40 @@ function SendEmailForm({
     }
   }
 
-  const handleTemplateChange = (templateKey: string) => {
+  const handleTemplateChange = async (templateKey: string) => {
     setSelectedTemplate(templateKey)
     const template = templates.find(t => t.key === templateKey)
-    if (template) {
-      // Apercu : substituer toutes les variables connues du dossier.
-      let subj = template.subject || ''
-      let bod = template.html_content || template.body || ''
-      const data = buildEmailData()
+    if (!template) return
 
-      Object.entries(data).forEach(([key, value]) => {
-        const re = new RegExp(`{{${key}}}`, 'g')
-        subj = subj.replace(re, value || '')
-        bod = bod.replace(re, value || '')
+    // Apercu local immediat (variables du dossier). Les {{t:cle}}
+    // (traductions) ne sont pas connues du front : on demande ensuite au
+    // serveur le rendu final, qui les resout.
+    const data = buildEmailData()
+    const substitute = (s: string) =>
+      Object.entries(data).reduce(
+        (acc, [k, v]) => acc.replace(new RegExp(`{{${k}}}`, 'g'), v || ''),
+        s || '',
+      )
+    setSubject(substitute(template.subject || ''))
+    setBody(substitute(template.html_content || template.body || ''))
+
+    // Rendu final par send-email (mode preview) : traductions {{t:}} et
+    // conditionnels resolus, exactement comme a l'envoi.
+    try {
+      const emailLanguage = (dossier.country_code || 'FR').toLowerCase()
+      const { data: res, error } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: templateKey,
+          to: dossier.client_email,
+          data: { ...data, dossier_id: dossier.id, language: emailLanguage, preview: true },
+        },
       })
-
-      setSubject(subj)
-      setBody(bod)
+      if (!error && res?.preview) {
+        setSubject(res.preview.subject)
+        setBody(res.preview.html)
+      }
+    } catch {
+      // Apercu local deja affiche : on le garde en cas d'echec reseau.
     }
   }
 

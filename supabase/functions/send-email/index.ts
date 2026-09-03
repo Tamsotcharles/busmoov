@@ -1160,6 +1160,17 @@ serve(async (req: Request) => {
       finalBody = replaceVariables(template.body, mergedData, language)
     }
 
+    // Mode apercu : renvoyer le rendu final (variables, traductions {{t:}}
+    // et conditionnels resolus) SANS envoyer ni logger. L'admin obtient
+    // ainsi exactement ce qui partira, sans dupliquer le dictionnaire de
+    // traductions cote front.
+    if (data?.preview === true || data?.preview === 'true') {
+      return new Response(
+        JSON.stringify({ success: true, preview: { subject: finalSubject, html: finalBody } }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+
     // Envoyer l'email via Resend
     const result = await sendEmailViaResend(to, finalSubject, finalBody, attachments)
 
