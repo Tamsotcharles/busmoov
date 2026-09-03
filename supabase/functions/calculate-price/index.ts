@@ -1,11 +1,30 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+// Domaines autorisés pour CORS. Cette fonction applique les grilles
+// tarifaires (confidentielles) : sans allowlist, n'importe quel site
+// pouvait l'appeler depuis un navigateur et rejouer la tarification.
+const ALLOWED_ORIGINS = [
+  "https://busmoov.com",
+  "https://www.busmoov.com",
+  "https://busmoov.fr",
+  "https://www.busmoov.fr",
+  "https://busmoov.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
+function getCorsHeaders(origin: string | null) {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin)
+    ? origin
+    : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
 
 // =============================================
 // CONSTANTES TARIFAIRES (CONFIDENTIELLES)
@@ -701,6 +720,8 @@ async function calculerTarif(
 // =============================================
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }

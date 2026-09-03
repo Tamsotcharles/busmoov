@@ -7,14 +7,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// Generate a unique token for chauffeur request
+// Generate a unique token for chauffeur request (cryptographiquement sûr).
+// Ce token donne acces a la page fournisseur d'infos chauffeur : avec
+// Math.random() il etait predictible, donc enumerable.
 function generateChauffeurToken(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let token = '';
-  for (let i = 0; i < 32; i++) {
-    token += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return token;
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 // Get departure dates to check based on day of week

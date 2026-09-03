@@ -841,14 +841,14 @@ export async function generateValidationFournisseurEmailFromTemplate(
   return generateValidationFournisseurEmail(params)
 }
 
-// Génère un token de validation unique
+// Génère un token de validation unique (cryptographiquement sûr).
+// Ce token est la SEULE protection des pages fournisseur (validation BPA,
+// infos chauffeur) : Math.random() est predictible et permettait d'enumerer
+// les liens. 32 octets d'entropie, rendus en 64 caracteres hexadecimaux.
 export function generateValidationToken(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  let token = ''
-  for (let i = 0; i < 32; i++) {
-    token += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return token
+  const array = new Uint8Array(32)
+  crypto.getRandomValues(array)
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
 // ============================================
