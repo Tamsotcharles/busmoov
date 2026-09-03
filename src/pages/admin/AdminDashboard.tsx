@@ -8810,7 +8810,10 @@ L'équipe Busmoov`)
                   // Récupérer le devis accepté pour avoir les infos véhicule
                   const devisAccepte = dossier.devis?.find((d: any) => d.status === 'accepted') || dossier.devis?.[0]
 
-                  const baseUrl = window.location.origin
+                  // Jamais window.location.origin pour un lien d'email :
+                  // envoye depuis un poste en dev, le transporteur recevait
+                  // un lien http://localhost:5173 inutilisable.
+                  const baseUrl = getSiteBaseUrl()
 
                   for (const transporteur of transporteursInfos) {
                     // Générer un token unique pour chaque demande
@@ -14180,7 +14183,7 @@ L'équipe Busmoov`
       // Récupérer le devis accepté pour avoir les infos véhicule
       const devisAccepte = selectedDossier.devis?.find((d: any) => d.status === 'accepted') || selectedDossier.devis?.[0]
 
-      const baseUrl = window.location.origin
+      const baseUrl = getSiteBaseUrl() // jamais window.location.origin dans un email (localhost en dev)
       const d = selectedDossier
       const language = getLanguageFromCountry(d.country_code)
 

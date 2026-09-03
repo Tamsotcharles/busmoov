@@ -218,8 +218,10 @@ export function getSiteBaseUrl(): string {
     }
   }
 
-  // URL par défaut en production
-  return 'https://busmoov.fr'
+  // URL par défaut en production.
+  // Pas busmoov.fr : le certificat de ce domaine est en erreur (constate
+  // le 3 sept. 2026), un lien d'email construit dessus serait mort.
+  return 'https://www.busmoov.com'
 }
 
 export function calculateTVA(priceHT: number, tvaRate: number): number {
@@ -525,7 +527,7 @@ Type de prestation : ${getServiceTypeLabel(serviceType)}
 
   // Ajouter le lien de validation si disponible
   if (demandeId && validationToken) {
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    const baseUrl = getSiteBaseUrl() // jamais l'origin brut : localhost en dev partirait dans l'email
     const validationUrl = `${baseUrl}/validation-bpa?demande=${demandeId}&token=${validationToken}`
     body += `
 
@@ -795,7 +797,7 @@ export async function generateValidationFournisseurEmailFromTemplate(
   const isMiseADispo = serviceType === 'circuit' || serviceType === 'mise_disposition' || serviceType === 'ar_mad'
 
   // Générer le lien de validation
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+  const baseUrl = getSiteBaseUrl() // jamais l'origin brut : localhost en dev partirait dans l'email
   const lienValidation = demandeId && validationToken
     ? `${baseUrl}/validation-bpa?demande=${demandeId}&token=${validationToken}`
     : null

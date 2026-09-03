@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { Truck, Calendar, MapPin, Users, Send, Loader2, Copy, CheckCircle, AlertCircle, Mail, FileText, Paperclip } from 'lucide-react'
-import { formatDate, formatDateTime } from '@/lib/utils'
+import { formatDate, formatDateTime, getSiteBaseUrl } from '@/lib/utils'
 import { useCreateDemandeChauffeur, generateChauffeurToken } from '@/hooks/useSupabase'
 import { supabase } from '@/lib/supabase'
 import type { DossierWithRelations, Transporteur, VoyageInfo } from '@/types/database'
@@ -69,7 +69,8 @@ export function DemandeContactChauffeurModal({
 
     try {
       const token = generateChauffeurToken()
-      const baseUrl = window.location.origin
+      // Jamais window.location.origin dans un lien d'email (localhost en dev).
+      const baseUrl = getSiteBaseUrl()
 
       await createDemandeChauffeur.mutateAsync({
         dossier_id: dossier.id,

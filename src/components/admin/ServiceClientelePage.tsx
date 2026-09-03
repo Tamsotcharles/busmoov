@@ -29,7 +29,7 @@ import {
   Truck,
   Paperclip,
 } from 'lucide-react'
-import { formatDate, formatPrice, cn, generateInfosVoyageUrl, generatePaymentUrl, generateClientAccessUrl, getLanguageFromCountry } from '@/lib/utils'
+import { formatDate, formatPrice, cn, generateInfosVoyageUrl, generatePaymentUrl, generateClientAccessUrl, getLanguageFromCountry, getSiteBaseUrl } from '@/lib/utils'
 import { Modal } from '@/components/ui/Modal'
 
 // Types
@@ -599,7 +599,9 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
     try {
       // Générer le token
       const token = generateChauffeurToken()
-      const baseUrl = window.location.origin
+      // Jamais window.location.origin dans un lien d'email : en dev cela
+      // enverrait http://localhost:5173 au destinataire.
+      const baseUrl = getSiteBaseUrl()
       const link = `${baseUrl}/fournisseur/chauffeur?token=${token}`
 
       // Récupérer le transporteur_id
@@ -683,7 +685,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
           .replace(/{acompte}/g, formatPrice(acompte))
           .replace(/{lien_infos_voyage}/g, generateInfosVoyageUrl(dossier.reference, dossier.client_email, dossier.country_code))
           .replace(/{lien_paiement}/g, generatePaymentUrl(dossier.reference, dossier.client_email, dossier.country_code))
-          .replace(/{lien_chauffeur}/g, `${window.location.origin}/fournisseur/chauffeur?token=LIEN_A_GENERER`)
+          .replace(/{lien_chauffeur}/g, `${getSiteBaseUrl()}/fournisseur/chauffeur?token=LIEN_A_GENERER`)
 
         // Déterminer la langue à partir du pays
         const emailLanguage = getLanguageFromCountry(dossier.country_code)
