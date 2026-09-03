@@ -342,11 +342,14 @@ serve(async (req) => {
     // 6. Envoyer l'email de confirmation
     try {
       const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-      const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      // Appel serveur-a-serveur : on s'authentifie en service_role.
+      // La cle anon est publique et n'identifie pas l'appelant ; send-email
+      // rejette desormais les types non publics presentes avec cette cle.
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
       console.log('=== ENVOI EMAIL CONFIRMATION ===')
       console.log('supabaseUrl:', supabaseUrl ? 'OK' : 'MANQUANT')
-      console.log('supabaseAnonKey:', supabaseAnonKey ? 'OK (length: ' + supabaseAnonKey.length + ')' : 'MANQUANT')
+      console.log('supabaseServiceKey:', supabaseServiceKey ? 'OK' : 'MANQUANT')
       console.log('Email destinataire:', dossier.client_email)
 
       // Formater la date de départ
@@ -394,7 +397,7 @@ serve(async (req) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Authorization': `Bearer ${supabaseServiceKey}`,
         },
         body: JSON.stringify(emailPayload),
       })

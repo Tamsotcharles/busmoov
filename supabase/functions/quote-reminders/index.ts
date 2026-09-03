@@ -188,7 +188,9 @@ async function sendReminderEmail(
   devisRecapHtml: string
 ): Promise<{ success: boolean; emailId?: string; error?: string }> {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+  // Appel serveur-a-serveur : service_role, pas la cle anon publique.
+  // send-email n'accepte plus les types non publics avec la cle anon.
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
   // Générer le lien vers l'espace client
   const baseUrl = 'https://busmoov.com'
@@ -218,7 +220,7 @@ async function sendReminderEmail(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'Authorization': `Bearer ${supabaseServiceKey}`,
       },
       body: JSON.stringify(emailData),
     })

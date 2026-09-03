@@ -864,7 +864,85 @@ const PUBLIC_EMAIL_TYPES = [
   'confirmation_demande',  // Confirmation après soumission formulaire devis
   'contact_form',          // Formulaire de contact
   'devenir_partenaire',    // Formulaire devenir partenaire
+  'custom',                // Encadré par checkCustomRecipients (voir plus bas)
+  'client_message',        // Message client depuis l'espace client
 ]
+
+/**
+ * Adresses internes Busmoov : boites de l'entreprise, tous pays confondus
+ * (infos@busmoov.com, contacto@busmoov.es, kontakt@busmoov.de...).
+ */
+function isInternalAddress(address: string): boolean {
+  const domain = String(address).trim().toLowerCase().split('@')[1]
+  if (!domain) return false
+  return /(^|\.)busmoov\.(com|fr|es|de|co\.uk|eu)$/.test(domain)
+}
+
+/**
+ * Un JWT Supabase porte son role dans le payload. La cle anon est
+ * PUBLIQUE (elle est dans le bundle navigateur) : la presence d'un
+ * Bearer ne prouve donc rien. Seul un jeton de session reelle, de role
+ * "authenticated", identifie un membre de l'equipe connecte.
+ */
+function isAuthenticatedSession(authHeader: string | null): boolean {
+  if (!authHeader?.startsWith('Bearer ')) return false
+  const token = authHeader.slice(7).trim()
+  const parts = token.split('.')
+  if (parts.length !== 3) return false
+  try {
+    const padded = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(atob(padded.padEnd(Math.ceil(padded.length / 4) * 4, '=')))
+    // Le service_role appelle aussi cette fonction (Edge Functions internes).
+    if (payload.role !== 'authenticated' && payload.role !== 'service_role') return false
+    if (typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now()) return false
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Garde anti-relais ouvert.
+ *
+ * type "custom" laisse l'appelant fixer le sujet, le corps HTML et les
+ * pieces jointes. Comme la cle anon est publique, n'importe qui pouvait
+ * expedier du contenu arbitraire a un destinataire arbitraire depuis
+ * infos@busmoov.com, avec SPF/DKIM valides : phishing contre les clients
+ * Busmoov et destruction de la reputation du domaine.
+ *
+ * Sans session authentifiee, un custom n'est donc accepte que si chaque
+ * destinataire est soit une boite interne Busmoov (formulaires contact,
+ * partenariat, message client), soit le client du dossier reference dans
+ * data.dossier_id — verifie en base, pas sur parole de l'appelant
+ * (envoi de la feuille de route depuis la page fournisseur).
+ */
+async function checkCustomRecipients(
+  supabaseClient: ReturnType<typeof createClient>,
+  recipients: string[],
+  dossierId: unknown,
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const external = recipients.filter((r) => !isInternalAddress(r))
+  if (external.length === 0) return { ok: true }
+
+  if (typeof dossierId !== 'string' || !dossierId) {
+    return { ok: false, reason: 'destinataire externe sans dossier_id' }
+  }
+
+  const { data: dossier, error } = await supabaseClient
+    .from('dossiers')
+    .select('client_email')
+    .eq('id', dossierId)
+    .single()
+
+  if (error || !dossier) return { ok: false, reason: 'dossier introuvable' }
+
+  const allowed = String(dossier.client_email ?? '').trim().toLowerCase()
+  const intrus = external.filter((r) => String(r).trim().toLowerCase() !== allowed)
+  if (intrus.length > 0) {
+    return { ok: false, reason: `destinataire non lie au dossier: ${intrus.join(', ')}` }
+  }
+  return { ok: true }
+}
 
 serve(async (req: Request) => {
   const origin = req.headers.get('origin')
@@ -887,11 +965,13 @@ serve(async (req: Request) => {
       throw new Error('Email recipient (to) is required')
     }
 
-    // Vérification de sécurité : si pas de JWT valide, limiter aux types publics
+    // Vérification de sécurité.
+    // L'ancien controle se contentait de authHeader.length > 20, que la
+    // cle anon PUBLIQUE satisfait : il n'authentifiait donc rien.
     const authHeader = req.headers.get('Authorization')
-    const hasValidAuth = authHeader && authHeader.startsWith('Bearer ') && authHeader.length > 20
+    const isAuthenticated = isAuthenticatedSession(authHeader)
 
-    if (!hasValidAuth && !PUBLIC_EMAIL_TYPES.includes(type)) {
+    if (!isAuthenticated && !PUBLIC_EMAIL_TYPES.includes(type)) {
       console.warn(`Unauthorized attempt to send email type: ${type} from origin: ${origin}`)
       return new Response(
         JSON.stringify({ success: false, error: 'Unauthorized: This email type requires authentication' }),
@@ -900,6 +980,23 @@ serve(async (req: Request) => {
           status: 401,
         }
       )
+    }
+
+    // Un custom non authentifie ne peut pas choisir librement son
+    // destinataire : sans cette garde, la fonction est un relais ouvert.
+    if (!isAuthenticated && type === 'custom') {
+      const recipients = (Array.isArray(to) ? to : [to]).map(String)
+      const verdict = await checkCustomRecipients(supabaseClient, recipients, data?.dossier_id)
+      if (!verdict.ok) {
+        console.warn(`Relais refuse (${verdict.reason}) depuis origin: ${origin}`)
+        return new Response(
+          JSON.stringify({ success: false, error: 'Unauthorized: recipient not allowed for this request' }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 403,
+          }
+        )
+      }
     }
 
     let finalSubject = subject
