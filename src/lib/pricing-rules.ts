@@ -130,7 +130,7 @@ export const VEHICLE_TYPES = [
   { type: '83-90', capacity: 90, coef: 1.70 },
   { type: '70', capacity: 70, coef: 1.30 },
   { type: '60-63', capacity: 63, coef: 1.15 },
-  { type: 'standard', capacity: 57, coef: 1.00 },
+  { type: 'standard', capacity: 59, coef: 1.00 }, // places_max de capacites_vehicules
 ] as const
 
 // =============================================
@@ -185,7 +185,7 @@ export function optimizeVehicleCombination(
   grandeCapaciteDispo: boolean = true
 ): VehicleOptimizationResult {
   // Capacité standard = 57 places
-  const STANDARD_CAPACITY = 57
+  const STANDARD_CAPACITY = 59 // places_max de capacites_vehicules
 
   // Types de véhicules disponibles (triés par capacité décroissante)
   const vehicleTypes: VehicleType[] = grandeCapaciteDispo
@@ -279,11 +279,11 @@ export function calculateOptimalCars(
   // Capacités par type de véhicule pour ≤ 90 passagers
   const capacities: Record<string, number> = {
     minibus: 20,
-    standard: 57,
+    standard: 59,
     '60-63': 63,
     '70': 70,
     '83-90': 90,
-    autocar: 57,
+    autocar: 59,
   }
 
   // Si grande capacité non dispo, forcer standard

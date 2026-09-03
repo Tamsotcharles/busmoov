@@ -136,7 +136,7 @@ function optimizeVehicleCombination(passengers: number, grandeCapaciteDispo: boo
   detail: string
 } {
   // Capacité standard = 57 places
-  const STANDARD_CAPACITY = 57
+  const STANDARD_CAPACITY = 59 // places_max de capacites_vehicules
 
   // Types de véhicules disponibles (triés par capacité décroissante pour l'algo)
   const vehicleTypes = grandeCapaciteDispo
@@ -271,11 +271,11 @@ function calculateNumberOfCars(passengers: number, vehicleType: string, grandeCa
   // Capacités et coefficients par type de véhicule pour les groupes ≤ 90 passagers
   const vehicleData: Record<string, { capacity: number; coef: number }> = {
     minibus: { capacity: 20, coef: 0.90 },
-    standard: { capacity: 57, coef: 1.00 },
+    standard: { capacity: 59, coef: 1.00 },
     '60-63': { capacity: 63, coef: 1.15 },
     '70': { capacity: 70, coef: 1.30 },
     '83-90': { capacity: 90, coef: 1.70 },
-    autocar: { capacity: 57, coef: 1.00 },
+    autocar: { capacity: 59, coef: 1.00 },
   }
 
   // Si grande capacité non dispo et véhicule > 57 places demandé, forcer standard

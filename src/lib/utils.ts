@@ -1890,11 +1890,11 @@ export function calculateNumberOfCars(
   // Capacités par type de véhicule pour les groupes ≤ 90 passagers
   const capacities: Record<string, number> = {
     minibus: 20,
-    standard: 53,
+    standard: 59, // places_max de capacites_vehicules — 53 sous-facturait un 2e car des 54 pax,
     '60-63': 63,
     '70': 70,
     '83-90': 90,
-    autocar: 53, // par défaut
+    autocar: 59, // par défaut
   }
 
   // Si grande capacité non dispo et véhicule > 57 places demandé, forcer standard
@@ -1923,7 +1923,7 @@ const VEHICLE_COEFFICIENTS: Record<string, number> = {
  */
 const VEHICLE_CAPACITIES: Record<string, number> = {
   minibus: 20,
-  standard: 53,
+  standard: 59, // places_max de capacites_vehicules — 53 sous-facturait un 2e car des 54 pax,
   '60-63': 63,
   '70': 70,
   '83-90': 90,
@@ -2088,11 +2088,11 @@ export function calculateCarsDetails(
   // Capacités par type de véhicule pour les groupes ≤ 90 passagers
   const capacities: Record<string, number> = {
     minibus: 20,
-    standard: 53,
+    standard: 59, // places_max de capacites_vehicules — 53 sous-facturait un 2e car des 54 pax,
     '60-63': 63,
     '70': 70,
     '83-90': 90,
-    autocar: 53,
+    autocar: 59,
   }
 
   // Si grande capacité non dispo et véhicule > 57 places demandé, forcer standard

@@ -161,7 +161,7 @@ describe('optimizeVehicleCombination', () => {
     // Cas des departements sans double etage : proposer un 90 places
     // qu'aucun transporteur local ne possede fausse le devis.
     const result = optimizeVehicleCombination(150, false)
-    expect(result.capaciteParCar).toBe(57)
+    expect(result.capaciteParCar).toBe(59) // capacite standard (capacites_vehicules)
     expect(result.placesTotal).toBeGreaterThanOrEqual(150)
   })
 })
@@ -176,10 +176,22 @@ describe('calculateOptimalCars', () => {
   })
 
   it('tient compte de la capacite du type demande', () => {
-    expect(calculateOptimalCars(60, 'standard')).toBe(2) // 57 places
+    expect(calculateOptimalCars(60, 'standard')).toBe(2) // 59 places max
     expect(calculateOptimalCars(60, '60-63')).toBe(1) // 63 places
     expect(calculateOptimalCars(20, 'minibus')).toBe(1)
     expect(calculateOptimalCars(21, 'minibus')).toBe(2)
+  })
+
+  it('fait tenir jusqu a 59 passagers dans UN car standard', () => {
+    // Regle metier (capacites_vehicules) : standard = 21 a 59 places.
+    // Bug constate en production : la capacite etait codee a 53 dans le
+    // calcul du nouveau devis — 54 passagers declenchaient un 2e car,
+    // doublant le prix propose au client.
+    expect(calculateOptimalCars(54, 'standard')).toBe(1)
+    expect(calculateOptimalCars(57, 'standard')).toBe(1)
+    expect(calculateOptimalCars(59, 'standard')).toBe(1)
+    expect(calculateOptimalCars(60, 'standard')).toBe(2)
+    expect(optimizeVehicleCombination(59).nombreCars).toBe(1)
   })
 
   it('retombe sur du standard si la grande capacite est indisponible', () => {
