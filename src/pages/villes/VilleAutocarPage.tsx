@@ -1,6 +1,7 @@
 import { useParams, Navigate, Link } from 'react-router-dom'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
 import { SeoFr } from '@/components/seo/Seo'
 import { useLocalizedPath } from '@/components/i18n'
 import { getVille, villes } from '@/lib/villes'
@@ -58,9 +59,9 @@ export function VilleAutocarPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold mb-4">{ville.h1}</h1>
           <p className="text-lg opacity-90 max-w-3xl mx-auto mb-8">{ville.sousTitre}</p>
-          <Link to={localizedPath('/')} className="btn bg-white text-purple-dark hover:bg-gray-100 font-semibold inline-flex items-center gap-2">
+          <a href="#devis" className="btn bg-white text-purple-dark hover:bg-gray-100 font-semibold inline-flex items-center gap-2">
             Demander un devis gratuit <ArrowRight className="w-4 h-4" />
-          </Link>
+          </a>
         </div>
       </section>
 
@@ -74,6 +75,19 @@ export function VilleAutocarPage() {
               <p className="text-sm text-gray-600">{a.desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Formulaire de devis intégré */}
+      <section id="devis" className="py-12 scroll-mt-24">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-center mb-2">
+            Votre devis autocar à {ville.nom} en 2 minutes
+          </h2>
+          <p className="text-gray-600 text-center mb-8">
+            Gratuit et sans engagement — plusieurs propositions de transporteurs sous 24h.
+          </p>
+          <MultiStepQuoteForm />
         </div>
       </section>
 
@@ -143,9 +157,9 @@ export function VilleAutocarPage() {
           <p className="text-gray-600 mb-6">
             Décrivez votre trajet en 2 minutes, recevez plusieurs devis gratuits sous 24h.
           </p>
-          <Link to={localizedPath('/')} className="btn btn-primary inline-flex items-center gap-2">
+          <a href="#devis" className="btn btn-primary inline-flex items-center gap-2">
             Demander un devis gratuit <ArrowRight className="w-4 h-4" />
-          </Link>
+          </a>
           <p className="text-sm text-gray-500 mt-8">
             Busmoov également disponible à{' '}
             {villes.filter((v) => v.slug !== ville.slug).map((v, i, arr) => (

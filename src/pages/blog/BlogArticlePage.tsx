@@ -1,11 +1,12 @@
 import { useParams, Navigate, Link } from 'react-router-dom'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
 import { SeoFr } from '@/components/seo/Seo'
 import { useLocalizedPath } from '@/components/i18n'
 import { getArticle, articles, type BlogBlock } from '@/lib/blog'
 import { getSiteBaseUrl } from '@/lib/utils'
-import { ArrowRight, ArrowLeft, Calendar, Info } from 'lucide-react'
+import { ArrowLeft, Calendar, Info } from 'lucide-react'
 
 function formatDateFr(iso: string): string {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -82,15 +83,15 @@ export function BlogArticlePage() {
               <Block key={i} block={block} />
             ))}
 
-            <div className="mt-10 pt-8 border-t border-gray-100 text-center">
-              <h2 className="text-xl font-bold mb-3">Besoin d'un autocar avec chauffeur ?</h2>
-              <p className="text-gray-600 text-sm mb-5">
-                Recevez plusieurs devis gratuits de transporteurs vérifiés sous 24 h.
-              </p>
-              <Link to={localizedPath('/')} className="btn btn-primary inline-flex items-center gap-2">
-                Demander un devis gratuit <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
+          </div>
+
+          {/* Formulaire de devis intégré */}
+          <div className="mt-10">
+            <h2 className="text-xl font-bold text-center mb-2">Besoin d'un autocar avec chauffeur ?</h2>
+            <p className="text-gray-600 text-sm text-center mb-6">
+              Recevez plusieurs devis gratuits de transporteurs vérifiés sous 24 h.
+            </p>
+            <MultiStepQuoteForm />
           </div>
 
           {autresArticles.length > 0 && (
