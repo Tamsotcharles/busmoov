@@ -80,10 +80,29 @@ const ul = (items) => `<ul class="list-disc pl-6 mb-3">${items.map((i) => `<li>$
 const aVille = (v) => `<a class="text-magenta underline" href="/fr/location-autocar/${v.slug}">${esc(v.nom)}</a>`
 
 // ---- Pages multilingues : head uniquement -------------------------------
+// (+ entité Organization sur les pages d'accueil, pour les crawlers IA
+// qui ne lisent que le HTML statique)
+const organizationJsonLd = (lang) => ({
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Busmoov',
+  url: `${BASE_URL}/${lang}`,
+  logo: `${BASE_URL}/logo.svg`,
+  description: seoConfig.home[lang].description,
+  contactPoint: {
+    '@type': 'ContactPoint',
+    telephone: '+33 1 76 31 12 83',
+    email: 'infos@busmoov.com',
+    contactType: 'customer service',
+    availableLanguage: ['fr', 'es', 'de', 'en'],
+  },
+})
+
 for (const [page, path] of Object.entries(seoPaths)) {
   for (const lang of LANGUAGES) {
     const meta = seoConfig[page][lang]
-    renderPage({ lang, path, title: meta.title, description: meta.description, alternates: true })
+    const jsonLd = page === 'home' ? [organizationJsonLd(lang)] : []
+    renderPage({ lang, path, title: meta.title, description: meta.description, alternates: true, jsonLd })
   }
 }
 
@@ -187,4 +206,70 @@ for (const article of articles) {
   })
 }
 
-console.log(`prérendu : ${count} pages HTML statiques générées dans dist/`)
+// ---- llms.txt : carte du site pour les assistants IA --------------------
+// Standard émergent (llmstxt.org) : un markdown concis à la racine qui
+// présente le site et ses pages clés aux crawlers de LLM.
+const llmsTxt = `# Busmoov
+
+> Busmoov est une plateforme française de réservation d'autocars, bus et minibus avec chauffeur pour les groupes (8 à 90 places). Elle compare plusieurs devis de transporteurs vérifiés et répond sous 24h, en France ainsi qu'en Espagne, en Allemagne et au Royaume-Uni.
+
+Faits clés :
+- Devis gratuit sous 24h, plusieurs transporteurs comparés, sans engagement
+- Véhicules : minibus (8-20 places), autocar standard (21-59), grande capacité et double étage (60-90)
+- Prix indicatif : journée en autocar standard à partir de 690 € TTC (TVA transport 10 % en France) ; chauffeur, carburant et péages inclus
+- Toujours avec chauffeur professionnel (permis D obligatoire au-delà de 9 places)
+- Acompte 30 % à la réservation (50 % à moins de 30 jours du départ, 100 % à moins de 15 jours)
+- Contact : infos@busmoov.com · +33 1 76 31 12 83
+
+## Services
+- [Location d'autocar](${BASE_URL}/fr/services/location-autocar) : autocars 20 à 90 places avec chauffeur
+- [Location de bus](${BASE_URL}/fr/location-bus) : guide des types de bus et devis
+- [Location de minibus](${BASE_URL}/fr/services/location-minibus) : 8 à 20 places
+- [Transfert aéroport](${BASE_URL}/fr/services/transfert-aeroport) : groupes, tous aéroports
+- [Sorties scolaires](${BASE_URL}/fr/services/sorties-scolaires) : véhicules aux normes transport d'enfants
+
+## Villes desservies
+${villes.map((v) => `- [Location d'autocar à ${v.nom}](${BASE_URL}/fr/location-autocar/${v.slug})`).join('\n')}
+
+## Guides
+${articles.map((a) => `- [${a.titre}](${BASE_URL}/fr/blog/${a.slug}) : ${a.extrait}`).join('\n')}
+
+## Autres langues
+- [Español](${BASE_URL}/es) · [Deutsch](${BASE_URL}/de) · [English](${BASE_URL}/en)
+
+## Détail complet
+- [llms-full.txt](${BASE_URL}/llms-full.txt) : contenu intégral des guides et pages villes en markdown
+`
+writeFileSync(join(DIST, 'llms.txt'), llmsTxt)
+
+// llms-full.txt : contenu intégral en markdown pour ingestion directe.
+const blockToMd = (b) => {
+  switch (b.type) {
+    case 'h2': return `### ${b.text}`
+    case 'p': return b.text
+    case 'callout': return `> ${b.text}`
+    case 'ul': return b.items.map((i) => `- ${i}`).join('\n')
+    default: return ''
+  }
+}
+const llmsFull = [
+  llmsTxt,
+  '---\n\n# Guides Busmoov (contenu intégral)',
+  ...articles.map((a) => `## ${a.titre}\n\nSource : ${BASE_URL}/fr/blog/${a.slug}\n\n${a.blocks.map(blockToMd).join('\n\n')}`),
+  '---\n\n# Pages villes (contenu intégral)',
+  ...villes.map((v) => [
+    `## ${v.h1}`,
+    `Source : ${BASE_URL}/fr/location-autocar/${v.slug}`,
+    v.sousTitre,
+    ...v.intro,
+    `### Destinations populaires au départ de ${v.nom}`,
+    v.destinations.map((d) => `- ${d.nom} : ${d.desc}`).join('\n'),
+    `### Exemples de trajets`,
+    v.trajets.map((t) => `- ${t}`).join('\n'),
+    `### Questions fréquentes`,
+    v.faq.map((f) => `**${f.q}**\n\n${f.a}`).join('\n\n'),
+  ].join('\n\n')),
+].join('\n\n')
+writeFileSync(join(DIST, 'llms-full.txt'), llmsFull)
+
+console.log(`prérendu : ${count} pages HTML statiques + llms.txt + llms-full.txt générés dans dist/`)

@@ -140,6 +140,13 @@ export function organizationJsonLd(lang: SupportedLanguage): object {
     url: `${base}/${lang}`,
     logo: `${base}/logo.svg`,
     description: seoConfig.home[lang].description,
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: '+33 1 76 31 12 83',
+      email: 'infos@busmoov.com',
+      contactType: 'customer service',
+      availableLanguage: ['fr', 'es', 'de', 'en'],
+    },
   }
 }
 
