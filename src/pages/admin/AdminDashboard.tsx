@@ -6460,20 +6460,22 @@ L'équipe Busmoov`
                               )}
                               <button
                                 onClick={() => {
-                                  const typeFacture = facture.type === 'acompte' ? "d'acompte" : facture.type === 'solde' ? 'de solde' : "d'avoir"
+                                  const libelle = libelleFacture(facture.type, facture.amount_ttc || 0, dossier.price_ttc || 0)
+                                  const libelleMin = libelle.toLowerCase()
+                                  const isAcomptePartiel = facture.type === 'acompte' && !((dossier.price_ttc || 0) > 0 && (facture.amount_ttc || 0) >= (dossier.price_ttc || 0) - 0.01)
                                   setSelectedFactureForEmail(facture)
                                   setEnvoiFactureForm({
                                     to: dossier.client_email || '',
-                                    subject: `Votre facture ${typeFacture} - ${facture.reference}`,
+                                    subject: `Votre ${libelleMin} - ${facture.reference}`,
                                     body: `Bonjour ${dossier.client_name},
 
-Veuillez trouver ci-joint votre facture ${typeFacture} n°${facture.reference} d'un montant de ${formatPrice(facture.amount_ttc)}.
+Veuillez trouver ci-joint votre ${libelleMin} n°${facture.reference} d'un montant de ${formatPrice(facture.amount_ttc)}.
 
 Dossier : ${dossier.reference}
 Trajet : ${dossier.departure} → ${dossier.arrival}
 Date de départ : ${formatDate(dossier.departure_date)}
 
-${facture.type === 'acompte' ? `Merci de procéder au règlement de cet acompte afin de confirmer votre réservation.
+${isAcomptePartiel ? `Merci de procéder au règlement de cet acompte afin de confirmer votre réservation.
 
 Moyens de paiement :
 - Virement bancaire (RIB en pièce jointe)
@@ -6481,7 +6483,11 @@ Moyens de paiement :
 
 Moyens de paiement :
 - Virement bancaire (RIB en pièce jointe)
-- Carte bancaire via le lien de paiement` : `Cet avoir sera déduit de votre prochaine facture ou remboursé sur demande.`}
+- Carte bancaire via le lien de paiement` : facture.type === 'avoir' ? `Cet avoir sera déduit de votre prochaine facture ou remboursé sur demande.` : `Merci de procéder au règlement afin de confirmer votre réservation.
+
+Moyens de paiement :
+- Virement bancaire (RIB en pièce jointe)
+- Carte bancaire via le lien de paiement qui vous sera envoyé`}
 
 Cordialement,
 L'équipe Busmoov`,
@@ -8397,8 +8403,7 @@ L'équipe Busmoov`,
               <div>
                 <p className="font-semibold text-lg">{selectedFactureForPaid?.reference}</p>
                 <p className="text-gray-600">
-                  {selectedFactureForPaid?.type === 'acompte' ? "Facture d'acompte" :
-                   selectedFactureForPaid?.type === 'avoir' ? "Avoir" : "Facture de solde"}
+                  {libelleFacture(selectedFactureForPaid?.type, selectedFactureForPaid?.amount_ttc || 0, (selectedFactureForPaid as any)?.dossier?.price_ttc || 0)}
                   {' - '}{formatPrice(selectedFactureForPaid?.amount_ttc || 0)}
                 </p>
               </div>
