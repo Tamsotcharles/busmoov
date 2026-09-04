@@ -509,7 +509,7 @@ export function AdminDashboard() {
   // Les filtres croisés (calculés cote client sur plusieurs dimensions) ne
   // sont pas des statuts Supabase : useDossiers ne doit pas les passer comme
   // status, sinon il ne trouverait rien.
-  const crossFilters = ['x-pending-payment', 'x-pending-reservation', 'x-pending-info', 'x-pending-driver']
+  const crossFilters = ['x-pending-payment', 'x-pending-reservation', 'x-pending-info', 'x-infos-to-validate', 'x-pending-driver']
   const specialFilters = ['flash-active', 'facture-fournisseur-pending', 'signed-only', ...crossFilters]
   const { data: dossiers = [], isLoading: dossiersLoading } = useDossiers({
     status: statusFilter && !specialFilters.includes(statusFilter) ? statusFilter : undefined,
@@ -573,6 +573,15 @@ export function AdminDashboard() {
       pendingReservation: (d: any) => isSigned(d) && !isClosed(d) && !bpaConfirmeByDossier.has(d.id),
       // Signé, le client n'a pas encore transmis ses infos voyage.
       pendingInfo: (d: any) => isSigned(d) && !isClosed(d) && !voyageInfosMap[d.id]?.hasInfos,
+      // Infos reçues du client mais pas encore validées par l'admin —
+      // file d'action. Ne compte QUE si un fournisseur a confirmé son BPA :
+      // sans BPA, on ne peut de toute façon pas valider/envoyer au
+      // fournisseur (meme garde que le bouton « Valider & attente chauffeur »).
+      infosToValidate: (d: any) =>
+        isSigned(d) && !isClosed(d) &&
+        voyageInfosMap[d.id]?.hasInfos &&
+        !voyageInfosMap[d.id]?.validated &&
+        bpaConfirmeByDossier.has(d.id),
       // Toutes les étapes faites (payé, BPA confirmé, infos validées), il ne
       // reste que le contact chauffeur à obtenir.
       pendingDriver: (d: any) =>
@@ -592,6 +601,7 @@ export function AdminDashboard() {
     pendingPayment: allDossiers.filter(cardPredicates.pendingPayment).length,
     pendingReservation: allDossiers.filter(cardPredicates.pendingReservation).length,
     pendingInfo: allDossiers.filter(cardPredicates.pendingInfo).length,
+    infosToValidate: allDossiers.filter(cardPredicates.infosToValidate).length,
     pendingDriver: allDossiers.filter(cardPredicates.pendingDriver).length,
   }), [allDossiers, cardPredicates])
   const { data: paiementsFournisseurs = [] } = usePaiementsFournisseurs()
@@ -860,6 +870,7 @@ export function AdminDashboard() {
         statusFilter === 'x-pending-payment' ? cardPredicates.pendingPayment(d)
         : statusFilter === 'x-pending-reservation' ? cardPredicates.pendingReservation(d)
         : statusFilter === 'x-pending-info' ? cardPredicates.pendingInfo(d)
+        : statusFilter === 'x-infos-to-validate' ? cardPredicates.infosToValidate(d)
         : statusFilter === 'x-pending-driver' ? cardPredicates.pendingDriver(d)
         : true
 
@@ -926,6 +937,7 @@ export function AdminDashboard() {
     { label: 'Att. paiement', value: crossStats.pendingPayment, icon: Euro, color: 'amber', filter: 'x-pending-payment' },
     { label: 'Att. résa', value: crossStats.pendingReservation, icon: ShieldCheck, color: 'violet', filter: 'x-pending-reservation' },
     { label: 'Att. infos', value: crossStats.pendingInfo, icon: FileText, color: 'purple', filter: 'x-pending-info' },
+    { label: 'Infos à valider', value: crossStats.infosToValidate, icon: CheckCircle, color: 'teal', filter: 'x-infos-to-validate' },
     { label: 'Att. chauffeur', value: crossStats.pendingDriver, icon: Truck, color: 'indigo', filter: 'x-pending-driver' },
     { label: 'Confirmés', value: stats?.confirmed || 0, icon: CheckCircle, color: 'green', filter: 'confirmed' },
     { label: 'Terminés', value: stats?.completed || 0, icon: TrendingUp, color: 'emerald', filter: 'completed' },
