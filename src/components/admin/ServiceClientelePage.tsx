@@ -49,6 +49,7 @@ interface DossierRelance {
   contract_signed_at: string | null
   created_at: string
   transporteur_id: string | null
+  transporteur_name?: string | null
   country_code: string | null
   // Computed fields
   jours_avant_depart: number
@@ -352,7 +353,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
       // Charger tous les dossiers validés (avec contrat signé)
       const { data: dossiersData, error } = await supabase
         .from('dossiers')
-        .select('*')
+        .select('*, transporteur:transporteurs(name)')
         .not('contract_signed_at', 'is', null)
         .not('status', 'eq', 'completed')
         .not('status', 'eq', 'cancelled')
@@ -460,6 +461,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
             contract_signed_at: d.contract_signed_at,
             created_at: d.created_at || new Date().toISOString(),
             transporteur_id: d.transporteur_id,
+            transporteur_name: (d as any).transporteur?.name || null,
             country_code: d.country_code || null,
             jours_avant_depart: joursAvant,
             total_paye: totalPaye,
@@ -1236,6 +1238,9 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
                     Statut
                   </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                    Transporteur
+                  </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">
                     Solde
                   </th>
@@ -1325,6 +1330,14 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
                         )}>
                           {statusInfo.label}
                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {/* Transporteur seulement si BPA confirmé */}
+                        {dossier.transporteur_name && dossier.bpa_received ? (
+                          <span className="text-sm font-medium text-gray-700">{dossier.transporteur_name}</span>
+                        ) : (
+                          <span className="text-xs text-gray-400">{dossier.transporteur_id ? 'BPA en attente' : '-'}</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right">
                         {dossier.solde_restant > 0 ? (

@@ -608,6 +608,19 @@ export function AdminDashboard() {
   // Statut d'affichage effectif d'un dossier (prochain jalon reel), pour
   // que le badge reflete l'avancement et non le champ status fige.
   const statutDe = (d: any) => computeStatutEffectif(d, allDemandesFournisseurs, voyageInfosMap[d.id])
+
+  // Fournisseurs dont le BPA est CONFIRME (etape 2). Le transporteur ne
+  // doit s'afficher que dans ce cas : avant confirmation, transporteur_id
+  // peut deja etre renseigne (devis / BPA envoye) mais l'engagement n'est
+  // pas acte, l'afficher serait faux.
+  const bpaConfirmeSet = useMemo(() => {
+    const s = new Set<string>()
+    for (const df of allDemandesFournisseurs as any[]) {
+      if (df.dossier_id && (df.bpa_received_at || df.status === 'bpa_received')) s.add(df.dossier_id)
+    }
+    return s
+  }, [allDemandesFournisseurs])
+  const bpaConfirmeDe = (d: any) => bpaConfirmeSet.has(d.id)
   const { data: paiementsFournisseurs = [] } = usePaiementsFournisseurs()
   const { data: unreadMessagesCount = 0 } = useUnreadMessagesCount()
   const updateDevisMain = useUpdateDevis()
@@ -1399,6 +1412,7 @@ export function AdminDashboard() {
                             key={dossier.id}
                             dossier={dossier}
                             statutEffectif={statutDe(dossier)}
+                            bpaConfirme={bpaConfirmeDe(dossier)}
                             onView={() => {
                               // Ouvrir directement le détail du dossier
                               handleSelectDossier(dossier)
@@ -1611,6 +1625,7 @@ export function AdminDashboard() {
               dossier={selectedDossier}
               transporteurs={transporteurs}
               statutEffectif={statutDe(selectedDossier)}
+              bpaConfirme={bpaConfirmeDe(selectedDossier)}
               onClose={handleCloseDossierDetail}
               onViewDevis={() => {
                 setCurrentPage('devis')
@@ -2001,7 +2016,7 @@ export function AdminDashboard() {
   )
 }
 
-function DossierRow({ dossier, onView, statutEffectif }: { dossier: DossierWithRelations; onView: () => void; statutEffectif?: string }) {
+function DossierRow({ dossier, onView, statutEffectif, bpaConfirme }: { dossier: DossierWithRelations; onView: () => void; statutEffectif?: string; bpaConfirme?: boolean }) {
   const contrat = Array.isArray(dossier.contrats) ? dossier.contrats[0] : dossier.contrats
   const isSigned = contrat?.signed_at
 
@@ -2043,12 +2058,12 @@ function DossierRow({ dossier, onView, statutEffectif }: { dossier: DossierWithR
       </td>
       <td className="px-4 py-3">{formatDate(dossier.departure_date)}</td>
       <td className="px-4 py-3">
-        {dossier.transporteur ? (
+        {dossier.transporteur && bpaConfirme ? (
           <span className="bg-purple text-white text-xs font-bold px-2 py-1 rounded" title={dossier.transporteur.number}>
             {dossier.transporteur.name}
           </span>
         ) : (
-          '-'
+          <span className="text-gray-400 text-xs">{dossier.transporteur ? 'BPA en attente' : '-'}</span>
         )}
       </td>
       <td className="px-4 py-3 font-semibold">{formatPrice(dossier.price_ttc || 0)}</td>
@@ -2067,7 +2082,7 @@ function DossierRow({ dossier, onView, statutEffectif }: { dossier: DossierWithR
   )
 }
 
-function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAutoDevis, isSelectable, isSelected, onToggleSelect, statutEffectif }: { dossier: DossierWithRelations; onSelect: () => void; onViewDevis: () => void; hasAutoDevis?: boolean; onCancelAutoDevis?: () => void; isSelectable?: boolean; isSelected?: boolean; onToggleSelect?: () => void; statutEffectif?: string }) {
+function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAutoDevis, isSelectable, isSelected, onToggleSelect, statutEffectif, bpaConfirme }: { dossier: DossierWithRelations; onSelect: () => void; onViewDevis: () => void; hasAutoDevis?: boolean; onCancelAutoDevis?: () => void; isSelectable?: boolean; isSelected?: boolean; onToggleSelect?: () => void; statutEffectif?: string; bpaConfirme?: boolean }) {
   // Calculer le prix à afficher : devis validé ou le moins cher des devis envoyés
   const devisAccepte = (dossier.devis || []).find((d: any) => d.status === 'accepted')
   const devisEnvoyes = (dossier.devis || []).filter((d: any) => d.status === 'sent' && d.price_ttc && d.price_ttc > 0)
@@ -2266,12 +2281,12 @@ function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAut
 
         {/* Transporteur */}
         <div>
-          {dossier.transporteur ? (
+          {dossier.transporteur && bpaConfirme ? (
             <span className="bg-purple text-white text-xs font-bold px-2 py-1 rounded" title={dossier.transporteur.number}>
               {dossier.transporteur.name}
             </span>
           ) : (
-            <span className="text-gray-400 text-sm">-</span>
+            <span className="text-gray-400 text-sm">{dossier.transporteur ? 'BPA en attente' : '-'}</span>
           )}
         </div>
 
@@ -3713,10 +3728,12 @@ function DossierDetailView({
   openEmailPreview,
   onEditDevis,
   statutEffectif,
+  bpaConfirme,
 }: {
   dossier: DossierWithRelations
   transporteurs: any[]
   statutEffectif?: string
+  bpaConfirme?: boolean
   onClose: () => void
   onViewDevis: () => void
   openEmailPreview: (data: EmailData, onSend?: () => void | Promise<void>) => void
@@ -6788,11 +6805,13 @@ L'équipe Busmoov`,
                 </select>
               ) : (
                 <p className="font-medium">
-                  {dossier.transporteur ? (
+                  {dossier.transporteur && bpaConfirme ? (
                     <span className="bg-purple text-white text-xs font-bold px-2 py-1 rounded">
                       {dossier.transporteur.number} - {dossier.transporteur.name}
                     </span>
-                  ) : '-'}
+                  ) : (
+                    <span className="text-gray-400">{dossier.transporteur ? 'BPA en attente de confirmation' : '-'}</span>
+                  )}
                 </p>
               )}
             </div>
@@ -9666,8 +9685,8 @@ L'équipe Busmoov`)
         }
       >
         <div className="space-y-4">
-          {/* Info transporteur */}
-          {dossier.transporteur && (
+          {/* Info transporteur — seulement si le BPA est confirmé */}
+          {dossier.transporteur && bpaConfirme && (
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
               <span className="bg-purple text-white text-xs font-bold px-2 py-1 rounded">
                 {dossier.transporteur.number}
@@ -11532,6 +11551,17 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
   const [filterType, setFilterType] = useState<string | null>(null)
   const [expandedTransporteurs, setExpandedTransporteurs] = useState<Set<string>>(new Set())
+
+  // Dossiers dont le BPA fournisseur est confirme : les stats par
+  // transporteur ne comptent que ceux-la (engagement reellement acte).
+  const { data: allDemandesFournisseursStats = [] } = useAllDemandesFournisseurs()
+  const bpaConfirmeSet = useMemo(() => {
+    const s = new Set<string>()
+    for (const df of allDemandesFournisseursStats as any[]) {
+      if (df.dossier_id && (df.bpa_received_at || df.status === 'bpa_received')) s.add(df.dossier_id)
+    }
+    return s
+  }, [allDemandesFournisseursStats])
   const [showPaiementFournisseurModal, setShowPaiementFournisseurModal] = useState(false)
   const [selectedTransporteurForPayment, setSelectedTransporteurForPayment] = useState<any>(null)
   const [paiementFournisseurForm, setPaiementFournisseurForm] = useState({
@@ -11761,7 +11791,9 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
     }> = {}
 
     filteredDossiers.forEach(d => {
-      if (d.transporteur_id && d.transporteur) {
+      // Ne compter un dossier pour un transporteur que si son BPA est
+      // confirme : avant, l'engagement fournisseur n'est pas acte.
+      if (d.transporteur_id && d.transporteur && bpaConfirmeSet.has(d.id)) {
         const tid = d.transporteur_id
         if (!byTransporteur[tid]) {
           byTransporteur[tid] = {
@@ -11805,7 +11837,7 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
     })
 
     return Object.values(byTransporteur).sort((a, b) => b.totalCA - a.totalCA)
-  }, [filteredDossiers, paiementsFournisseurs])
+  }, [filteredDossiers, paiementsFournisseurs, bpaConfirmeSet])
 
   // Dossiers détaillés par transporteur (pour la section "Détail des dossiers vendus")
   const dossiersByTransporteur = useMemo(() => {
