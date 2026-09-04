@@ -2469,8 +2469,20 @@ export async function generateFacturePDF(facture: FactureData, lang: string = 'f
 
   y += 14
 
-  // Type de facture (Acompte / Solde / Avoir)
-  const factureTypeLabel = facture.type === 'acompte' ? `${t.deposit} (30%)` : facture.type === 'solde' ? t.balance : t.creditNote
+  // Ratio REEL de la facture (montant / total dossier), pas un 30/70 en dur.
+  // Un acompte couvrant 100 % est une « Facture » (pas d'acompte, ratio 1).
+  const totalDossierTTC = facture.dossier?.total_ttc || 0
+  const isFullFacture = facture.type === 'acompte' && totalDossierTTC > 0
+    && Math.abs(facture.amount_ttc) >= totalDossierTTC - 0.01
+  const factureRatio = totalDossierTTC > 0
+    ? Math.min(1, Math.abs(facture.amount_ttc) / totalDossierTTC)
+    : (facture.type === 'acompte' ? 0.3 : facture.type === 'solde' ? 0.7 : 1)
+  const facturePct = Math.round(factureRatio * 100)
+
+  // Type de facture (Acompte X% / Solde / Facture / Avoir)
+  const factureTypeLabel = isFullFacture
+    ? t.transportService
+    : facture.type === 'acompte' ? `${t.deposit} (${facturePct}%)` : facture.type === 'solde' ? t.balance : t.creditNote
 
   doc.setFontSize(11)
   doc.setTextColor(233, 30, 140) // Magenta
@@ -2569,8 +2581,8 @@ export async function generateFacturePDF(facture: FactureData, lang: string = 'f
   const hasOptions = facture.options_lignes && facture.options_lignes.length > 0 && facture.base_price_ttc
 
   if (hasOptions && facture.base_price_ttc) {
-    // Calculer les montants proportionnels (30% ou 70%)
-    const ratio = facture.type === 'acompte' ? 0.3 : facture.type === 'solde' ? 0.7 : 1
+    // Montants proportionnels au ratio REEL de la facture.
+    const ratio = factureRatio
 
     // Ligne 1: Transport
     const basePriceHT = Math.round((facture.base_price_ttc / (1 + tvaRate / 100)) * 100) / 100
@@ -2579,7 +2591,7 @@ export async function generateFacturePDF(facture: FactureData, lang: string = 'f
     const displayTransportHT = isAvoir ? `-${formatAmount(Math.abs(prixUnitTransportHT))}` : formatAmount(prixUnitTransportHT)
     const displayTotalTransportHT = isAvoir ? `-${formatAmount(Math.abs(transportHT))}` : formatAmount(transportHT)
 
-    const prefixLabel = facture.type === 'acompte' ? `${t.depositPercent} 30% - ` : facture.type === 'solde' ? `${t.balancePercent} 70% - ` : isAvoir ? `${t.creditNote} - ` : ''
+    const prefixLabel = isFullFacture ? '' : facture.type === 'acompte' ? `${t.depositPercent} ${facturePct}% - ` : facture.type === 'solde' ? `${t.balancePercent} ${facturePct}% - ` : isAvoir ? `${t.creditNote} - ` : ''
     doc.setFontSize(8)
     doc.text(`${prefixLabel}${t.transportService}`, 17, y)
     doc.text(`${nombreCars}`, 97, y)
@@ -2601,19 +2613,17 @@ export async function generateFacturePDF(facture: FactureData, lang: string = 'f
   } else {
     // Affichage classique sans options
     let trajetDescFacture = t.transportService
-    if (facture.type === 'acompte') {
+    if (isFullFacture) {
+      trajetDescFacture = t.transportService
+    } else if (facture.type === 'acompte') {
       const totalTTC = facture.dossier?.total_ttc
-      if (totalTTC) {
-        trajetDescFacture = `${t.depositPercent} 30% - ${t.transportService} (${t.totalTTCLabel} : ${formatAmount(totalTTC)} €)`
-      } else {
-        trajetDescFacture = `${t.depositPercent} 30% - ${t.transportService}`
-      }
+      trajetDescFacture = totalTTC
+        ? `${t.depositPercent} ${facturePct}% - ${t.transportService} (${t.totalTTCLabel} : ${formatAmount(totalTTC)} €)`
+        : `${t.depositPercent} ${facturePct}% - ${t.transportService}`
     } else if (facture.type === 'solde') {
-      if (facture.facture_acompte) {
-        trajetDescFacture = `${t.balancePercent} 70% - ${t.transportService} (${t.depositRefLabel} ${facture.facture_acompte.reference} : ${formatAmount(facture.facture_acompte.amount_ttc)} € TTC)`
-      } else {
-        trajetDescFacture = `${t.balancePercent} 70% - ${t.transportService}`
-      }
+      trajetDescFacture = facture.facture_acompte
+        ? `${t.balancePercent} ${facturePct}% - ${t.transportService} (${t.depositRefLabel} ${facture.facture_acompte.reference} : ${formatAmount(facture.facture_acompte.amount_ttc)} € TTC)`
+        : `${t.balancePercent} ${facturePct}% - ${t.transportService}`
     } else if (isAvoir) {
       trajetDescFacture = t.creditNoteDesc
     }
@@ -2913,8 +2923,20 @@ export async function generateFacturePDFBase64(facture: FactureData, lang: strin
 
   y += 14
 
-  // Type de facture (Acompte / Solde / Avoir)
-  const factureTypeLabel = facture.type === 'acompte' ? `${t.deposit} (30%)` : facture.type === 'solde' ? t.balance : t.creditNote
+  // Ratio REEL de la facture (montant / total dossier), pas un 30/70 en dur.
+  // Un acompte couvrant 100 % est une « Facture » (pas d'acompte, ratio 1).
+  const totalDossierTTC = facture.dossier?.total_ttc || 0
+  const isFullFacture = facture.type === 'acompte' && totalDossierTTC > 0
+    && Math.abs(facture.amount_ttc) >= totalDossierTTC - 0.01
+  const factureRatio = totalDossierTTC > 0
+    ? Math.min(1, Math.abs(facture.amount_ttc) / totalDossierTTC)
+    : (facture.type === 'acompte' ? 0.3 : facture.type === 'solde' ? 0.7 : 1)
+  const facturePct = Math.round(factureRatio * 100)
+
+  // Type de facture (Acompte X% / Solde / Facture / Avoir)
+  const factureTypeLabel = isFullFacture
+    ? t.transportService
+    : facture.type === 'acompte' ? `${t.deposit} (${facturePct}%)` : facture.type === 'solde' ? t.balance : t.creditNote
 
   doc.setFontSize(11)
   doc.setTextColor(233, 30, 140) // Magenta

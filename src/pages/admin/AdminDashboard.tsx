@@ -16351,7 +16351,10 @@ function FacturesPage() {
 
   // Ouvrir la modale d'envoi de facture par email
   const openEnvoiFactureModal = (facture: any) => {
-    const typeFacture = facture.type === 'acompte' ? "d'acompte" : facture.type === 'solde' ? 'de solde' : "d'avoir"
+    // Libellé correct : un acompte couvrant 100 % est une « Facture », pas une
+    // « facture d'acompte ».
+    const libelle = libelleFacture(facture.type, facture.amount_ttc || 0, facture.dossier?.price_ttc || 0)
+    const libelleMin = libelle.toLowerCase()
     const clientName = facture.dossier?.client_name || facture.client_name || ''
     const clientEmail = facture.dossier?.client_email || ''
     const dossierRef = facture.dossier?.reference || ''
@@ -16359,10 +16362,10 @@ function FacturesPage() {
     setSelectedFactureForEmail(facture)
     setEnvoiFactureForm({
       to: clientEmail,
-      subject: `Votre facture ${typeFacture} - ${facture.reference}`,
+      subject: `Votre ${libelleMin} - ${facture.reference}`,
       body: `Bonjour ${clientName},
 
-Veuillez trouver ci-joint votre facture ${typeFacture} n°${facture.reference} d'un montant de ${formatPrice(facture.amount_ttc)} TTC pour votre dossier ${dossierRef}.
+Veuillez trouver ci-joint votre ${libelleMin} n°${facture.reference} d'un montant de ${formatPrice(facture.amount_ttc)} TTC pour votre dossier ${dossierRef}.
 
 Nous restons à votre disposition pour toute question.
 
