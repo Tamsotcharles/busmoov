@@ -15763,7 +15763,7 @@ function FacturesPage() {
         .from('factures')
         .select(`
           *,
-          dossier:dossiers(reference, client_name, client_email, departure, arrival, departure_date, passengers),
+          dossier:dossiers(reference, client_name, client_email, departure, arrival, departure_date, passengers, price_ttc),
           contrat:contrats(reference)
         `)
         .order('created_at', { ascending: false })
@@ -16076,6 +16076,19 @@ function FacturesPage() {
 
       const reference = await generateFactureReference()
 
+      // Statut initial : si le dossier est déjà couvert par les paiements reçus
+      // (règlement encaissé avant l'émission), la facture est directement payée
+      // — sinon elle reste "en attente" d'encaissement.
+      const payeDossier = (paiementsClients as any[])
+        .filter((p) => p.dossier_id === selectedDossier.id)
+        .reduce((s, p) => s + (p.amount || 0), 0)
+      const dejaFactureDossier = (selectedDossier.factures || [])
+        .filter((f: any) => f.type !== 'avoir' && f.status !== 'cancelled')
+        .reduce((s: number, f: any) => s + (f.amount_ttc || 0), 0)
+      const statutFacture = factureForm.type !== 'avoir' && payeDossier >= dejaFactureDossier + finalAmountTTC - 0.01
+        ? 'paid'
+        : 'generated'
+
       // Utiliser les infos client du formulaire ou celles du dossier
       const clientName = factureForm.client_name || selectedDossier.client_name || ''
       const clientAddress = factureForm.client_address || selectedDossier.billing_address || ''
@@ -16094,7 +16107,8 @@ function FacturesPage() {
           amount_ttc: finalAmountTTC,
           amount_tva: amountTVA,
           tva_rate: tvaRate,
-          status: 'generated',
+          status: statutFacture,
+          paid_at: statutFacture === 'paid' ? new Date().toISOString() : null,
           client_name: clientName,
           client_address: clientAddress,
           client_zip: clientZip,
@@ -16154,10 +16168,10 @@ function FacturesPage() {
         }
       }
 
-      // Générer et télécharger le PDF
+      // Données PDF (réutilisées pour le téléchargement ET l'envoi email)
       const countryCodeNewFacture = selectedDossier.country_code || 'FR'
       const pdfLangNewFacture = countryCodeNewFacture === 'DE' ? 'de' : countryCodeNewFacture === 'ES' ? 'es' : countryCodeNewFacture === 'GB' ? 'en' : 'fr'
-      await generateFacturePDF({
+      const factureDataForPdf = {
         reference,
         type: factureForm.type,
         amount_ht: amountHT,
@@ -16184,10 +16198,38 @@ function FacturesPage() {
           total_ttc: prixTTC,
         },
         facture_acompte: factureAcompte,
-      }, pdfLangNewFacture)
+      }
+      // Télécharger le PDF
+      await generateFacturePDF(factureDataForPdf, pdfLangNewFacture)
 
-      // Note: L'envoi par email se fait via le bouton "Envoyer" sur la facture générée
-      // car il faut d'abord générer le PDF en base64 pour l'attacher à l'email
+      // Envoi automatique au client si la case « Envoyer par email » est cochée.
+      if (factureForm.sendEmail && selectedDossier.client_email) {
+        try {
+          const libelle = libelleFacture(factureForm.type, finalAmountTTC, prixTTC)
+          const { base64, filename } = await generateFacturePDFBase64(factureDataForPdf, pdfLangNewFacture)
+          await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'custom',
+              to: selectedDossier.client_email,
+              subject: `${libelle} ${reference} — Dossier ${selectedDossier.reference}`,
+              html_content:
+                `<p>Bonjour ${clientName || ''},</p>` +
+                `<p>Veuillez trouver ci-joint votre ${libelle.toLowerCase()} <strong>${reference}</strong> pour le dossier ${selectedDossier.reference}.</p>` +
+                `<p>Cordialement,<br>L'équipe Busmoov</p>`,
+              data: { dossier_id: selectedDossier.id, language: pdfLangNewFacture },
+              attachments: [{ filename, content: base64, contentType: 'application/pdf' }],
+            },
+          })
+          await supabase.from('timeline').insert({
+            dossier_id: selectedDossier.id,
+            type: 'email',
+            content: `📄 ${libelle} ${reference} envoyée automatiquement à ${selectedDossier.client_email}`,
+          })
+        } catch (mailErr) {
+          console.error('Envoi automatique de la facture échoué:', mailErr)
+          alert("La facture a été générée mais l'envoi par email a échoué. Utilisez le bouton ✉ pour réessayer.")
+        }
+      }
 
       // Recharger les données
       loadFactures()
@@ -16476,9 +16518,24 @@ L'équipe Busmoov`,
   const totalAcomptes = factures.filter(f => f.type === 'acompte' && f.status !== 'cancelled').reduce((sum, f) => sum + (f.amount_ttc || 0), 0)
   const totalSoldes = factures.filter(f => f.type === 'solde' && f.status !== 'cancelled').reduce((sum, f) => sum + (f.amount_ttc || 0), 0)
   const totalAvoirs = factures.filter(f => f.type === 'avoir').reduce((sum, f) => sum + (f.amount_ttc || 0), 0) // Valeur négative
-  // À encaisser = factures non payées et non annulées (minimum 0, jamais négatif)
-  const facturesNonPayees = factures.filter(f => f.status !== 'paid' && f.status !== 'cancelled' && f.type !== 'avoir').reduce((sum, f) => sum + (f.amount_ttc || 0), 0)
-  const totalNonPayees = Math.max(0, facturesNonPayees) // Jamais négatif
+  // À encaisser = facturé (hors avoir/annulé) − déjà encaissé, PAR DOSSIER,
+  // clampé ≥ 0. On se base sur l'argent réellement reçu (table paiements), pas
+  // sur facture.status : un règlement encaissé avant l'émission de la facture
+  // (fréquent) doit réduire le « à encaisser », même si la facture reste
+  // « en attente » côté document.
+  const factureParDossier = new Map<string, number>()
+  for (const f of factures) {
+    if (f.type === 'avoir' || f.status === 'cancelled') continue
+    factureParDossier.set(f.dossier_id, (factureParDossier.get(f.dossier_id) || 0) + (f.amount_ttc || 0))
+  }
+  const payeParDossier = new Map<string, number>()
+  for (const p of paiementsClients) {
+    payeParDossier.set(p.dossier_id, (payeParDossier.get(p.dossier_id) || 0) + (p.amount || 0))
+  }
+  let totalNonPayees = 0
+  for (const [dossierId, montantFacture] of factureParDossier) {
+    totalNonPayees += Math.max(0, montantFacture - (payeParDossier.get(dossierId) || 0))
+  }
 
   // Calcul TVA encaissée (sur les paiements clients reçus, filtrés par période)
   const paiementsClientsFiltres = paiementsClients.filter(p => {
@@ -16932,9 +16989,7 @@ L'équipe Busmoov`,
                       facture.type === 'solde' && "bg-blue-100 text-blue-700",
                       facture.type === 'avoir' && "bg-red-100 text-red-700"
                     )}>
-                      {facture.type === 'acompte' && 'Acompte'}
-                      {facture.type === 'solde' && 'Solde'}
-                      {facture.type === 'avoir' && 'Avoir'}
+                      {libelleFacture(facture.type, facture.amount_ttc || 0, (facture as any).dossier?.price_ttc || 0)}
                     </span>
                   </td>
                   <td className="p-4">
