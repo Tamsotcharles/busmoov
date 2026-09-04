@@ -4857,6 +4857,12 @@ L'équipe Busmoov`
       const clientZip = factureForm.client_zip || dossier.billing_zip || ''
       const clientCity = factureForm.client_city || dossier.billing_city || ''
 
+      // Statut : "paid" si le dossier est déjà couvert par les paiements reçus.
+      const totalPayeDossier = (paiements || []).reduce((s: number, p: any) => s + (p.amount || 0), 0)
+      const statutFacture = factureForm.type !== 'avoir' && totalPayeDossier >= factuInfo.dejaFacture + finalAmountTTC - 0.01
+        ? 'paid'
+        : 'generated'
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (createFacture as any).mutateAsync({
         dossier_id: dossier.id,
@@ -4867,7 +4873,8 @@ L'équipe Busmoov`
         amount_ttc: finalAmountTTC,
         amount_tva: amountTVA,
         tva_rate: tvaRate,
-        status: 'generated',
+        status: statutFacture,
+        paid_at: statutFacture === 'paid' ? new Date().toISOString() : null,
         client_name: clientName,
         client_address: clientAddress,
         client_zip: clientZip,
