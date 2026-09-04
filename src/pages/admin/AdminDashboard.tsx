@@ -509,7 +509,7 @@ export function AdminDashboard() {
   // Les filtres croisés (calculés cote client sur plusieurs dimensions) ne
   // sont pas des statuts Supabase : useDossiers ne doit pas les passer comme
   // status, sinon il ne trouverait rien.
-  const crossFilters = ['x-pending-payment', 'x-pending-reservation', 'x-pending-info', 'x-infos-to-validate', 'x-pending-driver']
+  const crossFilters = ['x-pending-payment', 'x-pending-solde', 'x-pending-reservation', 'x-pending-info', 'x-infos-to-validate', 'x-pending-driver']
   const specialFilters = ['flash-active', 'facture-fournisseur-pending', 'signed-only', ...crossFilters]
   const { data: dossiers = [], isLoading: dossiersLoading } = useDossiers({
     status: statusFilter && !specialFilters.includes(statusFilter) ? statusFilter : undefined,
@@ -569,6 +569,12 @@ export function AdminDashboard() {
     return {
       // Signé, acompte (ou totalité) pas encore reçu.
       pendingPayment: (d: any) => isSigned(d) && !isClosed(d) && montantRecu(d) < acompteRequis(d),
+      // Signé, acompte acquis mais le prix total n'est pas encore soldé.
+      // (acompteRequis ≤ reçu < prix total)
+      pendingSolde: (d: any) =>
+        isSigned(d) && !isClosed(d) &&
+        montantRecu(d) >= acompteRequis(d) &&
+        montantRecu(d) < (d.price_ttc || 0),
       // Signé, aucun fournisseur en BPA confirmé — quel que soit le paiement.
       pendingReservation: (d: any) => isSigned(d) && !isClosed(d) && !bpaConfirmeByDossier.has(d.id),
       // Signé, le client n'a pas encore transmis ses infos voyage.
@@ -599,6 +605,7 @@ export function AdminDashboard() {
   // par le statut selectionne, il ne convient pas pour les totaux).
   const crossStats = useMemo(() => ({
     pendingPayment: allDossiers.filter(cardPredicates.pendingPayment).length,
+    pendingSolde: allDossiers.filter(cardPredicates.pendingSolde).length,
     pendingReservation: allDossiers.filter(cardPredicates.pendingReservation).length,
     pendingInfo: allDossiers.filter(cardPredicates.pendingInfo).length,
     infosToValidate: allDossiers.filter(cardPredicates.infosToValidate).length,
@@ -879,6 +886,7 @@ export function AdminDashboard() {
       // Filtres croisés des cards (conditions multi-dimensions).
       const matchesCross =
         statusFilter === 'x-pending-payment' ? cardPredicates.pendingPayment(d)
+        : statusFilter === 'x-pending-solde' ? cardPredicates.pendingSolde(d)
         : statusFilter === 'x-pending-reservation' ? cardPredicates.pendingReservation(d)
         : statusFilter === 'x-pending-info' ? cardPredicates.pendingInfo(d)
         : statusFilter === 'x-infos-to-validate' ? cardPredicates.infosToValidate(d)
@@ -946,6 +954,7 @@ export function AdminDashboard() {
     { label: 'Nouveaux', value: stats?.new || 0, icon: Plus, color: 'cyan', filter: 'new' },
     { label: 'Att. client', value: stats?.pendingClient || 0, icon: Clock, color: 'orange', filter: 'pending-client' },
     { label: 'Att. paiement', value: crossStats.pendingPayment, icon: Euro, color: 'amber', filter: 'x-pending-payment' },
+    { label: 'Att. solde', value: crossStats.pendingSolde, icon: Euro, color: 'yellow', filter: 'x-pending-solde' },
     { label: 'Att. résa', value: crossStats.pendingReservation, icon: ShieldCheck, color: 'violet', filter: 'x-pending-reservation' },
     { label: 'Att. infos', value: crossStats.pendingInfo, icon: FileText, color: 'purple', filter: 'x-pending-info' },
     { label: 'Infos à valider', value: crossStats.infosToValidate, icon: CheckCircle, color: 'teal', filter: 'x-infos-to-validate' },
@@ -1061,6 +1070,7 @@ export function AdminDashboard() {
                     <option value="quotes_sent">📤 Devisé</option>
                     <option value="pending-client">⏳ Att. retour client</option>
                     <option value="x-pending-payment">💳 Att. paiement</option>
+                    <option value="x-pending-solde">💶 Att. solde</option>
                     <option value="x-pending-reservation">🔒 Att. résa</option>
                     <option value="x-pending-info">📝 Att. infos</option>
                     <option value="x-infos-to-validate">📋 Infos à valider</option>
@@ -1449,6 +1459,7 @@ export function AdminDashboard() {
                     <option value="quotes_sent">Devisé</option>
                     <option value="pending-client">Att. retour client</option>
                     <option value="x-pending-payment">Att. paiement</option>
+                    <option value="x-pending-solde">Att. solde</option>
                     <option value="x-pending-reservation">Att. résa</option>
                     <option value="x-pending-info">Att. infos</option>
                     <option value="x-infos-to-validate">Infos à valider</option>

@@ -56,6 +56,7 @@ interface DossierRelance {
   jours_avant_depart: number
   total_paye: number
   solde_restant: number
+  acompte_requis: number
   derniere_relance: string | null
   nb_relances: number
   // Chauffeur fields
@@ -113,9 +114,9 @@ const REQUETES_PREDEFINIES: RequetePredefinie[] = [
     priority: 'high',
     actionType: 'solde',
     filter: (d) => {
-      // Solde = acompte déjà encaissé (total_paye > 0) et il reste le solde.
+      // Solde = acompte requis acquis, il reste le solde du prix total.
       const joursAvant = d.jours_avant_depart
-      return d.total_paye > 0 && d.solde_restant > 0 && joursAvant >= 0 && joursAvant <= 45
+      return d.total_paye >= d.acompte_requis && d.solde_restant > 0 && joursAvant >= 0 && joursAvant <= 45
     },
   },
   {
@@ -129,7 +130,7 @@ const REQUETES_PREDEFINIES: RequetePredefinie[] = [
     filter: (d) => {
       // Idem solde urgent, fenêtre 45-60 j.
       const joursAvant = d.jours_avant_depart
-      return d.total_paye > 0 && d.solde_restant > 0 && joursAvant > 45 && joursAvant <= 60
+      return d.total_paye >= d.acompte_requis && d.solde_restant > 0 && joursAvant > 45 && joursAvant <= 60
     },
   },
   {
@@ -142,8 +143,8 @@ const REQUETES_PREDEFINIES: RequetePredefinie[] = [
     actionType: 'acompte',
     filter: (d) => {
       // Basé sur le paiement réel, pas sur le statut brut (souvent figé).
-      // Signé + rien encaissé + reste à payer = stade « paiement en attente ».
-      return !!d.contract_signed_at && d.total_paye === 0 && d.solde_restant > 0
+      // Acompte requis pas encore couvert (un règlement partiel ne suffit pas).
+      return !!d.contract_signed_at && d.total_paye < d.acompte_requis
     },
   },
   {
@@ -477,6 +478,10 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
             jours_avant_depart: joursAvant,
             total_paye: totalPaye,
             solde_restant: soldeRestant,
+            // Acompte requis : montant fige a la signature (100% si depart
+            // proche, 30% standard). Sert a distinguer « en attente d'acompte »
+            // de « en attente de solde ».
+            acompte_requis: (d as any).acompte_amount ?? Math.round((d.price_ttc || 0) * 0.3),
             derniere_relance: relanceInfo?.date || null,
             nb_relances: relanceInfo?.count || 0,
             // Chauffeur fields
@@ -776,9 +781,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
       status: dossier.status,
       contractSignedAt: dossier.contract_signed_at,
       montantPaye: dossier.total_paye || 0,
-      // Pas d'acompte_amount ici : approximation a 30% (le badge reste juste
-      // pour distinguer paye / non paye).
-      acompteRequis: Math.round((dossier.price_ttc || 0) * 0.3),
+      acompteRequis: dossier.acompte_requis,
       hasBpaConfirme: dossier.bpa_received,
       hasInfosClient: dossier.voyage_info_validated,
       infosValidees: dossier.voyage_info_validated,
