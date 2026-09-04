@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo/Seo'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Phone, Mail, MapPin, Clock, MessageCircle, Send, CheckCircle } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
@@ -101,6 +102,7 @@ export function ContactPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header showAdminLink={false} />
+      <Seo page="contact" />
 
       <main className="pt-24 pb-16">
         {/* Hero */}

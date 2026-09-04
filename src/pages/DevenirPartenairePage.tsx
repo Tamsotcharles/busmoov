@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo/Seo'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Send, Building2, Users, TrendingUp, Shield, CheckCircle, Truck } from 'lucide-react'
@@ -147,6 +148,7 @@ export function DevenirPartenairePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header showAdminLink={false} />
+      <Seo page="devenir-partenaire" />
 
       <main className="pt-24 pb-16">
         {/* Hero */}

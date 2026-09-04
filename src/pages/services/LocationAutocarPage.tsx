@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo/Seo'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { Link } from 'react-router-dom'
@@ -74,6 +75,7 @@ export function LocationAutocarPage() {
   return (
     <div className="min-h-screen">
       <Header />
+      <Seo page="location-autocar" jsonLdPreset="service" />
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">

@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://www.busmoov.com/fr</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/es</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/de</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/en</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/fr/services/location-autocar</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-autocar"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/es/services/location-autocar</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-autocar"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/de/services/location-autocar</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-autocar"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/en/services/location-autocar</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/location-autocar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-autocar"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/fr/services/location-minibus</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-minibus"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/es/services/location-minibus</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-minibus"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/de/services/location-minibus</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-minibus"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/en/services/location-minibus</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/location-minibus"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-minibus"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/fr/services/transfert-aeroport</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/transfert-aeroport"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/es/services/transfert-aeroport</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/transfert-aeroport"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/de/services/transfert-aeroport</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/transfert-aeroport"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/en/services/transfert-aeroport</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/transfert-aeroport"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/transfert-aeroport"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/fr/services/sorties-scolaires</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/sorties-scolaires"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/es/services/sorties-scolaires</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/sorties-scolaires"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/de/services/sorties-scolaires</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/sorties-scolaires"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/en/services/sorties-scolaires</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/sorties-scolaires"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/sorties-scolaires"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/fr/a-propos</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/a-propos"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/es/a-propos</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/a-propos"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/de/a-propos</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/a-propos"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/en/a-propos</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/a-propos"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/a-propos"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/fr/contact</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/contact"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/contact"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/contact"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/contact"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/es/contact</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/contact"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/contact"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/contact"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/contact"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/de/contact</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/contact"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/contact"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/contact"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/contact"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/en/contact</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/contact"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/contact"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/contact"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/contact"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/fr/devenir-partenaire</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/devenir-partenaire"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/es/devenir-partenaire</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/devenir-partenaire"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/de/devenir-partenaire</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/devenir-partenaire"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/en/devenir-partenaire</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/devenir-partenaire"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/devenir-partenaire"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/fr/cgv</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/cgv"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/cgv"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/cgv"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/cgv"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/cgv"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/es/cgv</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/cgv"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/cgv"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/cgv"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/cgv"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/cgv"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/de/cgv</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/cgv"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/cgv"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/cgv"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/cgv"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/cgv"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/en/cgv</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/cgv"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/cgv"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/cgv"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/cgv"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/cgv"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/fr/mentions-legales</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/mentions-legales"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/es/mentions-legales</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/mentions-legales"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/de/mentions-legales</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/mentions-legales"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/en/mentions-legales</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/mentions-legales"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/mentions-legales"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/fr/confidentialite</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/confidentialite"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/es/confidentialite</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/confidentialite"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/de/confidentialite</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/confidentialite"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/en/confidentialite</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/confidentialite"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/confidentialite"/>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+</urlset>

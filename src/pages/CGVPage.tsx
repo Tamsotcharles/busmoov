@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo/Seo'
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, FileText, Calendar } from 'lucide-react'
@@ -119,6 +120,7 @@ export function CGVPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header showAdminLink={false} />
+      <Seo page="cgv" />
 
       <main className="pt-24 pb-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

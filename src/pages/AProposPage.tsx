@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo/Seo'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Award, Users, MapPin, Clock, Shield, Heart, Bus, Star, CheckCircle } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
@@ -41,6 +42,7 @@ export function AProposPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header showAdminLink={false} />
+      <Seo page="a-propos" />
 
       <main className="pt-24 pb-16">
         {/* Hero */}

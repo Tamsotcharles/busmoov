@@ -1,2 +1,15 @@
 User-agent: *
-Disallow: /
+Allow: /
+
+# Espaces privés (admin, client, fournisseur, tunnel de paiement)
+Disallow: /admin
+Disallow: /*/mes-devis
+Disallow: /*/infos-voyage
+Disallow: /*/paiement
+Disallow: /*/recapitulatif
+Disallow: /*/espace-client
+Disallow: /*/avis
+Disallow: /*/validation-bpa
+Disallow: /*/fournisseur/
+
+Sitemap: https://www.busmoov.com/sitemap.xml

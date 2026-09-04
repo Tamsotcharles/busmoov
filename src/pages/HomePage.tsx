@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo/Seo'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Header } from '@/components/layout/Header'
@@ -129,6 +130,7 @@ export function HomePage() {
   return (
     <div className="min-h-screen">
       <Header />
+      <Seo page="home" jsonLdPreset="organization" />
 
       {/* Hero Section */}
       <section className="min-h-screen flex items-center pt-24 pb-16 px-4 relative overflow-hidden" id="quote">
