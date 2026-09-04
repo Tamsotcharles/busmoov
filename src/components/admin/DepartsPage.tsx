@@ -22,7 +22,7 @@ import {
   Copy,
   ExternalLink,
 } from 'lucide-react'
-import { formatDate, cn } from '@/lib/utils'
+import { formatDate, cn, etatFournisseur, labelEtatFournisseur } from '@/lib/utils'
 
 interface DepartData {
   id: string
@@ -46,6 +46,7 @@ interface DepartData {
   // Transporteur
   transporteur_id: string | null
   transporteur_name: string | null
+  etat_frs: 'confirme' | 'attente_bpa' | 'attente_validate'
   transporteur_phone: string | null
   transporteur_email: string | null
   astreinte_tel: string | null
@@ -200,15 +201,18 @@ export function DepartsPage({ onViewDossier }: { onViewDossier: (id: string) => 
       // BPA CONFIRME : le transporteur ne s'affiche que dans ce cas.
       const dossierIds = dossiers.map(d => d.id)
       const bpaConfirmeSet = new Set<string>()
+      const demandesFrsParDossier = new Map<string, { status?: string | null; bpa_received_at?: string | null }[]>()
       const { data: demandesBpa } = await supabase
         .from('demandes_fournisseurs')
         .select('dossier_id, status, bpa_received_at')
         .in('dossier_id', dossierIds)
       if (demandesBpa) {
         for (const df of demandesBpa as any[]) {
-          if (df.dossier_id && (df.bpa_received_at || df.status === 'bpa_received')) {
-            bpaConfirmeSet.add(df.dossier_id)
-          }
+          if (!df.dossier_id) continue
+          if (df.bpa_received_at || df.status === 'bpa_received') bpaConfirmeSet.add(df.dossier_id)
+          const arr = demandesFrsParDossier.get(df.dossier_id) || []
+          arr.push(df)
+          demandesFrsParDossier.set(df.dossier_id, arr)
         }
       }
 
@@ -252,6 +256,7 @@ export function DepartsPage({ onViewDossier }: { onViewDossier: (id: string) => 
           // Nom du transporteur seulement si le BPA est confirmé (sinon
           // l'engagement n'est pas acté, l'afficher serait faux).
           transporteur_name: (transporteur && bpaConfirmeSet.has(d.id)) ? transporteur.name : null,
+          etat_frs: etatFournisseur(demandesFrsParDossier.get(d.id) || []),
           transporteur_phone: transporteur?.phone || null,
           transporteur_email: transporteur?.email || null,
           astreinte_tel: transporteur?.astreinte_tel || null,
@@ -819,7 +824,7 @@ function DepartCard({
               )}
             </>
           ) : (
-            <span className="text-gray-400 italic">{depart.transporteur_id ? 'BPA en attente' : 'Pas de transporteur'}</span>
+            <span className="text-gray-400 italic">{labelEtatFournisseur(depart.etat_frs) || 'Pas de transporteur'}</span>
           )}
         </div>
       </div>
@@ -1044,7 +1049,7 @@ function DepartDetailModal({
               </div>
             ) : (
               <div className="bg-gray-50 rounded-lg p-3 text-center text-gray-500">
-                {depart.transporteur_id ? 'BPA en attente de confirmation' : 'Pas de transporteur assigné'}
+                {labelEtatFournisseur(depart.etat_frs) || 'Pas de transporteur assigné'}
               </div>
             )}
           </div>

@@ -244,6 +244,30 @@ export function getStatutEffectif(params: {
 }
 
 /**
+ * État de la relation fournisseur d'un dossier, en 3 temps (cf. le BPA en
+ * 2 étapes) :
+ *  - 'attente_validate' : aucun fournisseur validé — l'admin n'a pas encore
+ *    envoyé de BPA ;
+ *  - 'attente_bpa' : un fournisseur a été validé (BPA envoyé), il n'a pas
+ *    encore reconfirmé sa disponibilité ;
+ *  - 'confirme' : un fournisseur a confirmé son BPA (engagement acté).
+ */
+export function etatFournisseur(
+  demandes: { status?: string | null; bpa_received_at?: string | null }[],
+): 'confirme' | 'attente_bpa' | 'attente_validate' {
+  if (demandes.some((d) => d.bpa_received_at || d.status === 'bpa_received')) return 'confirme'
+  if (demandes.some((d) => d.status === 'validated')) return 'attente_bpa'
+  return 'attente_validate'
+}
+
+/** Libellé d'attente fournisseur (le nom est affiché quand 'confirme'). */
+export function labelEtatFournisseur(etat: 'confirme' | 'attente_bpa' | 'attente_validate'): string {
+  if (etat === 'attente_bpa') return 'En attente de BPA'
+  if (etat === 'attente_validate') return 'En attente de validation'
+  return ''
+}
+
+/**
  * Calcule le statut effectif d'un dossier à partir de ses objets liés
  * (paiements, demandes fournisseurs, infos voyage). Wrapper pratique
  * autour de getStatutEffectif pour les vues admin.

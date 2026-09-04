@@ -29,7 +29,7 @@ import {
   Truck,
   Paperclip,
 } from 'lucide-react'
-import { formatDate, formatPrice, cn, generateInfosVoyageUrl, generatePaymentUrl, generateClientAccessUrl, getLanguageFromCountry, getSiteBaseUrl, getStatutEffectif } from '@/lib/utils'
+import { formatDate, formatPrice, cn, generateInfosVoyageUrl, generatePaymentUrl, generateClientAccessUrl, getLanguageFromCountry, getSiteBaseUrl, getStatutEffectif, etatFournisseur, labelEtatFournisseur } from '@/lib/utils'
 import { Modal } from '@/components/ui/Modal'
 
 // Types
@@ -50,6 +50,7 @@ interface DossierRelance {
   created_at: string
   transporteur_id: string | null
   transporteur_name?: string | null
+  etat_frs?: 'confirme' | 'attente_bpa' | 'attente_validate'
   country_code: string | null
   // Computed fields
   jours_avant_depart: number
@@ -428,6 +429,16 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
         }
       })
 
+      // Etat fournisseur a 3 temps par dossier (attente_validate / attente_bpa
+      // / confirme), a partir de toutes ses demandes.
+      const demandesParDossier = new Map<string, { status?: string | null; bpa_received_at?: string | null }[]>()
+      demandesFournisseursData?.forEach(df => {
+        if (!df.dossier_id) return
+        const arr = demandesParDossier.get(df.dossier_id) || []
+        arr.push(df)
+        demandesParDossier.set(df.dossier_id, arr)
+      })
+
       // Mapper demandes chauffeur pending
       demandesChauffeurData?.forEach(dc => {
         if (dc.dossier_id) {
@@ -462,6 +473,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
             created_at: d.created_at || new Date().toISOString(),
             transporteur_id: d.transporteur_id,
             transporteur_name: (d as any).transporteur?.name || null,
+            etat_frs: etatFournisseur(demandesParDossier.get(d.id) || []),
             country_code: d.country_code || null,
             jours_avant_depart: joursAvant,
             total_paye: totalPaye,
@@ -1332,11 +1344,11 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        {/* Transporteur seulement si BPA confirmé */}
-                        {dossier.transporteur_name && dossier.bpa_received ? (
+                        {/* Transporteur seulement si BPA confirmé, sinon le vrai etat */}
+                        {dossier.etat_frs === 'confirme' && dossier.transporteur_name ? (
                           <span className="text-sm font-medium text-gray-700">{dossier.transporteur_name}</span>
                         ) : (
-                          <span className="text-xs text-gray-400">{dossier.transporteur_id ? 'BPA en attente' : '-'}</span>
+                          <span className="text-xs text-gray-400">{labelEtatFournisseur(dossier.etat_frs || 'attente_validate')}</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">

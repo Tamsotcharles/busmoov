@@ -129,7 +129,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur } from '@/lib/utils'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFacturePDFBase64, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
 import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
@@ -609,18 +609,12 @@ export function AdminDashboard() {
   // que le badge reflete l'avancement et non le champ status fige.
   const statutDe = (d: any) => computeStatutEffectif(d, allDemandesFournisseurs, voyageInfosMap[d.id])
 
-  // Fournisseurs dont le BPA est CONFIRME (etape 2). Le transporteur ne
-  // doit s'afficher que dans ce cas : avant confirmation, transporteur_id
-  // peut deja etre renseigne (devis / BPA envoye) mais l'engagement n'est
-  // pas acte, l'afficher serait faux.
-  const bpaConfirmeSet = useMemo(() => {
-    const s = new Set<string>()
-    for (const df of allDemandesFournisseurs as any[]) {
-      if (df.dossier_id && (df.bpa_received_at || df.status === 'bpa_received')) s.add(df.dossier_id)
-    }
-    return s
-  }, [allDemandesFournisseurs])
-  const bpaConfirmeDe = (d: any) => bpaConfirmeSet.has(d.id)
+  // Etat fournisseur a 3 temps (attente_validate / attente_bpa / confirme).
+  // Le transporteur ne s'affiche qu'a l'etat 'confirme' : avant, l'engagement
+  // n'est pas acte (transporteur_id peut deja etre renseigne au devis).
+  const etatFrsDe = (d: any) => etatFournisseur(
+    (allDemandesFournisseurs as any[]).filter((df) => df.dossier_id === d.id),
+  )
   const { data: paiementsFournisseurs = [] } = usePaiementsFournisseurs()
   const { data: unreadMessagesCount = 0 } = useUnreadMessagesCount()
   const updateDevisMain = useUpdateDevis()
@@ -1412,7 +1406,7 @@ export function AdminDashboard() {
                             key={dossier.id}
                             dossier={dossier}
                             statutEffectif={statutDe(dossier)}
-                            bpaConfirme={bpaConfirmeDe(dossier)}
+                            etatFrs={etatFrsDe(dossier)}
                             onView={() => {
                               // Ouvrir directement le détail du dossier
                               handleSelectDossier(dossier)
@@ -1625,7 +1619,7 @@ export function AdminDashboard() {
               dossier={selectedDossier}
               transporteurs={transporteurs}
               statutEffectif={statutDe(selectedDossier)}
-              bpaConfirme={bpaConfirmeDe(selectedDossier)}
+              etatFrs={etatFrsDe(selectedDossier)}
               onClose={handleCloseDossierDetail}
               onViewDevis={() => {
                 setCurrentPage('devis')
@@ -2016,7 +2010,7 @@ export function AdminDashboard() {
   )
 }
 
-function DossierRow({ dossier, onView, statutEffectif, bpaConfirme }: { dossier: DossierWithRelations; onView: () => void; statutEffectif?: string; bpaConfirme?: boolean }) {
+function DossierRow({ dossier, onView, statutEffectif, etatFrs }: { dossier: DossierWithRelations; onView: () => void; statutEffectif?: string; etatFrs?: string }) {
   const contrat = Array.isArray(dossier.contrats) ? dossier.contrats[0] : dossier.contrats
   const isSigned = contrat?.signed_at
 
@@ -2058,12 +2052,12 @@ function DossierRow({ dossier, onView, statutEffectif, bpaConfirme }: { dossier:
       </td>
       <td className="px-4 py-3">{formatDate(dossier.departure_date)}</td>
       <td className="px-4 py-3">
-        {dossier.transporteur && bpaConfirme ? (
+        {dossier.transporteur && etatFrs === 'confirme' ? (
           <span className="bg-purple text-white text-xs font-bold px-2 py-1 rounded" title={dossier.transporteur.number}>
             {dossier.transporteur.name}
           </span>
         ) : (
-          <span className="text-gray-400 text-xs">{dossier.transporteur ? 'BPA en attente' : '-'}</span>
+          <span className="text-gray-400 text-xs">{labelEtatFournisseur((etatFrs as any) || 'attente_validate')}</span>
         )}
       </td>
       <td className="px-4 py-3 font-semibold">{formatPrice(dossier.price_ttc || 0)}</td>
@@ -2082,7 +2076,7 @@ function DossierRow({ dossier, onView, statutEffectif, bpaConfirme }: { dossier:
   )
 }
 
-function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAutoDevis, isSelectable, isSelected, onToggleSelect, statutEffectif, bpaConfirme }: { dossier: DossierWithRelations; onSelect: () => void; onViewDevis: () => void; hasAutoDevis?: boolean; onCancelAutoDevis?: () => void; isSelectable?: boolean; isSelected?: boolean; onToggleSelect?: () => void; statutEffectif?: string; bpaConfirme?: boolean }) {
+function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAutoDevis, isSelectable, isSelected, onToggleSelect, statutEffectif, etatFrs }: { dossier: DossierWithRelations; onSelect: () => void; onViewDevis: () => void; hasAutoDevis?: boolean; onCancelAutoDevis?: () => void; isSelectable?: boolean; isSelected?: boolean; onToggleSelect?: () => void; statutEffectif?: string; etatFrs?: string }) {
   // Calculer le prix à afficher : devis validé ou le moins cher des devis envoyés
   const devisAccepte = (dossier.devis || []).find((d: any) => d.status === 'accepted')
   const devisEnvoyes = (dossier.devis || []).filter((d: any) => d.status === 'sent' && d.price_ttc && d.price_ttc > 0)
@@ -2281,12 +2275,12 @@ function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAut
 
         {/* Transporteur */}
         <div>
-          {dossier.transporteur && bpaConfirme ? (
+          {dossier.transporteur && etatFrs === 'confirme' ? (
             <span className="bg-purple text-white text-xs font-bold px-2 py-1 rounded" title={dossier.transporteur.number}>
               {dossier.transporteur.name}
             </span>
           ) : (
-            <span className="text-gray-400 text-sm">{dossier.transporteur ? 'BPA en attente' : '-'}</span>
+            <span className="text-gray-400 text-sm">{labelEtatFournisseur((etatFrs as any) || 'attente_validate')}</span>
           )}
         </div>
 
@@ -3728,12 +3722,12 @@ function DossierDetailView({
   openEmailPreview,
   onEditDevis,
   statutEffectif,
-  bpaConfirme,
+  etatFrs,
 }: {
   dossier: DossierWithRelations
   transporteurs: any[]
   statutEffectif?: string
-  bpaConfirme?: boolean
+  etatFrs?: string
   onClose: () => void
   onViewDevis: () => void
   openEmailPreview: (data: EmailData, onSend?: () => void | Promise<void>) => void
@@ -6805,12 +6799,12 @@ L'équipe Busmoov`,
                 </select>
               ) : (
                 <p className="font-medium">
-                  {dossier.transporteur && bpaConfirme ? (
+                  {dossier.transporteur && etatFrs === 'confirme' ? (
                     <span className="bg-purple text-white text-xs font-bold px-2 py-1 rounded">
                       {dossier.transporteur.number} - {dossier.transporteur.name}
                     </span>
                   ) : (
-                    <span className="text-gray-400">{dossier.transporteur ? 'BPA en attente de confirmation' : '-'}</span>
+                    <span className="text-gray-400">{labelEtatFournisseur((etatFrs as any) || 'attente_validate')}</span>
                   )}
                 </p>
               )}
@@ -9686,7 +9680,7 @@ L'équipe Busmoov`)
       >
         <div className="space-y-4">
           {/* Info transporteur — seulement si le BPA est confirmé */}
-          {dossier.transporteur && bpaConfirme && (
+          {dossier.transporteur && etatFrs === 'confirme' && (
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
               <span className="bg-purple text-white text-xs font-bold px-2 py-1 rounded">
                 {dossier.transporteur.number}
