@@ -425,18 +425,35 @@ Deno.serve(async (req) => {
       // Get additional context for each dossier
       const { data: voyageInfos } = await supabase
         .from("voyage_infos")
-        .select("dossier_id, validated_at, chauffeur_info_recue_at")
+        .select("dossier_id, validated_at, chauffeur_info_recue_at, chauffeur_aller_nom, chauffeur_aller_tel")
         .in("dossier_id", dossierIds);
 
       const voyageMap = new Map<
         string,
-        { validated: boolean; chauffeurReceived: boolean }
+        { validated: boolean; chauffeurReceived: boolean; chauffeurNom: string; chauffeurTel: string }
       >();
       for (const vi of voyageInfos || []) {
         voyageMap.set(vi.dossier_id, {
           validated: !!vi.validated_at,
           chauffeurReceived: !!vi.chauffeur_info_recue_at,
+          chauffeurNom: (vi as { chauffeur_aller_nom?: string }).chauffeur_aller_nom || "",
+          chauffeurTel: (vi as { chauffeur_aller_tel?: string }).chauffeur_aller_tel || "",
         });
+      }
+
+      // Noms des transporteurs (pour le template coordonnées chauffeur)
+      const transporteurIds = [...new Set(
+        dossiers.map((d) => (d as { transporteur_id?: string }).transporteur_id).filter(Boolean)
+      )] as string[];
+      const transporteurMap = new Map<string, string>();
+      if (transporteurIds.length > 0) {
+        const { data: transporteurs } = await supabase
+          .from("transporteurs")
+          .select("id, name")
+          .in("id", transporteurIds);
+        for (const t of transporteurs || []) {
+          transporteurMap.set(t.id, t.name || "");
+        }
       }
 
       // Get email template key (le template sera chargé par send-email)
@@ -541,6 +558,13 @@ Deno.serve(async (req) => {
             lien_paiement: generateLocalizedUrl(baseUrl, '/paiement', dossier.country_code, { ref: dossier.reference, email: dossier.client_email || "" }),
             lien_infos_voyage: generateLocalizedUrl(baseUrl, '/infos-voyage', dossier.country_code, { ref: dossier.reference, email: dossier.client_email || "" }),
             dossier_id: dossier.id,
+            // Coordonnées chauffeur (template driver_info) : depuis voyage_infos
+            // (source réelle des infos reçues du transporteur) + nom transporteur.
+            chauffeur_name: voyageMap.get(dossier.id)?.chauffeurNom
+              || (dossier as { chauffeur_name?: string }).chauffeur_name || "",
+            chauffeur_phone: voyageMap.get(dossier.id)?.chauffeurTel
+              || (dossier as { chauffeur_phone?: string }).chauffeur_phone || "",
+            transporteur: transporteurMap.get((dossier as { transporteur_id?: string }).transporteur_id || "") || "",
           };
 
           // Pour le trigger voyage_completed, créer le review token et le lien
