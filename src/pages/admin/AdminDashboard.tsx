@@ -134,6 +134,7 @@ import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFactu
 import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
 import { ServiceClientelePage } from '@/components/admin/ServiceClientelePage'
+import { SeoPage } from '@/components/admin/SeoPage'
 import { WorkflowPage } from '@/components/admin/WorkflowPage'
 import { DepartsPage } from '@/components/admin/DepartsPage'
 import { ExperimentsPage } from '@/components/admin/ExperimentsPage'
@@ -142,7 +143,7 @@ import { ReviewsPage } from '@/components/admin/ReviewsPage'
 import { FlaskConical, TestTube2, Star, Globe, FileCode } from 'lucide-react'
 import type { DossierWithRelations } from '@/types/database'
 
-type Page = 'dashboard' | 'dossiers' | 'devis' | 'exploitation' | 'factures' | 'transporteurs' | 'clients' | 'workflow' | 'templates' | 'email-history' | 'messages' | 'service-client' | 'reviews' | 'stats' | 'calendrier' | 'departs' | 'settings'
+type Page = 'dashboard' | 'dossiers' | 'devis' | 'exploitation' | 'factures' | 'transporteurs' | 'clients' | 'workflow' | 'templates' | 'email-history' | 'messages' | 'service-client' | 'reviews' | 'stats' | 'seo' | 'calendrier' | 'departs' | 'settings'
 
 const navigation = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -151,6 +152,7 @@ const navigation = [
   { id: 'exploitation', label: 'Exploitation', icon: Send },
   { id: 'factures', label: 'Factures', icon: Receipt },
   { id: 'stats', label: 'Statistiques', icon: BarChart3 },
+  { id: 'seo', label: 'SEO', icon: TrendingUp },
   { id: 'calendrier', label: 'Calendrier', icon: Calendar },
   { id: 'departs', label: 'Départs', icon: Navigation },
   { id: 'transporteurs', label: 'Transporteurs', icon: Truck },
@@ -654,7 +656,7 @@ export function AdminDashboard() {
     const page = searchParams.get('page')
 
     // Changer de page si spécifié dans l'URL
-    if (page && ['dashboard', 'dossiers', 'devis', 'exploitation', 'factures', 'transporteurs', 'clients', 'workflow', 'templates', 'email-history', 'messages', 'service-client', 'reviews', 'stats', 'calendrier', 'departs', 'settings'].includes(page)) {
+    if (page && ['dashboard', 'dossiers', 'devis', 'exploitation', 'factures', 'transporteurs', 'clients', 'workflow', 'templates', 'email-history', 'messages', 'service-client', 'reviews', 'stats', 'seo', 'calendrier', 'departs', 'settings'].includes(page)) {
       setCurrentPage(page as Page)
     }
 
@@ -1934,6 +1936,9 @@ export function AdminDashboard() {
               paiementsFournisseurs={paiementsFournisseurs}
             />
           )}
+
+          {/* SEO Page */}
+          {currentPage === 'seo' && <SeoPage />}
 
           {/* Calendrier Page */}
           {currentPage === 'calendrier' && (

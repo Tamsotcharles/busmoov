@@ -1901,6 +1901,57 @@ export interface Database {
         }
         Relationships: []
       }
+      seo_gsc_daily: {
+        Row: {
+          clicks: number
+          created_at: string
+          date: string
+          dimension: string
+          id: number
+          impressions: number
+          key: string
+          position: number | null
+        }
+        Insert: {
+          clicks?: number
+          created_at?: string
+          date: string
+          dimension: string
+          id?: never
+          impressions?: number
+          key: string
+          position?: number | null
+        }
+        Update: {
+          clicks?: number
+          created_at?: string
+          date?: string
+          dimension?: string
+          id?: never
+          impressions?: number
+          key?: string
+          position?: number | null
+        }
+        Relationships: []
+      }
+      seo_sync_state: {
+        Row: {
+          id: string
+          last_error: string | null
+          last_sync_at: string | null
+        }
+        Insert: {
+          id: string
+          last_error?: string | null
+          last_sync_at?: string | null
+        }
+        Update: {
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           id: string
