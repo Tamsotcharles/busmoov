@@ -29,7 +29,7 @@ import {
   Truck,
   Paperclip,
 } from 'lucide-react'
-import { formatDate, formatPrice, cn, generateInfosVoyageUrl, generatePaymentUrl, generateClientAccessUrl, getLanguageFromCountry, getSiteBaseUrl } from '@/lib/utils'
+import { formatDate, formatPrice, cn, generateInfosVoyageUrl, generatePaymentUrl, generateClientAccessUrl, getLanguageFromCountry, getSiteBaseUrl, getStatutEffectif } from '@/lib/utils'
 import { Modal } from '@/components/ui/Modal'
 
 // Types
@@ -743,7 +743,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
   }
 
   // Obtenir le label du statut
-  const getStatusLabel = (status: string) => {
+  const getStatusLabel = (dossier: DossierRelance) => {
     const labels: Record<string, { label: string; color: string }> = {
       'new': { label: 'Nouveau', color: 'blue' },
       'pending-client': { label: 'Att. client', color: 'orange' },
@@ -752,10 +752,26 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
       'pending-reservation': { label: 'Attente résa', color: 'blue' },
       'bpa-received': { label: 'BPA reçu', color: 'green' },
       'pending-info': { label: 'Attente infos', color: 'purple' },
+      'pending-info-received': { label: 'Infos à valider', color: 'teal' },
       'pending-driver': { label: 'Attente chauffeur', color: 'indigo' },
       'confirmed': { label: 'Confirmé', color: 'green' },
+      'completed': { label: 'Terminé', color: 'green' },
     }
-    return labels[status] || { label: status, color: 'gray' }
+    // Statut effectif : le badge reflète le prochain jalon reel, pas le
+    // champ status parfois fige (un dossier signe restait « Att. client »).
+    const eff = getStatutEffectif({
+      status: dossier.status,
+      contractSignedAt: dossier.contract_signed_at,
+      montantPaye: dossier.total_paye || 0,
+      // Pas d'acompte_amount ici : approximation a 30% (le badge reste juste
+      // pour distinguer paye / non paye).
+      acompteRequis: Math.round((dossier.price_ttc || 0) * 0.3),
+      hasBpaConfirme: dossier.bpa_received,
+      hasInfosClient: dossier.voyage_info_validated,
+      infosValidees: dossier.voyage_info_validated,
+      chauffeurRecu: dossier.chauffeur_info_received,
+    })
+    return labels[eff] || { label: eff, color: 'gray' }
   }
 
   // Obtenir la couleur de priorité pour les jours avant départ
@@ -1233,7 +1249,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {dossiersFiltres.map(dossier => {
-                  const statusInfo = getStatusLabel(dossier.status)
+                  const statusInfo = getStatusLabel(dossier)
                   const isSelected = selectedDossiers.has(dossier.id)
 
                   return (
@@ -1599,11 +1615,11 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
                   <p className="text-xs text-gray-500">Statut</p>
                   <span className={cn(
                     'px-2 py-0.5 rounded-full text-xs font-medium',
-                    getStatusLabel(selectedDossierDetail.status).color === 'orange' && 'bg-orange-100 text-orange-700',
-                    getStatusLabel(selectedDossierDetail.status).color === 'blue' && 'bg-blue-100 text-blue-700',
-                    getStatusLabel(selectedDossierDetail.status).color === 'purple' && 'bg-purple-100 text-purple-700',
+                    getStatusLabel(selectedDossierDetail).color === 'orange' && 'bg-orange-100 text-orange-700',
+                    getStatusLabel(selectedDossierDetail).color === 'blue' && 'bg-blue-100 text-blue-700',
+                    getStatusLabel(selectedDossierDetail).color === 'purple' && 'bg-purple-100 text-purple-700',
                   )}>
-                    {getStatusLabel(selectedDossierDetail.status).label}
+                    {getStatusLabel(selectedDossierDetail).label}
                   </span>
                 </div>
               </div>

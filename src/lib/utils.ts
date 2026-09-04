@@ -201,6 +201,82 @@ export function calculateTTC(priceHT: number, tvaRate: number): number {
 }
 
 /**
+ * Statut d'affichage effectif d'un dossier, dérivé de son état réel.
+ *
+ * Le champ `status` en base est mono-dimension et ne suit pas toujours
+ * l'avancement (ex. un dossier signé restait affiché « Att. retour
+ * client »). Cette fonction calcule le PROCHAIN jalon à franchir, pour
+ * que le badge reflète où en est vraiment le dossier — dans la liste, la
+ * fiche dossier et l'exploitation.
+ *
+ * Avant signature, le statut brut est conservé (new, quotes_sent,
+ * pending-client...). Après signature, l'ordre de priorité du badge suit
+ * le workflow : paiement → réservation (BPA) → infos client → validation
+ * des infos → chauffeur. Les dimensions sont parallèles (cf. cards du
+ * dashboard) ; le badge unique montre l'action la plus prioritaire.
+ */
+export function getStatutEffectif(params: {
+  status: string | null | undefined
+  contractSignedAt: string | null | undefined
+  montantPaye: number
+  acompteRequis: number
+  hasBpaConfirme: boolean
+  hasInfosClient: boolean
+  infosValidees: boolean
+  chauffeurRecu: boolean
+}): string {
+  const {
+    status, contractSignedAt, montantPaye, acompteRequis,
+    hasBpaConfirme, hasInfosClient, infosValidees, chauffeurRecu,
+  } = params
+
+  // Etats terminaux ou annules : intouchables.
+  if (status === 'completed' || status === 'cancelled') return status
+  // Avant signature : on garde le statut amont tel quel.
+  if (!contractSignedAt) return status || 'new'
+
+  if (montantPaye < acompteRequis) return 'pending-payment'
+  if (!hasBpaConfirme) return 'pending-reservation'
+  if (!hasInfosClient) return 'pending-info'
+  if (!infosValidees) return 'pending-info-received'
+  if (!chauffeurRecu) return 'pending-driver'
+  return status === 'confirmed' ? 'confirmed' : 'pending-driver'
+}
+
+/**
+ * Calcule le statut effectif d'un dossier à partir de ses objets liés
+ * (paiements, demandes fournisseurs, infos voyage). Wrapper pratique
+ * autour de getStatutEffectif pour les vues admin.
+ */
+export function computeStatutEffectif(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dossier: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  demandesFournisseurs: any[],
+  voyageEntry: { hasInfos?: boolean; validated?: boolean; chauffeurRecu?: boolean } | undefined,
+): string {
+  const prixTTC = dossier.price_ttc || 0
+  const montantPaye = (dossier.paiements || []).reduce(
+    (s: number, p: any) => s + (p.amount || 0), 0, // eslint-disable-line @typescript-eslint/no-explicit-any
+  )
+  const contrat = (dossier.contrats || [])[0]
+  const acompteRequis = contrat?.acompte_amount ?? dossier.acompte_amount ?? Math.round(prixTTC * 0.3)
+  const hasBpaConfirme = (demandesFournisseurs || []).some(
+    (df: any) => df.dossier_id === dossier.id && (df.bpa_received_at || df.status === 'bpa_received'), // eslint-disable-line @typescript-eslint/no-explicit-any
+  )
+  return getStatutEffectif({
+    status: dossier.status,
+    contractSignedAt: dossier.contract_signed_at,
+    montantPaye,
+    acompteRequis,
+    hasBpaConfirme,
+    hasInfosClient: !!voyageEntry?.hasInfos,
+    infosValidees: !!voyageEntry?.validated,
+    chauffeurRecu: !!voyageEntry?.chauffeurRecu || !!dossier.chauffeur_name,
+  })
+}
+
+/**
  * Retourne l'URL de base du site (production ou localhost en dev)
  * Utilise VITE_SITE_URL si défini, sinon détecte automatiquement
  */

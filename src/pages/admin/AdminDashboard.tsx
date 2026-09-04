@@ -129,7 +129,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif } from '@/lib/utils'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFacturePDFBase64, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
 import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
@@ -604,6 +604,10 @@ export function AdminDashboard() {
     infosToValidate: allDossiers.filter(cardPredicates.infosToValidate).length,
     pendingDriver: allDossiers.filter(cardPredicates.pendingDriver).length,
   }), [allDossiers, cardPredicates])
+
+  // Statut d'affichage effectif d'un dossier (prochain jalon reel), pour
+  // que le badge reflete l'avancement et non le champ status fige.
+  const statutDe = (d: any) => computeStatutEffectif(d, allDemandesFournisseurs, voyageInfosMap[d.id])
   const { data: paiementsFournisseurs = [] } = usePaiementsFournisseurs()
   const { data: unreadMessagesCount = 0 } = useUnreadMessagesCount()
   const updateDevisMain = useUpdateDevis()
@@ -1394,6 +1398,7 @@ export function AdminDashboard() {
                           <DossierRow
                             key={dossier.id}
                             dossier={dossier}
+                            statutEffectif={statutDe(dossier)}
                             onView={() => {
                               // Ouvrir directement le détail du dossier
                               handleSelectDossier(dossier)
@@ -1572,6 +1577,7 @@ export function AdminDashboard() {
                     <DossierCard
                       key={dossier.id}
                       dossier={dossier}
+                      statutEffectif={statutDe(dossier)}
                       onSelect={() => handleSelectDossier(dossier)}
                       onViewDevis={() => {
                         setCurrentPage('devis')
@@ -1604,6 +1610,7 @@ export function AdminDashboard() {
             <DossierDetailView
               dossier={selectedDossier}
               transporteurs={transporteurs}
+              statutEffectif={statutDe(selectedDossier)}
               onClose={handleCloseDossierDetail}
               onViewDevis={() => {
                 setCurrentPage('devis')
@@ -1994,7 +2001,7 @@ export function AdminDashboard() {
   )
 }
 
-function DossierRow({ dossier, onView }: { dossier: DossierWithRelations; onView: () => void }) {
+function DossierRow({ dossier, onView, statutEffectif }: { dossier: DossierWithRelations; onView: () => void; statutEffectif?: string }) {
   const contrat = Array.isArray(dossier.contrats) ? dossier.contrats[0] : dossier.contrats
   const isSigned = contrat?.signed_at
 
@@ -2023,7 +2030,7 @@ function DossierRow({ dossier, onView }: { dossier: DossierWithRelations; onView
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-1">
-          <StatusBadge status={dossier.status || 'new'} size="sm" />
+          <StatusBadge status={statutEffectif || dossier.status || 'new'} size="sm" />
           {dossier.requires_manual_review && (
             <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
               ⭐
@@ -2060,7 +2067,7 @@ function DossierRow({ dossier, onView }: { dossier: DossierWithRelations; onView
   )
 }
 
-function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAutoDevis, isSelectable, isSelected, onToggleSelect }: { dossier: DossierWithRelations; onSelect: () => void; onViewDevis: () => void; hasAutoDevis?: boolean; onCancelAutoDevis?: () => void; isSelectable?: boolean; isSelected?: boolean; onToggleSelect?: () => void }) {
+function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAutoDevis, isSelectable, isSelected, onToggleSelect, statutEffectif }: { dossier: DossierWithRelations; onSelect: () => void; onViewDevis: () => void; hasAutoDevis?: boolean; onCancelAutoDevis?: () => void; isSelectable?: boolean; isSelected?: boolean; onToggleSelect?: () => void; statutEffectif?: string }) {
   // Calculer le prix à afficher : devis validé ou le moins cher des devis envoyés
   const devisAccepte = (dossier.devis || []).find((d: any) => d.status === 'accepted')
   const devisEnvoyes = (dossier.devis || []).filter((d: any) => d.status === 'sent' && d.price_ttc && d.price_ttc > 0)
@@ -2130,7 +2137,7 @@ function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAut
             <span className="font-display font-bold text-purple-dark">
               #{dossier.reference}
             </span>
-            <StatusBadge status={dossier.status || 'new'} size="sm" />
+            <StatusBadge status={statutEffectif || dossier.status || 'new'} size="sm" />
             {dossier.requires_manual_review && (
               <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
                 ⭐
@@ -3705,9 +3712,11 @@ function DossierDetailView({
   onViewDevis,
   openEmailPreview,
   onEditDevis,
+  statutEffectif,
 }: {
   dossier: DossierWithRelations
   transporteurs: any[]
+  statutEffectif?: string
   onClose: () => void
   onViewDevis: () => void
   openEmailPreview: (data: EmailData, onSend?: () => void | Promise<void>) => void
@@ -5063,7 +5072,7 @@ L'équipe Busmoov`
               <p className="text-sm text-gray-500">{dossier.client_name}</p>
             </div>
             <div className="flex items-center gap-1">
-              <StatusBadge status={dossier.status || 'new'} />
+              <StatusBadge status={statutEffectif || dossier.status || 'new'} />
               {dossier.requires_manual_review && (
                 <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
                   ⭐
@@ -6755,7 +6764,7 @@ L'équipe Busmoov`,
                 </select>
               ) : (
                 <div className="flex items-center gap-1">
-                  <StatusBadge status={dossier.status || 'new'} />
+                  <StatusBadge status={statutEffectif || dossier.status || 'new'} />
                   {dossier.requires_manual_review && (
                     <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
                       ⭐
@@ -14022,6 +14031,26 @@ function ExploitationPage({
 
   const queryClient = useQueryClient()
   const { data: demandesFournisseurs = [], isLoading } = useAllDemandesFournisseurs()
+
+  // Statut effectif (prochain jalon reel) pour les badges de cette vue.
+  const [voyageInfosMapExpl, setVoyageInfosMapExpl] = useState<Record<string, { hasInfos: boolean; validated: boolean; chauffeurRecu: boolean }>>({})
+  useEffect(() => {
+    let annule = false
+    ;(async () => {
+      const { data } = await supabase
+        .from('voyage_infos')
+        .select('dossier_id, aller_adresse_depart, validated_at, chauffeur_info_recue_at')
+      if (annule || !data) return
+      const map: Record<string, { hasInfos: boolean; validated: boolean; chauffeurRecu: boolean }> = {}
+      for (const vi of data as any[]) {
+        if (!vi.dossier_id) continue
+        map[vi.dossier_id] = { hasInfos: !!vi.aller_adresse_depart, validated: !!vi.validated_at, chauffeurRecu: !!vi.chauffeur_info_recue_at }
+      }
+      setVoyageInfosMapExpl(map)
+    })()
+    return () => { annule = true }
+  }, [])
+  const statutDe = (d: any) => computeStatutEffectif(d, demandesFournisseurs, voyageInfosMapExpl[d.id])
   const { data: dossiers = [] } = useDossiers()
   const createDemandeFournisseur = useCreateDemandeFournisseur()
   const updateDemandeFournisseur = useUpdateDemandeFournisseur()
@@ -14854,7 +14883,7 @@ ${dossier.special_requests ? '\n' + dossier.special_requests : ''}`
                     </span>
                     <span className="text-sm text-gray-500">|</span>
                     <div className="flex items-center gap-1">
-                      <StatusBadge status={dossier.status || 'new'} size="sm" />
+                      <StatusBadge status={statutDe(dossier)} size="sm" />
                       {dossier.requires_manual_review && (
                         <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
                           ⭐
