@@ -5,6 +5,7 @@ import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
 import { SeoFr } from '@/components/seo/Seo'
 import { useLocalizedPath } from '@/components/i18n'
 import { villes } from '@/lib/villes'
+import { locationBusMeta } from '@/lib/seo-data'
 import { getSiteBaseUrl } from '@/lib/utils'
 import { Bus, Users, Shield, Clock, CheckCircle, ArrowRight } from 'lucide-react'
 
@@ -17,8 +18,8 @@ export function LocationBusPage() {
   const localizedPath = useLocalizedPath()
 
   const path = '/location-bus'
-  const metaTitle = 'Location de bus avec chauffeur — Devis gratuit 24h | Busmoov'
-  const metaDescription = 'Louez un bus avec chauffeur pour votre groupe : minibus, bus 30 à 59 places, bus grand tourisme jusqu\'à 90 places. Comparez plusieurs devis gratuits de transporteurs vérifiés sous 24h.'
+  const metaTitle = locationBusMeta.title
+  const metaDescription = locationBusMeta.description
 
   const faq = [
     {
