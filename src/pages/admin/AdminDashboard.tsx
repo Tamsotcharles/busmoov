@@ -777,13 +777,16 @@ export function AdminDashboard() {
   // Stats CA/Marge filtrées par période (mois en cours par défaut)
   // Placé avant filteredDossiers car ce dernier en dépend
   const statsFiltered = useMemo(() => {
-    // Statuts qui comptent pour le CA (devis confirmé par admin et au-delà)
-    const validRevenueStatuses = ['pending-payment', 'pending-reservation', 'bpa-received', 'pending-info', 'pending-info-received', 'pending-info-confirm', 'pending-driver', 'confirmed', 'completed']
+    // Le CA compte tout dossier SIGNÉ non annulé. On ne se fie pas à une
+    // liste blanche de statuts : le statut brut reste souvent figé sur
+    // « pending-client » après signature, ce qui excluait à tort des ventes
+    // réelles du CA/marge (cf. statut effectif). La signature fait foi.
+    const excludedRevenueStatuses = ['cancelled', 'lost']
 
     const dossiersWithRevenue = dossiers.filter(d => {
-      if (!validRevenueStatuses.includes(d.status || '')) return false
+      if (excludedRevenueStatuses.includes(d.status || '')) return false
 
-      // Filtrer par date de signature du contrat
+      // Filtrer par date de signature du contrat (la signature fait la vente)
       const signedDate = d.contract_signed_at ? new Date(d.contract_signed_at) : null
       if (!signedDate) return false
 
