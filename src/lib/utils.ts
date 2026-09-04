@@ -302,6 +302,26 @@ export function labelEtatFournisseur(etat: 'confirme' | 'attente_bpa' | 'attente
 }
 
 /**
+ * Libellé d'une facture selon son type ET son montant.
+ * Une facture d'« acompte » qui couvre la TOTALITÉ du prix n'est pas un
+ * acompte (il n'y aura pas de solde à suivre) : c'est une « Facture ».
+ * - avoir → « Avoir »
+ * - solde → « Facture de solde »
+ * - acompte couvrant 100 % → « Facture »
+ * - acompte partiel → « Facture d'acompte »
+ */
+export function libelleFacture(
+  type: string | null | undefined,
+  amountTTC: number,
+  totalTTC: number,
+): string {
+  if (type === 'avoir') return 'Avoir'
+  if (type === 'solde') return 'Facture de solde'
+  if (totalTTC > 0 && Math.abs(amountTTC) >= totalTTC - 0.01) return 'Facture'
+  return "Facture d'acompte"
+}
+
+/**
  * Calcule le statut effectif d'un dossier à partir de ses objets liés
  * (paiements, demandes fournisseurs, infos voyage). Wrapper pratique
  * autour de getStatutEffectif pour les vues admin.

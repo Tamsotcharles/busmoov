@@ -129,7 +129,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture } from '@/lib/utils'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFacturePDFBase64, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
 import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
@@ -3816,6 +3816,44 @@ function DossierDetailView({
   const { data: paiements = [], isLoading: paiementsLoading } = usePaiementsByContrat(contrat?.id)
   const { data: factures = [], isLoading: facturesLoading } = useFacturesByDossier(dossier.id)
   const { data: paiementsFournisseur = [], isLoading: paiementsFournisseurLoading } = usePaiementsFournisseurs(dossier.id)
+
+  // État de facturation : montants pilotés par le RESTE À FACTURER
+  // (prix total − déjà facturé), pas par le plan acompte/solde brut.
+  // Garde-fous : pas de facture 0 €, pas de sur-facturation, pas de double
+  // acompte, pas de solde sur un dossier payé à 100 % en une fois.
+  const factuInfo = (() => {
+    const total = dossier.price_ttc || contrat?.price_ttc || 0
+    const dejaFacture = (factures as any[])
+      .filter((f) => f.type !== 'avoir' && f.status !== 'cancelled')
+      .reduce((s, f) => s + (f.amount_ttc || 0), 0)
+    const resteAFacturer = Math.max(0, total - dejaFacture)
+    const acomptePrevu = Math.min(contrat?.acompte_amount || 0, total)
+    // Acompte = 100 % du prix → paiement total, pas de solde séparé.
+    const isPaiementTotal = acomptePrevu > 0 && acomptePrevu >= total
+    const acompteDejaFacture = (factures as any[]).some(
+      (f) => f.type === 'acompte' && f.status !== 'cancelled',
+    )
+    const acompteAuto = Math.min(acomptePrevu || resteAFacturer, resteAFacturer)
+    const soldeAuto = resteAFacturer
+    return {
+      total,
+      dejaFacture,
+      resteAFacturer,
+      acompteAuto,
+      soldeAuto,
+      isPaiementTotal,
+      acompteDejaFacture,
+      // Boutons désactivés
+      acompteDisabled: resteAFacturer <= 0 || acompteDejaFacture,
+      soldeDisabled: resteAFacturer <= 0 || isPaiementTotal,
+      // Type par défaut à l'ouverture du modal
+      defaultType: (resteAFacturer <= 0
+        ? 'acompte'
+        : acompteDejaFacture || isPaiementTotal
+          ? (isPaiementTotal ? 'acompte' : 'solde')
+          : 'acompte') as 'acompte' | 'solde',
+    }
+  })()
   const createPaiement = useCreatePaiement()
   const deletePaiement = useDeletePaiement()
   const createFacture = useCreateFacture()
@@ -4766,13 +4804,11 @@ L'équipe Busmoov`
 
     try {
       const tvaRate = dossier.tva_rate || getTvaRateByCountry(dossier.country_code)
-      const prixTTC = contrat.price_ttc || 0
-      const acompteContrat = contrat.acompte_amount || 0
-      const soldeContrat = contrat.solde_amount ?? (prixTTC - acompteContrat)
 
       let amountTTC: number
       if (factureForm.useAutoAmount && factureForm.type !== 'avoir') {
-        amountTTC = factureForm.type === 'acompte' ? acompteContrat : soldeContrat
+        // Montant auto = reste à facturer (via factuInfo), pas le plan brut.
+        amountTTC = factureForm.type === 'acompte' ? factuInfo.acompteAuto : factuInfo.soldeAuto
       } else {
         amountTTC = factureForm.amount_ttc
       }
@@ -4780,6 +4816,23 @@ L'équipe Busmoov`
       if (amountTTC <= 0) {
         alert('Le montant doit être supérieur à 0')
         return
+      }
+
+      // Garde-fous (hors avoir) : ne pas dépasser le reste à facturer,
+      // ne pas émettre un 2e acompte, ni un solde sur un dossier 100 %.
+      if (factureForm.type !== 'avoir') {
+        if (factuInfo.resteAFacturer <= 0) {
+          alert('Ce dossier est déjà intégralement facturé.')
+          return
+        }
+        if (factureForm.type === 'acompte' && factuInfo.acompteDejaFacture) {
+          alert("Une facture d'acompte a déjà été émise pour ce dossier.")
+          return
+        }
+        if (amountTTC > factuInfo.resteAFacturer + 0.01) {
+          alert(`Le montant dépasse le reste à facturer (${formatPrice(factuInfo.resteAFacturer)}).`)
+          return
+        }
       }
 
       const finalAmountTTC = factureForm.type === 'avoir' ? -Math.abs(amountTTC) : amountTTC
@@ -6178,12 +6231,11 @@ L'équipe Busmoov`
                     </h3>
                     <button
                       onClick={() => {
-                        const acompte = contrat.acompte_amount || 0
-                        const solde = contrat.solde_amount ?? ((contrat.price_ttc || 0) - acompte)
-                        const hasAcompteFacture = factures.some(f => f.type === 'acompte')
+                        // Type et montant par défaut pilotés par le reste à facturer.
+                        const type = factuInfo.defaultType
                         setFactureForm({
-                          type: hasAcompteFacture ? 'solde' : 'acompte',
-                          amount_ttc: hasAcompteFacture ? solde : acompte,
+                          type,
+                          amount_ttc: type === 'acompte' ? factuInfo.acompteAuto : factuInfo.soldeAuto,
                           useAutoAmount: true,
                           client_name: dossier.client_name || '',
                           client_address: dossier.billing_address || '',
@@ -6261,9 +6313,7 @@ L'équipe Busmoov`
                                 )}
                               </p>
                               <p className="text-sm text-gray-500">
-                                {facture.type === 'acompte' && 'Facture d\'acompte'}
-                                {facture.type === 'solde' && 'Facture de solde'}
-                                {facture.type === 'avoir' && 'Avoir'}
+                                {libelleFacture(facture.type, facture.amount_ttc || 0, factuInfo.total)}
                                 {' - '}{formatDate(facture.created_at)}
                               </p>
                             </div>
@@ -9430,7 +9480,7 @@ L'équipe Busmoov`)
             <button
               className="btn btn-primary"
               onClick={handleCreateFacture}
-              disabled={createFacture.isPending}
+              disabled={createFacture.isPending || (factureForm.type !== 'avoir' && factuInfo.resteAFacturer <= 0)}
             >
               {createFacture.isPending ? 'Génération...' : 'Générer la facture'}
             </button>
@@ -9438,17 +9488,41 @@ L'équipe Busmoov`)
         }
       >
         <div className="space-y-4">
+          {/* Contexte de facturation */}
+          <div className="grid grid-cols-3 gap-2 p-3 bg-gray-50 rounded-lg text-center">
+            <div>
+              <p className="text-[11px] text-gray-500 uppercase">Total</p>
+              <p className="text-sm font-semibold text-gray-700">{formatPrice(factuInfo.total)}</p>
+            </div>
+            <div>
+              <p className="text-[11px] text-gray-500 uppercase">Déjà facturé</p>
+              <p className="text-sm font-semibold text-gray-700">{formatPrice(factuInfo.dejaFacture)}</p>
+            </div>
+            <div>
+              <p className="text-[11px] text-gray-500 uppercase">Reste à facturer</p>
+              <p className={cn("text-sm font-semibold", factuInfo.resteAFacturer > 0 ? "text-magenta" : "text-green-600")}>
+                {formatPrice(factuInfo.resteAFacturer)}
+              </p>
+            </div>
+          </div>
+          {factuInfo.resteAFacturer <= 0 && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 text-center">
+              Ce dossier est déjà intégralement facturé. Seul un avoir est possible.
+            </div>
+          )}
           <div>
             <label className="label">Type de facture *</label>
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
+                disabled={factuInfo.acompteDisabled}
+                title={factuInfo.acompteDejaFacture ? "Acompte déjà facturé" : factuInfo.resteAFacturer <= 0 ? "Déjà facturé intégralement" : undefined}
                 onClick={() => {
-                  const acompte = contrat?.acompte_amount || 0
-                  setFactureForm({ ...factureForm, type: 'acompte', amount_ttc: acompte, useAutoAmount: true })
+                  setFactureForm({ ...factureForm, type: 'acompte', amount_ttc: factuInfo.acompteAuto, useAutoAmount: true })
                 }}
                 className={cn(
                   "p-3 rounded-lg border-2 text-left transition-all",
+                  factuInfo.acompteDisabled && "opacity-40 cursor-not-allowed",
                   factureForm.type === 'acompte'
                     ? "border-amber-500 bg-amber-50"
                     : "border-gray-200 hover:border-gray-300"
@@ -9459,21 +9533,23 @@ L'équipe Busmoov`)
                     AC
                   </div>
                   <div>
-                    <p className="font-medium text-sm">Acompte</p>
+                    <p className="font-medium text-sm">{factuInfo.isPaiementTotal ? 'Paiement total' : 'Acompte'}</p>
                     <p className="text-xs text-gray-500">
-                      {formatPrice(contrat?.acompte_amount || 0)}
+                      {formatPrice(factuInfo.acompteAuto)}
                     </p>
                   </div>
                 </div>
               </button>
               <button
                 type="button"
+                disabled={factuInfo.soldeDisabled}
+                title={factuInfo.isPaiementTotal ? "Paiement à 100 % : pas de solde séparé" : factuInfo.resteAFacturer <= 0 ? "Déjà facturé intégralement" : undefined}
                 onClick={() => {
-                  const solde = contrat?.solde_amount ?? ((contrat?.price_ttc || 0) - (contrat?.acompte_amount || 0))
-                  setFactureForm({ ...factureForm, type: 'solde', amount_ttc: solde, useAutoAmount: true })
+                  setFactureForm({ ...factureForm, type: 'solde', amount_ttc: factuInfo.soldeAuto, useAutoAmount: true })
                 }}
                 className={cn(
                   "p-3 rounded-lg border-2 text-left transition-all",
+                  factuInfo.soldeDisabled && "opacity-40 cursor-not-allowed",
                   factureForm.type === 'solde'
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200 hover:border-gray-300"
@@ -9486,7 +9562,7 @@ L'équipe Busmoov`)
                   <div>
                     <p className="font-medium text-sm">Solde</p>
                     <p className="text-xs text-gray-500">
-                      {formatPrice(contrat?.solde_amount ?? ((contrat?.price_ttc || 0) - (contrat?.acompte_amount || 0)))}
+                      {formatPrice(factuInfo.soldeAuto)}
                     </p>
                   </div>
                 </div>
@@ -9531,9 +9607,7 @@ L'équipe Busmoov`)
                   <span>
                     Montant automatique : <strong>
                       {formatPrice(
-                        factureForm.type === 'acompte'
-                          ? (contrat?.acompte_amount || 0)
-                          : (contrat?.solde_amount ?? ((contrat?.price_ttc || 0) - (contrat?.acompte_amount || 0)))
+                        factureForm.type === 'acompte' ? factuInfo.acompteAuto : factuInfo.soldeAuto
                       )}
                     </strong>
                   </span>
@@ -9618,7 +9692,13 @@ L'équipe Busmoov`)
               <div className="flex justify-between">
                 <span className="text-gray-500">Type :</span>
                 <span className="font-medium">
-                  {factureForm.type === 'acompte' ? 'Facture d\'acompte' : factureForm.type === 'avoir' ? 'Avoir' : 'Facture de solde'}
+                  {libelleFacture(
+                    factureForm.type,
+                    (factureForm.useAutoAmount && factureForm.type !== 'avoir')
+                      ? (factureForm.type === 'acompte' ? factuInfo.acompteAuto : factuInfo.soldeAuto)
+                      : factureForm.amount_ttc,
+                    factuInfo.total,
+                  )}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -9627,9 +9707,7 @@ L'équipe Busmoov`)
                   {factureForm.type === 'avoir' && '-'}
                   {formatPrice(
                     (factureForm.useAutoAmount && factureForm.type !== 'avoir')
-                      ? (factureForm.type === 'acompte'
-                          ? (contrat?.acompte_amount || 0)
-                          : (contrat?.solde_amount ?? ((contrat?.price_ttc || 0) - (contrat?.acompte_amount || 0))))
+                      ? (factureForm.type === 'acompte' ? factuInfo.acompteAuto : factuInfo.soldeAuto)
                       : factureForm.amount_ttc
                   )}
                 </span>
@@ -15888,18 +15966,32 @@ function FacturesPage() {
       .reduce((sum: number, f: any) => sum + (f.amount_ttc || 0), 0)
     const prixTotal = dossier.price_ttc || contrat?.price_ttc || 0
     const resteAFacturer = Math.max(0, prixTotal - montantFacture)
+    // Montants pilotés par le reste à facturer + garde-fous.
+    const acomptePrevu = Math.min(contrat?.acompte_amount || Math.round(prixTotal * 0.3), prixTotal)
+    const isPaiementTotal = acomptePrevu > 0 && acomptePrevu >= prixTotal
+    const acompteDejaFacture = dossierFactures.some((f: any) => f.type === 'acompte' && f.status !== 'cancelled')
+    const acompteAuto = Math.min(acomptePrevu || resteAFacturer, resteAFacturer)
+    const soldeAuto = resteAFacturer
 
     setSelectedDossier({
       ...dossier,
       contrat,
       montantFacture,
       resteAFacturer,
+      acompteAuto,
+      soldeAuto,
+      isPaiementTotal,
+      acompteDejaFacture,
       isPartiel: montantFacture > 0 && resteAFacturer > 0
     })
-    // Utiliser les données de facturation du contrat (signature) en priorité, sinon celles du dossier
+    // Type par défaut : acompte si rien facturé (sauf 100 % → total),
+    // solde si l'acompte est déjà facturé.
+    const type = defaultType || (acompteDejaFacture || isPaiementTotal
+      ? (isPaiementTotal ? 'acompte' : 'solde')
+      : 'acompte')
     setFactureForm({
-      type: defaultType || (montantFacture > 0 ? 'solde' : 'acompte'),
-      amount_ttc: resteAFacturer,
+      type,
+      amount_ttc: type === 'acompte' ? acompteAuto : soldeAuto,
       useAutoAmount: true,
       client_name: contrat?.client_name || dossier.client_name || '',
       client_address: contrat?.billing_address || dossier.billing_address || '',
@@ -15921,12 +16013,19 @@ function FacturesPage() {
       const tvaRate = selectedDossier.tva_rate || getTvaRateByCountry(selectedDossier.country_code)
       const prixTTC = contrat?.price_ttc || selectedDossier.price_ttc || 0
       const acompteContrat = contrat?.acompte_amount || Math.round(prixTTC * 0.3)
-      const soldeContrat = contrat?.solde_amount ?? (prixTTC - acompteContrat)
+
+      // Montants pilotés par le reste à facturer (pas le plan brut).
+      const reste = Math.max(0, selectedDossier.resteAFacturer ?? prixTTC)
+      const acompteAuto = Math.min(Math.min(acompteContrat, prixTTC) || reste, reste)
+      const soldeAuto = reste
+      const acompteDejaFacture = (selectedDossier.factures || []).some(
+        (f: any) => f.type === 'acompte' && f.status !== 'cancelled',
+      )
 
       // Calculer le montant automatique ou utiliser le montant personnalisé
       let amountTTC: number
       if (factureForm.useAutoAmount && factureForm.type !== 'avoir') {
-        amountTTC = factureForm.type === 'acompte' ? acompteContrat : soldeContrat
+        amountTTC = factureForm.type === 'acompte' ? acompteAuto : soldeAuto
       } else {
         amountTTC = factureForm.amount_ttc
       }
@@ -15935,6 +16034,25 @@ function FacturesPage() {
         alert('Le montant doit être supérieur à 0')
         setGenerating(false)
         return
+      }
+
+      // Garde-fous (hors avoir).
+      if (factureForm.type !== 'avoir') {
+        if (reste <= 0) {
+          alert('Ce dossier est déjà intégralement facturé.')
+          setGenerating(false)
+          return
+        }
+        if (factureForm.type === 'acompte' && acompteDejaFacture) {
+          alert("Une facture d'acompte a déjà été émise pour ce dossier.")
+          setGenerating(false)
+          return
+        }
+        if (amountTTC > reste + 0.01) {
+          alert(`Le montant dépasse le reste à facturer (${formatPrice(reste)}).`)
+          setGenerating(false)
+          return
+        }
       }
 
       // Pour un avoir, le montant est négatif
@@ -17035,25 +17153,31 @@ L'équipe Busmoov`,
                 <div className="grid grid-cols-3 gap-3">
                   <button
                     type="button"
-                    onClick={() => setFactureForm(f => ({ ...f, type: 'acompte' }))}
+                    disabled={selectedDossier.resteAFacturer <= 0 || selectedDossier.acompteDejaFacture}
+                    title={selectedDossier.acompteDejaFacture ? "Acompte déjà facturé" : undefined}
+                    onClick={() => setFactureForm(f => ({ ...f, type: 'acompte', useAutoAmount: true, amount_ttc: selectedDossier.acompteAuto }))}
                     className={cn(
                       "p-4 rounded-lg border-2 text-center transition-all",
+                      (selectedDossier.resteAFacturer <= 0 || selectedDossier.acompteDejaFacture) && "opacity-40 cursor-not-allowed",
                       factureForm.type === 'acompte'
                         ? "border-amber-500 bg-amber-50 text-amber-700"
                         : "border-gray-200 hover:border-gray-300"
                     )}
                   >
                     <Euro size={24} className="mx-auto mb-1" />
-                    <div className="font-semibold">Acompte</div>
+                    <div className="font-semibold">{selectedDossier.isPaiementTotal ? 'Paiement total' : 'Acompte'}</div>
                     <div className="text-xs text-gray-500">
-                      {formatPrice(selectedDossier.contrat?.acompte_amount || Math.round((selectedDossier.contrat?.price_ttc || selectedDossier.price_ttc) * 0.3))}
+                      {formatPrice(selectedDossier.acompteAuto)}
                     </div>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setFactureForm(f => ({ ...f, type: 'solde' }))}
+                    disabled={selectedDossier.resteAFacturer <= 0 || selectedDossier.isPaiementTotal}
+                    title={selectedDossier.isPaiementTotal ? "Paiement à 100 % : pas de solde séparé" : undefined}
+                    onClick={() => setFactureForm(f => ({ ...f, type: 'solde', useAutoAmount: true, amount_ttc: selectedDossier.soldeAuto }))}
                     className={cn(
                       "p-4 rounded-lg border-2 text-center transition-all",
+                      (selectedDossier.resteAFacturer <= 0 || selectedDossier.isPaiementTotal) && "opacity-40 cursor-not-allowed",
                       factureForm.type === 'solde'
                         ? "border-blue-500 bg-blue-50 text-blue-700"
                         : "border-gray-200 hover:border-gray-300"
@@ -17062,7 +17186,7 @@ L'équipe Busmoov`,
                     <CheckCircle size={24} className="mx-auto mb-1" />
                     <div className="font-semibold">Solde</div>
                     <div className="text-xs text-gray-500">
-                      {formatPrice(selectedDossier.contrat?.solde_amount ?? ((selectedDossier.contrat?.price_ttc || selectedDossier.price_ttc) - (selectedDossier.contrat?.acompte_amount || Math.round((selectedDossier.contrat?.price_ttc || selectedDossier.price_ttc) * 0.3))))}
+                      {formatPrice(selectedDossier.soldeAuto)}
                     </div>
                   </button>
                   <button

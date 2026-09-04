@@ -7,6 +7,7 @@ import {
   getLanguageFromCountry,
   calculateAmplitudeFromTimes,
   cn,
+  libelleFacture,
 } from './utils'
 
 describe('generateValidationToken', () => {
@@ -167,5 +168,27 @@ describe('cn', () => {
     // C est tout l interet de tailwind-merge : sans lui, les deux classes
     // coexistent et le rendu depend de l ordre du CSS.
     expect(cn('p-2', 'p-4')).toBe('p-4')
+  })
+})
+
+describe('libelleFacture', () => {
+  it('un acompte partiel reste « Facture d acompte »', () => {
+    expect(libelleFacture('acompte', 177, 590)).toBe("Facture d'acompte")
+  })
+
+  it('un acompte couvrant 100 % devient « Facture »', () => {
+    expect(libelleFacture('acompte', 590, 590)).toBe('Facture')
+  })
+
+  it('le solde est « Facture de solde »', () => {
+    expect(libelleFacture('solde', 413, 590)).toBe('Facture de solde')
+  })
+
+  it('un avoir est « Avoir » quel que soit le montant', () => {
+    expect(libelleFacture('avoir', -590, 590)).toBe('Avoir')
+  })
+
+  it('tolere un petit ecart d arrondi pour le 100 %', () => {
+    expect(libelleFacture('acompte', 589.995, 590)).toBe('Facture')
   })
 })

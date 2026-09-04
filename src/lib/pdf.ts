@@ -2391,10 +2391,14 @@ export async function generateFacturePDF(facture: FactureData, lang: string = 'f
   doc.setTextColor(titleRgb?.r || 88, titleRgb?.g || 44, titleRgb?.b || 135)
   doc.setFont('helvetica', 'bold')
 
-  // Titre avec type de facture
+  // Titre avec type de facture. Un acompte couvrant 100 % du prix n'est pas
+  // un acompte : titre « Facture » sans suffixe.
   if (!isAvoir) {
-    const typeLabel = facture.type === 'acompte' ? t.invoiceDeposit : t.invoiceBalance
-    doc.text(`${docTitle} ${typeLabel}`, 15, y)
+    const totalDossier = facture.dossier?.total_ttc || 0
+    const isFull = facture.type === 'acompte' && totalDossier > 0
+      && Math.abs(facture.amount_ttc) >= totalDossier - 0.01
+    const typeLabel = isFull ? '' : (facture.type === 'acompte' ? t.invoiceDeposit : t.invoiceBalance)
+    doc.text(typeLabel ? `${docTitle} ${typeLabel}` : docTitle, 15, y)
   } else {
     doc.text(docTitle, 15, y)
   }
@@ -2831,10 +2835,14 @@ export async function generateFacturePDFBase64(facture: FactureData, lang: strin
   doc.setTextColor(titleRgb?.r || 88, titleRgb?.g || 44, titleRgb?.b || 135)
   doc.setFont('helvetica', 'bold')
 
-  // Titre avec type de facture
+  // Titre avec type de facture. Un acompte couvrant 100 % du prix n'est pas
+  // un acompte : titre « Facture » sans suffixe.
   if (!isAvoir) {
-    const typeLabel = facture.type === 'acompte' ? t.invoiceDeposit : t.invoiceBalance
-    doc.text(`${docTitle} ${typeLabel}`, 15, y)
+    const totalDossier = facture.dossier?.total_ttc || 0
+    const isFull = facture.type === 'acompte' && totalDossier > 0
+      && Math.abs(facture.amount_ttc) >= totalDossier - 0.01
+    const typeLabel = isFull ? '' : (facture.type === 'acompte' ? t.invoiceDeposit : t.invoiceBalance)
+    doc.text(typeLabel ? `${docTitle} ${typeLabel}` : docTitle, 15, y)
   } else {
     doc.text(docTitle, 15, y)
   }
