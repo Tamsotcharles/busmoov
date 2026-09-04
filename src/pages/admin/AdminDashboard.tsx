@@ -129,7 +129,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel } from '@/lib/utils'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFacturePDFBase64, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
 import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
@@ -11604,10 +11604,12 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
     const signedDossiers = filteredDossiers
     const totalCA = signedDossiers.reduce((sum, d) => sum + (d.price_ttc || 0), 0)
     const totalVenteHT = signedDossiers.reduce((sum, d) => sum + (d.price_ht || 0), 0)
-    const totalAchat = signedDossiers.reduce((sum, d) => sum + (d.price_achat || 0), 0)
+    // Achat HT reel (BPA confirme ou meilleure offre) plutot que
+    // dossier.price_achat, souvent NULL -> marge = vente HT (faux).
+    const totalAchat = signedDossiers.reduce((sum, d) => sum + prixAchatHTReel(d, allDemandesFournisseursStats), 0)
     const totalMarge = signedDossiers.reduce((sum, d) => {
       const ht = d.price_ht || 0
-      const achat = d.price_achat || 0
+      const achat = prixAchatHTReel(d, allDemandesFournisseursStats)
       return sum + (ht - achat)
     }, 0)
     // % marge calculé sur le prix de vente HT
@@ -11651,7 +11653,7 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
       totalPayeFournisseurs,
       totalAPayerFournisseurs,
     }
-  }, [filteredDossiers, paiementsFournisseurs, periodFilter, selectedYear, selectedMonth])
+  }, [filteredDossiers, paiementsFournisseurs, periodFilter, selectedYear, selectedMonth, allDemandesFournisseursStats])
 
   // Stats de conversion (basées sur tous les dossiers de la période, pas seulement les signés)
   const conversionStats = useMemo(() => {
@@ -11808,12 +11810,13 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
         byTransporteur[tid].nbDossiers++
         byTransporteur[tid].totalCA += d.price_ttc || 0
         byTransporteur[tid].totalVenteHT += d.price_ht || 0
-        byTransporteur[tid].totalAchat += d.price_achat || 0
+        // Achat HT reel (prix_propose du BPA), pas dossier.price_achat brut.
+        const achatHT = prixAchatHTReel(d, allDemandesFournisseursStats)
+        byTransporteur[tid].totalAchat += achatHT
         // Calculer le prix achat TTC (HT + TVA selon le pays)
         const tvaRate = d.tva_rate || getTvaRateByCountry(d.country_code)
-        const priceAchatTTC = (d.price_achat || 0) * (1 + tvaRate / 100)
-        byTransporteur[tid].totalAchatTTC += priceAchatTTC
-        byTransporteur[tid].totalMarge += (d.price_ht || 0) - (d.price_achat || 0)
+        byTransporteur[tid].totalAchatTTC += achatHT * (1 + tvaRate / 100)
+        byTransporteur[tid].totalMarge += (d.price_ht || 0) - achatHT
       }
     })
 
@@ -11831,7 +11834,7 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
     })
 
     return Object.values(byTransporteur).sort((a, b) => b.totalCA - a.totalCA)
-  }, [filteredDossiers, paiementsFournisseurs, bpaConfirmeSet])
+  }, [filteredDossiers, paiementsFournisseurs, bpaConfirmeSet, allDemandesFournisseursStats])
 
   // Dossiers détaillés par transporteur (pour la section "Détail des dossiers vendus")
   const dossiersByTransporteur = useMemo(() => {
@@ -11885,14 +11888,14 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
         months[monthKey] = { month: monthName, ca: 0, marge: 0, signatures: 0 }
       }
       months[monthKey].ca += d.price_ttc || 0
-      months[monthKey].marge += (d.price_ht || 0) - (d.price_achat || 0)
+      months[monthKey].marge += (d.price_ht || 0) - prixAchatHTReel(d, allDemandesFournisseursStats)
       months[monthKey].signatures++
     })
 
     return Object.entries(months)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([, v]) => v)
-  }, [dossiers, dateMode, selectedYear])
+  }, [dossiers, dateMode, selectedYear, allDemandesFournisseursStats])
 
   // Dossiers filtrés selon le type de filtre sélectionné
   const dossiersFiltered = useMemo(() => {

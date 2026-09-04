@@ -260,6 +260,40 @@ export function etatFournisseur(
   return 'attente_validate'
 }
 
+/**
+ * Prix d'achat HT reel d'un dossier, pour tout calcul de marge.
+ *
+ * dossier.price_achat est souvent NULL tant que le BPA n'est pas valide
+ * (il est renseigne a la confirmation du BPA) : s'appuyer dessus donnait
+ * une marge = prix de vente (achat = 0). On prend donc, dans l'ordre :
+ *  - le prix_propose du fournisseur dont le BPA est confirme (cout reel) ;
+ *  - a defaut, la meilleure offre recue (prix_propose le plus bas) ;
+ *  - a defaut, dossier.price_achat s'il existe.
+ * prix_propose est en TTC : on le ramene en HT via le taux du dossier.
+ */
+export function prixAchatHTReel(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dossier: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  demandes: any[],
+): number {
+  const tvaRate = dossier.tva_rate ?? 10
+  const toHT = (ttc: number) => ttc / (1 + tvaRate / 100)
+  const duDossier = (demandes || []).filter((df: any) => df.dossier_id === dossier.id) // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  const bpa = duDossier.find(
+    (df: any) => (df.bpa_received_at || df.status === 'bpa_received') && df.prix_propose, // eslint-disable-line @typescript-eslint/no-explicit-any
+  )
+  if (bpa) return toHT(Number(bpa.prix_propose))
+
+  const offres = duDossier
+    .filter((df: any) => df.prix_propose) // eslint-disable-line @typescript-eslint/no-explicit-any
+    .map((df: any) => Number(df.prix_propose)) // eslint-disable-line @typescript-eslint/no-explicit-any
+  if (offres.length > 0) return toHT(Math.min(...offres))
+
+  return dossier.price_achat || 0
+}
+
 /** Libellé d'attente fournisseur (le nom est affiché quand 'confirme'). */
 export function labelEtatFournisseur(etat: 'confirme' | 'attente_bpa' | 'attente_validate'): string {
   if (etat === 'attente_bpa') return 'En attente de BPA'
