@@ -1605,6 +1605,7 @@ export function AdminDashboard() {
                       key={dossier.id}
                       dossier={dossier}
                       statutEffectif={statutDe(dossier)}
+                      etatFrs={etatFrsDe(dossier)}
                       onSelect={() => handleSelectDossier(dossier)}
                       onViewDevis={() => {
                         setCurrentPage('devis')

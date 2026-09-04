@@ -320,11 +320,10 @@ export function useDossiers(filters?: {
       return data as unknown as DossierWithRelations[]
     },
     // Le statut, le transporteur (BPA) et les paiements changent hors session
-    // admin (validation fournisseur, webhook Mollie). On garde la liste fraiche.
+    // admin (validation fournisseur, webhook Mollie). Refetch au focus/montage.
     staleTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
-    refetchInterval: 45000,
   })
 }
 
@@ -1260,13 +1259,11 @@ export function useAllDemandesFournisseurs() {
       return data
     },
     // Les demandes changent HORS de la session admin (le fournisseur valide/
-    // refuse son BPA depuis sa propre page). Sans rafraîchissement actif, l'état
-    // fournisseur (etatFournisseur, badge Exploitation) reste fige sur un cache
-    // perime. On force donc un refetch au focus/montage + toutes les 45 s.
+    // refuse son BPA depuis sa propre page). On refetch au focus/montage pour
+    // que l'état fournisseur remonte quand l'admin revient sur l'onglet.
     staleTime: 0,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
-    refetchInterval: 45000,
   })
 }
 
