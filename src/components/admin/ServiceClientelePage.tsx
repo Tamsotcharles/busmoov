@@ -112,10 +112,10 @@ const REQUETES_PREDEFINIES: RequetePredefinie[] = [
     color: 'red',
     priority: 'high',
     actionType: 'solde',
-    filter: (d, today) => {
+    filter: (d) => {
+      // Solde = acompte déjà encaissé (total_paye > 0) et il reste le solde.
       const joursAvant = d.jours_avant_depart
-      return d.solde_restant > 0 && joursAvant >= 0 && joursAvant <= 45 &&
-             ['pending-reservation', 'pending-info', 'pending-driver'].includes(d.status)
+      return d.total_paye > 0 && d.solde_restant > 0 && joursAvant >= 0 && joursAvant <= 45
     },
   },
   {
@@ -126,25 +126,24 @@ const REQUETES_PREDEFINIES: RequetePredefinie[] = [
     color: 'orange',
     priority: 'medium',
     actionType: 'solde',
-    filter: (d, today) => {
+    filter: (d) => {
+      // Idem solde urgent, fenêtre 45-60 j.
       const joursAvant = d.jours_avant_depart
-      return d.solde_restant > 0 && joursAvant > 45 && joursAvant <= 60 &&
-             ['pending-reservation', 'pending-info', 'pending-driver'].includes(d.status)
+      return d.total_paye > 0 && d.solde_restant > 0 && joursAvant > 45 && joursAvant <= 60
     },
   },
   {
     id: 'acompte_attente',
-    name: 'Acompte en attente',
-    description: 'Contrat signé mais acompte non reçu depuis plus de 3 jours',
+    name: 'Paiement en attente',
+    description: 'Contrat signé, aucun paiement reçu (acompte ou totalité)',
     icon: <Clock size={18} />,
     color: 'orange',
     priority: 'medium',
     actionType: 'acompte',
-    filter: (d, today) => {
-      if (d.status !== 'pending-payment' || !d.contract_signed_at) return false
-      const signedDate = new Date(d.contract_signed_at)
-      const daysSinceSigned = Math.floor((today.getTime() - signedDate.getTime()) / (1000 * 60 * 60 * 24))
-      return daysSinceSigned >= 3
+    filter: (d) => {
+      // Basé sur le paiement réel, pas sur le statut brut (souvent figé).
+      // Signé + rien encaissé + reste à payer = stade « paiement en attente ».
+      return !!d.contract_signed_at && d.total_paye === 0 && d.solde_restant > 0
     },
   },
   {
@@ -1254,7 +1253,10 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
                     Transporteur
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">
-                    Solde
+                    Total dossier
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">
+                    Reste à régler
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">
                     Relances
@@ -1350,6 +1352,11 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
                         ) : (
                           <span className="text-xs text-gray-400">{labelEtatFournisseur(dossier.etat_frs || 'attente_validate')}</span>
                         )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-sm text-gray-700">
+                          {dossier.price_ttc != null ? formatPrice(dossier.price_ttc) : '—'}
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-right">
                         {dossier.solde_restant > 0 ? (
