@@ -29,6 +29,7 @@ interface DossierInfo {
   return_date: string | null
   return_time: string | null
   passengers: number
+  luggage_type: string | null
   service_type: string | null
   nb_vehicles: number | null
   nb_chauffeurs: number | null
@@ -55,6 +56,38 @@ export function ValidationBpaPage() {
   const [success, setSuccess] = useState(false)
   const [alreadyValidated, setAlreadyValidated] = useState(false)
   const [dossierInfo, setDossierInfo] = useState<DossierInfo | null>(null)
+  const [refusing, setRefusing] = useState(false)
+  const [refused, setRefused] = useState(false)
+
+  // Libellé du type de prestation, robuste à toutes les valeurs de
+  // service_type (aller_simple, ar_1j, ar_sans_mad, ar_mad + anciennes).
+  const serviceTypeLabel = (serviceType: string | null, hasReturn: boolean): string => {
+    switch (serviceType) {
+      case 'aller_simple': return t('fournisseur.oneWay')
+      case 'ar_1j': return t('fournisseur.roundTripDay')
+      case 'ar_sans_mad':
+      case 'aller_retour': return t('fournisseur.roundTrip')
+      case 'ar_mad':
+      case 'circuit':
+      case 'mise_disposition': return t('fournisseur.disposal')
+      default: return hasReturn ? t('fournisseur.roundTrip') : t('fournisseur.oneWay')
+    }
+  }
+
+  // Libellé du volume de bagages.
+  const luggageLabel = (luggage: string | null): string | null => {
+    if (!luggage) return null
+    switch (luggage) {
+      case 'aucun': return t('fournisseur.luggageNone')
+      case 'leger': return t('fournisseur.luggageLight')
+      case 'moyen': return t('fournisseur.luggageMedium')
+      case 'volumineux': return t('fournisseur.luggageHeavy')
+      default: return luggage
+    }
+  }
+
+  const isMad = (serviceType: string | null): boolean =>
+    serviceType === 'ar_mad' || serviceType === 'circuit' || serviceType === 'mise_disposition'
 
   useEffect(() => {
     validateToken()
@@ -89,6 +122,7 @@ export function ValidationBpaPage() {
             return_date,
             return_time,
             passengers,
+            luggage_type,
             price_ht,
             country_code,
             tva_rate,
@@ -146,6 +180,7 @@ export function ValidationBpaPage() {
           return_date: dossier.return_date,
           return_time: dossier.return_time,
           passengers: dossier.passengers,
+          luggage_type: dossier.luggage_type || null,
           service_type: devisAccepte?.service_type || null,
           nb_vehicles: devisAccepte?.nombre_cars || null,
           nb_chauffeurs: devisAccepte?.nombre_chauffeurs || null,
@@ -239,6 +274,61 @@ export function ValidationBpaPage() {
     }
   }
 
+  const handleRefuse = async () => {
+    if (!demandeId || !token) return
+    if (!window.confirm(t('fournisseur.refuseConfirm'))) return
+
+    setRefusing(true)
+    try {
+      // Marquer la demande fournisseur comme refusée par le transporteur.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: updateError } = await (supabase as any)
+        .from('demandes_fournisseurs')
+        .update({ status: 'refused' })
+        .eq('id', demandeId)
+        .eq('validation_token', token)
+
+      if (updateError) throw updateError
+
+      if (dossierInfo) {
+        const frs = dossierInfo.transporteur_name || 'Le transporteur'
+
+        // Trace dans la timeline du dossier (notification en base, visible admin).
+        await supabase.from('timeline').insert({
+          dossier_id: dossierInfo.id,
+          type: 'bpa_refused',
+          content: `❌ Prestation REFUSÉE par ${frs} (via le lien de confirmation). Un nouveau fournisseur doit être trouvé.`,
+        })
+
+        // Notification à l'équipe Busmoov (best-effort, ne bloque pas le refus).
+        try {
+          await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'custom',
+              to: 'infos@busmoov.com',
+              subject: `⚠️ Prestation refusée — Dossier ${dossierInfo.reference}`,
+              html_content:
+                `<p><strong>${frs}</strong> a <strong>refusé</strong> la prestation du dossier ` +
+                `<strong>${dossierInfo.reference}</strong>.</p>` +
+                `<p>Trajet : ${dossierInfo.departure} → ${dossierInfo.arrival}<br>` +
+                `Date : ${formatDate(dossierInfo.departure_date)}</p>` +
+                `<p>➡️ Il faut trouver un nouveau fournisseur pour ce dossier.</p>`,
+            },
+          })
+        } catch (mailErr) {
+          console.error('Notification refus non envoyée:', mailErr)
+        }
+      }
+
+      setRefused(true)
+    } catch (err) {
+      console.error('Error refusing BPA:', err)
+      setError(t('fournisseur.validationError'))
+    } finally {
+      setRefusing(false)
+    }
+  }
+
   // Loading state
   if (loading) {
     return (
@@ -327,6 +417,32 @@ export function ValidationBpaPage() {
     )
   }
 
+  // Refused state
+  if (refused) {
+    return (
+      <div className="min-h-screen bg-gray-100 py-12 px-4">
+        <div className="max-w-md mx-auto">
+          <div className="card p-8 text-center">
+            <div className="w-20 h-20 mx-auto mb-6 bg-orange-100 rounded-full flex items-center justify-center">
+              <XCircle size={40} className="text-orange-600" />
+            </div>
+            <h2 className="font-display text-2xl font-bold text-orange-600 mb-2">
+              {t('fournisseur.refusedTitle')}
+            </h2>
+            <p className="text-gray-500 mb-6">
+              {t('fournisseur.refusedMessage')}
+            </p>
+            {dossierInfo && (
+              <div className="text-sm text-gray-500">
+                {t('fournisseur.reference')} : <span className="font-semibold">{dossierInfo.reference}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Main validation form
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4">
@@ -367,10 +483,7 @@ export function ValidationBpaPage() {
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide">{t('fournisseur.serviceType')}</p>
                   <p className="font-medium">
-                    {dossierInfo.service_type === 'aller_simple' && t('fournisseur.oneWay')}
-                    {dossierInfo.service_type === 'aller_retour' && t('fournisseur.roundTrip')}
-                    {(dossierInfo.service_type === 'circuit' || dossierInfo.service_type === 'mise_disposition' || dossierInfo.service_type === 'ar_mad') && t('fournisseur.disposal')}
-                    {!dossierInfo.service_type && (dossierInfo.return_date ? t('fournisseur.roundTrip') : t('fournisseur.oneWay'))}
+                    {serviceTypeLabel(dossierInfo.service_type, !!dossierInfo.return_date)}
                   </p>
                 </div>
               </div>
@@ -389,7 +502,7 @@ export function ValidationBpaPage() {
                 <Calendar size={18} className="text-magenta mt-0.5" />
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wide">
-                    {(dossierInfo.service_type === 'circuit' || dossierInfo.service_type === 'mise_disposition' || dossierInfo.service_type === 'ar_mad')
+                    {isMad(dossierInfo.service_type)
                       ? t('fournisseur.startDate')
                       : t('fournisseur.departureDate')}
                   </p>
@@ -406,7 +519,7 @@ export function ValidationBpaPage() {
                   <Calendar size={18} className="text-magenta mt-0.5" />
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">
-                      {(dossierInfo.service_type === 'circuit' || dossierInfo.service_type === 'mise_disposition' || dossierInfo.service_type === 'ar_mad')
+                      {isMad(dossierInfo.service_type)
                         ? t('fournisseur.endDate')
                         : t('fournisseur.returnDate')}
                     </p>
@@ -463,6 +576,17 @@ export function ValidationBpaPage() {
                 </div>
               </div>
 
+              {/* Bagages */}
+              {luggageLabel(dossierInfo.luggage_type) && (
+                <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                  <FileText size={18} className="text-magenta mt-0.5" />
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wide">{t('fournisseur.luggage')}</p>
+                    <p className="font-medium">{luggageLabel(dossierInfo.luggage_type)}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Prix */}
               {dossierInfo.prix_achat && (
                 <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-purple-50 to-magenta-50 rounded-lg border border-purple-100">
@@ -504,6 +628,27 @@ export function ValidationBpaPage() {
           <p className="text-xs text-gray-400 text-center mt-4">
             {t('fournisseur.confirmationEmail')}
           </p>
+
+          {/* Refus de la prestation */}
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <button
+              onClick={handleRefuse}
+              disabled={validating || refusing}
+              className="w-full flex items-center justify-center gap-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg py-2.5 transition-colors disabled:opacity-50"
+            >
+              {refusing ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  {t('fournisseur.refusing')}
+                </>
+              ) : (
+                <>
+                  <XCircle size={16} />
+                  {t('fournisseur.refuseButton')}
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Footer */}
