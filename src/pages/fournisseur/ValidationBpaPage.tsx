@@ -263,6 +263,19 @@ export function ValidationBpaPage() {
             type: 'bpa_received',
             content: `✅ ${timelineContent}`,
           })
+
+        // Notification CRM (dashboard admin) : BPA validé.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase as any).from('notifications_crm').insert({
+          dossier_id: dossierInfo.id,
+          dossier_reference: dossierInfo.reference,
+          type: 'bpa_valide',
+          title: 'BPA validé par le transporteur',
+          description: `${dossierInfo.transporteur_name || 'Le transporteur'} a confirmé la commande pour ${dossierInfo.departure} → ${dossierInfo.arrival}`,
+          source_type: 'transporteur',
+          source_name: dossierInfo.transporteur_name,
+          source_id: dossierInfo.transporteur_id,
+        })
       }
 
       setSuccess(true)
@@ -298,6 +311,19 @@ export function ValidationBpaPage() {
           dossier_id: dossierInfo.id,
           type: 'bpa_refused',
           content: `❌ Prestation REFUSÉE par ${frs} (via le lien de confirmation). Un nouveau fournisseur doit être trouvé.`,
+        })
+
+        // Notification CRM (dashboard admin) : refus fournisseur.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase as any).from('notifications_crm').insert({
+          dossier_id: dossierInfo.id,
+          dossier_reference: dossierInfo.reference,
+          type: 'refus_fournisseur',
+          title: 'Prestation refusée par le transporteur',
+          description: `${frs} a refusé la commande pour ${dossierInfo.departure} → ${dossierInfo.arrival}. Un nouveau fournisseur doit être trouvé.`,
+          source_type: 'transporteur',
+          source_name: dossierInfo.transporteur_name,
+          source_id: dossierInfo.transporteur_id,
         })
 
         // Notification à l'équipe Busmoov (best-effort, ne bloque pas le refus).

@@ -10,7 +10,7 @@ interface NotificationCRM {
   created_at: string
   dossier_id: string | null
   dossier_reference: string | null
-  type: 'infos_voyage' | 'contact_chauffeur' | 'tarif_fournisseur' | 'refus_fournisseur' | 'paiement_echoue' | 'contrat_signe' | 'nouveau_message'
+  type: 'infos_voyage' | 'contact_chauffeur' | 'tarif_fournisseur' | 'refus_fournisseur' | 'bpa_valide' | 'paiement_echoue' | 'contrat_signe' | 'nouveau_message'
   title: string
   description: string | null
   source_type: string | null
@@ -45,6 +45,12 @@ const TYPE_CONFIG = {
     color: 'text-red-600',
     bgColor: 'bg-red-100',
     label: 'Refus fournisseur',
+  },
+  bpa_valide: {
+    icon: CheckCheck,
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-100',
+    label: 'BPA validé',
   },
   paiement_echoue: {
     icon: CreditCard,
