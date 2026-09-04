@@ -28,6 +28,7 @@ const LocationAutocarPage = lazy(() => import('@/pages/services').then((m) => ({
 const LocationMinibusPage = lazy(() => import('@/pages/services').then((m) => ({ default: m.LocationMinibusPage })))
 const TransfertAeroportPage = lazy(() => import('@/pages/services').then((m) => ({ default: m.TransfertAeroportPage })))
 const SortiesScolairesPage = lazy(() => import('@/pages/services').then((m) => ({ default: m.SortiesScolairesPage })))
+const VilleAutocarPage = lazy(() => import('@/pages/villes/VilleAutocarPage').then((m) => ({ default: m.VilleAutocarPage })))
 
 const MesDevisPage = lazy(() => import('@/pages/client/MesDevisPage').then((m) => ({ default: m.MesDevisPage })))
 const InfosVoyagePage = lazy(() => import('@/pages/client/InfosVoyagePage').then((m) => ({ default: m.InfosVoyagePage })))
@@ -144,6 +145,9 @@ function PublicRoutes() {
       <Route path="/services/location-minibus" element={<LocationMinibusPage />} />
       <Route path="/services/transfert-aeroport" element={<TransfertAeroportPage />} />
       <Route path="/services/sorties-scolaires" element={<SortiesScolairesPage />} />
+
+      {/* Pages villes SEO (français uniquement) */}
+      <Route path="/location-autocar/:ville" element={<VilleAutocarPage />} />
 
       {/* Client routes */}
       <Route path="/mes-devis" element={<MesDevisPage />} />

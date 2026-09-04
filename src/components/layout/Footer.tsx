@@ -2,9 +2,10 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
 import { useCurrentCountry } from '@/hooks/useCountrySettings'
+import { villes } from '@/lib/villes'
 
 export function Footer() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const currentYear = new Date().getFullYear()
   const { data: country } = useCurrentCountry()
   const localizedPath = useLocalizedPath()
@@ -58,6 +59,19 @@ export function Footer() {
             </ul>
           </div>
         </div>
+
+        {/* Maillage interne pages villes — pertinent seulement en français */}
+        {i18n.language?.startsWith('fr') && (
+          <div className="border-t border-gray-800 pt-6 pb-2 mb-6 text-sm">
+            <span className="text-gray-500 mr-3">Location d'autocar par ville :</span>
+            {villes.map((v, i) => (
+              <span key={v.slug} className="text-gray-400">
+                <Link to={localizedPath(`/location-autocar/${v.slug}`)} className="hover:text-magenta transition-colors">{v.nom}</Link>
+                {i < villes.length - 1 ? ' · ' : ''}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
           <p>{t('footer.copyright', { year: currentYear })} <a href="https://www.centrale-autocar.com" className="text-magenta hover:underline">Centrale Autocar</a>. {t('footer.allRightsReserved')}</p>

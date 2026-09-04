@@ -80,6 +80,56 @@ export function Seo({ page, title, description, jsonLdPreset, jsonLd }: SeoProps
   )
 }
 
+interface SeoFrProps {
+  /** Titre complet de la page (avec | Busmoov). */
+  title: string
+  description: string
+  /** Chemin sans préfixe de langue, ex. /location-autocar/paris */
+  path: string
+  jsonLd?: object | object[]
+}
+
+/**
+ * Balises SEO d'une page existant uniquement en français (pages villes).
+ * Canonical sur /fr, pas d'alternates hreflang puisqu'il n'y a pas de
+ * version traduite.
+ */
+export function SeoFr({ title, description, path, jsonLd }: SeoFrProps) {
+  const canonical = `${getSiteBaseUrl()}/fr${path}`
+  const ogImage = `${getSiteBaseUrl()}/logo.svg`
+
+  useEffect(() => {
+    document.documentElement.lang = 'fr'
+  }, [])
+
+  const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : []
+
+  return (
+    <>
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <link rel="canonical" href={canonical} />
+      <meta property="og:type" content="website" />
+      <meta property="og:site_name" content="Busmoov" />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      <meta property="og:url" content={canonical} />
+      <meta property="og:image" content={ogImage} />
+      <meta property="og:locale" content="fr_FR" />
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={description} />
+      {jsonLdBlocks.map((block, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }}
+        />
+      ))}
+    </>
+  )
+}
+
 /** JSON-LD Organization — à poser sur la page d'accueil. */
 export function organizationJsonLd(lang: SupportedLanguage): object {
   const base = getSiteBaseUrl()

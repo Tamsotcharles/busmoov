@@ -6,6 +6,7 @@ import { useCreateDemande } from '@/hooks/useSupabase'
 import { useCurrentCountry } from '@/hooks/useCountrySettings'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
 import { cn } from '@/lib/utils'
+import { trackEvent } from '@/lib/analytics'
 
 type TripType = 'round-trip' | 'one-way' | 'circuit'
 
@@ -184,6 +185,13 @@ export function MultiStepQuoteForm() {
         special_requests: notes || null,
         country_code: countryCode,
       } as any)
+
+      // Conversion GA4 : demande de devis envoyée
+      trackEvent('generate_lead', {
+        trip_type: tripType,
+        passengers: formData.passengers,
+        country: countryCode,
+      })
 
       // Redirection directe vers l'espace client avec le préfixe de langue
       const langPrefix = i18n.language || 'fr'

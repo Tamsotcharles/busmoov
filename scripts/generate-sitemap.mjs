@@ -27,6 +27,15 @@ const PAGES = [
   ['/confidentialite', '0.3', 'yearly'],
 ]
 
+// Pages françaises uniquement (pages villes) : pas d'alternates hreflang
+const PAGES_FR_ONLY = [
+  ['/location-autocar/paris', '0.8', 'monthly'],
+  ['/location-autocar/lyon', '0.8', 'monthly'],
+  ['/location-autocar/marseille', '0.8', 'monthly'],
+  ['/location-autocar/toulouse', '0.8', 'monthly'],
+  ['/location-autocar/bordeaux', '0.8', 'monthly'],
+]
+
 const urlFor = (lang, path) => (path === '/' ? `${BASE_URL}/${lang}` : `${BASE_URL}/${lang}${path}`)
 const hreflangCode = (lang) => (lang === 'en' ? 'en-GB' : lang)
 
@@ -52,6 +61,15 @@ ${alternates}
   }
 }
 
+for (const [path, priority, changefreq] of PAGES_FR_ONLY) {
+  entries.push(`  <url>
+    <loc>${urlFor('fr', path)}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${changefreq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`)
+}
+
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
@@ -61,4 +79,4 @@ ${entries.join('\n')}
 
 const outPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'sitemap.xml')
 writeFileSync(outPath, xml)
-console.log(`sitemap.xml généré : ${PAGES.length} pages × ${LANGUAGES.length} langues = ${entries.length} URLs`)
+console.log(`sitemap.xml généré : ${entries.length} URLs (${PAGES.length} pages × ${LANGUAGES.length} langues + ${PAGES_FR_ONLY.length} pages FR)`)
