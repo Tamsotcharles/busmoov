@@ -506,16 +506,94 @@ export function AdminDashboard() {
 
   const { data: stats } = useDashboardStats()
   // Ne pas passer les filtres spéciaux côté client comme statut à Supabase
-  const specialFilters = ['flash-active', 'facture-fournisseur-pending', 'signed-only']
+  // Les filtres croisés (calculés cote client sur plusieurs dimensions) ne
+  // sont pas des statuts Supabase : useDossiers ne doit pas les passer comme
+  // status, sinon il ne trouverait rien.
+  const crossFilters = ['x-pending-payment', 'x-pending-reservation', 'x-pending-info', 'x-pending-driver']
+  const specialFilters = ['flash-active', 'facture-fournisseur-pending', 'signed-only', ...crossFilters]
   const { data: dossiers = [], isLoading: dossiersLoading } = useDossiers({
     status: statusFilter && !specialFilters.includes(statusFilter) ? statusFilter : undefined,
     search: searchQuery || undefined,
   })
+  // Source complete (non filtree par statut) pour les compteurs des cards :
+  // ils doivent refleter tous les dossiers, meme quand un filtre est actif.
+  const { data: allDossiers = [] } = useDossiers({ search: searchQuery || undefined })
   const { data: transporteurs = [] } = useTransporteurs()
   const { data: allDevis = [], isLoading: devisLoading } = useAllDevis()
   const { data: contrats = [], isLoading: contratsLoading } = useContrats()
   const { data: allDemandesFournisseurs = [] } = useAllDemandesFournisseurs()
   const { data: allDossiersAutoDevis = [] } = useAllDossiersAutoDevis()
+
+  // Infos voyage par dossier (le client a-t-il rempli / validé, chauffeur reçu ?)
+  // Chargé à part car useDossiers ne joint pas voyage_infos.
+  const [voyageInfosMap, setVoyageInfosMap] = useState<Record<string, { hasInfos: boolean; validated: boolean; chauffeurRecu: boolean }>>({})
+  useEffect(() => {
+    let annule = false
+    ;(async () => {
+      const { data } = await supabase
+        .from('voyage_infos')
+        .select('dossier_id, aller_adresse_depart, validated_at, chauffeur_info_recue_at')
+      if (annule || !data) return
+      const map: Record<string, { hasInfos: boolean; validated: boolean; chauffeurRecu: boolean }> = {}
+      for (const vi of data as any[]) {
+        if (!vi.dossier_id) continue
+        map[vi.dossier_id] = {
+          // Le client a saisi ses infos dès qu'une adresse aller est renseignée.
+          hasInfos: !!vi.aller_adresse_depart,
+          validated: !!vi.validated_at,
+          chauffeurRecu: !!vi.chauffeur_info_recue_at,
+        }
+      }
+      setVoyageInfosMap(map)
+    })()
+    return () => { annule = true }
+  }, [dossiers])
+
+  // Prédicats croisés pour les cards du dashboard. Un dossier peut satisfaire
+  // plusieurs conditions à la fois (ex. signé, pas payé, pas de BPA, pas
+  // d'infos) — c'est la vision réelle voulue, impossible avec le seul statut.
+  const cardPredicates = useMemo(() => {
+    const bpaConfirmeByDossier = new Set<string>()
+    for (const df of allDemandesFournisseurs as any[]) {
+      if (df.dossier_id && (df.bpa_received_at || df.status === 'bpa_received')) {
+        bpaConfirmeByDossier.add(df.dossier_id)
+      }
+    }
+    const isSigned = (d: any) => !!d.contract_signed_at
+    const isClosed = (d: any) => d.status === 'completed' || d.status === 'cancelled'
+    const montantRecu = (d: any) => (d.paiements || []).reduce((s: number, p: any) => s + (p.amount || 0), 0)
+    const acompteRequis = (d: any) => {
+      const contrat = (d.contrats || [])[0]
+      return contrat?.acompte_amount ?? d.acompte_amount ?? Math.round((d.price_ttc || 0) * 0.3)
+    }
+    return {
+      // Signé, acompte (ou totalité) pas encore reçu.
+      pendingPayment: (d: any) => isSigned(d) && !isClosed(d) && montantRecu(d) < acompteRequis(d),
+      // Signé, aucun fournisseur en BPA confirmé — quel que soit le paiement.
+      pendingReservation: (d: any) => isSigned(d) && !isClosed(d) && !bpaConfirmeByDossier.has(d.id),
+      // Signé, le client n'a pas encore transmis ses infos voyage.
+      pendingInfo: (d: any) => isSigned(d) && !isClosed(d) && !voyageInfosMap[d.id]?.hasInfos,
+      // Toutes les étapes faites (payé, BPA confirmé, infos validées), il ne
+      // reste que le contact chauffeur à obtenir.
+      pendingDriver: (d: any) =>
+        isSigned(d) && !isClosed(d) &&
+        montantRecu(d) >= acompteRequis(d) &&
+        bpaConfirmeByDossier.has(d.id) &&
+        voyageInfosMap[d.id]?.validated &&
+        !voyageInfosMap[d.id]?.chauffeurRecu,
+      confirmed: (d: any) => d.status === 'confirmed',
+      completed: (d: any) => d.status === 'completed',
+    }
+  }, [allDemandesFournisseurs, voyageInfosMap])
+
+  // Compteurs des cards, calcules sur TOUS les dossiers (dossiers est filtre
+  // par le statut selectionne, il ne convient pas pour les totaux).
+  const crossStats = useMemo(() => ({
+    pendingPayment: allDossiers.filter(cardPredicates.pendingPayment).length,
+    pendingReservation: allDossiers.filter(cardPredicates.pendingReservation).length,
+    pendingInfo: allDossiers.filter(cardPredicates.pendingInfo).length,
+    pendingDriver: allDossiers.filter(cardPredicates.pendingDriver).length,
+  }), [allDossiers, cardPredicates])
   const { data: paiementsFournisseurs = [] } = usePaiementsFournisseurs()
   const { data: unreadMessagesCount = 0 } = useUnreadMessagesCount()
   const updateDevisMain = useUpdateDevis()
@@ -777,7 +855,15 @@ export function AdminDashboard() {
       // Filtre dossiers des stats (cliquable)
       const matchesStatsDossiers = !showOnlyStatsDossiers || statsFiltered.dossierIds.has(d.id)
 
-      return matchesTransporteur && matchesVoyageDateFrom && matchesVoyageDateTo && matchesReceptionDateFrom && matchesReceptionDateTo && matchesAmountMin && matchesAmountMax && matchesFlashActive && matchesFactureFournisseurPending && matchesSignedOnly && matchesStatsDossiers
+      // Filtres croisés des cards (conditions multi-dimensions).
+      const matchesCross =
+        statusFilter === 'x-pending-payment' ? cardPredicates.pendingPayment(d)
+        : statusFilter === 'x-pending-reservation' ? cardPredicates.pendingReservation(d)
+        : statusFilter === 'x-pending-info' ? cardPredicates.pendingInfo(d)
+        : statusFilter === 'x-pending-driver' ? cardPredicates.pendingDriver(d)
+        : true
+
+      return matchesTransporteur && matchesVoyageDateFrom && matchesVoyageDateTo && matchesReceptionDateFrom && matchesReceptionDateTo && matchesAmountMin && matchesAmountMax && matchesFlashActive && matchesFactureFournisseurPending && matchesSignedOnly && matchesStatsDossiers && matchesCross
     })
 
     // Tri des résultats
@@ -797,7 +883,7 @@ export function AdminDashboard() {
 
       return sortOrder === 'asc' ? valueA - valueB : valueB - valueA
     })
-  }, [dossiers, transporteurFilter, voyageDateFrom, voyageDateTo, receptionDateFrom, receptionDateTo, amountMinDashboard, amountMaxDashboard, statusFilter, sortBy, sortOrder, showOnlyStatsDossiers, statsFiltered.dossierIds])
+  }, [dossiers, transporteurFilter, voyageDateFrom, voyageDateTo, receptionDateFrom, receptionDateTo, amountMinDashboard, amountMaxDashboard, statusFilter, sortBy, sortOrder, showOnlyStatsDossiers, statsFiltered.dossierIds, cardPredicates])
 
   // Réinitialiser les filtres du Dashboard
   const clearDashboardFilters = () => {
@@ -837,11 +923,10 @@ export function AdminDashboard() {
     { label: 'Total', value: stats?.total || 0, icon: FolderOpen, color: 'blue', filter: '' },
     { label: 'Nouveaux', value: stats?.new || 0, icon: Plus, color: 'cyan', filter: 'new' },
     { label: 'Att. client', value: stats?.pendingClient || 0, icon: Clock, color: 'orange', filter: 'pending-client' },
-    { label: 'Att. paiement', value: stats?.pendingPayment || 0, icon: Euro, color: 'amber', filter: 'pending-payment' },
-    { label: 'Att. résa', value: stats?.pendingReservation || 0, icon: ShieldCheck, color: 'violet', filter: 'pending-reservation' },
-    { label: 'Att. infos', value: stats?.pendingInfo || 0, icon: FileText, color: 'purple', filter: 'pending-info' },
-    { label: 'Info VO', value: stats?.pendingInfoReceived || 0, icon: CheckCircle, color: 'teal', filter: 'pending-info-received' },
-    { label: 'Att. chauffeur', value: stats?.pendingDriver || 0, icon: Truck, color: 'indigo', filter: 'pending-driver' },
+    { label: 'Att. paiement', value: crossStats.pendingPayment, icon: Euro, color: 'amber', filter: 'x-pending-payment' },
+    { label: 'Att. résa', value: crossStats.pendingReservation, icon: ShieldCheck, color: 'violet', filter: 'x-pending-reservation' },
+    { label: 'Att. infos', value: crossStats.pendingInfo, icon: FileText, color: 'purple', filter: 'x-pending-info' },
+    { label: 'Att. chauffeur', value: crossStats.pendingDriver, icon: Truck, color: 'indigo', filter: 'x-pending-driver' },
     { label: 'Confirmés', value: stats?.confirmed || 0, icon: CheckCircle, color: 'green', filter: 'confirmed' },
     { label: 'Terminés', value: stats?.completed || 0, icon: TrendingUp, color: 'emerald', filter: 'completed' },
   ]
