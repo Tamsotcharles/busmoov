@@ -110,6 +110,9 @@ export function ChauffeurInfoPage() {
   const [astreinteTel, setAstreinteTel] = useState('')
   const [vehiculesAller, setVehiculesAller] = useState<VehiculeForm[]>([createEmptyVehicule()])
   const [vehiculesRetour, setVehiculesRetour] = useState<VehiculeForm[]>([createEmptyVehicule()])
+  // Retour assuré par les mêmes véhicules/chauffeurs que l'aller : évite au
+  // fournisseur de tout ressaisir. Quand actif, le retour = copie de l'aller.
+  const [memeRetour, setMemeRetour] = useState(false)
 
   const saveVehicules = useSaveVehiculesEtChauffeurs()
 
@@ -325,7 +328,9 @@ export function ChauffeurInfoPage() {
     }
 
     if (hasRetourForm) {
-      const hasValidRetourChauffeur = vehiculesRetour.some(v =>
+      // Si « même qu'à l'aller », la validité du retour = celle de l'aller.
+      const retourAValider = memeRetour ? vehiculesAller : vehiculesRetour
+      const hasValidRetourChauffeur = retourAValider.some(v =>
         v.chauffeurs.some(c => c.nom.trim() !== '')
       )
       if (!hasValidRetourChauffeur) return false
@@ -344,12 +349,16 @@ export function ChauffeurInfoPage() {
       const hasRetourDate = !!(demande.voyage_info?.retour_date || demande.dossier.return_date)
       const hasRetour = (demande.type === 'retour' || demande.type === 'aller_retour') && hasRetourDate
 
+      // Retour effectif : si « même qu'à l'aller », on réutilise les véhicules
+      // de l'aller (le fournisseur n'a rien ressaisi côté retour).
+      const retourVehicules = memeRetour ? vehiculesAller : vehiculesRetour
+
       // Récupérer les chauffeurs principaux
       const chauffeurAllerPrincipal = hasAller
         ? vehiculesAller[0]?.chauffeurs?.find(c => c.role === 'principal' && c.nom.trim()) || vehiculesAller[0]?.chauffeurs?.find(c => c.nom.trim())
         : null
       const chauffeurRetourPrincipal = hasRetour
-        ? vehiculesRetour[0]?.chauffeurs?.find(c => c.role === 'principal' && c.nom.trim()) || vehiculesRetour[0]?.chauffeurs?.find(c => c.nom.trim())
+        ? retourVehicules[0]?.chauffeurs?.find(c => c.role === 'principal' && c.nom.trim()) || retourVehicules[0]?.chauffeurs?.find(c => c.nom.trim())
         : null
 
       await saveVehicules.mutateAsync({
@@ -366,7 +375,7 @@ export function ChauffeurInfoPage() {
               role: c.role,
             })),
         })).filter(v => v.chauffeurs.length > 0) : undefined,
-        vehiculesRetour: hasRetour ? vehiculesRetour.map(v => ({
+        vehiculesRetour: hasRetour ? retourVehicules.map(v => ({
           immatriculation: v.immatriculation || undefined,
           chauffeurs: v.chauffeurs
             .filter(c => c.nom.trim() !== '')
@@ -415,7 +424,7 @@ export function ChauffeurInfoPage() {
             chauffeur_aller_immatriculation: vehiculesAller[0]?.immatriculation || '',
             chauffeur_retour_nom: chauffeurRetourPrincipal?.nom || '',
             chauffeur_retour_tel: chauffeurRetourPrincipal?.tel || '',
-            chauffeur_retour_immatriculation: vehiculesRetour[0]?.immatriculation || '',
+            chauffeur_retour_immatriculation: retourVehicules[0]?.immatriculation || '',
             contact_nom: (demande.voyage_info as any)?.contact_nom || '',
             contact_prenom: (demande.voyage_info as any)?.contact_prenom || '',
             contact_tel: (demande.voyage_info as any)?.contact_tel || '',
@@ -486,7 +495,7 @@ L'équipe Busmoov`
       }
 
       // Créer une notification CRM pour le service client
-      const allVehicules = [...vehiculesAller, ...vehiculesRetour]
+      const allVehicules = [...vehiculesAller, ...retourVehicules]
       const chauffeurPrincipal = vehiculesAller[0]?.chauffeurs?.find((c: ChauffeurForm) => c.role === 'principal') || vehiculesAller[0]?.chauffeurs?.[0]
       await (supabase as any)
         .from('notifications_crm')
@@ -839,15 +848,34 @@ L'équipe Busmoov`
                 <Truck className="w-5 h-5" />
                 {t('fournisseur.vehiclesDriversReturn')}
               </h2>
-              <button
-                onClick={() => addVehicule('retour')}
-                className="flex items-center gap-1 text-sm text-magenta hover:opacity-80"
-              >
-                <Plus className="w-4 h-4" />
-                {t('fournisseur.addVehicle')}
-              </button>
+              {!memeRetour && (
+                <button
+                  onClick={() => addVehicule('retour')}
+                  className="flex items-center gap-1 text-sm text-magenta hover:opacity-80"
+                >
+                  <Plus className="w-4 h-4" />
+                  {t('fournisseur.addVehicle')}
+                </button>
+              )}
             </div>
 
+            {/* Raccourci : même véhicule/chauffeur qu'à l'aller */}
+            <label className="flex items-center gap-2 mb-4 p-3 bg-magenta/5 border border-magenta/20 rounded-lg cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={memeRetour}
+                onChange={(e) => setMemeRetour(e.target.checked)}
+                className="w-4 h-4 accent-magenta"
+              />
+              <span className="text-sm font-medium text-gray-700">{t('fournisseur.sameAsOutbound')}</span>
+            </label>
+
+            {memeRetour ? (
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500 flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-magenta flex-shrink-0" />
+                {t('fournisseur.sameAsOutboundNote')}
+              </div>
+            ) : (
             <div className="space-y-6">
               {vehiculesRetour.map((vehicule, vIndex) => (
                 <div key={vehicule.id} className="border border-magenta/30 rounded-xl p-4 bg-magenta/5">
@@ -940,6 +968,7 @@ L'équipe Busmoov`
                 </div>
               ))}
             </div>
+            )}
           </div>
         )}
 
