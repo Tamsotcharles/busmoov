@@ -817,7 +817,10 @@ export function ClientDashboardPage() {
                       const prixTTC = dossier.price_ttc || 0
                       const acompte = (dossier as any).acompte_amount || 0
                       const estTotal = acompte >= prixTTC && acompte > 0
-                      const montant = acompte > 0 ? acompte : prixTTC
+                      // Soustraire ce qui est déjà versé (acompte partiel).
+                      const totalPaye = (dossier.paiements || []).reduce((s: number, p: any) => s + (p.amount || 0), 0)
+                      const cible = acompte > 0 ? acompte : prixTTC
+                      const montant = Math.max(0, cible - totalPaye)
                       const estVirement = (dossier as any).payment_method === 'virement'
                       return (
                         <div className="mt-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-lg">

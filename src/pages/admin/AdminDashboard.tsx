@@ -5667,10 +5667,15 @@ L'équipe Busmoov`
                             </label>
                             <p className="text-xl font-semibold text-gray-700">{formatPrice(acompte)}</p>
                           </div>
-                          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                            <label className="label text-xs text-gray-500">Solde prévu</label>
-                            <p className="text-xl font-semibold text-gray-700">{estPaiementTotal ? formatPrice(0) : formatPrice(contrat.solde_amount ?? (prixTTC - acompte))}</p>
-                          </div>
+                          {/* Solde prévu masqué quand paiement total (100%) :
+                              il vaut 0 par construction et brouille la lecture
+                              à côté de « Reste à payer ». */}
+                          {!estPaiementTotal && (
+                            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                              <label className="label text-xs text-gray-500">Solde prévu</label>
+                              <p className="text-xl font-semibold text-gray-700">{formatPrice(contrat.solde_amount ?? (prixTTC - acompte))}</p>
+                            </div>
+                          )}
                         </>
                       )
                     })()}

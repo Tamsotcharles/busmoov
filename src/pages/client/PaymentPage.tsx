@@ -223,8 +223,12 @@ export function PaymentPage() {
   const acomptePaye = totalPaye >= acompteAmount
   const soldePaye = resteAPayer <= 0
 
-  // Déterminer le montant à payer
-  const montantAPayer = typeParam === 'solde' ? resteAPayer : (acomptePaye ? resteAPayer : acompteAmount)
+  // Déterminer le montant à payer. On soustrait toujours ce qui est déjà
+  // versé : un acompte partiel (ex 300 sur 590) doit demander le reste
+  // (290), pas re-afficher l'acompte plein.
+  const montantAPayer = (typeParam === 'solde' || acomptePaye)
+    ? resteAPayer
+    : Math.max(0, acompteAmount - totalPaye)
   const isPayingSolde = typeParam === 'solde' || acomptePaye
   // Paiement total : l'acompte couvre tout le prix (depart proche). On parle
   // alors de « totalité », pas d'« acompte ».
