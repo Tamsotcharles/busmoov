@@ -672,7 +672,18 @@ export function AdminDashboard() {
 
   // Compteur des nouveaux tarifs reçus (non traités)
   const nouveauxTarifsCount = useMemo(() => {
-    return allDemandesFournisseurs.filter((df: any) => df.status === 'tarif_recu').length
+    // Une fois un BPA confirmé sur un dossier, un fournisseur est engagé :
+    // les tarifs restants (tarif_recu) de ce dossier sont obsolètes et ne
+    // doivent plus alimenter le badge Exploitation.
+    const dossiersAvecBpa = new Set<string>()
+    for (const df of allDemandesFournisseurs as any[]) {
+      if (df.dossier_id && (df.bpa_received_at || df.status === 'bpa_received')) {
+        dossiersAvecBpa.add(df.dossier_id)
+      }
+    }
+    return (allDemandesFournisseurs as any[]).filter(
+      (df) => df.status === 'tarif_recu' && !dossiersAvecBpa.has(df.dossier_id),
+    ).length
   }, [allDemandesFournisseurs])
 
   // Annuler toute la séquence auto-devis d'un dossier
