@@ -43,9 +43,18 @@ const PAGES_FR_ONLY = [
   ['/location-autocar/saint-etienne', '0.8', 'monthly'],
   ['/location-autocar/strasbourg', '0.8', 'monthly'],
   ['/location-autocar/grenoble', '0.8', 'monthly'],
+  ['/location-bus', '0.9', 'monthly'],
   ['/blog', '0.7', 'weekly'],
   ['/blog/prix-location-autocar', '0.7', 'monthly'],
   ['/blog/organiser-sortie-scolaire-autocar', '0.7', 'monthly'],
+  ['/blog/difference-bus-autocar-minibus', '0.7', 'monthly'],
+  ['/blog/location-autocar-mariage', '0.7', 'monthly'],
+  ['/blog/bus-soiree-etudiante-bde', '0.7', 'monthly'],
+  ['/blog/transport-camp-scout-autocar', '0.7', 'monthly'],
+  ['/blog/autocar-deplacement-entreprise', '0.7', 'monthly'],
+  ['/blog/bus-team-building', '0.7', 'monthly'],
+  ['/blog/bus-discotheque-soiree', '0.7', 'monthly'],
+  ['/blog/autocar-bar-mitzvah', '0.7', 'monthly'],
 ]
 
 const urlFor = (lang, path) => (path === '/' ? `${BASE_URL}/${lang}` : `${BASE_URL}/${lang}${path}`)

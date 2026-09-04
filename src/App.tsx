@@ -28,6 +28,7 @@ const LocationAutocarPage = lazy(() => import('@/pages/services').then((m) => ({
 const LocationMinibusPage = lazy(() => import('@/pages/services').then((m) => ({ default: m.LocationMinibusPage })))
 const TransfertAeroportPage = lazy(() => import('@/pages/services').then((m) => ({ default: m.TransfertAeroportPage })))
 const SortiesScolairesPage = lazy(() => import('@/pages/services').then((m) => ({ default: m.SortiesScolairesPage })))
+const LocationBusPage = lazy(() => import('@/pages/services/LocationBusPage').then((m) => ({ default: m.LocationBusPage })))
 const VilleAutocarPage = lazy(() => import('@/pages/villes/VilleAutocarPage').then((m) => ({ default: m.VilleAutocarPage })))
 const BlogPage = lazy(() => import('@/pages/blog/BlogPage').then((m) => ({ default: m.BlogPage })))
 const BlogArticlePage = lazy(() => import('@/pages/blog/BlogArticlePage').then((m) => ({ default: m.BlogArticlePage })))
@@ -147,6 +148,9 @@ function PublicRoutes() {
       <Route path="/services/location-minibus" element={<LocationMinibusPage />} />
       <Route path="/services/transfert-aeroport" element={<TransfertAeroportPage />} />
       <Route path="/services/sorties-scolaires" element={<SortiesScolairesPage />} />
+
+      {/* Page pilier « location de bus » (français uniquement) */}
+      <Route path="/location-bus" element={<LocationBusPage />} />
 
       {/* Pages villes SEO (français uniquement) */}
       <Route path="/location-autocar/:ville" element={<VilleAutocarPage />} />

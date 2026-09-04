@@ -71,6 +71,8 @@ export function Footer() {
               </span>
             ))}
             <span className="text-gray-500 mx-3">—</span>
+            <Link to={localizedPath('/location-bus')} className="text-gray-400 hover:text-magenta transition-colors">Location de bus</Link>
+            <span className="text-gray-500 mx-3">·</span>
             <Link to={localizedPath('/blog')} className="text-gray-400 hover:text-magenta transition-colors">Blog & conseils</Link>
           </div>
         )}

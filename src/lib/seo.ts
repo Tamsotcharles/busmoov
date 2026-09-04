@@ -48,7 +48,7 @@ export const seoConfig: SeoConfig = {
   'home': {
     fr: {
       title: 'Location d\'autocar avec chauffeur — Devis gratuit | Busmoov',
-      description: 'Louez un autocar ou minibus avec chauffeur partout en France. Comparez plusieurs devis de transporteurs vérifiés en 24h et réservez en ligne au meilleur prix.',
+      description: 'Louez un bus, autocar ou minibus avec chauffeur partout en France. Comparez plusieurs devis de transporteurs vérifiés en 24h et réservez en ligne au meilleur prix.',
     },
     es: {
       title: 'Alquiler de autocar con conductor — Presupuesto gratis | Busmoov',
@@ -66,7 +66,7 @@ export const seoConfig: SeoConfig = {
   'location-autocar': {
     fr: {
       title: 'Location d\'autocar avec chauffeur pour groupes | Busmoov',
-      description: 'Location d\'autocar avec chauffeur de 20 à 90 places : mariages, séminaires, voyages scolaires, excursions. Devis gratuit sous 24h, transporteurs vérifiés.',
+      description: 'Location d\'autocar (bus grand tourisme) avec chauffeur de 20 à 90 places : mariages, séminaires, voyages scolaires, excursions. Devis gratuit sous 24h, transporteurs vérifiés.',
     },
     es: {
       title: 'Alquiler de autocar con conductor para grupos | Busmoov',
