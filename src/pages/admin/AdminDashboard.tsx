@@ -16180,10 +16180,20 @@ function FacturesPage() {
         }
       }
 
+      // Règlement du dossier (pour la mention « acquittée le … » sur le PDF)
+      const paiementsDuDossier = (paiementsClients as any[])
+        .filter((p) => p.dossier_id === selectedDossier.id)
+        .sort((a, b) => new Date(b.payment_date || 0).getTime() - new Date(a.payment_date || 0).getTime())
+      const montantPayeDossier = paiementsDuDossier.reduce((s, p) => s + (p.amount || 0), 0)
+      const dernierPaiement = paiementsDuDossier[0]
+
       // Données PDF (réutilisées pour le téléchargement ET l'envoi email)
       const countryCodeNewFacture = selectedDossier.country_code || 'FR'
       const pdfLangNewFacture = countryCodeNewFacture === 'DE' ? 'de' : countryCodeNewFacture === 'ES' ? 'es' : countryCodeNewFacture === 'GB' ? 'en' : 'fr'
       const factureDataForPdf = {
+        montant_paye: montantPayeDossier,
+        paid_date: dernierPaiement?.payment_date || null,
+        payment_method: dernierPaiement?.type || null,
         reference,
         type: factureForm.type,
         amount_ht: amountHT,
@@ -16317,11 +16327,21 @@ function FacturesPage() {
         }
       }
 
+      // Règlement du dossier (mention « acquittée le … »)
+      const paiementsDL = (paiementsClients as any[])
+        .filter((p) => p.dossier_id === facture.dossier_id)
+        .sort((a, b) => new Date(b.payment_date || 0).getTime() - new Date(a.payment_date || 0).getTime())
+      const montantPayeDL = paiementsDL.reduce((s, p) => s + (p.amount || 0), 0)
+      const dernierPaiementDL = paiementsDL[0]
+
       const countryCodeDL = facture.dossier?.country_code || 'FR'
       const pdfLangDL = countryCodeDL === 'DE' ? 'de' : countryCodeDL === 'ES' ? 'es' : countryCodeDL === 'GB' ? 'en' : 'fr'
       await generateFacturePDF({
         reference: facture.reference,
         type: facture.type,
+        montant_paye: montantPayeDL,
+        paid_date: dernierPaiementDL?.payment_date || null,
+        payment_method: dernierPaiementDL?.type || null,
         facture_origine: facture.facture_origine,
         amount_ht: facture.amount_ht,
         amount_ttc: facture.amount_ttc,
@@ -16364,7 +16384,17 @@ function FacturesPage() {
     const clientEmail = facture.dossier?.client_email || ''
     const dossierRef = facture.dossier?.reference || ''
 
-    setSelectedFactureForEmail(facture)
+    // Règlement du dossier (pour l'acquittement sur le PDF joint).
+    const paiementsEnvoi = (paiementsClients as any[])
+      .filter((p) => p.dossier_id === facture.dossier_id)
+      .sort((a, b) => new Date(b.payment_date || 0).getTime() - new Date(a.payment_date || 0).getTime())
+    const dernierPaiementEnvoi = paiementsEnvoi[0]
+    setSelectedFactureForEmail({
+      ...facture,
+      montant_paye: paiementsEnvoi.reduce((s, p) => s + (p.amount || 0), 0),
+      paid_date: dernierPaiementEnvoi?.payment_date || null,
+      payment_method: dernierPaiementEnvoi?.type || null,
+    })
     setEnvoiFactureForm({
       to: clientEmail,
       subject: `Votre ${libelleMin} - ${facture.reference}`,
@@ -16530,7 +16560,12 @@ L'équipe Busmoov`,
 
   // Stats
   const totalFactures = factures.length
-  const totalAcomptes = factures.filter(f => f.type === 'acompte' && f.status !== 'cancelled').reduce((sum, f) => sum + (f.amount_ttc || 0), 0)
+  // Un « acompte » couvrant 100 % du prix est une FACTURE complète, pas un
+  // acompte : on le compte à part (bucket « Factures ») et non dans « Acomptes ».
+  const estFactureComplete = (f: any) =>
+    f.type === 'acompte' && (f.dossier?.price_ttc || 0) > 0 && (f.amount_ttc || 0) >= (f.dossier.price_ttc || 0) - 0.01
+  const totalFacturesCompletes = factures.filter(f => f.status !== 'cancelled' && estFactureComplete(f)).reduce((sum, f) => sum + (f.amount_ttc || 0), 0)
+  const totalAcomptes = factures.filter(f => f.type === 'acompte' && f.status !== 'cancelled' && !estFactureComplete(f)).reduce((sum, f) => sum + (f.amount_ttc || 0), 0)
   const totalSoldes = factures.filter(f => f.type === 'solde' && f.status !== 'cancelled').reduce((sum, f) => sum + (f.amount_ttc || 0), 0)
   const totalAvoirs = factures.filter(f => f.type === 'avoir').reduce((sum, f) => sum + (f.amount_ttc || 0), 0) // Valeur négative
   // À encaisser = facturé (hors avoir/annulé) − déjà encaissé, PAR DOSSIER,
@@ -16621,10 +16656,14 @@ L'équipe Busmoov`,
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
         <div className="card p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Total factures</p>
           <p className="text-2xl font-bold text-purple-dark">{totalFactures}</p>
+        </div>
+        <div className="card p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wide">Factures</p>
+          <p className="text-2xl font-bold text-purple-dark">{formatPrice(totalFacturesCompletes)}</p>
         </div>
         <div className="card p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Acomptes</p>

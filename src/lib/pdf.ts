@@ -156,6 +156,8 @@ interface PdfTranslations {
   paymentsMade: string
   paymentCB: string
   paymentTransfer: string
+  invoicePaid: string
+  paidOn: string
   // Trip types
   tripOneWay: string
   tripRoundTrip: string
@@ -306,6 +308,8 @@ const PDF_TRANSLATIONS: Record<PdfLanguage, PdfTranslations> = {
     paymentsMade: 'Paiements effectués',
     paymentCB: 'CB',
     paymentTransfer: 'Virement',
+    invoicePaid: 'FACTURE ACQUITTÉE',
+    paidOn: 'Réglée le',
     tripOneWay: 'ALLER SIMPLE',
     tripRoundTrip: 'ALLER / RETOUR',
     tripMAD: 'MISE À DISPOSITION',
@@ -451,6 +455,8 @@ const PDF_TRANSLATIONS: Record<PdfLanguage, PdfTranslations> = {
     paymentsMade: 'Pagos realizados',
     paymentCB: 'Tarjeta',
     paymentTransfer: 'Transferencia',
+    invoicePaid: 'FACTURA PAGADA',
+    paidOn: 'Pagada el',
     tripOneWay: 'SOLO IDA',
     tripRoundTrip: 'IDA Y VUELTA',
     tripMAD: 'PUESTA A DISPOSICIÓN',
@@ -596,6 +602,8 @@ const PDF_TRANSLATIONS: Record<PdfLanguage, PdfTranslations> = {
     paymentsMade: 'Zahlungen erfolgt',
     paymentCB: 'Kreditkarte',
     paymentTransfer: 'Überweisung',
+    invoicePaid: 'RECHNUNG BEZAHLT',
+    paidOn: 'Bezahlt am',
     tripOneWay: 'EINFACHE FAHRT',
     tripRoundTrip: 'HIN- UND RÜCKFAHRT',
     tripMAD: 'BEREITSTELLUNG',
@@ -741,6 +749,8 @@ const PDF_TRANSLATIONS: Record<PdfLanguage, PdfTranslations> = {
     paymentsMade: 'Payments made',
     paymentCB: 'Card',
     paymentTransfer: 'Transfer',
+    invoicePaid: 'INVOICE PAID',
+    paidOn: 'Paid on',
     tripOneWay: 'ONE WAY',
     tripRoundTrip: 'ROUND TRIP',
     tripMAD: 'AT DISPOSAL',
@@ -2320,6 +2330,11 @@ interface FactureData {
     reference: string
     amount_ttc: number
   } | null
+  // Règlement : montant déjà encaissé sur le dossier + date/moyen du dernier
+  // paiement, pour mentionner « PAYÉE le … » (facture acquittée) sur le PDF.
+  montant_paye?: number | null
+  paid_date?: string | null
+  payment_method?: string | null
 }
 
 export async function generateFacturePDF(facture: FactureData, lang: string = 'fr'): Promise<void> {
@@ -2732,50 +2747,78 @@ export async function generateFacturePDF(facture: FactureData, lang: string = 'f
     }
   }
 
-  // ========== INFORMATIONS DE PAIEMENT (sauf pour avoir) ==========
+  // ========== PAIEMENT / ACQUITTEMENT (sauf pour avoir) ==========
   if (!isAvoir) {
     y += 20
-    // Vérifier si on a besoin d'une nouvelle page (bloc paiement ~ 40px)
     y = checkPageBreak(doc, y, 40, COMPANY_INFO)
 
-    // Cadre paiement
-    doc.setDrawColor(88, 44, 135)
-    doc.setLineWidth(0.5)
-    doc.rect(15, y, pageWidth - 30, 30)
+    const montantPaye = facture.montant_paye || 0
+    const estAcquittee = montantPaye >= Math.abs(facture.amount_ttc) - 0.01
+    const methodStr = facture.payment_method === 'virement' ? t.paymentTransfer : facture.payment_method === 'cb' ? t.paymentCB : ''
 
-    drawRect(doc, 15, y, pageWidth - 30, 8, purpleLight)
-    doc.setFontSize(9)
-    doc.setTextColor(88, 44, 135)
-    doc.setFont('helvetica', 'bold')
-    doc.text(t.paymentInfo, 20, y + 5.5)
+    if (estAcquittee) {
+      // Facture réglée : mention verte « ACQUITTÉE » + date
+      doc.setDrawColor(39, 174, 96)
+      doc.setLineWidth(0.5)
+      doc.rect(15, y, pageWidth - 30, 16)
+      drawRect(doc, 15, y, pageWidth - 30, 8, '#E4F7EE')
+      doc.setFontSize(9)
+      doc.setTextColor(39, 174, 96)
+      doc.setFont('helvetica', 'bold')
+      doc.text(t.invoicePaid, 20, y + 5.5)
+      y += 13
+      doc.setFontSize(8)
+      doc.setTextColor(60, 60, 60)
+      doc.setFont('helvetica', 'normal')
+      const paidDateStr = facture.paid_date ? formatDateLocalized(facture.paid_date, effectiveLang) : ''
+      doc.text(`${t.paidOn} ${paidDateStr}${methodStr ? ` — ${methodStr}` : ''}`, 20, y)
+    } else {
+      // Facture non réglée : coordonnées bancaires (+ « déjà réglé » si partiel)
+      const boxH = montantPaye > 0 ? 36 : 30
+      doc.setDrawColor(88, 44, 135)
+      doc.setLineWidth(0.5)
+      doc.rect(15, y, pageWidth - 30, boxH)
 
-    y += 14
-    doc.setFontSize(8)
-    doc.setTextColor(60, 60, 60)
-    doc.setFont('helvetica', 'normal')
+      drawRect(doc, 15, y, pageWidth - 30, 8, purpleLight)
+      doc.setFontSize(9)
+      doc.setTextColor(88, 44, 135)
+      doc.setFont('helvetica', 'bold')
+      doc.text(t.paymentInfo, 20, y + 5.5)
 
-    doc.setFont('helvetica', 'bold')
-    doc.text(`${t.iban} :`, 20, y)
-    doc.setFont('helvetica', 'normal')
-    doc.text(COMPANY_INFO.rib.iban, 40, y)
+      y += 14
+      doc.setFontSize(8)
+      doc.setTextColor(60, 60, 60)
+      doc.setFont('helvetica', 'normal')
 
-    y += 5
-    doc.setFont('helvetica', 'bold')
-    doc.text(`${t.bic} :`, 20, y)
-    doc.setFont('helvetica', 'normal')
-    doc.text(COMPANY_INFO.rib.bic, 40, y)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`${t.iban} :`, 20, y)
+      doc.setFont('helvetica', 'normal')
+      doc.text(COMPANY_INFO.rib.iban, 40, y)
 
-    y += 5
-    doc.setFont('helvetica', 'bold')
-    doc.text(`${t.reference} :`, 20, y)
-    doc.setFont('helvetica', 'normal')
-    doc.text(facture.reference, 50, y)
+      y += 5
+      doc.setFont('helvetica', 'bold')
+      doc.text(`${t.bic} :`, 20, y)
+      doc.setFont('helvetica', 'normal')
+      doc.text(COMPANY_INFO.rib.bic, 40, y)
+
+      y += 5
+      doc.setFont('helvetica', 'bold')
+      doc.text(`${t.reference} :`, 20, y)
+      doc.setFont('helvetica', 'normal')
+      doc.text(facture.reference, 50, y)
+
+      if (montantPaye > 0) {
+        y += 5
+        doc.setTextColor(39, 174, 96)
+        doc.text(`${t.paymentsMade} : ${formatAmount(montantPaye)} €    ${t.remainingToPay} : ${formatAmount(Math.abs(facture.amount_ttc) - montantPaye)} €`, 20, y)
+      }
+    }
   }
 
   // ========== FOOTER ==========
   drawFooter(doc, COMPANY_INFO)
 
-  const prefix = facture.type === 'acompte' ? 'Facture_Acompte' : facture.type === 'solde' ? 'Facture_Solde' : 'Avoir'
+  const prefix = isAvoir ? 'Avoir' : isFullFacture ? 'Facture' : facture.type === 'acompte' ? 'Facture_Acompte' : 'Facture_Solde'
   doc.save(`${prefix}_${facture.reference}.pdf`)
 }
 
@@ -3103,7 +3146,7 @@ export async function generateFacturePDFBase64(facture: FactureData, lang: strin
   // ========== FOOTER ==========
   drawFooter(doc, COMPANY_INFO)
 
-  const prefix = facture.type === 'acompte' ? 'Facture_Acompte' : facture.type === 'solde' ? 'Facture_Solde' : 'Avoir'
+  const prefix = isAvoir ? 'Avoir' : isFullFacture ? 'Facture' : facture.type === 'acompte' ? 'Facture_Acompte' : 'Facture_Solde'
   const filename = `${prefix}_${facture.reference}.pdf`
 
   // Retourner le base64 au lieu de télécharger
