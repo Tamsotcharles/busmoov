@@ -70,6 +70,8 @@ export function Footer() {
                 {i < villes.length - 1 ? ' · ' : ''}
               </span>
             ))}
+            <span className="text-gray-500 mx-3">—</span>
+            <Link to={localizedPath('/blog')} className="text-gray-400 hover:text-magenta transition-colors">Blog & conseils</Link>
           </div>
         )}
 

@@ -29,6 +29,8 @@ const LocationMinibusPage = lazy(() => import('@/pages/services').then((m) => ({
 const TransfertAeroportPage = lazy(() => import('@/pages/services').then((m) => ({ default: m.TransfertAeroportPage })))
 const SortiesScolairesPage = lazy(() => import('@/pages/services').then((m) => ({ default: m.SortiesScolairesPage })))
 const VilleAutocarPage = lazy(() => import('@/pages/villes/VilleAutocarPage').then((m) => ({ default: m.VilleAutocarPage })))
+const BlogPage = lazy(() => import('@/pages/blog/BlogPage').then((m) => ({ default: m.BlogPage })))
+const BlogArticlePage = lazy(() => import('@/pages/blog/BlogArticlePage').then((m) => ({ default: m.BlogArticlePage })))
 
 const MesDevisPage = lazy(() => import('@/pages/client/MesDevisPage').then((m) => ({ default: m.MesDevisPage })))
 const InfosVoyagePage = lazy(() => import('@/pages/client/InfosVoyagePage').then((m) => ({ default: m.InfosVoyagePage })))
@@ -148,6 +150,10 @@ function PublicRoutes() {
 
       {/* Pages villes SEO (français uniquement) */}
       <Route path="/location-autocar/:ville" element={<VilleAutocarPage />} />
+
+      {/* Blog SEO (français uniquement) */}
+      <Route path="/blog" element={<BlogPage />} />
+      <Route path="/blog/:slug" element={<BlogArticlePage />} />
 
       {/* Client routes */}
       <Route path="/mes-devis" element={<MesDevisPage />} />

@@ -34,6 +34,9 @@ const PAGES_FR_ONLY = [
   ['/location-autocar/marseille', '0.8', 'monthly'],
   ['/location-autocar/toulouse', '0.8', 'monthly'],
   ['/location-autocar/bordeaux', '0.8', 'monthly'],
+  ['/blog', '0.7', 'weekly'],
+  ['/blog/prix-location-autocar', '0.7', 'monthly'],
+  ['/blog/organiser-sortie-scolaire-autocar', '0.7', 'monthly'],
 ]
 
 const urlFor = (lang, path) => (path === '/' ? `${BASE_URL}/${lang}` : `${BASE_URL}/${lang}${path}`)
