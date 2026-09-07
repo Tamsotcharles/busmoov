@@ -80,6 +80,53 @@ export function Seo({ page, title, description, jsonLdPreset, jsonLd }: SeoProps
   )
 }
 
+interface SeoStandaloneProps {
+  /** Code langue de la page (attribut lang du HTML, og:locale). */
+  langCode: string
+  ogLocale: string
+  title: string
+  description: string
+  /** Chemin COMPLET depuis la racine, ex. /zh (pas de préfixe ajouté). */
+  fullPath: string
+  jsonLd?: object | object[]
+}
+
+/**
+ * Balises SEO d'une page autonome hors système de langues (ex. landing
+ * chinoise /zh) : canonical sur le chemin exact, pas d'alternates.
+ */
+export function SeoStandalone({ langCode, ogLocale, title, description, fullPath, jsonLd }: SeoStandaloneProps) {
+  const canonical = `${getSiteBaseUrl()}${fullPath}`
+
+  useEffect(() => {
+    document.documentElement.lang = langCode
+  }, [langCode])
+
+  const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : []
+
+  return (
+    <>
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <link rel="canonical" href={canonical} />
+      <meta property="og:type" content="website" />
+      <meta property="og:site_name" content="Busmoov" />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      <meta property="og:url" content={canonical} />
+      <meta property="og:locale" content={ogLocale} />
+      <meta name="twitter:card" content="summary" />
+      {jsonLdBlocks.map((block, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(block) }}
+        />
+      ))}
+    </>
+  )
+}
+
 interface SeoFrProps {
   /** Titre complet de la page (avec | Busmoov). */
   title: string

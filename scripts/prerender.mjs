@@ -172,6 +172,60 @@ for (const [page, paths] of Object.entries(seoLocalizedPaths)) {
   }
 }
 
+// ---- Landing chinoise /zh (page autonome, chemin racine) ----------------
+{
+  const zh = await import('../src/lib/zh-landing.ts')
+  const canonical = `${BASE_URL}/zh`
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      serviceType: '法国大巴与中巴租赁（含司机）',
+      description: zh.zhMeta.description,
+      inLanguage: 'zh-Hans',
+      url: canonical,
+      areaServed: { '@type': 'Country', name: 'France' },
+      provider: { '@type': 'Organization', name: 'Busmoov', url: BASE_URL },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: zh.zhFaq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ]
+  let head = `<link rel="canonical" href="${canonical}"/>\n`
+  head += `<meta property="og:title" content="${esc(zh.zhMeta.title)}"/>\n`
+  head += `<meta property="og:description" content="${esc(zh.zhMeta.description)}"/>\n`
+  head += `<meta property="og:url" content="${canonical}"/>\n`
+  head += `<meta property="og:locale" content="zh_CN"/>\n`
+  for (const block of jsonLd) head += `<script type="application/ld+json">${JSON.stringify(block)}</script>\n`
+  const body = wrap(
+    h1(zh.zhMeta.h1) +
+    p(zh.zhMeta.sousTitre) +
+    zh.zhIntro.map(p).join('') +
+    h2(zh.zhTexte.servicesTitre) +
+    zh.zhServices.map((x) => `<h3 class="font-semibold mt-3">${esc(x.titre)}</h3>` + p(x.desc)).join('') +
+    h2(zh.zhTexte.vehiculesTitre) +
+    zh.zhVehicules.map((x) => `<h3 class="font-semibold mt-3">${esc(x.titre)}</h3>` + p(x.desc)).join('') +
+    h2(zh.zhTexte.commentTitre) +
+    ul(zh.zhTexte.commentEtapes) +
+    h2(zh.zhTexte.faqTitre) +
+    zh.zhFaq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + p(f.a)).join('')
+  )
+  const html = template
+    .replace(/<html lang="[^"]*"/, `<html lang="zh"`)
+    .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(zh.zhMeta.title)}</title>`)
+    .replace(/(<meta name="description" content=")[^"]*(")/, `$1${esc(zh.zhMeta.description)}$2`)
+    .replace('</head>', `${head}</head>`)
+    .replace('<div id="root"></div>', `<div id="root">${body}</div>`)
+  writeFileSync(join(DIST, 'zh.html'), html)
+  count++
+}
+
 // ---- Page pilier location-bus (FR) --------------------------------------
 renderPage({
   lang: 'fr',
@@ -304,7 +358,7 @@ ${villes.map((v) => `- [Location d'autocar à ${v.nom}](${BASE_URL}/fr/location-
 ${articles.map((a) => `- [${a.titre}](${BASE_URL}/fr/blog/${a.slug}) : ${a.extrait}`).join('\n')}
 
 ## Autres langues
-- [Español](${BASE_URL}/es) · [Deutsch](${BASE_URL}/de) · [English](${BASE_URL}/en)
+- [Español](${BASE_URL}/es) · [Deutsch](${BASE_URL}/de) · [English](${BASE_URL}/en) · [中文 — 法国大巴租赁](${BASE_URL}/zh)
 
 ## Détail complet
 - [llms-full.txt](${BASE_URL}/llms-full.txt) : contenu intégral des guides et pages villes en markdown

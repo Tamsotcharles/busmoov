@@ -32,6 +32,7 @@ const SortiesScolairesPage = lazy(() => import('@/pages/services').then((m) => (
 const LocationBusPage = lazy(() => import('@/pages/services/LocationBusPage').then((m) => ({ default: m.LocationBusPage })))
 const VilleAutocarPage = lazy(() => import('@/pages/villes/VilleAutocarPage').then((m) => ({ default: m.VilleAutocarPage })))
 const BlogPage = lazy(() => import('@/pages/blog/BlogPage').then((m) => ({ default: m.BlogPage })))
+const ZhLandingPage = lazy(() => import('@/pages/ZhLandingPage').then((m) => ({ default: m.ZhLandingPage })))
 const BlogArticlePage = lazy(() => import('@/pages/blog/BlogArticlePage').then((m) => ({ default: m.BlogArticlePage })))
 
 const MesDevisPage = lazy(() => import('@/pages/client/MesDevisPage').then((m) => ({ default: m.MesDevisPage })))
@@ -215,6 +216,9 @@ export default function App() {
       <ABTestProvider>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
+            {/* Landing chinoise autonome (hors système de langues) */}
+            <Route path="/zh" element={<ZhLandingPage />} />
+
             {/* Routes avec préfixe de langue: /fr/*, /es/*, /de/* */}
             <Route path="/:lang/*" element={<LanguageWrapper />} />
 
