@@ -120,20 +120,39 @@ export function RedirectToDefaultLanguage() {
  */
 export function LanguageSelector({ className = '' }: { className?: string }) {
   const { switchLanguage, currentLanguage } = useLanguageSwitcher()
-  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  const languages: { code: SupportedLanguage; flag: string; name: string }[] = [
+  // « 中文 » n'est pas une langue complète du site : c'est la landing /zh.
+  // La choisir mène toujours vers /zh ; depuis /zh, choisir une langue
+  // mène à l'accueil de cette langue.
+  const isZhPage = location.pathname === '/zh'
+
+  const languages: { code: string; flag: string; name: string }[] = [
     { code: 'fr', flag: '🇫🇷', name: 'Français' },
     { code: 'es', flag: '🇪🇸', name: 'Español' },
     { code: 'de', flag: '🇩🇪', name: 'Deutsch' },
     { code: 'en', flag: '🇬🇧', name: 'English' },
+    { code: 'zh', flag: '🇨🇳', name: '中文' },
   ]
+
+  const handleChange = (value: string) => {
+    if (value === 'zh') {
+      navigate('/zh')
+      return
+    }
+    if (isZhPage) {
+      navigate(`/${value}`)
+      return
+    }
+    switchLanguage(value as SupportedLanguage)
+  }
 
   return (
     <div className={`relative inline-block ${className}`}>
       <select
-        value={currentLanguage}
-        onChange={(e) => switchLanguage(e.target.value as SupportedLanguage)}
+        value={isZhPage ? 'zh' : currentLanguage}
+        onChange={(e) => handleChange(e.target.value)}
         className="appearance-none bg-transparent border border-gray-300 rounded-lg px-3 py-1.5 pr-8 text-sm cursor-pointer hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
       >
         {languages.map((lang) => (
