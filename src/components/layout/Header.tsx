@@ -10,11 +10,13 @@ interface HeaderProps {
   showAdminLink?: boolean
 }
 
-const languages: { code: SupportedLanguage; flag: string; name: string }[] = [
+// « zh » n'est pas une langue complète du site : c'est la landing /zh.
+const languages: { code: SupportedLanguage | 'zh'; flag: string; name: string }[] = [
   { code: 'fr', flag: '🇫🇷', name: 'FR' },
   { code: 'es', flag: '🇪🇸', name: 'ES' },
   { code: 'de', flag: '🇩🇪', name: 'DE' },
   { code: 'en', flag: '🇬🇧', name: 'EN' },
+  { code: 'zh', flag: '🇨🇳', name: '中文' },
 ]
 
 export function Header({ showAdminLink = false }: HeaderProps) {
@@ -74,7 +76,24 @@ export function Header({ showAdminLink = false }: HeaderProps) {
     }
   }
 
-  const currentLang = languages.find(l => l.code === currentLanguage) || languages[0]
+  // Sur /zh, afficher l'entrée chinoise comme langue active
+  const isZhPage = location.pathname === '/zh'
+  const activeCode: string = isZhPage ? 'zh' : currentLanguage
+  const currentLang = languages.find(l => l.code === activeCode) || languages[0]
+
+  // Choisir 中文 mène toujours vers la landing /zh ; depuis /zh, choisir
+  // une langue mène à l'accueil de cette langue.
+  const handleLanguageClick = (code: SupportedLanguage | 'zh') => {
+    if (code === 'zh') {
+      navigate('/zh')
+      return
+    }
+    if (isZhPage) {
+      navigate(`/${code}`)
+      return
+    }
+    switchLanguage(code)
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
@@ -132,11 +151,11 @@ export function Header({ showAdminLink = false }: HeaderProps) {
                   <button
                     key={lang.code}
                     onClick={() => {
-                      switchLanguage(lang.code)
+                      handleLanguageClick(lang.code)
                       setLangMenuOpen(false)
                     }}
                     className={`w-full px-4 py-2 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors ${
-                      currentLanguage === lang.code ? 'text-magenta font-semibold' : 'text-gray-700'
+                      activeCode === lang.code ? 'text-magenta font-semibold' : 'text-gray-700'
                     }`}
                   >
                     <span className="text-lg">{lang.flag}</span>
@@ -175,11 +194,11 @@ export function Header({ showAdminLink = false }: HeaderProps) {
                   <button
                     key={lang.code}
                     onClick={() => {
-                      switchLanguage(lang.code)
+                      handleLanguageClick(lang.code)
                       setLangMenuOpen(false)
                     }}
                     className={`w-full px-4 py-2 text-left flex items-center gap-2 hover:bg-gray-50 transition-colors ${
-                      currentLanguage === lang.code ? 'text-magenta font-semibold' : 'text-gray-700'
+                      activeCode === lang.code ? 'text-magenta font-semibold' : 'text-gray-700'
                     }`}
                   >
                     <span className="text-lg">{lang.flag}</span>
