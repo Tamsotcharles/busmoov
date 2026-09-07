@@ -26,7 +26,7 @@ export interface SeoPageMeta {
 
 export const SEO_BASE_URL = 'https://www.busmoov.com'
 
-/** Chemin (sans préfixe de langue) de chaque page indexable. */
+/** Chemin interne (français, sans préfixe de langue) de chaque page indexable. */
 export const seoPaths: Record<SeoPageKey, string> = {
   'home': '/',
   'location-autocar': '/services/location-autocar',
@@ -41,6 +41,69 @@ export const seoPaths: Record<SeoPageKey, string> = {
   'confidentialite': '/confidentialite',
 }
 
+/**
+ * Slugs localisés par langue — le mot-clé dans l'URL compte pour le SEO
+ * local (« alquiler-autocar » plutôt que « location-autocar » en espagnol).
+ * fr = chemin interne. Les anciens chemins français restent routés pour
+ * la rétro-compatibilité ; la canonical pointe vers le slug localisé.
+ */
+export const seoLocalizedPaths: Record<SeoPageKey, Record<SeoLanguage, string>> = {
+  'home': { fr: '/', es: '/', de: '/', en: '/' },
+  'location-autocar': {
+    fr: '/services/location-autocar',
+    es: '/servicios/alquiler-autocar',
+    de: '/leistungen/reisebus-mieten',
+    en: '/services/coach-hire',
+  },
+  'location-minibus': {
+    fr: '/services/location-minibus',
+    es: '/servicios/alquiler-minibus',
+    de: '/leistungen/minibus-mieten',
+    en: '/services/minibus-hire',
+  },
+  'transfert-aeroport': {
+    fr: '/services/transfert-aeroport',
+    es: '/servicios/traslado-aeropuerto',
+    de: '/leistungen/flughafentransfer',
+    en: '/services/airport-transfer',
+  },
+  'sorties-scolaires': {
+    fr: '/services/sorties-scolaires',
+    es: '/servicios/transporte-escolar',
+    de: '/leistungen/schuelertransport',
+    en: '/services/school-trips',
+  },
+  'a-propos': { fr: '/a-propos', es: '/sobre-nosotros', de: '/ueber-uns', en: '/about' },
+  'contact': { fr: '/contact', es: '/contacto', de: '/kontakt', en: '/contact' },
+  'devenir-partenaire': {
+    fr: '/devenir-partenaire',
+    es: '/hazte-socio',
+    de: '/partner-werden',
+    en: '/become-a-partner',
+  },
+  'cgv': { fr: '/cgv', es: '/condiciones-generales', de: '/agb', en: '/terms' },
+  'mentions-legales': { fr: '/mentions-legales', es: '/aviso-legal', de: '/impressum', en: '/legal-notice' },
+  'confidentialite': { fr: '/confidentialite', es: '/privacidad', de: '/datenschutz', en: '/privacy' },
+}
+
+/** Traduit un chemin interne (français) vers son slug localisé. Les chemins
+ * inconnus (villes, blog, espace client) restent inchangés. */
+export function translatePath(internalPath: string, lang: SeoLanguage): string {
+  for (const page of Object.keys(seoPaths) as SeoPageKey[]) {
+    if (seoPaths[page] === internalPath) return seoLocalizedPaths[page][lang]
+  }
+  return internalPath
+}
+
+/** Ramène un chemin localisé (n'importe quelle langue) vers le chemin interne. */
+export function internalizePath(localizedPath: string): string {
+  for (const page of Object.keys(seoLocalizedPaths) as SeoPageKey[]) {
+    const variants = seoLocalizedPaths[page]
+    if (Object.values(variants).includes(localizedPath)) return seoPaths[page]
+  }
+  return localizedPath
+}
+
 /** Locale Open Graph par langue. */
 export const ogLocales: Record<SeoLanguage, string> = {
   fr: 'fr_FR',
@@ -53,15 +116,15 @@ export const seoConfig: Record<SeoPageKey, Record<SeoLanguage, SeoPageMeta>> = {
   'home': {
     fr: {
       title: 'Location d\'autocar avec chauffeur — Devis gratuit | Busmoov',
-      description: 'Louez un bus, autocar ou minibus avec chauffeur partout en France. Comparez plusieurs devis de transporteurs vérifiés en 24h et réservez en ligne au meilleur prix.',
+      description: 'Louez un bus, autocar ou minibus avec chauffeur partout en France. Comparez plusieurs devis de transporteurs vérifiés en 24h, au meilleur prix.',
     },
     es: {
       title: 'Alquiler de autocar con conductor — Presupuesto gratis | Busmoov',
-      description: 'Alquile un autocar o minibús con conductor en toda España. Compare varios presupuestos de transportistas verificados en 24h y reserve online al mejor precio.',
+      description: 'Alquile un autocar o minibús con conductor en toda España. Compare presupuestos de transportistas verificados en 24h y reserve al mejor precio.',
     },
     de: {
       title: 'Busvermietung mit Fahrer — Kostenloses Angebot | Busmoov',
-      description: 'Mieten Sie einen Reisebus oder Minibus mit Fahrer in ganz Deutschland. Vergleichen Sie geprüfte Angebote innerhalb von 24h und buchen Sie online zum besten Preis.',
+      description: 'Reisebus oder Minibus mit Fahrer in ganz Deutschland mieten. Geprüfte Angebote in 24h vergleichen und online zum besten Preis buchen.',
     },
     en: {
       title: 'Coach Hire with Driver — Free Quote | Busmoov',
@@ -71,11 +134,11 @@ export const seoConfig: Record<SeoPageKey, Record<SeoLanguage, SeoPageMeta>> = {
   'location-autocar': {
     fr: {
       title: 'Location d\'autocar avec chauffeur pour groupes | Busmoov',
-      description: 'Location d\'autocar (bus grand tourisme) avec chauffeur de 20 à 90 places : mariages, séminaires, voyages scolaires, excursions. Devis gratuit sous 24h, transporteurs vérifiés.',
+      description: 'Location d\'autocar avec chauffeur de 20 à 90 places : mariages, séminaires, scolaires, excursions. Devis gratuit sous 24h, transporteurs vérifiés.',
     },
     es: {
       title: 'Alquiler de autocar con conductor para grupos | Busmoov',
-      description: 'Alquiler de autocares con conductor de 20 a 90 plazas: bodas, seminarios, viajes escolares, excursiones. Presupuesto gratis en 24h, transportistas verificados.',
+      description: 'Alquiler de autocares con conductor de 20 a 90 plazas: bodas, seminarios, excursiones. Presupuesto gratis en 24h, transportistas verificados.',
     },
     de: {
       title: 'Reisebus mieten mit Fahrer für Gruppen | Busmoov',
@@ -217,7 +280,7 @@ export const seoConfig: Record<SeoPageKey, Record<SeoLanguage, SeoPageMeta>> = {
 /** Meta de la page pilier « location de bus » (FR uniquement). */
 export const locationBusMeta = {
   title: 'Location de bus avec chauffeur — Devis gratuit 24h | Busmoov',
-  description: 'Louez un bus avec chauffeur pour votre groupe : minibus, bus 30 à 59 places, bus grand tourisme jusqu\'à 90 places. Comparez plusieurs devis gratuits de transporteurs vérifiés sous 24h.',
+  description: 'Louez un bus avec chauffeur : minibus, bus 59 places ou grand tourisme jusqu\'à 90 places. Plusieurs devis gratuits de transporteurs vérifiés sous 24h.',
   h1: 'Location de bus avec chauffeur',
   sousTitre: 'Minibus, bus 59 places ou grand tourisme jusqu\'à 90 places : comparez plusieurs devis gratuits de transporteurs vérifiés, partout en France.',
 }

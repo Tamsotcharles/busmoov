@@ -1,6 +1,6 @@
 import { supportedLanguages, type SupportedLanguage } from '@/lib/i18n'
 import { getSiteBaseUrl } from '@/lib/utils'
-import { seoConfig, seoPaths, ogLocales, type SeoPageKey } from '@/lib/seo-data'
+import { seoConfig, seoPaths, seoLocalizedPaths, ogLocales, type SeoPageKey } from '@/lib/seo-data'
 
 /**
  * Fonctions SEO. Les données (titres, descriptions, chemins) vivent dans
@@ -11,10 +11,10 @@ import { seoConfig, seoPaths, ogLocales, type SeoPageKey } from '@/lib/seo-data'
 export { seoConfig, seoPaths, ogLocales }
 export type { SeoPageKey }
 
-/** URL canonique d'une page dans une langue donnée. */
+/** URL canonique d'une page dans une langue donnée (slug localisé). */
 export function getCanonicalUrl(page: SeoPageKey, lang: SupportedLanguage): string {
   const base = getSiteBaseUrl()
-  const path = seoPaths[page]
+  const path = seoLocalizedPaths[page][lang]
   return path === '/' ? `${base}/${lang}` : `${base}/${lang}${path}`
 }
 

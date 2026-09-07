@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { ABTestProvider } from '@/components/ab-testing'
 import { supportedLanguages, defaultLanguage, type SupportedLanguage } from '@/lib/i18n'
+import { seoLocalizedPaths, seoPaths, type SeoPageKey } from '@/lib/seo-data'
 
 // Chargement paresseux de toutes les routes sauf HomePage.
 //
@@ -91,8 +92,10 @@ function RedirectToLanguage() {
     ? browserLang
     : (i18n.language || defaultLanguage)
 
-  // Reconstruire l'URL avec le préfixe de langue
-  const newPath = `/${targetLang}${location.pathname}${location.search}${location.hash}`
+  // Reconstruire l'URL avec le préfixe de langue (sans slash final sur la
+  // racine : /fr est l'URL canonique, pas /fr/)
+  const pathname = location.pathname === '/' ? '' : location.pathname
+  const newPath = `/${targetLang}${pathname}${location.search}${location.hash}`
 
   return <Navigate to={newPath} replace />
 }
@@ -151,6 +154,29 @@ function PublicRoutes() {
 
       {/* Page pilier « location de bus » (français uniquement) */}
       <Route path="/location-bus" element={<LocationBusPage />} />
+
+      {/* Slugs localisés es/de/en (le SEO local veut le mot-clé dans l'URL).
+          Les chemins français ci-dessus restent routés pour la rétro-compat ;
+          la canonical de chaque page pointe vers le slug localisé. */}
+      {(['es', 'de', 'en'] as const).flatMap((l) => {
+        const pages: Array<[SeoPageKey, React.ReactElement]> = [
+          ['location-autocar', <LocationAutocarPage />],
+          ['location-minibus', <LocationMinibusPage />],
+          ['transfert-aeroport', <TransfertAeroportPage />],
+          ['sorties-scolaires', <SortiesScolairesPage />],
+          ['a-propos', <AProposPage />],
+          ['contact', <ContactPage />],
+          ['devenir-partenaire', <DevenirPartenairePage />],
+          ['cgv', <CGVPage />],
+          ['mentions-legales', <MentionsLegalesPage />],
+          ['confidentialite', <ConfidentialitePage />],
+        ]
+        return pages
+          .filter(([page]) => seoLocalizedPaths[page][l] !== seoPaths[page])
+          .map(([page, element]) => (
+            <Route key={`${l}-${page}`} path={seoLocalizedPaths[page][l]} element={element} />
+          ))
+      })}
 
       {/* Pages villes SEO (français uniquement) */}
       <Route path="/location-autocar/:ville" element={<VilleAutocarPage />} />

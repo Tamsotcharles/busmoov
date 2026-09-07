@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useParams, useNavigate, useLocation, Outlet } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { supportedLanguages, defaultLanguage, type SupportedLanguage } from '@/lib/i18n'
+import { translatePath, internalizePath } from '@/lib/seo-data'
 
 /**
  * LanguageRouter - Gère le préfixe de langue dans l'URL
@@ -35,9 +36,11 @@ export function useLocalizedPath() {
   const lang = i18n.language as SupportedLanguage
 
   return (path: string) => {
-    // Nettoyer le path
+    // Nettoyer le path puis traduire le slug dans la langue courante
+    // (les chemins sont écrits en français dans le code)
     const cleanPath = path.startsWith('/') ? path : `/${path}`
-    return `/${lang}${cleanPath}`
+    const localized = translatePath(cleanPath, lang)
+    return localized === '/' ? `/${lang}` : `/${lang}${localized}`
   }
 }
 
@@ -59,8 +62,11 @@ export function useLanguageSwitcher() {
     const langPrefixMatch = currentPath.match(new RegExp(`^/(${supportedLanguages.join('|')})(/|$)`))
 
     if (langPrefixMatch) {
-      // Remplacer l'ancien préfixe par le nouveau
-      newPath = currentPath.replace(new RegExp(`^/(${supportedLanguages.join('|')})`), `/${newLang}`)
+      // Remplacer le préfixe et traduire le slug : le chemin courant est
+      // ramené à sa forme interne (fr) puis traduit vers la nouvelle langue
+      const pathWithoutLang = currentPath.replace(new RegExp(`^/(${supportedLanguages.join('|')})`), '') || '/'
+      const translated = translatePath(internalizePath(pathWithoutLang), newLang)
+      newPath = translated === '/' ? `/${newLang}` : `/${newLang}${translated}`
     } else if (currentPath === '/') {
       // Page racine sans préfixe
       newPath = `/${newLang}`
@@ -99,8 +105,10 @@ export function RedirectToDefaultLanguage() {
       ? browserLang
       : defaultLanguage
 
-    // Rediriger vers la langue détectée
-    const newPath = `/${targetLang}${location.pathname}${location.search}${location.hash}`
+    // Rediriger vers la langue détectée (sans slash final sur la racine :
+    // /fr est l'URL canonique, pas /fr/)
+    const pathname = location.pathname === '/' ? '' : location.pathname
+    const newPath = `/${targetLang}${pathname}${location.search}${location.hash}`
     navigate(newPath, { replace: true })
   }, [navigate, location])
 

@@ -100,12 +100,22 @@ export function VilleAutocarPage() {
         </div>
       </section>
 
-      {/* Destinations */}
+      {/* Ancrage local : logistique propre à la ville */}
       <section className="py-12 bg-gray-50">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-center mb-6">{ville.sectionLocale.h2}</h2>
+          <div className="space-y-4">
+            {ville.sectionLocale.paragraphes.map((p, i) => (
+              <p key={i} className="text-gray-700 leading-relaxed">{p}</p>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Destinations */}
+      <section className="py-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-center mb-8">
-            Destinations populaires au départ de {ville.nom}
-          </h2>
+          <h2 className="text-2xl font-bold text-center mb-8">{ville.h2Destinations}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {ville.destinations.map((d) => (
               <div key={d.nom} className="card">
@@ -121,9 +131,9 @@ export function VilleAutocarPage() {
       </section>
 
       {/* Trajets types */}
-      <section className="py-12">
+      <section className="py-12 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-center mb-8">Exemples de trajets à {ville.nom}</h2>
+          <h2 className="text-2xl font-bold text-center mb-8">{ville.h2Trajets}</h2>
           <ul className="space-y-3">
             {ville.trajets.map((t) => (
               <li key={t} className="flex items-start gap-3">
@@ -136,9 +146,9 @@ export function VilleAutocarPage() {
       </section>
 
       {/* FAQ */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-center mb-8">Questions fréquentes</h2>
+          <h2 className="text-2xl font-bold text-center mb-8">Vos questions sur l'autocar à {ville.nom}</h2>
           <div className="space-y-6">
             {ville.faq.map((f) => (
               <div key={f.q} className="card">
@@ -151,7 +161,7 @@ export function VilleAutocarPage() {
       </section>
 
       {/* Autres villes + CTA */}
-      <section className="py-12">
+      <section className="py-12 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl font-bold mb-4">Prêt à réserver votre autocar à {ville.nom} ?</h2>
           <p className="text-gray-600 mb-6">

@@ -14,6 +14,11 @@ export interface VilleDestination {
   desc: string
 }
 
+export interface VilleSection {
+  h2: string
+  paragraphes: string[]
+}
+
 export interface Ville {
   slug: string
   nom: string
@@ -22,6 +27,11 @@ export interface Ville {
   h1: string
   sousTitre: string
   intro: string[]
+  /** Section d'ancrage local (points de dépose, logistique propre à la ville). */
+  sectionLocale: VilleSection
+  /** Titres H2 personnalisés — éviter les intitulés identiques d'une ville à l'autre. */
+  h2Destinations: string
+  h2Trajets: string
   destinations: VilleDestination[]
   trajets: string[]
   faq: VilleFaq[]
@@ -32,13 +42,22 @@ export const villes: Ville[] = [
     slug: 'paris',
     nom: 'Paris',
     metaTitle: 'Location d\'autocar à Paris avec chauffeur — Devis 24h | Busmoov',
-    metaDescription: 'Location d\'autocar et minibus avec chauffeur à Paris et en Île-de-France : transferts CDG et Orly, événements, excursions. Devis gratuit de transporteurs vérifiés sous 24h.',
+    metaDescription: "Autocar et minibus avec chauffeur à Paris et en Île-de-France : transferts CDG-Orly, événements, excursions. Devis gratuit sous 24h.",
     h1: 'Location d\'autocar avec chauffeur à Paris',
     sousTitre: 'Transferts aéroports, événements d\'entreprise, excursions : des transporteurs franciliens vérifiés, un devis gratuit en 24h.',
     intro: [
       'Paris et l\'Île-de-France concentrent la plus forte demande de transport de groupe en France : congrès à la Porte de Versailles, salons à Villepinte, matchs au Stade de France, séminaires à La Défense. Busmoov travaille avec des transporteurs implantés dans toute la région, ce qui évite les frais d\'approche d\'un car venant de loin.',
       'Du minibus 8 places pour un transfert VIP au double étage 90 places pour un grand événement, nous comparons pour vous plusieurs devis de transporteurs franciliens vérifiés. La circulation et le stationnement parisiens n\'ont pas de secret pour leurs chauffeurs : dépose au plus près, zones cars touristiques, vignettes Crit\'Air en règle.',
     ],
+    sectionLocale: {
+      h2: "Où monter et descendre en autocar dans Paris ?",
+      paragraphes: [
+        "Le vrai sujet à Paris n'est pas le trajet, c'est l'embarquement. Les grandes gares (Lyon, Montparnasse, Nord) ont des zones de dépose autocars mais elles sont chronométrées : le groupe doit être rassemblé avant l'arrivée du car. Pour un départ matinal, privilégiez un point large et dégagé — esplanade, parvis, contre-allée d'un grand boulevard — plutôt qu'une rue étroite du centre : nos chauffeurs vous proposent un point de rendez-vous précis dès la confirmation.",
+        "Côté réglementation, la Ville de Paris impose le Pass Autocar pour le stationnement touristique et la ZFE exige une vignette Crit'Air en règle. Ce sont les affaires du transporteur, pas les vôtres : les véhicules de nos partenaires franciliens circulent dans Paris toute l'année et le devis intègre ces contraintes.",
+      ],
+    },
+    h2Destinations: "De Versailles à la Champagne : les excursions des groupes parisiens",
+    h2Trajets: "Trajets types en Île-de-France",
     destinations: [
       { nom: 'Château de Versailles', desc: 'La sortie de groupe la plus demandée au départ de Paris — 45 minutes de trajet, dépose devant la place d\'Armes.' },
       { nom: 'Disneyland Paris', desc: 'Comités d\'entreprise, anniversaires, séminaires : dépose directe aux parcs, le car vous attend sur place.' },
@@ -76,13 +95,22 @@ export const villes: Ville[] = [
     slug: 'lyon',
     nom: 'Lyon',
     metaTitle: 'Location d\'autocar à Lyon avec chauffeur — Devis 24h | Busmoov',
-    metaDescription: 'Location d\'autocar et minibus avec chauffeur à Lyon : transferts Saint-Exupéry, stations de ski, Eurexpo, excursions Beaujolais. Devis gratuit sous 24h, transporteurs vérifiés.',
+    metaDescription: "Autocar et minibus avec chauffeur à Lyon : transferts Saint-Exupéry, stations de ski, Eurexpo, Beaujolais. Devis gratuit sous 24h.",
     h1: 'Location d\'autocar avec chauffeur à Lyon',
     sousTitre: 'Transferts Saint-Exupéry, navettes stations de ski, événements à Eurexpo : des transporteurs rhodaniens vérifiés, un devis gratuit en 24h.',
     intro: [
       'Carrefour entre Paris, les Alpes et la Méditerranée, Lyon est une des places fortes du transport par autocar. Salons à Eurexpo, matchs au Groupama Stadium, conventions à la Cité Internationale : Busmoov s\'appuie sur des transporteurs implantés dans le Rhône et l\'Ain pour couvrir la métropole sans frais d\'approche superflus.',
       'La spécialité locale, ce sont les navettes vers les stations : de décembre à avril, nos partenaires enchaînent les rotations vers les 3 Vallées, l\'Alpe d\'Huez ou les Portes du Soleil. Le reste de l\'année, cap sur le Beaujolais, Annecy ou Genève pour les sorties d\'entreprise et les excursions associatives.',
     ],
+    sectionLocale: {
+      h2: "Un transfert ski bien préparé au départ de Lyon",
+      paragraphes: [
+        "Le schéma habituel : prise en charge à Part-Dieu ou Perrache tôt le matin, autoroute A43 vers la Maurienne (les 3 Vallées, la Tarentaise) ou A48/RD1091 vers l'Oisans. Les samedis de vacances de février sont les journées les plus chargées de l'année sur ces axes : les chauffeurs habitués partent 30 à 45 minutes plus tôt et connaissent les créneaux qui passent.",
+        "Le matériel voyage en soute — comptez un sac ski + une valise par personne pour dimensionner le véhicule. L'hiver, pneus neige et chaînes sont obligatoires sur les routes d'accès aux stations (loi Montagne) : c'est l'équipement standard des cars de nos partenaires rhodaniens, rien à prévoir de votre côté.",
+      ],
+    },
+    h2Destinations: "Alpes, lac d'Annecy, Beaujolais : où partent les groupes lyonnais",
+    h2Trajets: "Trajets types au départ de Lyon",
     destinations: [
       { nom: 'Stations des Alpes', desc: 'Val Thorens, Courchevel, l\'Alpe d\'Huez, Chamonix : le transfert ski est la demande n°1 au départ de Lyon en hiver.' },
       { nom: 'Annecy et son lac', desc: 'L\'excursion à la journée préférée des CE lyonnais, à 1h30 de route.' },
@@ -120,13 +148,22 @@ export const villes: Ville[] = [
     slug: 'marseille',
     nom: 'Marseille',
     metaTitle: 'Location d\'autocar à Marseille avec chauffeur — Devis 24h | Busmoov',
-    metaDescription: 'Location d\'autocar et minibus avec chauffeur à Marseille : transferts port croisières et aéroport Marignane, excursions Provence. Devis gratuit sous 24h, transporteurs vérifiés.',
+    metaDescription: "Autocar et minibus avec chauffeur à Marseille : transferts croisières et aéroport Marignane, excursions en Provence. Devis gratuit sous 24h.",
     h1: 'Location d\'autocar avec chauffeur à Marseille',
     sousTitre: 'Transferts croisières et aéroport Marignane, excursions en Provence, matchs au Vélodrome : des transporteurs provençaux vérifiés, un devis gratuit en 24h.',
     intro: [
       'Premier port de croisière de France, Marseille voit transiter chaque année des centaines de milliers de passagers qui rejoignent les terminaux du Cap Janet ou de la Major en groupe. Les transferts port ↔ aéroport Marseille-Provence (Marignane) et port ↔ centre-ville sont la spécialité de nos transporteurs locaux, rodés aux horaires d\'embarquement serrés.',
       'Au-delà du port, l\'autocar est le moyen le plus simple d\'emmener un groupe dans l\'arrière-pays : calanques de Cassis, Aix-en-Provence, Avignon ou le Luberon. Séminaires, mariages, clubs de supporters du côté du Vélodrome : nous comparons pour vous plusieurs devis de transporteurs des Bouches-du-Rhône.',
     ],
+    sectionLocale: {
+      h2: "Croisières : réussir l'embarquement au port de Marseille",
+      paragraphes: [
+        "Les compagnies demandent une présentation au terminal 3 à 4 heures avant l'appareillage, et les terminaux du Cap Janet ne sont pas au même endroit que ceux du J4/la Major : une erreur de terminal coûte une heure. Nos transporteurs marseillais font ces rotations chaque semaine — donnez le nom du navire et la compagnie, ils connaissent le bon quai.",
+        "Pour les groupes qui arrivent en TGV, la dépose se fait à la gare routière attenante à Saint-Charles, puis liaison directe vers le port par le tunnel. Au débarquement, le car attend en zone dédiée : prévoyez 45 minutes entre la sortie de cabine et le départ réel, le temps de récupérer les bagages.",
+      ],
+    },
+    h2Destinations: "Calanques, Provence, Camargue : les sorties des groupes marseillais",
+    h2Trajets: "Trajets types à Marseille",
     destinations: [
       { nom: 'Cassis et les Calanques', desc: 'La sortie emblématique au départ de Marseille — dépose au port de Cassis pour embarquer vers les calanques.' },
       { nom: 'Aix-en-Provence', desc: 'À 30 minutes : marchés, Cours Mirabeau et fondation Vasarely pour les groupes culturels.' },
@@ -164,13 +201,22 @@ export const villes: Ville[] = [
     slug: 'toulouse',
     nom: 'Toulouse',
     metaTitle: 'Location d\'autocar à Toulouse avec chauffeur — Devis 24h | Busmoov',
-    metaDescription: 'Location d\'autocar et minibus avec chauffeur à Toulouse : transferts Blagnac, Carcassonne, Lourdes, Pyrénées et Andorre. Devis gratuit sous 24h, transporteurs vérifiés.',
+    metaDescription: "Autocar et minibus avec chauffeur à Toulouse : transferts Blagnac, Carcassonne, Lourdes, Pyrénées, Andorre. Devis gratuit sous 24h.",
     h1: 'Location d\'autocar avec chauffeur à Toulouse',
     sousTitre: 'Transferts Blagnac, excursions à Carcassonne et dans les Pyrénées, déplacements d\'entreprise : des transporteurs occitans vérifiés, un devis gratuit en 24h.',
     intro: [
       'Capitale européenne de l\'aéronautique, Toulouse génère un flux constant de déplacements professionnels : visites de sites industriels, délégations à accueillir à Blagnac, séminaires au MEETT. Nos transporteurs partenaires de Haute-Garonne connaissent ces circuits par cœur, badges et consignes d\'accès compris.',
       'Côté loisirs, la ville rose est une base de départ idéale : Carcassonne à une heure, Albi et sa cathédrale, les Pyrénées pour le ski ou la randonnée, Andorre pour les sorties shopping, Lourdes pour les pèlerinages en groupe. L\'autocar reste le moyen le plus économique de déplacer 30 à 90 personnes dans la région.',
     ],
+    sectionLocale: {
+      h2: "Blagnac, MEETT, Airbus : les accès groupes qui fonctionnent",
+      paragraphes: [
+        "L'aéroport de Blagnac, le MEETT et les sites Airbus se trouvent dans le même quadrant nord-ouest : un transfert combiné (aéroport → visite de site → parc des expositions) tient sans traverser la ville. Le MEETT dispose d'un parking autocars dédié ; pour les visites Airbus et la Cité de l'espace, la dépose se fait aux entrées visiteurs, badges et consignes gérés en amont.",
+        "Aux heures de pointe, le périphérique toulousain est saturé dans le sens ouest le matin et l'inverse le soir : les chauffeurs locaux calent les horaires en conséquence. Pour les matchs au Stadium, la dépose des groupes se fait côté île du Ramier, avec retour au point convenu après la rencontre.",
+      ],
+    },
+    h2Destinations: "Carcassonne, Pyrénées, Andorre : les excursions toulousaines",
+    h2Trajets: "Trajets types au départ de Toulouse",
     destinations: [
       { nom: 'Carcassonne', desc: 'La cité médiévale à 1h de route — l\'excursion la plus demandée au départ de Toulouse, scolaires en tête.' },
       { nom: 'Albi', desc: 'Cathédrale Sainte-Cécile et musée Toulouse-Lautrec : la journée culturelle classique.' },
@@ -208,13 +254,22 @@ export const villes: Ville[] = [
     slug: 'bordeaux',
     nom: 'Bordeaux',
     metaTitle: 'Location d\'autocar à Bordeaux avec chauffeur — Devis 24h | Busmoov',
-    metaDescription: 'Location d\'autocar et minibus avec chauffeur à Bordeaux : circuits vignobles Saint-Émilion et Médoc, transferts Mérignac, Arcachon. Devis gratuit sous 24h, transporteurs vérifiés.',
+    metaDescription: "Autocar et minibus avec chauffeur à Bordeaux : circuits vignobles Saint-Émilion et Médoc, Mérignac, Arcachon. Devis gratuit sous 24h.",
     h1: 'Location d\'autocar avec chauffeur à Bordeaux',
     sousTitre: 'Circuits dans les vignobles, transferts Mérignac, escapades au bassin d\'Arcachon : des transporteurs girondins vérifiés, un devis gratuit en 24h.',
     intro: [
       'À Bordeaux, l\'autocar avec chauffeur est d\'abord l\'allié des visites de vignobles : Saint-Émilion, le Médoc et ses grands crus, Sauternes ou l\'Entre-deux-Mers. Quand la dégustation fait partie du programme, personne ne prend le volant — le car récupère le groupe au château et le ramène en ville, dans la soirée s\'il le faut.',
       'La métropole girondine, c\'est aussi les congrès au Palais 2 l\'Atlantique, les matchs au Matmut Atlantique, les transferts vers l\'aéroport de Mérignac et la grande évasion du week-end : le bassin d\'Arcachon et la dune du Pilat. Nous comparons pour vous plusieurs devis de transporteurs implantés en Gironde.',
     ],
+    sectionLocale: {
+      h2: "Construire un circuit vignobles qui tient la journée",
+      paragraphes: [
+        "La règle d'or : deux propriétés le matin, déjeuner, une l'après-midi — pas plus. La route des châteaux du Médoc (la D2) est belle mais lente, et Saint-Émilion se visite à pied depuis le parking autocars au pied du village médiéval. Les domaines demandent des horaires précis pour les dégustations de groupe : le chauffeur en mise à disposition adapte le rythme aux débordements du déjeuner.",
+        "Dans Bordeaux même, l'hyper-centre entre les quais et la place Gambetta est largement piéton : les prises en charge de groupe se font sur les quais rive gauche (dépose minute) ou aux abords de la gare Saint-Jean. Précisez l'hôtel du groupe, nos transporteurs girondins indiquent le point exact.",
+      ],
+    },
+    h2Destinations: "Vignobles, Bassin, Pays basque : les sorties des groupes bordelais",
+    h2Trajets: "Trajets types à Bordeaux",
     destinations: [
       { nom: 'Saint-Émilion', desc: 'Le circuit œnologique le plus demandé : village médiéval, châteaux et dégustations, retour sans conduire.' },
       { nom: 'Le Médoc', desc: 'Route des grands crus (Margaux, Pauillac, Saint-Estèphe) pour séminaires et clubs d\'œnologie.' },
@@ -252,13 +307,22 @@ export const villes: Ville[] = [
     slug: 'lille',
     nom: 'Lille',
     metaTitle: 'Location d\'autocar à Lille avec chauffeur — Devis 24h | Busmoov',
-    metaDescription: 'Location d\'autocar et minibus avec chauffeur à Lille : excursions Bruges et Bruxelles, côte d\'Opale, événements. Devis gratuit sous 24h, transporteurs vérifiés.',
+    metaDescription: "Autocar et minibus avec chauffeur à Lille : excursions Bruges et Bruxelles, côte d'Opale, événements. Devis gratuit sous 24h.",
     h1: 'Location d\'autocar avec chauffeur à Lille',
     sousTitre: 'Excursions en Belgique, côte d\'Opale, événements au Grand Palais : des transporteurs nordistes vérifiés, un devis gratuit en 24h.',
     intro: [
       'Position unique en Europe : depuis Lille, un autocar atteint Bruxelles, Bruges ou la côte d\'Opale en une heure et quart. Cette situation de carrefour fait de la métropole lilloise un point de départ idéal pour les excursions transfrontalières des CE, associations et groupes scolaires — nos transporteurs des Hauts-de-France passent la frontière belge toutes les semaines.',
       'Sur place, les grands rendez-vous rythment la demande : salons à Lille Grand Palais, matchs au stade Pierre-Mauroy, et bien sûr la Braderie du premier week-end de septembre, où les navettes de groupe se réservent des mois à l\'avance. Du minibus au double étage, nous comparons plusieurs devis de transporteurs implantés dans le Nord.',
     ],
+    sectionLocale: {
+      h2: "Lille-Flandres, Lille-Europe, Grand Palais : les points de rendez-vous",
+      paragraphes: [
+        "Les deux gares sont à 400 mètres l'une de l'autre mais leurs accès cars diffèrent : pour un groupe qui arrive en TGV ou en Eurostar, la prise en charge se cale côté Lille-Europe (voirie plus large), et le Grand Palais dispose de sa propre zone de dépose le long du boulevard des Cités-Unies. Pour un départ d'excursion, le rendez-vous classique est le parvis de la porte de Valenciennes ou le Champ de Mars, plus faciles d'accès qu'une rue du Vieux-Lille.",
+        "Pendant la Braderie (premier week-end de septembre), tout le centre est fermé à la circulation : les cars déposent en périphérie du périmètre, relayés par le métro. Si votre événement tombe ce week-end-là, on planifie le point de dépose dès le devis — pas le jour J.",
+      ],
+    },
+    h2Destinations: "Belgique, côte d'Opale, mémoire 14-18 : où partent les groupes lillois",
+    h2Trajets: "Trajets types au départ de Lille",
     destinations: [
       { nom: 'Bruges', desc: 'La « Venise du Nord » à 1h15 : l\'excursion transfrontalière préférée des groupes lillois.' },
       { nom: 'Bruxelles', desc: 'Grand-Place, Atomium, institutions européennes — la journée belge classique, à une heure de route.' },
@@ -296,13 +360,22 @@ export const villes: Ville[] = [
     slug: 'nantes',
     nom: 'Nantes',
     metaTitle: 'Location d\'autocar à Nantes avec chauffeur — Devis 24h | Busmoov',
-    metaDescription: 'Location d\'autocar et minibus avec chauffeur à Nantes : Puy du Fou, La Baule, Mont Saint-Michel, événements. Devis gratuit sous 24h, transporteurs vérifiés.',
+    metaDescription: "Autocar et minibus avec chauffeur à Nantes : Puy du Fou, La Baule, Mont Saint-Michel, événements. Devis gratuit sous 24h.",
     h1: 'Location d\'autocar avec chauffeur à Nantes',
     sousTitre: 'Puy du Fou, presqu\'île de Guérande, événements d\'entreprise : des transporteurs ligériens vérifiés, un devis gratuit en 24h.',
     intro: [
       'Au départ de Nantes, une destination écrase toutes les autres dans les demandes de groupe : le Puy du Fou, à une heure et demie de route. Écoles, comités d\'entreprise, associations — nos transporteurs de Loire-Atlantique y déposent des groupes toute la saison et en connaissent les parkings et les horaires de spectacles.',
       'La métropole nantaise ne manque pas d\'autres motifs de déplacement : congrès à la Cité des Congrès, matchs à la Beaujoire, séminaires entre les Machines de l\'île et le vignoble. Et pour les sorties, l\'océan est à 45 minutes : La Baule, Pornic, la presqu\'île de Guérande. Nous comparons plusieurs devis de transporteurs locaux vérifiés.',
     ],
+    sectionLocale: {
+      h2: "Le jour J au Puy du Fou : le déroulé type",
+      paragraphes: [
+        "Départ de Nantes vers 7h30 pour être aux portes du parc à l'ouverture (1h30 par l'A83 puis l'A87), dépose au parking autocars dédié, et le véhicule reste sur place toute la journée. Le retour standard se cale sur la fermeture du parc ; pour la Cinéscénie, le spectacle finit vers minuit et demi — l'amplitude dépasse alors les 12 heures réglementaires d'un seul chauffeur, et le devis intègre d'office le second chauffeur.",
+        "Pour les scolaires nantais, la solution la plus économique reste la côte : La Baule, Pornic ou les marais salants de Guérande sont à 45-60 minutes, soit une amplitude courte et un car qui revient dans la journée sans supplément.",
+      ],
+    },
+    h2Destinations: "Du Puy du Fou au Mont Saint-Michel : les excursions nantaises",
+    h2Trajets: "Trajets types à Nantes",
     destinations: [
       { nom: 'Puy du Fou', desc: 'LA destination de groupe de l\'Ouest — 1h30 de route, dépose au parking dédié, le car attend pendant les spectacles.' },
       { nom: 'La Baule et Guérande', desc: 'Plage, marais salants et cité médiévale : la journée océan des CE et des scolaires.' },
@@ -347,6 +420,15 @@ export const villes: Ville[] = [
       'Biarritz est une terre de séminaires et d\'incentives : hôtels face à l\'océan, golf, surf, et un aéroport international à dix minutes du centre. Nos transporteurs basques assurent les transferts aéroport, les navettes entre hôtels et lieux d\'événement, et les soirées dans les villages de l\'arrière-pays — le retour de la cidrerie à minuit, c\'est leur quotidien.',
       'L\'autre grande demande, c\'est l\'Espagne : San Sebastián et ses pintxos sont à 50 minutes, Bilbao et le Guggenheim à 1h45. Passage de frontière sans formalité, chauffeurs bilingues fréquents — le Pays basque se visite des deux côtés de la Bidassoa, et l\'autocar est le seul moyen simple d\'y emmener un groupe.',
     ],
+    sectionLocale: {
+      h2: "Séminaires à Biarritz : la logistique qui marche",
+      paragraphes: [
+        "L'aéroport est à dix minutes des hôtels du centre — mais ces hôtels bordent des rues étroites où un autocar de 13 mètres ne manœuvre pas : pour les groupes logés autour de la Grande Plage ou du Port-Vieux, la navette se fait en minibus, ou la dépose se cale sur un point large comme le square d'Ixelles ou la côte des Basques côté Bellevue. C'est le genre de détail que nos transporteurs basques règlent d'office.",
+        "Les soirées cidrerie ou restaurant dans l'arrière-pays (Espelette, Sare, la vallée de la Nive) se terminent tard : fixez l'heure de la dernière navette au devis, et pour un séminaire de plus de 40 personnes, la formule car + minibus permet des retours échelonnés sans payer deux gros véhicules.",
+      ],
+    },
+    h2Destinations: "Des deux côtés de la Bidassoa : les sorties basques",
+    h2Trajets: "Trajets types au Pays basque",
     destinations: [
       { nom: 'San Sebastián', desc: 'La perle basque espagnole à 50 minutes : vieille ville, pintxos et plage de la Concha.' },
       { nom: 'Espelette et les villages basques', desc: 'Ainhoa, Sare, la Rhune en petit train : le circuit arrière-pays des séminaires.' },
@@ -391,6 +473,15 @@ export const villes: Ville[] = [
       'Le Bassin d\'Arcachon est une destination de groupe avant d\'être un point de départ : séminaires en villa, mariages face à l\'eau, sorties CE autour de la dune du Pilat et des villages ostréicoles. Nos transporteurs girondins organisent aussi bien les transferts depuis Bordeaux (gare et aéroport à 50 minutes) que les circuits sur place.',
       'La logistique locale a ses particularités : presqu\'île du Cap Ferret accessible par une seule route, stationnement contraint en été, dégustations dans les cabanes ostréicoles où le car dépose au plus près. Des détails que les chauffeurs habitués du Bassin gèrent naturellement — et qui font la différence le jour J.',
     ],
+    sectionLocale: {
+      h2: "Haute saison sur le Bassin : les horaires qui sauvent la journée",
+      paragraphes: [
+        "De juin à septembre, l'A660 sature le samedi en milieu de matinée et la presqu'île du Cap Ferret ne se rejoint que par une seule route : un circuit d'été réussi part de Bordeaux avant 8h30, fait la dune du Pilat en première étape (le parking autocars est fluide avant 10h30), puis remonte vers les villages ostréicoles à contre-flux.",
+        "Pour une croisière sur le Bassin (île aux Oiseaux, cabanes tchanquées), la dépose se fait à la jetée Thiers en plein centre d'Arcachon : le car ne stationne pas sur place, il dépose puis revient — un aller-retour que le chauffeur en mise à disposition gère entre deux étapes.",
+      ],
+    },
+    h2Destinations: "Autour du Bassin : les incontournables en groupe",
+    h2Trajets: "Trajets types sur le Bassin",
     destinations: [
       { nom: 'Dune du Pilat', desc: 'Le site naturel le plus visité de la région — parking autocars dédié, montée par l\'escalier en saison.' },
       { nom: 'Cap Ferret', desc: 'Phare, villages ostréicoles et dégustation d\'huîtres : la journée iconique du Bassin.' },
@@ -435,6 +526,15 @@ export const villes: Ville[] = [
       'Au Mans, tout l\'agenda du transport de groupe tourne autour d\'un week-end de juin : les 24 Heures. Navettes entre gares, hôtels et circuit, déplacements de clubs et d\'entreprises qui reçoivent leurs clients en tribune — nos transporteurs sarthois connaissent les accès du circuit Bugatti, les parkings dédiés et les créneaux où la ville double de population.',
       'Le reste de l\'année, la Sarthe se prête aux sorties classiques : cité Plantagenêt et sa vieille ville préservée, zoo de La Flèche popularisé par la télévision, abbaye de l\'Épau. Et la position centrale du Mans — à une heure de Tours, deux heures de Paris et de Rennes — en fait une base pratique pour les déplacements d\'entreprise.',
     ],
+    sectionLocale: {
+      h2: "Semaine des 24 Heures : la logistique cars",
+      paragraphes: [
+        "Pendant la semaine de course, les accès au circuit sont réglementés par secteur et les parkings autocars se trouvent côté nord, avec marche d'approche vers les tribunes : une navette gare du Mans → circuit se cale tôt le matin, avant la fermeture progressive des axes. Pour une entreprise qui reçoit des invités en tribune ou en loge, la rotation continue hôtels ↔ circuit sur le week-end est la formule qui évite les attentes.",
+        "Le reste de l'année, le circuit Bugatti accueille roulages, séminaires et visites du musée des 24 Heures avec une dépose simple à l'entrée principale — un transfert classique depuis Paris (2h) ou la gare du Mans (15 minutes).",
+      ],
+    },
+    h2Destinations: "Circuit, châteaux de la Loire, zoo : les sorties sarthoises",
+    h2Trajets: "Trajets types au Mans",
     destinations: [
       { nom: 'Circuit des 24 Heures', desc: 'Navettes course en juin, visites du musée et roulages d\'entreprise toute l\'année.' },
       { nom: 'Zoo de La Flèche', desc: 'À 45 minutes : la sortie scolaire et familiale la plus demandée de la Sarthe.' },
@@ -479,6 +579,15 @@ export const villes: Ville[] = [
       'Ville de congrès et ville étudiante, Montpellier génère un flux continu de transports de groupe : conventions au Corum, salons au parc des expositions, matchs à la Mosson et au GGL Stadium, week-ends d\'intégration vers les plages. Nos transporteurs héraultais couvrent la métropole et son littoral à un quart d\'heure du centre.',
       'Le rayon d\'excursion est exceptionnel : la Camargue et ses flamants roses à 45 minutes, le pont du Gard et Nîmes à une heure, Sète et son port à 30 minutes, l\'arrière-pays des Cévennes pour les sorties nature. L\'autocar est le seul moyen d\'y emmener un groupe sans convoi de voitures.',
     ],
+    sectionLocale: {
+      h2: "L'Écusson est piéton : où les cars déposent-ils ?",
+      paragraphes: [
+        "Le centre historique de Montpellier est interdit aux véhicules : les groupes sont déposés en couronne — côté Corum sur l'allée piétonne de l'Esplanade Charles-de-Gaulle, ou à la gare Saint-Roch pour rejoindre la Comédie à pied en cinq minutes. Pour les congrès au Corum, la rotation hôtels ↔ Esplanade est le schéma standard, y compris pour les dîners de gala en soirée.",
+        "Les plages (Palavas, Carnon, La Grande-Motte) sont à 15-20 minutes ; l'été, les retours de fin de journée remontent à contre-flux des embouteillages du littoral. Pour la Sud de France Arena, comptez la dépose au parking événementiel — le tram ne remplace pas un car pour 50 personnes avec matériel.",
+      ],
+    },
+    h2Destinations: "Camargue, pont du Gard, littoral : les excursions montpelliéraines",
+    h2Trajets: "Trajets types à Montpellier",
     destinations: [
       { nom: 'La Camargue', desc: 'Aigues-Mortes, Saintes-Maries-de-la-Mer, manades et flamants roses — la journée nature emblématique.' },
       { nom: 'Le pont du Gard et Nîmes', desc: 'Aqueduc romain et arènes à une heure : le circuit patrimoine antique des scolaires et des CE.' },
@@ -523,6 +632,15 @@ export const villes: Ville[] = [
       'À Saint-Étienne, le transport de groupe a une couleur : le vert. Les déplacements de supporters vers Geoffroy-Guichard — et surtout depuis le Chaudron vers les stades de toute la France — sont la grande spécialité des transporteurs ligériens, rodés aux escortes, aux horaires de match et aux parkings visiteurs.',
       'Hors football, la ville design (Cité du design, biennale) et sa position aux portes du Pilat en font un point de départ pratique : gorges de la Loire, Le Puy-en-Velay et sa cité mariale, et bien sûr Lyon à 50 minutes pour les navettes d\'entreprise, spectacles et salons. Nous comparons plusieurs devis de transporteurs de la Loire.',
     ],
+    sectionLocale: {
+      h2: "Jour de match à Geoffroy-Guichard",
+      paragraphes: [
+        "Un déplacement de supporters ne s'improvise pas : le parking visiteurs du Chaudron est assigné, les horaires d'arrivée sont imposés (généralement H-1h30) et certains matchs font l'objet d'arrêtés préfectoraux encadrant les convois. Les transporteurs stéphanois qui font les déplacements des Verts chaque saison connaissent le protocole par cœur — indiquez le match, ils gèrent le reste.",
+        "Hors football, le point de rendez-vous le plus pratique pour un départ de groupe est le parvis de la gare de Châteaucreux, dimensionné pour les cars ; comptez 50 minutes vers Lyon par l'A47, davantage aux heures de pointe du couloir Givors-Brignais.",
+      ],
+    },
+    h2Destinations: "Pilat, Velay, Lyon : où partent les groupes stéphanois",
+    h2Trajets: "Trajets types à Saint-Étienne",
     destinations: [
       { nom: 'Le parc du Pilat', desc: 'Crêts, vignobles de Condrieu et villages perchés à 30 minutes — la sortie nature de référence.' },
       { nom: 'Le Puy-en-Velay', desc: 'Cité mariale et départ de Compostelle à 1h15 : pèlerinages et sorties patrimoine.' },
@@ -567,6 +685,15 @@ export const villes: Ville[] = [
       'Strasbourg vit deux saisons de groupe très marquées. De fin novembre à Noël, le plus ancien marché de Noël de France attire des cars de toute l\'Europe — les créneaux et les zones de dépose réglementées de la Grande-Île se réservent dès septembre. Au printemps et à l\'automne, place à la route des vins : Obernai, Riquewihr, Ribeauvillé, avec dégustations où le car s\'impose.',
       'Capitale européenne, la ville accueille aussi sessions parlementaires, congrès et délégations — nos transporteurs alsaciens pratiquent les accès du quartier européen au quotidien. Et à 45 minutes côté allemand, Europa-Park est devenu la première destination de groupe de la région, CE et scolaires en tête.',
     ],
+    sectionLocale: {
+      h2: "Marché de Noël : le dispositif cars de la Grande-Île",
+      paragraphes: [
+        "Pendant l'Avent, Strasbourg encadre strictement les autocars de tourisme : dépose et reprise sur des zones dédiées en bord de Grande-Île, stationnement reporté sur des parkings périphériques, et un dispositif de sécurité qui évolue chaque année. Concrètement : le car dépose le groupe à quelques minutes à pied des marchés, repart stationner, et revient à l'heure convenue — prévoyez 3 à 4 heures sur place, c'est le format qui marche.",
+        "Le reste de l'année, le quartier européen (Parlement, Conseil de l'Europe) offre des accès cars aisés pour les délégations, et la dépose centre-ville se cale place de l'Étoile, aux portes de la vieille ville.",
+      ],
+    },
+    h2Destinations: "Route des vins, Forêt-Noire, Europa-Park : les sorties alsaciennes",
+    h2Trajets: "Trajets types à Strasbourg",
     destinations: [
       { nom: 'La route des vins d\'Alsace', desc: 'Obernai, Riquewihr, Ribeauvillé : villages et caves à moins d\'une heure — la sortie œnologique par excellence.' },
       { nom: 'Europa-Park', desc: 'Le premier parc d\'attractions d\'Europe continentale à 45 minutes, côté allemand — CE et scolaires.' },
@@ -611,6 +738,15 @@ export const villes: Ville[] = [
       'Capitale des Alpes, Grenoble est cernée de stations : Chamrousse à 30 minutes, les 2 Alpes et l\'Alpe d\'Huez à un peu plus d\'une heure, Villard-de-Lans dans le Vercors à 40 minutes. L\'hiver, nos transporteurs isérois enchaînent les transferts ski — classes de neige, CE, groupes d\'amis — avec véhicules équipés et chauffeurs habitués aux routes de montagne et aux 21 virages de l\'Alpe d\'Huez.',
       'Le reste de l\'année, la ville high-tech (Presqu\'île scientifique, Inovallée) génère séminaires et visites de sites, tandis que Vercors et Chartreuse offrent les sorties nature : plateaux, monastère de la Grande Chartreuse, gorges du Furon. L\'autocar reste le moyen le plus sûr d\'emmener un groupe en altitude.',
     ],
+    sectionLocale: {
+      h2: "Monter en station depuis Grenoble : ce que gèrent les chauffeurs",
+      paragraphes: [
+        "Chamrousse se rejoint en 45 minutes par une montée en lacets, l'Oisans (Alpe d'Huez, les 2 Alpes) en 1h15 par la RD1091 le long de la Romanche : deux routes de montagne où la loi Montagne impose pneus hiver ou chaînes du 1er novembre au 31 mars. Les samedis de février, le trafic de l'Oisans se joue avant 8h — les chauffeurs isérois partent tôt et connaissent les créneaux.",
+        "Le point de rendez-vous le plus simple pour un groupe est la gare de Grenoble (dépose cars côté Europole) ; pour les journées ski scolaires, le car reste en station et redescend le groupe à 16h30-17h, avant la vague des retours du samedi.",
+      ],
+    },
+    h2Destinations: "Stations, Vercors, Chartreuse : les sorties grenobloises",
+    h2Trajets: "Trajets types à Grenoble",
     destinations: [
       { nom: 'Les stations de l\'Oisans', desc: 'Alpe d\'Huez, les 2 Alpes : transferts ski avec soutes à matériel et chauffeurs montagne.' },
       { nom: 'Chamrousse', desc: 'La station de Grenoble à 30 minutes — sorties ski scolaires et journées raquettes.' },

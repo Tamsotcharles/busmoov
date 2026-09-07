@@ -27,7 +27,7 @@ export const articles: BlogArticle[] = [
     slug: 'prix-location-autocar',
     titre: 'Combien coûte la location d\'un autocar avec chauffeur ? Tarifs 2026',
     metaTitle: 'Prix location autocar avec chauffeur 2026 : tarifs et exemples | Busmoov',
-    metaDescription: 'Combien coûte un autocar avec chauffeur ? Fourchettes de prix 2026 : journée dès 690 € TTC, ce qui fait varier le tarif, exemples concrets et conseils pour payer moins cher.',
+    metaDescription: 'Combien coûte un autocar avec chauffeur ? Fourchettes 2026 : journée dès 690 € TTC, facteurs de prix, exemples concrets, conseils pour payer moins cher.',
     datePublication: '2026-09-04',
     extrait: 'Journée dès 690 € TTC, transferts, séjours : les vraies fourchettes de prix d\'un autocar avec chauffeur, ce qui les fait varier et comment payer moins cher.',
     blocks: [
@@ -75,7 +75,7 @@ export const articles: BlogArticle[] = [
     slug: 'organiser-sortie-scolaire-autocar',
     titre: 'Organiser une sortie scolaire en autocar : le guide complet',
     metaTitle: 'Sortie scolaire en autocar : réglementation, prix, checklist | Busmoov',
-    metaDescription: 'Réglementation transport d\'enfants, nombre d\'accompagnateurs, délais de réservation, budget et checklist : tout pour organiser une sortie scolaire en autocar sereinement.',
+    metaDescription: 'Réglementation transport d\'enfants, accompagnateurs, délais, budget et checklist : tout pour organiser une sortie scolaire en autocar sereinement.',
     datePublication: '2026-09-04',
     extrait: 'Réglementation, accompagnateurs, délais, budget : le guide pratique de l\'enseignant ou du parent d\'élève qui organise une sortie scolaire en autocar.',
     blocks: [
@@ -185,7 +185,7 @@ export const articles: BlogArticle[] = [
     slug: 'bus-soiree-etudiante-bde',
     titre: 'BDE : louer un bus pour une soirée étudiante ou un week-end d\'intégration',
     metaTitle: 'Location bus soirée étudiante et WEI : le guide du BDE | Busmoov',
-    metaDescription: 'Location de bus pour BDE : soirées étudiantes, WEI, galas. Prix, sécurité, caution, retours de nuit — le guide pratique pour organiser le transport sans galère.',
+    metaDescription: 'Location de bus pour BDE : soirées étudiantes, WEI, galas. Prix, sécurité, caution, retours de nuit — le guide pour organiser le transport.',
     datePublication: '2026-09-04',
     extrait: 'Soirée, gala, WEI : le transport est la partie la plus sensible de l\'organisation. Prix, caution, retours de nuit — le guide pratique du BDE.',
     blocks: [
@@ -210,7 +210,7 @@ export const articles: BlogArticle[] = [
     slug: 'transport-camp-scout-autocar',
     titre: 'Scouts : organiser le transport du camp en autocar',
     metaTitle: 'Transport de camp scout en autocar : guide et prix | Busmoov',
-    metaDescription: 'Autocar pour camp scout : matériel en soute, réglementation transport de mineurs, budget serré, départs groupés — le guide pratique des chefs et responsables.',
+    metaDescription: 'Autocar pour camp scout : matériel en soute, transport de mineurs, budget serré, départs groupés — le guide des chefs et responsables.',
     datePublication: '2026-09-04',
     extrait: 'Malles, tentes, budget serré et transport de mineurs : le guide pratique du responsable scout qui organise le départ en camp.',
     blocks: [
@@ -316,7 +316,7 @@ export const articles: BlogArticle[] = [
     slug: 'autocar-bar-mitzvah',
     titre: 'Bar mitzvah : organiser les navettes des invités en autocar',
     metaTitle: 'Navettes bar mitzvah en autocar ou minibus | Busmoov',
-    metaDescription: 'Transport des invités d\'une bar mitzvah ou bat mitzvah : navettes synagogue-réception, familles venues de loin, timing du chabbat — le guide d\'organisation.',
+    metaDescription: 'Transport des invités d\'une bar mitzvah : navettes synagogue-réception, familles venues de loin, timing du chabbat — le guide pratique.',
     datePublication: '2026-09-04',
     extrait: 'Synagogue, salle de réception, hôtels des familles : organiser les navettes d\'une bar mitzvah ou bat mitzvah sans stress.',
     blocks: [

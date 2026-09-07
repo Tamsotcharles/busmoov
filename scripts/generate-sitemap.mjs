@@ -1,60 +1,42 @@
 import { writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { seoLocalizedPaths, SEO_BASE_URL } from '../src/lib/seo-data.ts'
+import { villes } from '../src/lib/villes.ts'
+import { articles } from '../src/lib/blog.ts'
 
 /**
- * Génère public/sitemap.xml : pages publiques × langues, avec les
- * alternates hreflang. À relancer quand une page publique est ajoutée
- * (branché sur `npm run build`).
+ * Génère public/sitemap.xml : pages multilingues (slugs localisés par
+ * langue, avec alternates hreflang) + pages françaises (villes, blog,
+ * location-bus). Branché sur `npm run build` (via node --experimental-
+ * strip-types pour importer les fichiers de données TypeScript).
  */
 
-const BASE_URL = 'https://www.busmoov.com'
+const BASE_URL = SEO_BASE_URL
 const LANGUAGES = ['fr', 'es', 'de', 'en']
 const X_DEFAULT_LANG = 'fr'
 
-// [chemin sans préfixe de langue, priorité, fréquence]
+// [clé seo-data, priorité, fréquence]
 const PAGES = [
-  ['/', '1.0', 'weekly'],
-  ['/services/location-autocar', '0.9', 'monthly'],
-  ['/services/location-minibus', '0.9', 'monthly'],
-  ['/services/transfert-aeroport', '0.9', 'monthly'],
-  ['/services/sorties-scolaires', '0.9', 'monthly'],
-  ['/a-propos', '0.6', 'monthly'],
-  ['/contact', '0.6', 'monthly'],
-  ['/devenir-partenaire', '0.7', 'monthly'],
-  ['/cgv', '0.3', 'yearly'],
-  ['/mentions-legales', '0.3', 'yearly'],
-  ['/confidentialite', '0.3', 'yearly'],
+  ['home', '1.0', 'weekly'],
+  ['location-autocar', '0.9', 'monthly'],
+  ['location-minibus', '0.9', 'monthly'],
+  ['transfert-aeroport', '0.9', 'monthly'],
+  ['sorties-scolaires', '0.9', 'monthly'],
+  ['a-propos', '0.6', 'monthly'],
+  ['contact', '0.6', 'monthly'],
+  ['devenir-partenaire', '0.7', 'monthly'],
+  ['cgv', '0.3', 'yearly'],
+  ['mentions-legales', '0.3', 'yearly'],
+  ['confidentialite', '0.3', 'yearly'],
 ]
 
-// Pages françaises uniquement (pages villes) : pas d'alternates hreflang
+// Pages françaises uniquement : pas d'alternates hreflang
 const PAGES_FR_ONLY = [
-  ['/location-autocar/paris', '0.8', 'monthly'],
-  ['/location-autocar/lyon', '0.8', 'monthly'],
-  ['/location-autocar/marseille', '0.8', 'monthly'],
-  ['/location-autocar/toulouse', '0.8', 'monthly'],
-  ['/location-autocar/bordeaux', '0.8', 'monthly'],
-  ['/location-autocar/lille', '0.8', 'monthly'],
-  ['/location-autocar/nantes', '0.8', 'monthly'],
-  ['/location-autocar/biarritz', '0.8', 'monthly'],
-  ['/location-autocar/arcachon', '0.8', 'monthly'],
-  ['/location-autocar/le-mans', '0.8', 'monthly'],
-  ['/location-autocar/montpellier', '0.8', 'monthly'],
-  ['/location-autocar/saint-etienne', '0.8', 'monthly'],
-  ['/location-autocar/strasbourg', '0.8', 'monthly'],
-  ['/location-autocar/grenoble', '0.8', 'monthly'],
   ['/location-bus', '0.9', 'monthly'],
+  ...villes.map((v) => [`/location-autocar/${v.slug}`, '0.8', 'monthly']),
   ['/blog', '0.7', 'weekly'],
-  ['/blog/prix-location-autocar', '0.7', 'monthly'],
-  ['/blog/organiser-sortie-scolaire-autocar', '0.7', 'monthly'],
-  ['/blog/difference-bus-autocar-minibus', '0.7', 'monthly'],
-  ['/blog/location-autocar-mariage', '0.7', 'monthly'],
-  ['/blog/bus-soiree-etudiante-bde', '0.7', 'monthly'],
-  ['/blog/transport-camp-scout-autocar', '0.7', 'monthly'],
-  ['/blog/autocar-deplacement-entreprise', '0.7', 'monthly'],
-  ['/blog/bus-team-building', '0.7', 'monthly'],
-  ['/blog/bus-discotheque-soiree', '0.7', 'monthly'],
-  ['/blog/autocar-bar-mitzvah', '0.7', 'monthly'],
+  ...articles.map((a) => [`/blog/${a.slug}`, '0.7', 'monthly']),
 ]
 
 const urlFor = (lang, path) => (path === '/' ? `${BASE_URL}/${lang}` : `${BASE_URL}/${lang}${path}`)
@@ -63,17 +45,18 @@ const hreflangCode = (lang) => (lang === 'en' ? 'en-GB' : lang)
 const lastmod = new Date().toISOString().slice(0, 10)
 const entries = []
 
-for (const [path, priority, changefreq] of PAGES) {
+for (const [page, priority, changefreq] of PAGES) {
+  const paths = seoLocalizedPaths[page]
   for (const lang of LANGUAGES) {
     const alternates = [
       ...LANGUAGES.map(
-        (l) => `    <xhtml:link rel="alternate" hreflang="${hreflangCode(l)}" href="${urlFor(l, path)}"/>`
+        (l) => `    <xhtml:link rel="alternate" hreflang="${hreflangCode(l)}" href="${urlFor(l, paths[l])}"/>`
       ),
-      `    <xhtml:link rel="alternate" hreflang="x-default" href="${urlFor(X_DEFAULT_LANG, path)}"/>`,
+      `    <xhtml:link rel="alternate" hreflang="x-default" href="${urlFor(X_DEFAULT_LANG, paths[X_DEFAULT_LANG])}"/>`,
     ].join('\n')
 
     entries.push(`  <url>
-    <loc>${urlFor(lang, path)}</loc>
+    <loc>${urlFor(lang, paths[lang])}</loc>
 ${alternates}
     <lastmod>${lastmod}</lastmod>
     <changefreq>${changefreq}</changefreq>

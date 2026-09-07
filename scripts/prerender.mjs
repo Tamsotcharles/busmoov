@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 // Node >= 23.6 exécute le TypeScript nativement (type stripping) :
 // on importe les données directement depuis src/.
-import { seoConfig, seoPaths, locationBusMeta } from '../src/lib/seo-data.ts'
+import { seoConfig, seoLocalizedPaths, locationBusMeta } from '../src/lib/seo-data.ts'
 import { villes } from '../src/lib/villes.ts'
 import { articles } from '../src/lib/blog.ts'
 
@@ -38,14 +38,14 @@ const hreflangCode = (lang) => (lang === 'en' ? 'en-GB' : lang)
 
 let count = 0
 
-function renderPage({ lang, path, title, description, alternates = null, jsonLd = [], body = '' }) {
+function renderPage({ lang, path, title, description, alternatePaths = null, jsonLd = [], body = '' }) {
   const canonical = urlFor(lang, path)
   let head = `<link rel="canonical" href="${canonical}"/>\n`
-  if (alternates) {
+  if (alternatePaths) {
     for (const l of LANGUAGES) {
-      head += `<link rel="alternate" hreflang="${hreflangCode(l)}" href="${urlFor(l, path)}"/>\n`
+      head += `<link rel="alternate" hreflang="${hreflangCode(l)}" href="${urlFor(l, alternatePaths[l])}"/>\n`
     }
-    head += `<link rel="alternate" hreflang="x-default" href="${urlFor('fr', path)}"/>\n`
+    head += `<link rel="alternate" hreflang="x-default" href="${urlFor('fr', alternatePaths.fr)}"/>\n`
   }
   head += `<meta property="og:title" content="${esc(title)}"/>\n`
   head += `<meta property="og:description" content="${esc(description)}"/>\n`
@@ -98,11 +98,67 @@ const organizationJsonLd = (lang) => ({
   },
 })
 
-for (const [page, path] of Object.entries(seoPaths)) {
+// Traductions par langue, pour donner un corps réel aux pages
+// multilingues (les crawlers IA n'exécutent pas de JavaScript).
+const locales = Object.fromEntries(
+  LANGUAGES.map((l) => [l, JSON.parse(readFileSync(join(DIST, '..', 'src', 'locales', l, 'common.json'), 'utf8'))])
+)
+const t = (lang, key) => key.split('.').reduce((o, seg) => (o && typeof o === 'object' ? o[seg] : undefined), locales[lang]) ?? ''
+
+/** Corps statique des pages multilingues, construit depuis les traductions. */
+function multilingualBody(page, lang) {
+  switch (page) {
+    case 'home': {
+      const steps = [1, 2, 3].map((n) =>
+        `<h3 class="font-semibold mt-3">${esc(t(lang, `howItWorks.step${n}.title`))}</h3>` +
+        p(t(lang, `howItWorks.step${n}.description`))
+      ).join('')
+      return wrap(
+        h1(`${t(lang, 'hero.title1')} ${t(lang, 'hero.title2')} ${t(lang, 'hero.title3')}`) +
+        p(t(lang, 'hero.subtitle')) +
+        h2(t(lang, 'howItWorks.title')) +
+        p(t(lang, 'howItWorks.subtitle')) +
+        steps
+      )
+    }
+    case 'location-autocar':
+      return wrap(
+        h1(`${t(lang, 'services.busRental.title')} ${t(lang, 'services.busRental.titleHighlight')} ${t(lang, 'services.busRental.titleLocation')}`) +
+        p(t(lang, 'services.busRental.description'))
+      )
+    case 'location-minibus':
+      return wrap(
+        h1(`${t(lang, 'services.minibusRental.title')} ${t(lang, 'services.minibusRental.titleHighlight')}`) +
+        p(t(lang, 'services.minibusRental.description'))
+      )
+    case 'transfert-aeroport':
+      return wrap(
+        h1(`${t(lang, 'services.airportTransfer.title')} ${t(lang, 'services.airportTransfer.titleHighlight')} ${t(lang, 'services.airportTransfer.titleSuffix')}`) +
+        p(t(lang, 'services.airportTransfer.description'))
+      )
+    case 'sorties-scolaires':
+      return wrap(
+        h1(`${t(lang, 'services.schoolTrips.title')} ${t(lang, 'services.schoolTrips.titleHighlight')} ${t(lang, 'services.schoolTrips.titleSuffix')}`) +
+        p(t(lang, 'services.schoolTrips.description'))
+      )
+    default:
+      return ''
+  }
+}
+
+for (const [page, paths] of Object.entries(seoLocalizedPaths)) {
   for (const lang of LANGUAGES) {
     const meta = seoConfig[page][lang]
     const jsonLd = page === 'home' ? [organizationJsonLd(lang)] : []
-    renderPage({ lang, path, title: meta.title, description: meta.description, alternates: true, jsonLd })
+    renderPage({
+      lang,
+      path: paths[lang],
+      title: meta.title,
+      description: meta.description,
+      alternatePaths: paths,
+      jsonLd,
+      body: multilingualBody(page, lang),
+    })
   }
 }
 
@@ -142,11 +198,13 @@ for (const ville of villes) {
     h1(ville.h1) +
     p(ville.sousTitre) +
     ville.intro.map(p).join('') +
-    h2(`Destinations populaires au départ de ${ville.nom}`) +
+    h2(ville.sectionLocale.h2) +
+    ville.sectionLocale.paragraphes.map(p).join('') +
+    h2(ville.h2Destinations) +
     ville.destinations.map((d) => `<h3 class="font-semibold mt-3">${esc(d.nom)}</h3>` + p(d.desc)).join('') +
-    h2(`Exemples de trajets à ${ville.nom}`) +
+    h2(ville.h2Trajets) +
     ul(ville.trajets) +
-    h2('Questions fréquentes') +
+    h2(`Vos questions sur l'autocar à ${ville.nom}`) +
     ville.faq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + p(f.a)).join('') +
     p('Busmoov également disponible à :') + `<p class="mb-3">${autres}</p>`
   )
@@ -262,9 +320,11 @@ const llmsFull = [
     `Source : ${BASE_URL}/fr/location-autocar/${v.slug}`,
     v.sousTitre,
     ...v.intro,
-    `### Destinations populaires au départ de ${v.nom}`,
+    `### ${v.sectionLocale.h2}`,
+    ...v.sectionLocale.paragraphes,
+    `### ${v.h2Destinations}`,
     v.destinations.map((d) => `- ${d.nom} : ${d.desc}`).join('\n'),
-    `### Exemples de trajets`,
+    `### ${v.h2Trajets}`,
     v.trajets.map((t) => `- ${t}`).join('\n'),
     `### Questions fréquentes`,
     v.faq.map((f) => `**${f.q}**\n\n${f.a}`).join('\n\n'),
