@@ -32,6 +32,12 @@ export interface Ville {
   /** Titres H2 personnalisés — éviter les intitulés identiques d'une ville à l'autre. */
   h2Destinations: string
   h2Trajets: string
+  /**
+   * Maillage interne contextuel : paragraphes contenant des liens en
+   * syntaxe markdown [ancre exacte](/chemin) — ancres variées, jamais
+   * le même libellé d'une ville à l'autre.
+   */
+  liensUtiles: string[]
   destinations: VilleDestination[]
   trajets: string[]
   faq: VilleFaq[]
@@ -71,6 +77,9 @@ export const villes: Ville[] = [
       'Navette gare de Lyon / gare Montparnasse ↔ lieu de séminaire',
       'Circuit soirée : restaurant, croisière sur la Seine, retour hôtel',
       'Paris → Versailles, Disneyland, Vaux-le-Vicomte à la journée',
+    ],
+    liensUtiles: [
+      "Votre événement se joue hors d'Île-de-France ? Busmoov organise aussi la [location d'autocar à Lille](/location-autocar/lille) pour les groupes du Nord, et les navettes de la semaine de course avec la [location d'autocar au Mans](/location-autocar/le-mans). Avant de valider votre budget, notre guide du [prix de la location d'un autocar](/blog/prix-location-autocar) détaille ce qui fait varier un devis.",
     ],
     faq: [
       {
@@ -125,6 +134,9 @@ export const villes: Ville[] = [
       'Presqu\'île ↔ Eurexpo ou Groupama Stadium pour un événement',
       'Lyon → Annecy, Genève ou le Beaujolais à la journée',
     ],
+    liensUtiles: [
+      "Côté Alpes, la [location d'autocar à Grenoble](/location-autocar/grenoble) couvre l'Oisans et le Vercors ; côté Forez, la [location d'autocar à Saint-Étienne](/location-autocar/saint-etienne) gère notamment les déplacements de supporters. Et pour un petit comité, la [location de minibus avec chauffeur](/services/location-minibus) est souvent la formule la plus souple.",
+    ],
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Lyon ?',
@@ -177,6 +189,9 @@ export const villes: Ville[] = [
       'Navette gare Saint-Charles ↔ hôtel ou lieu de séminaire',
       'Marseille → Cassis, Aix-en-Provence ou Avignon à la journée',
       'Transport de supporters vers l\'Orange Vélodrome',
+    ],
+    liensUtiles: [
+      "Le long de l'arc méditerranéen, nous assurons aussi la [location d'autocar à Montpellier](/location-autocar/montpellier) ; vers le nord, la [location d'autocar avec chauffeur à Lyon](/location-autocar/lyon) prend le relais. Pour un groupe qui atterrit à Marignane, tout est détaillé sur notre page de [transfert aéroport en autocar](/services/transfert-aeroport).",
     ],
     faq: [
       {
@@ -231,6 +246,9 @@ export const villes: Ville[] = [
       'Toulouse → Carcassonne, Albi ou Andorre à la journée',
       'Pèlerinage Toulouse → Lourdes (aller-retour ou séjour)',
     ],
+    liensUtiles: [
+      "Dans le grand Sud-Ouest, Busmoov couvre également la [location d'autocar à Bordeaux](/location-autocar/bordeaux) et, sur l'axe méditerranéen, la [location de car à Montpellier](/location-autocar/montpellier). Les établissements scolaires trouveront les règles d'encadrement dans notre guide de la [sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar).",
+    ],
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Toulouse ?',
@@ -283,6 +301,9 @@ export const villes: Ville[] = [
       'Circuit vignobles : Bordeaux → Saint-Émilion ou Médoc avec plusieurs étapes',
       'Navette gare Saint-Jean ↔ Palais des congrès ou hôtel',
       'Bordeaux → Arcachon et dune du Pilat à la journée',
+    ],
+    liensUtiles: [
+      "Pour prolonger vers l'océan, voyez la [location d'autocar à Arcachon](/location-autocar/arcachon) ; plus au sud, la [location d'autocar à Biarritz](/location-autocar/biarritz) couvre tout le Pays basque. Un doute sur le vocabulaire ? Notre article [bus, car ou autocar : quelles différences ?](/blog/difference-bus-autocar-minibus) met tout le monde d'accord.",
     ],
     faq: [
       {
@@ -337,6 +358,9 @@ export const villes: Ville[] = [
       'Navette événement : Grand Palais, stade Pierre-Mauroy, Braderie de Lille',
       'Circuit mémoire 14-18 dans l\'Artois pour scolaires',
     ],
+    liensUtiles: [
+      "Les groupes nordistes qui descendent sur la capitale s'appuient sur notre [location d'autocar sur Paris](/location-autocar/paris) — à 2h30 par l'autoroute. Pour chiffrer le trajet avant de demander vos devis, consultez les [tarifs de location d'un autocar avec chauffeur](/blog/prix-location-autocar).",
+    ],
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Lille ?',
@@ -389,6 +413,9 @@ export const villes: Ville[] = [
       'Nantes → Puy du Fou à la journée (scolaires, CE, associations)',
       'Navette gare ↔ Cité des Congrès ou site d\'entreprise',
       'Sortie La Baule / Guérande ou Mont Saint-Michel à la journée',
+    ],
+    liensUtiles: [
+      "Depuis le grand Ouest, nous assurons aussi la [location d'autocar au Mans](/location-autocar/le-mans) — pratique pour combiner circuit des 24 Heures et châteaux — et la [location d'un autocar à Bordeaux](/location-autocar/bordeaux) plus au sud. Pour une classe, notre page [autocar pour sorties scolaires](/services/sorties-scolaires) détaille les véhicules aux normes.",
     ],
     faq: [
       {
@@ -443,6 +470,9 @@ export const villes: Ville[] = [
       'Excursion San Sebastián ou Bilbao à la journée',
       'Navettes mariage entre église, venue et hôtels de la côte',
     ],
+    liensUtiles: [
+      "Entre deux séminaires, les groupes basques remontent volontiers vers la [location d'autocar à Bordeaux](/location-autocar/bordeaux) ou rejoignent la ville rose via la [location d'autocar à Toulouse](/location-autocar/toulouse). Pour un transfert en comité restreint, un [minibus avec chauffeur](/services/location-minibus) suffit souvent.",
+    ],
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Biarritz ?',
@@ -495,6 +525,9 @@ export const villes: Ville[] = [
       'Circuit Bassin : dune du Pilat, ports ostréicoles, dégustation au Cap Ferret',
       'Navettes mariage entre église, villa et hôtels du Bassin',
       'Sortie scolaire réserve du Teich ou dune du Pilat',
+    ],
+    liensUtiles: [
+      "Le Bassin se combine naturellement avec une étape urbaine : la [location d'autocar à Bordeaux](/location-autocar/bordeaux) est à 50 minutes, et la côte se descend jusqu'à la [location d'autocar au Pays basque](/location-autocar/biarritz). Les fourchettes budgétaires sont détaillées dans notre [guide des prix de location d'autocar](/blog/prix-location-autocar).",
     ],
     faq: [
       {
@@ -549,6 +582,9 @@ export const villes: Ville[] = [
       'Sortie scolaire au zoo de La Flèche',
       'Le Mans → châteaux de la Loire ou Paris à la journée',
     ],
+    liensUtiles: [
+      "Beaucoup de groupes combinent la Sarthe et la capitale : notre page de [location d'autocar avec chauffeur à Paris](/location-autocar/paris) couvre les départs franciliens, et la [location d'autocar à Nantes](/location-autocar/nantes) prend le relais côté Atlantique.",
+    ],
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur au Mans ?',
@@ -601,6 +637,9 @@ export const villes: Ville[] = [
       'Navette congrès : Corum, parc des expositions, hôtels du centre',
       'Montpellier → Camargue, pont du Gard ou Sète à la journée',
       'Navette plages (Palavas, Carnon, La Grande-Motte) pour événements et intégrations',
+    ],
+    liensUtiles: [
+      "Sur l'axe méditerranéen, Busmoov organise aussi la [location d'autocar à Marseille](/location-autocar/marseille) — transferts croisières compris — et, vers l'ouest, la [location d'autocar à Toulouse](/location-autocar/toulouse). Pour un groupe qui arrive en avion, le [transfert aéroport pour groupes](/services/transfert-aeroport) se réserve en une seule demande.",
     ],
     faq: [
       {
@@ -655,6 +694,9 @@ export const villes: Ville[] = [
       'Sortie scolaire ou associative dans le Pilat et les gorges de la Loire',
       'Pèlerinage vers Le Puy-en-Velay',
     ],
+    liensUtiles: [
+      "À 50 minutes, la [location d'autocar à Lyon](/location-autocar/lyon) ouvre sur Eurexpo et Saint-Exupéry ; côté massifs, la [location d'autocar dans les Alpes à Grenoble](/location-autocar/grenoble) prend le relais pour les stations. Les clubs peuvent aussi passer par notre page de [location de bus](/location-bus) pour dimensionner le véhicule d'équipe.",
+    ],
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Saint-Étienne ?',
@@ -708,6 +750,9 @@ export const villes: Ville[] = [
       'Strasbourg → Europa-Park à la journée (CE, scolaires, associations)',
       'Navettes marché de Noël pour groupes (zones de dépose réglementées)',
     ],
+    liensUtiles: [
+      "Depuis l'Alsace, les liaisons longue distance passent souvent par la [location d'autocar à Lyon](/location-autocar/lyon) ou par la capitale — voir la [location d'autocar sur Paris](/location-autocar/paris). Pour budgéter une sortie marché de Noël, notre guide [combien coûte un autocar avec chauffeur ?](/blog/prix-location-autocar) donne les fourchettes réelles.",
+    ],
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Strasbourg ?',
@@ -760,6 +805,9 @@ export const villes: Ville[] = [
       'Navette gare de Grenoble ↔ site d\'entreprise ou lieu de séminaire',
       'Classe de neige ou journée ski scolaire avec matériel en soute',
       'Sortie Vercors, Chartreuse ou Annecy à la journée',
+    ],
+    liensUtiles: [
+      "Porte d'entrée des Alpes, Grenoble fonctionne en tandem avec la [location d'autocar à Lyon](/location-autocar/lyon) pour les arrivées TGV et Saint-Exupéry. Du minibus au double étage, notre page de [location de bus avec chauffeur](/location-bus) aide à choisir la bonne taille de véhicule.",
     ],
     faq: [
       {

@@ -1,6 +1,14 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "busmoov.com" }],
+      "destination": "https://www.busmoov.com/:path*",
+      "statusCode": 301
+    }
+  ],
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/" }
   ]

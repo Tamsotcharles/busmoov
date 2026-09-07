@@ -68,7 +68,7 @@ export const articles: BlogArticle[] = [
         'Comparez plusieurs transporteurs : sur un même trajet, l\'écart entre deux devis atteint couramment 15 à 25 % — c\'est exactement ce que Busmoov fait pour vous en une seule demande',
       ]},
       { type: 'h2', text: 'Obtenir un prix précis pour votre trajet' },
-      { type: 'p', text: 'Décrivez votre trajet (départ, destination, date, horaires, nombre de passagers) dans notre formulaire : vous recevez sous 24 h plusieurs devis gratuits de transporteurs vérifiés, sans engagement. Le prix affiché est ferme et tout compris — carburant, péages et chauffeur inclus.' },
+      { type: 'p', text: 'Décrivez votre trajet (départ, destination, date, horaires, nombre de passagers) dans notre formulaire de [location d\'autocar avec chauffeur](/services/location-autocar) : vous recevez sous 24 h plusieurs devis gratuits de transporteurs vérifiés, sans engagement. Au départ d\'une grande ville ? Nos pages dédiées, comme la [location d\'autocar sur Paris](/location-autocar/paris) ou la [location d\'autocar à Lyon](/location-autocar/lyon), détaillent les trajets types. Le prix affiché est ferme et tout compris — carburant, péages et chauffeur inclus.' },
     ],
   },
   {
@@ -120,7 +120,7 @@ export const articles: BlogArticle[] = [
         'Attendre la dernière semaine pour confirmer : sans acompte versé, le car n\'est pas bloqué',
       ]},
       { type: 'h2', text: 'Demander un devis pour votre sortie scolaire' },
-      { type: 'p', text: 'Indiquez la date, le trajet, l\'effectif (élèves + accompagnateurs) et vos horaires souhaités : vous recevez plusieurs devis gratuits sous 24 h de transporteurs habitués aux scolaires, véhicules aux normes transport d\'enfants. Écoles, collèges, lycées : le paiement par bon de commande administratif est possible.' },
+      { type: 'p', text: 'Indiquez la date, le trajet, l\'effectif (élèves + accompagnateurs) et vos horaires souhaités : vous recevez plusieurs devis gratuits sous 24 h de transporteurs habitués aux scolaires — tout est détaillé sur notre page [autocar pour sorties scolaires](/services/sorties-scolaires). Écoles, collèges, lycées : le paiement par bon de commande administratif est possible, et le [prix d\'une location d\'autocar](/blog/prix-location-autocar) se budgète facilement par élève.' },
     ],
   },
   {

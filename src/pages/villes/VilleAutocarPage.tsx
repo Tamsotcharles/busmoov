@@ -7,6 +7,7 @@ import { useLocalizedPath } from '@/components/i18n'
 import { getVille, villes } from '@/lib/villes'
 import { getSiteBaseUrl } from '@/lib/utils'
 import { Bus, Clock, Shield, MapPin, CheckCircle, ArrowRight } from 'lucide-react'
+import { TextWithLinks } from '@/components/ui/TextWithLinks'
 
 /**
  * Page ville SEO « Location d'autocar à <Ville> » — contenu français
@@ -145,8 +146,17 @@ export function VilleAutocarPage() {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* Maillage interne contextuel */}
       <section className="py-12">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+          {ville.liensUtiles.map((texte, i) => (
+            <TextWithLinks key={i} text={texte} className="text-gray-700 leading-relaxed" />
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-12 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-8">Vos questions sur l'autocar à {ville.nom}</h2>
           <div className="space-y-6">
@@ -161,7 +171,7 @@ export function VilleAutocarPage() {
       </section>
 
       {/* Autres villes + CTA */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl font-bold mb-4">Prêt à réserver votre autocar à {ville.nom} ?</h2>
           <p className="text-gray-600 mb-6">

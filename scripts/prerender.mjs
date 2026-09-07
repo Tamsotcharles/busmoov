@@ -73,6 +73,16 @@ function renderPage({ lang, path, title, description, alternatePaths = null, jso
 // dans le head du gabarit) : lisible pendant le court instant avant que
 // React remplace le contenu.
 const wrap = (inner) => `<main class="max-w-3xl mx-auto px-4 pt-24 pb-16">${inner}</main>`
+// Paragraphe pouvant contenir des liens markdown [ancre](/chemin) — chemins
+// internes FR, préfixés /fr dans le HTML statique.
+const pMd = (t) =>
+  `<p class="text-gray-700 mb-3">${t
+    .split(/(\[[^\]]+\]\([^)]+\))/g)
+    .map((part) => {
+      const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+      return m ? `<a class="text-magenta underline" href="/fr${m[2]}">${esc(m[1])}</a>` : esc(part)
+    })
+    .join('')}</p>`
 const h1 = (t) => `<h1 class="text-3xl font-bold mb-4">${esc(t)}</h1>`
 const h2 = (t) => `<h2 class="text-2xl font-bold mt-8 mb-3">${esc(t)}</h2>`
 const p = (t) => `<p class="text-gray-700 mb-3">${esc(t)}</p>`
@@ -204,6 +214,7 @@ for (const ville of villes) {
     ville.destinations.map((d) => `<h3 class="font-semibold mt-3">${esc(d.nom)}</h3>` + p(d.desc)).join('') +
     h2(ville.h2Trajets) +
     ul(ville.trajets) +
+    ville.liensUtiles.map(pMd).join('') +
     h2(`Vos questions sur l'autocar à ${ville.nom}`) +
     ville.faq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + p(f.a)).join('') +
     p('Busmoov également disponible à :') + `<p class="mb-3">${autres}</p>`
@@ -247,8 +258,8 @@ for (const article of articles) {
     article.blocks.map((b) => {
       switch (b.type) {
         case 'h2': return h2(b.text)
-        case 'p': return p(b.text)
-        case 'callout': return p(b.text)
+        case 'p': return pMd(b.text)
+        case 'callout': return pMd(b.text)
         case 'ul': return ul(b.items)
         default: return ''
       }
@@ -326,6 +337,7 @@ const llmsFull = [
     v.destinations.map((d) => `- ${d.nom} : ${d.desc}`).join('\n'),
     `### ${v.h2Trajets}`,
     v.trajets.map((t) => `- ${t}`).join('\n'),
+    ...v.liensUtiles,
     `### Questions fréquentes`,
     v.faq.map((f) => `**${f.q}**\n\n${f.a}`).join('\n\n'),
   ].join('\n\n')),

@@ -7,6 +7,7 @@ import { useLocalizedPath } from '@/components/i18n'
 import { getArticle, articles, type BlogBlock } from '@/lib/blog'
 import { getSiteBaseUrl } from '@/lib/utils'
 import { ArrowLeft, Calendar, Info } from 'lucide-react'
+import { TextWithLinks } from '@/components/ui/TextWithLinks'
 
 function formatDateFr(iso: string): string {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -17,7 +18,7 @@ function Block({ block }: { block: BlogBlock }) {
     case 'h2':
       return <h2 className="text-2xl font-bold mt-10 mb-4">{block.text}</h2>
     case 'p':
-      return <p className="text-gray-700 leading-relaxed mb-4">{block.text}</p>
+      return <TextWithLinks text={block.text} className="text-gray-700 leading-relaxed mb-4" />
     case 'ul':
       return (
         <ul className="list-disc pl-6 space-y-2 mb-4 text-gray-700">
