@@ -150,7 +150,7 @@ export function MentionsLegalesPage() {
                 <h2 className="text-xl font-bold text-gray-900 mb-4">{t('legal.publisher.title', '1. Éditeur du site')}</h2>
                 <div className="bg-gray-50 rounded-lg p-6 space-y-2">
                   <p className="text-gray-700"><strong>{t('legal.publisher.companyName', 'Raison sociale')} :</strong> {country?.companyName || 'BUSMOOV SAS'}</p>
-                  <p className="text-gray-700"><strong>{t('legal.publisher.brand', 'Marque du groupe')} :</strong> Centrale Autocar</p>
+                  <p className="text-gray-700"><strong>{t('legal.publisher.brand', 'Marque du groupe')} :</strong> Navelys</p>
                   <p className="text-gray-700"><strong>{t('legal.publisher.legalForm', 'Forme juridique')} :</strong> {t(`legal.publisher.legalFormValue.${country?.code || 'FR'}`, 'Société par Actions Simplifiée (SAS)')}</p>
                   <p className="text-gray-700"><strong>{t('legal.publisher.capital', 'Capital social')} :</strong> {t(`legal.publisher.capitalValue.${country?.code || 'FR'}`, '2 500 €')}</p>
                   <p className="text-gray-700"><strong>{t('legal.publisher.address', 'Siège social')} :</strong> {country?.address || '41 Rue Barrault'}, {country?.city || '75013 Paris'}</p>

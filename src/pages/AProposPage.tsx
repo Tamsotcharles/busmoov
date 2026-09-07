@@ -146,16 +146,8 @@ export function AProposPage() {
                 <div className="flex justify-center">
                   <div className="bg-white/10 backdrop-blur rounded-2xl p-8 text-center">
                     <Bus size={80} className="mx-auto mb-4 text-white/80" />
-                    <p className="text-2xl font-bold mb-2">Centrale Autocar</p>
+                    <p className="text-2xl font-bold mb-2">Navelys</p>
                     <p className="text-white/70">{t('about.groupSubtitle')}</p>
-                    <a
-                      href="https://www.centrale-autocar.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block mt-4 text-sm underline hover:no-underline"
-                    >
-                      {t('about.visitSite')}
-                    </a>
                   </div>
                 </div>
               </div>

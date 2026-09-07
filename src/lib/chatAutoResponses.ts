@@ -1,6 +1,6 @@
 /**
  * Système de réponses automatiques pour le chat client
- * Basé sur la FAQ Centrale Autocar et les informations du voyage
+ * Basé sur la FAQ métier et les informations du voyage
  * Supporte plusieurs langues (FR, DE, ES, EN)
  */
 

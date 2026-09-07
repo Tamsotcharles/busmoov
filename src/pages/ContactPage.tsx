@@ -165,14 +165,14 @@ export function ContactPage() {
               {/* Company Info */}
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  {country?.companyName || 'Busmoov'} - Groupe Centrale Autocar
+                  {country?.companyName || 'Busmoov'} - Groupe Navelys
                 </h2>
 
                 <div className="bg-white rounded-2xl shadow-sm p-8 mb-8">
                   <h3 className="font-semibold text-gray-900 mb-4">{t('contact.legalInfo')}</h3>
                   <div className="space-y-3 text-gray-600">
                     <p><span className="text-gray-400">{t('contact.companyName')} :</span> <strong>{country?.companyName || 'BUSMOOV SAS'}</strong></p>
-                    <p><span className="text-gray-400">{t('contact.groupBrand')} :</span> <strong>Centrale Autocar</strong></p>
+                    <p><span className="text-gray-400">{t('contact.groupBrand')} :</span> <strong>Navelys</strong></p>
                     <p><span className="text-gray-400">{t('contact.headquarters')} :</span> {fullAddress}</p>
                     <p><span className="text-gray-400">{t('contact.siret')} :</span> {country?.siret || '853 867 703 00029'}</p>
                     <p><span className="text-gray-400">{t('contact.vatNumber')} :</span> {country?.tvaIntra || 'FR58853867703'}</p>

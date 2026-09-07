@@ -78,7 +78,7 @@ export function Footer() {
         )}
 
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-          <p>{t('footer.copyright', { year: currentYear })} <a href="https://www.centrale-autocar.com" className="text-magenta hover:underline">Centrale Autocar</a>. {t('footer.allRightsReserved')}</p>
+          <p>{t('footer.copyright', { year: currentYear })} Navelys. {t('footer.allRightsReserved')}</p>
           <div className="flex gap-4">
             <Link to={localizedPath('/mentions-legales')} className="hover:text-magenta transition-colors">{t('footer.legalLink')}</Link>
             <span>·</span>

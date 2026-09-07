@@ -495,9 +495,7 @@ export function InfosVoyagePage() {
         {/* Footer */}
         <footer className="text-center py-8 text-gray-500 text-sm">
           © {t('infosVoyage.footerYear')} {t('infosVoyage.footerBrand')}{' '}
-          <a href="https://www.centrale-autocar.com" className="text-magenta hover:underline">
-            Centrale Autocar
-          </a>
+          Navelys
         </footer>
       </div>
     )
@@ -971,9 +969,7 @@ export function InfosVoyagePage() {
       {/* Footer */}
       <footer className="text-center py-8 text-gray-500 text-sm">
         © {t('infosVoyage.footerYear')} {t('infosVoyage.footerBrand')}{' '}
-        <a href="https://www.centrale-autocar.com" className="text-magenta hover:underline">
-          Centrale Autocar
-        </a>
+        Navelys
       </footer>
     </div>
   )
