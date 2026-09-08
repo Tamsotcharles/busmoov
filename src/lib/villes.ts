@@ -828,6 +828,286 @@ export const villes: Ville[] = [
       },
     ],
   },
+  {
+    slug: 'versailles',
+    nom: 'Versailles',
+    metaTitle: 'Location d\'autocar à Versailles avec chauffeur — Devis 24h | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur à Versailles et dans les Yvelines : dépose au château, sorties scolaires, séminaires. Devis gratuit sous 24h.',
+    h1: 'Location d\'autocar avec chauffeur à Versailles',
+    sousTitre: 'Dépose au château, sorties scolaires, séminaires dans les Yvelines : des transporteurs de l\'ouest francilien vérifiés, un devis gratuit en 24h.',
+    intro: [
+      'Versailles est la première destination de groupe de France : huit millions de visiteurs par an au château, dont une part énorme arrive en autocar. Écoles franciliennes, groupes étrangers, séminaires — nos transporteurs de l\'ouest parisien font la rotation Paris ↔ Versailles toutes les semaines et connaissent le rituel de la place d\'Armes par cœur.',
+      'Mais les Yvelines ne se résument pas au château : congrès au Palais des Congrès de Versailles, grandes écoles et sièges d\'entreprise de Vélizy à Saint-Quentin-en-Yvelines, vallée de Chevreuse pour les séminaires au vert. Un autocar basé dans le département évite les frais d\'approche depuis Paris.',
+    ],
+    sectionLocale: {
+      h2: 'Déposer un groupe au château de Versailles, mode d\'emploi',
+      paragraphes: [
+        'Le parking autocars officiel se trouve place d\'Armes, face au château : dépose du groupe, stationnement payant à la journée, et le chauffeur reste à proximité. Les matins de haute saison (avril-octobre), visez une arrivée avant 9h30 — la file des cars s\'allonge vite, et les créneaux de visite réservés n\'attendent pas.',
+        'Les jours de Grandes Eaux Musicales (week-ends d\'été), l\'affluence double : réservez le créneau de visite et le car ensemble, et prévoyez le pique-nique en soute pour les scolaires — les pelouses côté pièce d\'eau des Suisses sont l\'option classique. Pour Trianon et le Hameau, la dépose se fait aux grilles de la Reine, à préciser dans la demande.',
+      ],
+    },
+    h2Destinations: 'Autour de Versailles : les sorties des groupes yvelinois',
+    h2Trajets: 'Trajets types à Versailles',
+    liensUtiles: [
+      'Les groupes parisiens qui visitent le château passent par notre page [location d\'autocar à Paris](/location-autocar/paris) — 45 minutes de trajet ; pour l\'ensemble de la région, voyez la [location d\'autocar en Île-de-France](/location-autocar-ile-de-france). Et pour une classe, notre guide de la [sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar) détaille l\'encadrement.',
+    ],
+    destinations: [
+      { nom: 'Le château et Trianon', desc: 'La visite de groupe par excellence — dépose place d\'Armes ou grilles de la Reine, créneaux réservés.' },
+      { nom: 'Paris', desc: 'À 45 minutes : musées et spectacles en complément du château pour les groupes en séjour.' },
+      { nom: 'La vallée de Chevreuse', desc: 'Abbayes, châteaux de Breteuil et de Dampierre : séminaires au vert et sorties seniors.' },
+      { nom: 'Rambouillet', desc: 'Château, bergerie nationale et forêt — le classique des sorties scolaires yvelinoises.' },
+      { nom: 'France Miniature et Thoiry', desc: 'Les deux sorties familiales du département, à 20-30 minutes.' },
+      { nom: 'Giverny', desc: 'Les jardins de Monet à une heure — souvent combinés avec Versailles pour les groupes étrangers.' },
+    ],
+    trajets: [
+      'Transfert Paris ↔ Versailles pour un groupe avec créneau de visite',
+      'Sortie scolaire francilienne au château (dépose place d\'Armes)',
+      'Navette séminaire : hôtels de Versailles ↔ Palais des Congrès ou site d\'entreprise',
+      'Circuit Versailles + Giverny ou vallée de Chevreuse à la journée',
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar pour visiter Versailles ?',
+        a: 'Depuis Paris ou l\'Île-de-France, l\'aller-retour à la journée en autocar standard démarre à 690 € TTC, stationnement place d\'Armes en sus (tarif journalier du parking cars). Devis gratuit sous 24h.',
+      },
+      {
+        q: 'Le car peut-il rester sur place pendant la visite ?',
+        a: 'Oui, c\'est le fonctionnement normal : dépose du groupe, stationnement au parking autocars de la place d\'Armes, et le chauffeur vous reprend à l\'heure convenue. Pour une visite Trianon en complément, le car fait la navette interne.',
+      },
+      {
+        q: 'Faut-il réserver le créneau du château avant le car ?',
+        a: 'Réservez les deux ensemble : le créneau de visite fixe l\'horaire de dépose, et les matins de haute saison se jouent à 30 minutes près. Nos transporteurs habitués calent le départ en conséquence.',
+      },
+      {
+        q: 'Desservez-vous les communes autour de Versailles ?',
+        a: 'Oui : Saint-Quentin-en-Yvelines, Vélizy, Le Chesnay, Saint-Germain-en-Laye… tout l\'ouest francilien. Le point de prise en charge est libre — adresse, gare ou parking.',
+      },
+    ],
+  },
+  {
+    slug: 'saint-denis',
+    nom: 'Saint-Denis',
+    metaTitle: 'Location d\'autocar à Saint-Denis avec chauffeur — Devis 24h | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur à Saint-Denis : Stade de France (matchs, concerts), basilique, CDG à 15 minutes. Devis gratuit sous 24h.',
+    h1: 'Location d\'autocar avec chauffeur à Saint-Denis',
+    sousTitre: 'Stade de France, concerts, basilique royale, CDG à un quart d\'heure : des transporteurs du nord francilien vérifiés, un devis gratuit en 24h.',
+    intro: [
+      'Saint-Denis abrite le plus gros générateur de transport de groupe d\'Île-de-France : le Stade de France. Matchs du XV et des Bleus, finales, concerts géants — chaque événement déplace des centaines de cars de supporters, de comités d\'entreprise et de groupes d\'amis venus de toute la France. Nos transporteurs du nord parisien en font leur quotidien.',
+      'La ville a aussi ses trésors propres — la basilique cathédrale, nécropole des rois de France, très demandée par les scolaires et les groupes culturels — et un atout logistique : l\'aéroport de Roissy à quinze minutes par l\'A1, qui fait de Saint-Denis une base naturelle pour les groupes en transit.',
+    ],
+    sectionLocale: {
+      h2: 'Jour de match ou de concert au Stade de France',
+      paragraphes: [
+        'Les grands événements déclenchent un dispositif spécifique : parkings autocars réservés autour du stade (à prébooker pour les grosses affiches), axes coupés à la sortie, et une évacuation qui prend du temps — comptez 45 minutes à 1 heure entre le coup de sifflet final et le départ réel du car. Les chauffeurs habitués arrivent 2 heures avant l\'événement et donnent au groupe un point de regroupement précis pour le retour.',
+        'Pour les concerts qui finissent tard, vérifiez l\'amplitude : un aller-retour depuis la province avec retour à 2h du matin peut imposer un second chauffeur (environ 500 € TTC) — nos devis l\'intègrent d\'office quand c\'est le cas, pas de surprise au retour.',
+      ],
+    },
+    h2Destinations: 'Depuis Saint-Denis : événements et patrimoine du nord francilien',
+    h2Trajets: 'Trajets types à Saint-Denis',
+    liensUtiles: [
+      'Pour un vol de groupe, notre [navette aéroport CDG](/navette-aeroport-cdg) part de Saint-Denis en un quart d\'heure ; côté capitale, voyez la [location d\'autocar sur Paris](/location-autocar/paris) et, pour toute la région, la [location d\'autocar en Île-de-France](/location-autocar-ile-de-france).',
+    ],
+    destinations: [
+      { nom: 'Le Stade de France', desc: 'Matchs, finales et concerts : navettes supporters et groupes depuis toute la France, parkings cars réservés.' },
+      { nom: 'La basilique Saint-Denis', desc: 'La nécropole des rois — sortie scolaire et culturelle de référence du 93.' },
+      { nom: 'Paris', desc: 'À 20 minutes : musées, spectacles et soirées pour compléter un événement au stade.' },
+      { nom: 'Le Parc Astérix', desc: 'À 30 minutes par l\'A1 : la sortie CE et scolaire du nord francilien.' },
+      { nom: 'Roissy CDG', desc: 'L\'aéroport à 15 minutes — transferts de groupes au départ ou à l\'arrivée.' },
+      { nom: 'Chantilly', desc: 'Château, grandes écuries et hippodrome à 25 minutes pour les sorties patrimoine.' },
+    ],
+    trajets: [
+      'Navette supporters ou CE vers le Stade de France (match, concert), attente incluse',
+      'Transfert Saint-Denis ↔ aéroport CDG pour un groupe',
+      'Sortie scolaire basilique + Stade de France (visites combinées)',
+      'Saint-Denis → Parc Astérix ou Chantilly à la journée',
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un car pour un match au Stade de France ?',
+        a: 'Depuis l\'Île-de-France, l\'aller-retour en soirée avec attente pendant le match démarre autour de 800 à 1 000 € TTC en autocar standard. Depuis la province, le prix suit la distance et l\'amplitude — devis gratuit sous 24h avec le parking événement inclus quand il est réservable.',
+      },
+      {
+        q: 'Le car peut-il stationner près du stade pendant l\'événement ?',
+        a: 'Oui, sur les parkings autocars dédiés — mais pour les grosses affiches ils se réservent à l\'avance. Indiquez l\'événement exact dans votre demande : le transporteur gère la réservation du parking avec le billet d\'accès car.',
+      },
+      {
+        q: 'Gérez-vous les retours tardifs après concert ?',
+        a: 'C\'est la norme au Stade de France : sorties vers 23h30-minuit, évacuation lente, retours à 1h ou 2h. L\'amplitude est calculée honnêtement dès le devis, second chauffeur compris si nécessaire.',
+      },
+      {
+        q: 'Peut-on combiner visite de la basilique et match le même jour ?',
+        a: 'Très bien même : visite culturelle l\'après-midi, restaurant, puis le stade — le car reste avec le groupe toute la journée en mise à disposition.',
+      },
+    ],
+  },
+  {
+    slug: 'nice',
+    nom: 'Nice',
+    metaTitle: 'Location d\'autocar à Nice avec chauffeur — Devis 24h | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur à Nice et sur la Côte d\'Azur : Monaco, Cannes, villages perchés, congrès, croisières. Devis gratuit sous 24h.',
+    h1: 'Location d\'autocar avec chauffeur à Nice',
+    sousTitre: 'Congrès, croisières, Monaco et villages perchés : des transporteurs azuréens vérifiés, un devis gratuit en 24h.',
+    intro: [
+      'Deuxième aéroport de France, premier littoral touristique, et un chapelet de destinations mythiques à moins d\'une heure : Nice est une machine à groupes. Congrès et séminaires sur la Promenade, incentives dans les villages perchés, croisiéristes débarqués à Villefranche, supporters de l\'Allianz Riviera — nos transporteurs azuréens couvrent tout l\'arc entre Cannes et la frontière italienne.',
+      'La spécificité locale, c\'est la géographie : une bande côtière étroite, des routes en corniche et une circulation dense l\'été. Les chauffeurs du cru connaissent les trois corniches, les accès de Monaco et les créneaux qui passent — un savoir qui vaut de l\'or un vendredi d\'août.',
+    ],
+    sectionLocale: {
+      h2: 'Circuler en car sur la Côte d\'Azur : ce que gèrent les chauffeurs',
+      paragraphes: [
+        'La Promenade des Anglais encadre strictement les autocars de tourisme : zones de dépose dédiées, stationnement reporté vers le port et l\'ouest de la ville. Pour Monaco, les cars empruntent des accès et parkings imposés (les parkings des Pêcheurs ou de la Colle) avec navettes internes — on ne dépose pas un groupe devant le casino. Èze, Saint-Paul-de-Vence et les villages perchés se visitent depuis des parkings en contrebas, à quelques minutes à pied.',
+        'L\'été et pendant les grands événements (Grand Prix de Monaco en mai, festival de Cannes), les temps de trajet doublent sur la bande côtière : les transporteurs locaux partent plus tôt, passent par le moyen pays quand il le faut, et savent quels créneaux éviter. C\'est exactement ce qu\'on achète avec un chauffeur du cru.',
+      ],
+    },
+    h2Destinations: 'De Menton à Cannes : les sorties des groupes azuréens',
+    h2Trajets: 'Trajets types à Nice',
+    liensUtiles: [
+      'Sur l\'arc méditerranéen, nous couvrons aussi la [location d\'autocar à Marseille](/location-autocar/marseille) — transferts croisières compris — et la [location d\'autocar à Montpellier](/location-autocar/montpellier). Pour un groupe qui atterrit à Nice-Côte d\'Azur, le fonctionnement des [transferts aéroport en groupe](/services/transfert-aeroport) est détaillé sur notre page service.',
+    ],
+    destinations: [
+      { nom: 'Monaco', desc: 'Rocher, casino et musée océanographique à 30 minutes — parkings cars imposés, chauffeurs rodés au protocole.' },
+      { nom: 'Èze et les corniches', desc: 'Le village perché iconique entre mer et ciel, sur la Moyenne Corniche.' },
+      { nom: 'Saint-Paul-de-Vence', desc: 'Remparts, Fondation Maeght : la sortie culture et art de la Côte.' },
+      { nom: 'Cannes et Antibes', desc: 'Croisette, vieux port et Picasso — l\'ouest azuréen à 45 minutes.' },
+      { nom: 'Menton et l\'Italie', desc: 'Fête du citron, marché de Vintimille : la sortie transfrontalière du samedi.' },
+      { nom: 'Les gorges du Verdon', desc: 'La grande excursion nature à 2h — journée longue, très demandée l\'été.' },
+    ],
+    trajets: [
+      'Transfert aéroport Nice-Côte d\'Azur ↔ hôtels pour congrès et séminaires',
+      'Excursion croisiéristes depuis Villefranche ou le port de Nice (Monaco, Èze, Saint-Paul)',
+      'Navette soirée : dîner à Monaco ou Cannes avec retour de nuit',
+      'Circuit villages perchés à la journée en mise à disposition',
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar avec chauffeur à Nice ?',
+        a: 'Une journée en autocar standard démarre à 690 € TTC pour un circuit local. L\'été et pendant le Grand Prix de Monaco ou le festival de Cannes, réservez très tôt : la Côte d\'Azur est la zone la plus tendue de France sur ces semaines-là.',
+      },
+      {
+        q: 'Peut-on entrer dans Monaco en autocar ?',
+        a: 'Oui, via les accès et parkings autocars imposés par la Principauté, avec navettes ou marche vers le Rocher. Aucune formalité de frontière. Pendant le Grand Prix, le dispositif change complètement — dites-le dès la demande.',
+      },
+      {
+        q: 'Gérez-vous les excursions pour croisiéristes ?',
+        a: 'Oui : prise en charge au débarcadère de Villefranche (tender) ou au port de Nice, circuit calé sur les horaires du navire, retour garanti avant le rembarquement. Donnez le nom du bateau et la compagnie.',
+      },
+      {
+        q: 'Un minibus n\'est-il pas plus adapté aux villages perchés ?',
+        a: 'Souvent, oui : pour Èze village ou Sainte-Agnès, un minibus 20 places monte plus près que le grand car. Nous composons la bonne formule selon l\'itinéraire — parfois un car pour la côte et un minibus pour l\'étape perchée.',
+      },
+    ],
+  },
+  {
+    slug: 'rennes',
+    nom: 'Rennes',
+    metaTitle: 'Location d\'autocar à Rennes avec chauffeur — Devis 24h | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur à Rennes : Mont Saint-Michel, Saint-Malo, Brocéliande, événements bretons. Devis gratuit sous 24h.',
+    h1: 'Location d\'autocar avec chauffeur à Rennes',
+    sousTitre: 'Mont Saint-Michel, Saint-Malo, Brocéliande : la porte de la Bretagne pour vos groupes — transporteurs bretilliens vérifiés, devis gratuit en 24h.',
+    intro: [
+      'Capitale bretonne et ville étudiante majeure, Rennes est surtout une base de départ exceptionnelle : le Mont Saint-Michel à une heure, Saint-Malo à quarante-cinq minutes, la forêt de Brocéliande à trente — trois destinations de rêve pour les CE, les associations et les scolaires, toutes accessibles à la journée.',
+      'La ville elle-même génère son flux : matchs au Roazhon Park, Transmusicales en décembre, congrès au Couvent des Jacobins, et un tissu d\'entreprises tech qui déplace ses équipes. Nos transporteurs d\'Ille-et-Vilaine couvrent le tout, du minibus au grand tourisme.',
+    ],
+    sectionLocale: {
+      h2: 'Le combo breton : Mont Saint-Michel et Saint-Malo dans la même journée',
+      paragraphes: [
+        'C\'est LE circuit demandé au départ de Rennes : le Mont le matin (arrivée avant 10h pour éviter la marée humaine estivale), dépose au parking continental puis navettes officielles ou 35 minutes de marche vers l\'abbaye — le car ne va pas au pied du Mont, personne n\'y va. Déjeuner, puis Saint-Malo l\'après-midi : intra-muros par la porte Saint-Vincent, le car stationne aux parkings cars de l\'esplanade.',
+        'Le timing tient dans une amplitude normale de chauffeur, à condition de partir vers 8h. Pour les grandes marées (spectaculaires au Mont), vérifiez les horaires : certaines submersions du passage ferment temporairement les navettes — les transporteurs locaux ont le calendrier.',
+      ],
+    },
+    h2Destinations: 'Mont, côte et forêt : les excursions des groupes rennais',
+    h2Trajets: 'Trajets types à Rennes',
+    liensUtiles: [
+      'Dans le grand Ouest, nous couvrons aussi la [location d\'autocar à Nantes](/location-autocar/nantes) — Puy du Fou compris — et, pour un événement d\'entreprise, notre page [navette d\'entreprise](/navette-entreprise) détaille les formats. Budget : voir le [guide des prix de location d\'autocar](/blog/prix-location-autocar).',
+    ],
+    destinations: [
+      { nom: 'Le Mont Saint-Michel', desc: 'À 1h de route : parking continental, navettes vers l\'abbaye — la merveille se mérite à pied.' },
+      { nom: 'Saint-Malo et Dinard', desc: 'Remparts, plages et Émeraude à 45 minutes : la journée iodée classique.' },
+      { nom: 'Brocéliande', desc: 'Forêt de légendes à 30 minutes — la sortie scolaire et famille de référence.' },
+      { nom: 'Cancale et la côte', desc: 'Huîtres face au Mont : la sortie gourmande des CE et des associations.' },
+      { nom: 'Dinan', desc: 'Cité médiévale sur la Rance à 50 minutes, souvent combinée avec Saint-Malo.' },
+      { nom: 'Le golfe du Morbihan', desc: 'Vannes et les embarquements pour les îles à 1h30 — la grande journée sud-Bretagne.' },
+    ],
+    trajets: [
+      'Rennes → Mont Saint-Michel (et retour ou combo Saint-Malo) à la journée',
+      'Navette match au Roazhon Park ou événement au Couvent des Jacobins',
+      'Transfert gare de Rennes ↔ site d\'entreprise ou lieu de séminaire',
+      'Sortie scolaire Brocéliande ou Dinan',
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar avec chauffeur à Rennes ?',
+        a: 'Une journée en autocar standard démarre à 690 € TTC ; le circuit Mont Saint-Michel + Saint-Malo se chiffre selon l\'amplitude. À noter : l\'Ille-et-Vilaine fait partie des zones bretonnes où les prix sont légèrement plus élevés qu\'ailleurs — la mise en concurrence de plusieurs transporteurs y est d\'autant plus utile.',
+      },
+      {
+        q: 'Le car peut-il monter jusqu\'au Mont Saint-Michel ?',
+        a: 'Non, personne : tous les véhicules s\'arrêtent au parking continental, puis navettes officielles gratuites ou 35 minutes à pied par la passerelle. Prévoyez ce temps dans le planning — et des chaussures confortables pour le groupe.',
+      },
+      {
+        q: 'Gérez-vous les navettes pour les Transmusicales ?',
+        a: 'Oui, en décembre les rotations vers le parc expo de Rennes aéroport sont un classique — retours de nuit inclus. Réservez tôt, le week-end du festival mobilise beaucoup de véhicules.',
+      },
+      {
+        q: 'Peut-on rejoindre les îles (Bréhat, Belle-Île) en groupe ?',
+        a: 'Le car assure la liaison jusqu\'à l\'embarcadère (Paimpol pour Bréhat, Quiberon pour Belle-Île), la traversée se réserve auprès des compagnies. Nous calons les horaires du car sur ceux du bateau.',
+      },
+    ],
+  },
+  {
+    slug: 'reims',
+    nom: 'Reims',
+    metaTitle: 'Location d\'autocar à Reims avec chauffeur — Devis 24h | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur à Reims : circuits champagne, caves, cathédrale, séminaires œnologiques. Devis gratuit sous 24h.',
+    h1: 'Location d\'autocar avec chauffeur à Reims',
+    sousTitre: 'Caves de champagne, cathédrale des sacres, vignoble classé UNESCO : des transporteurs marnais vérifiés, un devis gratuit en 24h.',
+    intro: [
+      'Reims vit au rythme du champagne — et le champagne se visite en car. Quand la dégustation fait partie du programme (et elle en fait toujours partie), personne ne conduit : les circuits caves et vignoble sont la première demande de groupe de la Marne, des séminaires parisiens aux clubs œnologiques en passant par les groupes étrangers.',
+      'L\'atout maître de la ville : Paris à 45 minutes de TGV et 1h30 de route. Les séminaires d\'entreprise franciliens en font leur destination œno préférée — arrivée le matin, cathédrale et caves, dîner dans le vignoble, retour le soir ou nuit sur place. Nos transporteurs marnais orchestrent ces journées toute l\'année.',
+    ],
+    sectionLocale: {
+      h2: 'Construire un circuit champagne qui tient ses promesses',
+      paragraphes: [
+        'La règle des grandes maisons rémoises (Veuve Clicquot, Taittinger, Pommery, Ruinart) : visites sur réservation à horaires stricts — le circuit se construit autour de ces créneaux, pas l\'inverse. Le format qui marche : une grande maison à Reims le matin, déjeuner, puis le vignoble l\'après-midi — la montagne de Reims par Verzenay et son phare, ou l\'avenue de Champagne à Épernay à 30 minutes.',
+        'Dans le vignoble, les routes entre les villages (Hautvillers, berceau de Dom Pérignon, Aÿ, Bouzy) sont étroites : pour les groupes de moins de 20, le minibus passe partout et monte jusqu\'aux petites maisons familiales que les grands cars ne peuvent pas atteindre. La formule car + dégustations chez un vigneron indépendant est souvent la plus mémorable — et la plus économique.',
+      ],
+    },
+    h2Destinations: 'Caves, vignoble et sacres : les sorties des groupes rémois',
+    h2Trajets: 'Trajets types à Reims',
+    liensUtiles: [
+      'Les séminaires parisiens combinent souvent Reims avec notre [location d\'autocar sur Paris](/location-autocar/paris) — 1h30 de route ; côté est, la [location d\'autocar à Strasbourg](/location-autocar/strasbourg) couvre la route des vins d\'Alsace. Pour une soirée qui se prolonge dans le vignoble, un [minibus avec chauffeur](/services/location-minibus) gère les retours tardifs.',
+    ],
+    destinations: [
+      { nom: 'Les grandes maisons de Reims', desc: 'Veuve Clicquot, Taittinger, Pommery : crayères classées et dégustations sur réservation.' },
+      { nom: 'Épernay et l\'avenue de Champagne', desc: 'Le kilomètre le plus riche du monde à 30 minutes — Moët, Mercier et leurs caves.' },
+      { nom: 'Hautvillers', desc: 'Le village de Dom Pérignon, au cœur des coteaux classés UNESCO.' },
+      { nom: 'La montagne de Reims', desc: 'Verzenay, son phare et les villages de grands crus — la boucle vignoble classique.' },
+      { nom: 'La cathédrale et le palais du Tau', desc: 'Le site des sacres royaux : l\'étape culturelle de tout circuit rémois.' },
+      { nom: 'Troyes', desc: 'Cité médiévale et magasins d\'usine à 1h15 — la journée shopping et patrimoine.' },
+    ],
+    trajets: [
+      'Paris → Reims : journée séminaire œnologique (cathédrale + caves + vignoble)',
+      'Circuit champagne en mise à disposition : Reims, Hautvillers, Épernay',
+      'Transfert gare Champagne-Ardenne TGV ↔ hôtels et maisons de champagne',
+      'Sortie CE ou club : caves + déjeuner dans le vignoble',
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un circuit champagne en autocar ?',
+        a: 'Depuis Reims, la journée en mise à disposition démarre à 690 € TTC en autocar standard (visites et dégustations à réserver auprès des maisons, de 15 à 50 € par personne selon les caves). Depuis Paris, comptez de l\'ordre de 1 200 à 1 600 € TTC la journée complète.',
+      },
+      {
+        q: 'Le car attend-il pendant les visites et le déjeuner ?',
+        a: 'Oui, c\'est la formule mise à disposition : le véhicule et le chauffeur restent avec le groupe et enchaînent les étapes à votre rythme — y compris quand le déjeuner s\'éternise, c\'est prévu.',
+      },
+      {
+        q: 'Faut-il réserver les caves avant le car ?',
+        a: 'Réservez en parallèle : les créneaux des grandes maisons partent vite (plusieurs semaines à l\'avance en saison), et le circuit du car se cale sur ces horaires. Donnez-nous les créneaux obtenus, le transporteur construit l\'itinéraire autour.',
+      },
+      {
+        q: 'Minibus ou grand car pour le vignoble ?',
+        a: 'Jusqu\'à 20 personnes, le minibus est roi : il monte aux petites maisons des villages que les autocars ne peuvent pas atteindre. Au-delà, le grand car dessert les maisons principales et le minibus peut compléter pour une étape vigneron — on compose selon votre programme.',
+      },
+    ],
+  },
 ]
 
 export function getVille(slug: string): Ville | undefined {
