@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path'
 import { seoLocalizedPaths, SEO_BASE_URL } from '../src/lib/seo-data.ts'
 import { villes } from '../src/lib/villes.ts'
 import { articles } from '../src/lib/blog.ts'
+import { landings } from '../src/lib/landings.ts'
 
 /**
  * Génère public/sitemap.xml : pages multilingues (slugs localisés par
@@ -34,6 +35,7 @@ const PAGES = [
 // Pages françaises uniquement : pas d'alternates hreflang
 const PAGES_FR_ONLY = [
   ['/location-bus', '0.9', 'monthly'],
+  ...landings.map((l) => [l.slug, '0.8', 'monthly']),
   ...villes.map((v) => [`/location-autocar/${v.slug}`, '0.8', 'monthly']),
   ['/blog', '0.7', 'weekly'],
   ...articles.map((a) => [`/blog/${a.slug}`, '0.7', 'monthly']),

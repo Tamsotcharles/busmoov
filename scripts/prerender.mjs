@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { seoConfig, seoLocalizedPaths, locationBusMeta } from '../src/lib/seo-data.ts'
 import { villes } from '../src/lib/villes.ts'
 import { articles } from '../src/lib/blog.ts'
+import { landings } from '../src/lib/landings.ts'
 
 /**
  * Prérendu statique des pages publiques, SANS navigateur headless :
@@ -75,6 +76,14 @@ function renderPage({ lang, path, title, description, alternatePaths = null, jso
 const wrap = (inner) => `<main class="max-w-3xl mx-auto px-4 pt-24 pb-16">${inner}</main>`
 // Paragraphe pouvant contenir des liens markdown [ancre](/chemin) — chemins
 // internes FR, préfixés /fr dans le HTML statique.
+const mdInline = (t) =>
+  t.split(/(\[[^\]]+\]\([^)]+\))/g)
+    .map((part) => {
+      const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+      return m ? `<a class="text-magenta underline" href="/fr${m[2]}">${esc(m[1])}</a>` : esc(part)
+    })
+    .join('')
+const ulMd = (items) => `<ul class="list-disc pl-6 mb-3">${items.map((i) => `<li>${mdInline(i)}</li>`).join('')}</ul>`
 const pMd = (t) =>
   `<p class="text-gray-700 mb-3">${t
     .split(/(\[[^\]]+\]\([^)]+\))/g)
@@ -235,6 +244,49 @@ renderPage({
   body: wrap(h1(locationBusMeta.h1) + p(locationBusMeta.sousTitre)),
 })
 
+// ---- Landing pages SEO (FR, pilotées par landings.ts) -------------------
+for (const landing of landings) {
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      serviceType: landing.serviceType,
+      description: landing.metaDescription,
+      url: urlFor('fr', landing.slug),
+      provider: { '@type': 'Organization', name: 'Busmoov', url: BASE_URL },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: landing.faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ]
+  const body = wrap(
+    h1(landing.h1) +
+    p(landing.sousTitre) +
+    landing.intro.map(pMd).join('') +
+    landing.sections.map((s) =>
+      h2(s.h2) +
+      (s.paragraphes ?? []).map(pMd).join('') +
+      (s.liste ? ulMd(s.liste) : '')
+    ).join('') +
+    h2('Questions fréquentes') +
+    landing.faq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + pMd(f.a)).join('')
+  )
+  renderPage({
+    lang: 'fr',
+    path: landing.slug,
+    title: landing.metaTitle,
+    description: landing.metaDescription,
+    jsonLd,
+    body,
+  })
+}
+
 // ---- Pages villes (FR, contenu complet) ---------------------------------
 for (const ville of villes) {
   const jsonLd = [
@@ -350,6 +402,7 @@ Faits clés :
 - [Location de minibus](${BASE_URL}/fr/services/location-minibus) : 8 à 20 places
 - [Transfert aéroport](${BASE_URL}/fr/services/transfert-aeroport) : groupes, tous aéroports
 - [Sorties scolaires](${BASE_URL}/fr/services/sorties-scolaires) : véhicules aux normes transport d'enfants
+${landings.map((l) => `- [${l.h1}](${BASE_URL}/fr${l.slug})`).join('\n')}
 
 ## Villes desservies
 ${villes.map((v) => `- [Location d'autocar à ${v.nom}](${BASE_URL}/fr/location-autocar/${v.slug})`).join('\n')}

@@ -7,6 +7,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { ABTestProvider } from '@/components/ab-testing'
 import { supportedLanguages, defaultLanguage, type SupportedLanguage } from '@/lib/i18n'
 import { seoLocalizedPaths, seoPaths, type SeoPageKey } from '@/lib/seo-data'
+import { landings } from '@/lib/landings'
 
 // Chargement paresseux de toutes les routes sauf HomePage.
 //
@@ -33,6 +34,7 @@ const LocationBusPage = lazy(() => import('@/pages/services/LocationBusPage').th
 const VilleAutocarPage = lazy(() => import('@/pages/villes/VilleAutocarPage').then((m) => ({ default: m.VilleAutocarPage })))
 const BlogPage = lazy(() => import('@/pages/blog/BlogPage').then((m) => ({ default: m.BlogPage })))
 const ZhLandingPage = lazy(() => import('@/pages/ZhLandingPage').then((m) => ({ default: m.ZhLandingPage })))
+const LandingSeoPage = lazy(() => import('@/pages/LandingSeoPage').then((m) => ({ default: m.LandingSeoPage })))
 const BlogArticlePage = lazy(() => import('@/pages/blog/BlogArticlePage').then((m) => ({ default: m.BlogArticlePage })))
 
 const MesDevisPage = lazy(() => import('@/pages/client/MesDevisPage').then((m) => ({ default: m.MesDevisPage })))
@@ -155,6 +157,11 @@ function PublicRoutes() {
 
       {/* Page pilier « location de bus » (français uniquement) */}
       <Route path="/location-bus" element={<LocationBusPage />} />
+
+      {/* Landing pages SEO pilotées par données (français uniquement) */}
+      {landings.map((l) => (
+        <Route key={l.slug} path={l.slug} element={<LandingSeoPage landing={l} />} />
+      ))}
 
       {/* Slugs localisés es/de/en (le SEO local veut le mot-clé dans l'URL).
           Les chemins français ci-dessus restent routés pour la rétro-compat ;
