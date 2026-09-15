@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && node --experimental-strip-types scripts/generate-sitemap.mjs && vite build && node --experimental-strip-types scripts/prerender.mjs",
+    "build": "tsc -b && node --experimental-strip-types scripts/generate-sitemap.mjs && vite build && node --experimental-strip-types scripts/prerender.mjs && node scripts/indexnow-ping.mjs",
+    "seo:indexnow": "node scripts/indexnow-ping.mjs --force",
     "seo:sitemap": "node --experimental-strip-types scripts/generate-sitemap.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
