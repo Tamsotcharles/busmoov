@@ -33,6 +33,17 @@ const TRACKED_KEYWORDS = [
   'location autocar montpellier',
   'location autocar strasbourg',
   'location autocar grenoble',
+  'location autocar nice',
+  'location autocar rennes',
+  'location autocar versailles',
+  'location autocar île de france',
+  'location bus 50 places',
+  'navette entreprise',
+  'navette aéroport cdg',
+  'location bus sans chauffeur',
+  'location autocar long trajet',
+  'autocariste toulouse',
+  'autocar couchette',
 ]
 
 interface GscRow {
