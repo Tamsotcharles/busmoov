@@ -106,7 +106,7 @@ export const villes: Ville[] = [
     metaTitle: 'Location d\'autocar à Lyon avec chauffeur — Devis 24h | Busmoov',
     metaDescription: "Autocar et minibus avec chauffeur à Lyon : transferts Saint-Exupéry, stations de ski, Eurexpo, Beaujolais. Devis gratuit sous 24h.",
     h1: 'Location d\'autocar avec chauffeur à Lyon',
-    sousTitre: 'Transferts Saint-Exupéry, navettes stations de ski, événements à Eurexpo : des transporteurs rhodaniens vérifiés, un devis gratuit en 24h.',
+    sousTitre: 'Transferts Saint-Exupéry, navettes stations de ski, événements à Eurexpo : des autocaristes rhodaniens vérifiés, un devis gratuit en 24h.',
     intro: [
       'Carrefour entre Paris, les Alpes et la Méditerranée, Lyon est une des places fortes du transport par autocar. Salons à Eurexpo, matchs au Groupama Stadium, conventions à la Cité Internationale : Busmoov s\'appuie sur des transporteurs implantés dans le Rhône et l\'Ain pour couvrir la métropole sans frais d\'approche superflus.',
       'La spécialité locale, ce sont les navettes vers les stations : de décembre à avril, nos partenaires enchaînent les rotations vers les 3 Vallées, l\'Alpe d\'Huez ou les Portes du Soleil. Le reste de l\'année, cap sur le Beaujolais, Annecy ou Genève pour les sorties d\'entreprise et les excursions associatives.',
@@ -218,9 +218,9 @@ export const villes: Ville[] = [
     metaTitle: 'Location d\'autocar à Toulouse avec chauffeur — Devis 24h | Busmoov',
     metaDescription: "Autocar et minibus avec chauffeur à Toulouse : transferts Blagnac, Carcassonne, Lourdes, Pyrénées, Andorre. Devis gratuit sous 24h.",
     h1: 'Location d\'autocar avec chauffeur à Toulouse',
-    sousTitre: 'Transferts Blagnac, excursions à Carcassonne et dans les Pyrénées, déplacements d\'entreprise : des transporteurs occitans vérifiés, un devis gratuit en 24h.',
+    sousTitre: 'Transferts Blagnac, excursions à Carcassonne et dans les Pyrénées, déplacements d\'entreprise : des autocaristes occitans vérifiés, un devis gratuit en 24h.',
     intro: [
-      'Capitale européenne de l\'aéronautique, Toulouse génère un flux constant de déplacements professionnels : visites de sites industriels, délégations à accueillir à Blagnac, séminaires au MEETT. Nos transporteurs partenaires de Haute-Garonne connaissent ces circuits par cœur, badges et consignes d\'accès compris.',
+      'Capitale européenne de l\'aéronautique, Toulouse génère un flux constant de déplacements professionnels : visites de sites industriels, délégations à accueillir à Blagnac, séminaires au MEETT. Nos autocaristes partenaires de Haute-Garonne connaissent ces circuits par cœur, badges et consignes d\'accès compris.',
       'Côté loisirs, la ville rose est une base de départ idéale : Carcassonne à une heure, Albi et sa cathédrale, les Pyrénées pour le ski ou la randonnée, Andorre pour les sorties shopping, Lourdes pour les pèlerinages en groupe. L\'autocar reste le moyen le plus économique de déplacer 30 à 90 personnes dans la région.',
     ],
     sectionLocale: {
@@ -274,7 +274,7 @@ export const villes: Ville[] = [
     metaTitle: 'Location d\'autocar à Bordeaux avec chauffeur — Devis 24h | Busmoov',
     metaDescription: "Autocar et minibus avec chauffeur à Bordeaux : circuits vignobles Saint-Émilion et Médoc, Mérignac, Arcachon. Devis gratuit sous 24h.",
     h1: 'Location d\'autocar avec chauffeur à Bordeaux',
-    sousTitre: 'Circuits dans les vignobles, transferts Mérignac, escapades au bassin d\'Arcachon : des transporteurs girondins vérifiés, un devis gratuit en 24h.',
+    sousTitre: 'Circuits dans les vignobles, transferts Mérignac, escapades au bassin d\'Arcachon : des autocaristes girondins vérifiés, un devis gratuit en 24h.',
     intro: [
       'À Bordeaux, l\'autocar avec chauffeur est d\'abord l\'allié des visites de vignobles : Saint-Émilion, le Médoc et ses grands crus, Sauternes ou l\'Entre-deux-Mers. Quand la dégustation fait partie du programme, personne ne prend le volant — le car récupère le groupe au château et le ramène en ville, dans la soirée s\'il le faut.',
       'La métropole girondine, c\'est aussi les congrès au Palais 2 l\'Atlantique, les matchs au Matmut Atlantique, les transferts vers l\'aéroport de Mérignac et la grande évasion du week-end : le bassin d\'Arcachon et la dune du Pilat. Nous comparons pour vous plusieurs devis de transporteurs implantés en Gironde.',
@@ -946,7 +946,7 @@ export const villes: Ville[] = [
     metaTitle: 'Location d\'autocar à Nice avec chauffeur — Devis 24h | Busmoov',
     metaDescription: 'Autocar et minibus avec chauffeur à Nice et sur la Côte d\'Azur : Monaco, Cannes, villages perchés, congrès, croisières. Devis gratuit sous 24h.',
     h1: 'Location d\'autocar avec chauffeur à Nice',
-    sousTitre: 'Congrès, croisières, Monaco et villages perchés : des transporteurs azuréens vérifiés, un devis gratuit en 24h.',
+    sousTitre: 'Congrès, croisières, Monaco et villages perchés : des autocaristes azuréens vérifiés, un devis gratuit en 24h.',
     intro: [
       'Deuxième aéroport de France, premier littoral touristique, et un chapelet de destinations mythiques à moins d\'une heure : Nice est une machine à groupes. Congrès et séminaires sur la Promenade, incentives dans les villages perchés, croisiéristes débarqués à Villefranche, supporters de l\'Allianz Riviera — nos transporteurs azuréens couvrent tout l\'arc entre Cannes et la frontière italienne.',
       'La spécificité locale, c\'est la géographie : une bande côtière étroite, des routes en corniche et une circulation dense l\'été. Les chauffeurs du cru connaissent les trois corniches, les accès de Monaco et les créneaux qui passent — un savoir qui vaut de l\'or un vendredi d\'août.',

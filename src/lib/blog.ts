@@ -438,6 +438,43 @@ export const articles: BlogArticle[] = [
       { type: 'p', text: 'Indiquez la ville de départ, la date, l\'effectif et si la Cinéscénie est au programme : plusieurs devis gratuits sous 24h de transporteurs qui déposent des groupes aux Épesses toute la saison.' },
     ],
   },
+  {
+    slug: 'autocar-long-trajet',
+    titre: 'Longue distance en autocar : jusqu\'où peut-on aller, et comment ?',
+    metaTitle: 'Autocar long trajet : distances, double équipage, prix | Busmoov',
+    metaDescription: 'Location d\'autocar pour un long trajet : distances possibles en une journée, nuit roulée en double équipage, prix au kilomètre, Europe — le guide complet.',
+    datePublication: '2026-09-15',
+    extrait: 'Paris-Barcelone, tournée européenne, voyage de fin d\'année à 1 000 km : ce que la réglementation permet, ce que ça coûte, et comment bien l\'organiser.',
+    blocks: [
+      { type: 'p', text: 'Un autocar peut-il faire Paris-Barcelone d\'une traite ? Emmener un groupe à Milan, Amsterdam ou Prague ? Oui — à condition de composer avec une réglementation stricte sur le temps de conduite, qui structure tout le voyage. Voici comment se construit un long trajet en autocar, et ce qu\'il faut budgéter.' },
+      { type: 'h2', text: 'Jusqu\'où aller en une journée avec un seul chauffeur ?' },
+      { type: 'p', text: 'La réglementation européenne fixe le cadre : 9 heures de conduite maximum par jour (10 heures deux fois par semaine), une pause de 45 minutes toutes les 4h30, et une amplitude totale de 12 heures entre la prise et la fin de service. En pratique, cela place le rayon d\'action d\'une journée autour de 550 à 700 kilomètres selon les axes — Paris-Bordeaux, Lyon-Amsterdam ou Lille-Munich sont des étapes réalistes ; Paris-Rome ne l\'est pas.' },
+      { type: 'callout', text: 'Ces limites ne sont pas négociables : elles protègent votre groupe. Un devis qui promet 1 200 km dans la journée avec un seul chauffeur doit vous alerter — c\'est illégal et dangereux.' },
+      { type: 'h2', text: 'Au-delà : le double équipage, l\'arme du long trajet' },
+      { type: 'p', text: 'Pour dépasser les limites d\'un chauffeur seul, deux solutions. La première : le double équipage — deux chauffeurs se relaient au volant, le véhicule ne s\'arrête que pour les pauses courtes, et le trajet peut couvrir 900 à 1 000 kilomètres, y compris de nuit pendant que le groupe dort dans les sièges inclinables du grand tourisme. C\'est le format des liaisons Paris-Barcelone, Paris-Milan ou des retours de voyage nocturnes. Comptez environ 500 € TTC de plus par trajet pour le second chauffeur.' },
+      { type: 'p', text: 'La seconde : l\'étape. Le voyage se coupe en deux journées de route avec une nuit d\'hôtel — plus confortable pour les groupes seniors et obligatoire pour les scolaires, puisque les trajets de nuit entre minuit et 6 heures sont interdits pour les transports en commun de mineurs.' },
+      { type: 'h2', text: 'Combien coûte un long trajet ?' },
+      { type: 'p', text: 'Au-delà des distances régionales, le prix se construit essentiellement au kilomètre — comptez un ordre de grandeur de 5 à 7 € TTC du kilomètre parcouru pour un autocar standard, péages et carburant inclus, auquel s\'ajoutent le second chauffeur ou les nuits d\'étape (hébergement du ou des chauffeurs compris). Exemples indicatifs aller-retour : Paris-Barcelone en double équipage, de l\'ordre de 6 000 à 8 000 € TTC ; Lyon-Milan à la journée-étape, autour de 4 000 à 5 500 € TTC. Sur un car plein, le prix par personne reste imbattable face au train ou à l\'avion pour un groupe — les mécanismes complets sont dans notre [guide des prix de location d\'autocar](/blog/prix-location-autocar).' },
+      { type: 'h2', text: 'Et pour dormir vraiment : l\'autocar couchette' },
+      { type: 'p', text: 'Pour les tournées et les groupes qui enchaînent les longues étapes de nuit, il existe un véhicule dédié : le sleeper bus et ses vraies couchettes. C\'est un marché de niche que nous détaillons sur notre page [location d\'autocar couchette](/autocar-couchette) — avec son alternative plus accessible, la nuit en grand tourisme à double équipage.' },
+      { type: 'h2', text: 'Passer les frontières' },
+      { type: 'ul', items: [
+        'Espace Schengen : aucune formalité de frontière, une pièce d\'identité par passager suffit (y compris pour les mineurs, avec autorisation de sortie de territoire pour les scolaires)',
+        'Les transporteurs du réseau disposent de la licence communautaire qui autorise le transport international en Europe',
+        'Suisse et Royaume-Uni : quelques spécificités (vignette, formalités post-Brexit) que le transporteur gère — signalez simplement la destination dans la demande',
+        'Le chauffeur connaît les règles locales : vignettes urbaines, zones environnementales allemandes ou italiennes, péages spécifiques',
+      ]},
+      { type: 'h2', text: 'Bien organiser son long trajet : la checklist' },
+      { type: 'ul', items: [
+        'Donnez les horaires souhaités ET la souplesse possible : décaler un départ de 2 heures peut éviter un second chauffeur',
+        'Prévoyez les pauses dans le planning : toutes les 2h30 à 3h en pratique, c\'est aussi le rythme du groupe',
+        'Pour un aller-retour à plusieurs jours d\'écart, précisez si le car reste sur place (mise à disposition) ou repart — les deux formules existent',
+        'Réservez tôt : les longs trajets mobilisent un véhicule plusieurs jours, les disponibilités sont plus rares qu\'en local',
+      ]},
+      { type: 'h2', text: 'Demander un devis pour votre long trajet' },
+      { type: 'p', text: 'Indiquez le trajet complet, les dates, l\'effectif et vos contraintes horaires : plusieurs devis gratuits sous 24h, construits dans le respect de la réglementation — double équipage ou étapes inclus dès le chiffrage. Départs de [Paris](/location-autocar/paris), [Lyon](/location-autocar/lyon) et de toute la France.' },
+    ],
+  },
 ]
 
 export function getArticle(slug: string): BlogArticle | undefined {
