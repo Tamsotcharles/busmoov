@@ -156,16 +156,16 @@ export function HomePage() {
             {/* Stats */}
             <div className="flex flex-wrap gap-6 sm:gap-8 lg:gap-12 mt-10">
               <div className="min-w-[80px]">
-                <div className="font-display text-3xl sm:text-4xl font-bold text-purple">500+</div>
+                <div className="font-display text-3xl sm:text-4xl font-bold text-purple">180+</div>
                 <div className="text-gray-500 text-xs sm:text-sm">{t('stats.partners')}</div>
               </div>
               <div className="min-w-[80px]">
-                <div className="font-display text-3xl sm:text-4xl font-bold text-purple">50K+</div>
-                <div className="text-gray-500 text-xs sm:text-sm">{t('stats.travelers')}</div>
+                <div className="font-display text-3xl sm:text-4xl font-bold text-purple">300K+</div>
+                <div className="text-gray-500 text-xs sm:text-sm">{t('proof.stat1l', 'passagers par an dans notre réseau')}</div>
               </div>
               <div className="min-w-[80px]">
-                <div className="font-display text-3xl sm:text-4xl font-bold text-purple">4.8/5</div>
-                <div className="text-gray-500 text-xs sm:text-sm">{t('stats.rating')}</div>
+                <div className="font-display text-3xl sm:text-4xl font-bold text-purple">24h</div>
+                <div className="text-gray-500 text-xs sm:text-sm">{t('proof.stat3l', 'pour recevoir vos devis')}</div>
               </div>
             </div>
           </div>
@@ -173,28 +173,6 @@ export function HomePage() {
           {/* Quote Form */}
           <div className="bg-white rounded-3xl p-4 sm:p-8 shadow-2xl shadow-purple/10 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
             <MultiStepQuoteForm />
-          </div>
-        </div>
-      </section>
-
-      {/* Bande de preuve : les chiffres du réseau */}
-      <section className="py-10 px-4 bg-purple-dark text-white">
-        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          <div>
-            <p className="font-display text-3xl font-bold">{t('proof.stat1v', '+300 000')}</p>
-            <p className="text-white/70 text-sm mt-1">{t('proof.stat1l', 'passagers par an dans notre réseau')}</p>
-          </div>
-          <div>
-            <p className="font-display text-3xl font-bold">{t('proof.stat2v', '180')}</p>
-            <p className="text-white/70 text-sm mt-1">{t('proof.stat2l', 'autocaristes partenaires vérifiés')}</p>
-          </div>
-          <div>
-            <p className="font-display text-3xl font-bold">{t('proof.stat3v', '24h')}</p>
-            <p className="text-white/70 text-sm mt-1">{t('proof.stat3l', 'pour recevoir vos devis')}</p>
-          </div>
-          <div>
-            <p className="font-display text-3xl font-bold">{t('proof.stat4v', '4')}</p>
-            <p className="text-white/70 text-sm mt-1">{t('proof.stat4l', 'pays couverts en Europe')}</p>
           </div>
         </div>
       </section>
