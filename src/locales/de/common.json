@@ -22,7 +22,7 @@
     "title1": "Busmiete",
     "title2": "mit Fahrer",
     "title3": "in Deutschland",
-    "subtitle": "Vergleichen Sie bis zu 3 personalisierte Angebote unserer Partnerunternehmen. Einfache, schnelle Buchung zum garantiert besten Preis.",
+    "subtitle": "Beschreiben Sie Ihre Fahrt in 2 Minuten und erhalten Sie bis zu 3 individuelle Angebote innerhalb von 24h — Buchung 100 % online zum besten Preis.",
     "cta": "Kostenloses Angebot anfordern"
   },
   "stats": {
@@ -34,7 +34,7 @@
     "title": "Warum Busmoov wählen?",
     "subtitle": "Die einfachste und zuverlässigste Lösung für Ihre Gruppenreisen",
     "partners": {
-      "title": "+500 Transportunternehmen",
+      "title": "+180 Transportunternehmen",
       "description": "Ein Netzwerk zertifizierter Partner in ganz Deutschland für alle Ihre Anfragen."
     },
     "response": {
@@ -834,10 +834,10 @@
       "title": "Busmiete",
       "titleHighlight": "mit Fahrer",
       "titleLocation": "in ganz Deutschland",
-      "description": "Brauchen Sie einen Bus für Ihre Gruppe? Busmoov verbindet Sie mit über 500 zertifizierten Partnerunternehmen. Erhalten Sie bis zu 3 personalisierte Angebote in weniger als 24h und reisen Sie entspannt.",
+      "description": "Brauchen Sie einen Bus für Ihre Gruppe? Busmoov verbindet Sie mit über 180 zertifizierten Partnerunternehmen. Erhalten Sie bis zu 3 personalisierte Angebote in weniger als 24h und reisen Sie entspannt.",
       "cta": "Kostenloses Angebot anfordern",
       "trustBadge1": "Kostenloses Angebot in 24h",
-      "trustBadge2": "500+ zertifizierte Transportunternehmen",
+      "trustBadge2": "180+ zertifizierte Transportunternehmen",
       "trustBadge3": "100% transparenter Service",
       "fleetTitle": "Unsere verfügbare Busflotte",
       "fleetSubtitle": "Vom Kleinbus bis zum Reisebus - finden Sie das passende Fahrzeug für Ihre Gruppe von 8 bis 94 Passagieren",
@@ -878,7 +878,7 @@
       "transfers": "Transfers",
       "transfersList": "Flughäfen, Bahnhöfe, Hotels, Event-Shuttles",
       "coverageTitle": "Busmiete in ganz Deutschland",
-      "coverageSubtitle": "Unser Netzwerk von über 500 Transportunternehmen deckt das gesamte Bundesgebiet und Europa ab",
+      "coverageSubtitle": "Unser Netzwerk von über 180 Transportunternehmen deckt das gesamte Bundesgebiet und Europa ab",
       "whyChooseTitle": "Warum Busmoov für Ihre Busmiete wählen?",
       "quoteIn24h": "Angebot in weniger als 24h",
       "quoteIn24hDesc": "Erhalten Sie schnell bis zu 3 Vorschläge von unseren Partner-Transportunternehmen.",
@@ -1292,7 +1292,7 @@
     "heroText": "Busmoov ist eine Marke der Navelys-Gruppe, dem französischen Marktführer für die Vermittlung zwischen Reisenden und Busunternehmen. Seit über 5 Jahren erleichtern wir die Organisation Ihrer Gruppenreisen in ganz Frankreich und Europa.",
     "storyTitle": "Unsere Geschichte",
     "storyP1": "Gegründet im Jahr 2019, entstand Busmoov aus einer einfachen Beobachtung: Einen Bus für eine Gruppe zu buchen war oft kompliziert, zeitaufwändig und undurchsichtig.",
-    "storyP2": "Unsere Mission: Die Busmiete zu vereinfachen, indem wir Reisende mit einem Netzwerk von über 500 zertifizierten Partnerunternehmen in ganz Frankreich verbinden.",
+    "storyP2": "Unsere Mission: Die Busmiete zu vereinfachen, indem wir Reisende mit einem Netzwerk von über 180 zertifizierten Partnerunternehmen in ganz Frankreich verbinden.",
     "storyP3": "Heute begleitet Busmoov jedes Jahr tausende Kunden: Unternehmen, Vereine, Schulen, Reisebüros und Privatpersonen.",
     "valuesTitle": "Unsere Werte",
     "valuesSubtitle": "Was uns jeden Tag leitet",
@@ -1324,7 +1324,7 @@
   "partner": {
     "title": "Werden Sie Teil des Busmoov-Netzwerks",
     "heroText": "Werden Sie Partner und profitieren Sie von einem stetigen Strom qualifizierter Anfragen, um Ihr Geschäft zu entwickeln.",
-    "statCarriers": "500+",
+    "statCarriers": "180+",
     "statCarriersLabel": "Partner-Transportunternehmen",
     "statTrips": "2000+",
     "statTripsLabel": "Reisen pro Jahr",
@@ -1550,5 +1550,15 @@
       "standard": "Standardgepäck (1 Koffer/Pers)",
       "large": "Sperriges Gepäck"
     }
+  },
+  "proof": {
+    "stat1v": "+300 000",
+    "stat1l": "Fahrgäste pro Jahr in unserem Netzwerk",
+    "stat2v": "180",
+    "stat2l": "geprüfte Partner-Busunternehmen",
+    "stat3v": "24h",
+    "stat3l": "bis zu Ihren Angeboten",
+    "stat4v": "4",
+    "stat4l": "Länder in Europa"
   }
 }

@@ -22,7 +22,7 @@
     "title1": "Coach hire",
     "title2": "with driver",
     "title3": "in France",
-    "subtitle": "Compare up to 3 personalised quotes from our partner coach operators. Simple, fast booking at the best price guaranteed.",
+    "subtitle": "Describe your trip in 2 minutes and receive up to 3 personalised quotes within 24h — 100% online booking at the best price.",
     "cta": "Get a free quote"
   },
   "stats": {
@@ -34,7 +34,7 @@
     "title": "Why choose Busmoov?",
     "subtitle": "The simplest and most reliable solution for your group travel",
     "partners": {
-      "title": "+500 Coach Operators",
+      "title": "+180 Coach Operators",
       "description": "A network of certified partners throughout France to meet all your requirements."
     },
     "response": {
@@ -769,7 +769,7 @@
     "destinationAddress": "Destination address",
     "destinationAddressHint": "precise address",
     "pickupPlaceholder": "E.g.: 123 High Street, London SW1A 1AA",
-    "destinationPlaceholder": "E.g.: 45 Avenue des Champs-Elysees, 75008 Paris",
+    "destinationPlaceholder": "E.g.: 45 Avenue des Champs-Elysees, 71808 Paris",
     "baggageType": "Luggage type",
     "baggageLight": "Light (handbags, small bags)",
     "baggageStandardOption": "Standard (cabin bags)",
@@ -803,10 +803,10 @@
       "title": "Coach hire",
       "titleHighlight": "with driver",
       "titleLocation": "throughout France",
-      "description": "Need a coach for your group? Busmoov connects you with over 500 certified partner coach operators. Receive up to 3 personalised quotes in less than 24 hours and travel with peace of mind.",
+      "description": "Need a coach for your group? Busmoov connects you with over 180 certified partner coach operators. Receive up to 3 personalised quotes in less than 24 hours and travel with peace of mind.",
       "cta": "Get a free quote",
       "trustBadge1": "Free quote in 24h",
-      "trustBadge2": "500+ certified coach operators",
+      "trustBadge2": "180+ certified coach operators",
       "trustBadge3": "100% transparent service",
       "fleetTitle": "Our available coach fleet",
       "fleetSubtitle": "From minibus to Grand Touring coach, find the vehicle suited to your group from 8 to 94 passengers",
@@ -847,7 +847,7 @@
       "transfers": "Transfers",
       "transfersList": "Airports, Railway stations, Hotels, Event shuttles",
       "coverageTitle": "Coach hire throughout France",
-      "coverageSubtitle": "Our network of over 500 coach operators covers the entire country and Europe",
+      "coverageSubtitle": "Our network of over 180 coach operators covers the entire country and Europe",
       "whyChooseTitle": "Why choose Busmoov for your coach hire?",
       "quoteIn24h": "Quote in less than 24h",
       "quoteIn24hDesc": "Receive up to 3 proposals from our partner coach operators quickly.",
@@ -1292,7 +1292,7 @@
     "heroText": "Busmoov is a brand of the Navelys group, the French leader in connecting travellers with coach operators. For over 5 years, we have been facilitating the organisation of your group travel throughout France and Europe.",
     "storyTitle": "Our story",
     "storyP1": "Founded in 2019, Busmoov was born from a simple observation: booking a coach for a group was often complicated, time-consuming and opaque.",
-    "storyP2": "Our mission: to simplify coach hire by connecting travellers with a network of over 500 certified partner carriers throughout France.",
+    "storyP2": "Our mission: to simplify coach hire by connecting travellers with a network of over 180 certified partner carriers throughout France.",
     "storyP3": "Today, Busmoov supports thousands of clients every year: businesses, associations, schools, travel agencies and private individuals.",
     "valuesTitle": "Our values",
     "valuesSubtitle": "What guides us every day",
@@ -1324,7 +1324,7 @@
   "partner": {
     "title": "Join the Busmoov network",
     "heroText": "Become a partner and benefit from a constant flow of qualified requests to grow your business.",
-    "statCarriers": "500+",
+    "statCarriers": "180+",
     "statCarriersLabel": "Partner carriers",
     "statTrips": "2000+",
     "statTripsLabel": "Trips per year",
@@ -1550,5 +1550,15 @@
       "standard": "Standard luggage (1 suitcase/person)",
       "large": "Large luggage"
     }
+  },
+  "proof": {
+    "stat1v": "+300,000",
+    "stat1l": "passengers per year across our network",
+    "stat2v": "180",
+    "stat2l": "verified partner coach operators",
+    "stat3v": "24h",
+    "stat3l": "to receive your quotes",
+    "stat4v": "4",
+    "stat4l": "countries covered in Europe"
   }
 }

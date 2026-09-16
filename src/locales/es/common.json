@@ -22,7 +22,7 @@
     "title1": "Alquiler de autobús",
     "title2": "con conductor",
     "title3": "en España",
-    "subtitle": "Compare hasta 3 presupuestos personalizados de nuestros transportistas asociados. Reserva sencilla, rápida y al mejor precio garantizado.",
+    "subtitle": "Describa su trayecto en 2 minutos y reciba hasta 3 presupuestos personalizados en 24h — reserva 100 % online al mejor precio.",
     "cta": "Solicitar presupuesto gratis"
   },
   "stats": {
@@ -34,7 +34,7 @@
     "title": "¿Por qué elegir Busmoov?",
     "subtitle": "La solución más sencilla y fiable para sus desplazamientos en grupo",
     "partners": {
-      "title": "+500 Transportistas",
+      "title": "+180 Transportistas",
       "description": "Una red de socios certificados en toda España para responder a todas sus solicitudes."
     },
     "response": {
@@ -834,10 +834,10 @@
       "title": "Alquiler de autocar",
       "titleHighlight": "con conductor",
       "titleLocation": "en toda España",
-      "description": "¿Necesita un autocar para su grupo? Busmoov le conecta con más de 500 empresas de transporte certificadas. Reciba hasta 3 presupuestos personalizados en menos de 24h y viaje con tranquilidad.",
+      "description": "¿Necesita un autocar para su grupo? Busmoov le conecta con más de 180 empresas de transporte certificadas. Reciba hasta 3 presupuestos personalizados en menos de 24h y viaje con tranquilidad.",
       "cta": "Solicitar presupuesto gratis",
       "trustBadge1": "Presupuesto gratis en 24h",
-      "trustBadge2": "500+ transportistas certificados",
+      "trustBadge2": "180+ transportistas certificados",
       "trustBadge3": "Servicio 100% transparente",
       "fleetTitle": "Nuestra flota de autocares disponibles",
       "fleetSubtitle": "Del minibús al autocar Gran Turismo, encuentre el vehículo adaptado a su grupo de 8 a 94 pasajeros",
@@ -878,7 +878,7 @@
       "transfers": "Traslados",
       "transfersList": "Aeropuertos, Estaciones, Hoteles, Lanzaderas para eventos",
       "coverageTitle": "Alquiler de autocar en toda España",
-      "coverageSubtitle": "Nuestra red de más de 500 transportistas cubre todo el territorio nacional y Europa",
+      "coverageSubtitle": "Nuestra red de más de 180 transportistas cubre todo el territorio nacional y Europa",
       "whyChooseTitle": "¿Por qué elegir Busmoov para su alquiler de autocar?",
       "quoteIn24h": "Presupuesto en menos de 24h",
       "quoteIn24hDesc": "Reciba hasta 3 propuestas de nuestros transportistas asociados rápidamente.",
@@ -1292,7 +1292,7 @@
     "heroText": "Busmoov es una marca del grupo Navelys, líder francés en la conexión entre viajeros y transportistas. Desde hace más de 5 años, facilitamos la organización de sus desplazamientos en grupo por toda Francia y Europa.",
     "storyTitle": "Nuestra historia",
     "storyP1": "Fundada en 2019, Busmoov nació de una observación simple: reservar un autocar para un grupo era a menudo complicado, lento y poco transparente.",
-    "storyP2": "Nuestra misión: simplificar el alquiler de autocares conectando a los viajeros con una red de más de 500 transportistas certificados en toda Francia.",
+    "storyP2": "Nuestra misión: simplificar el alquiler de autocares conectando a los viajeros con una red de más de 180 transportistas certificados en toda Francia.",
     "storyP3": "Hoy, Busmoov acompaña a miles de clientes cada año: empresas, asociaciones, centros educativos, agencias de viajes y particulares.",
     "valuesTitle": "Nuestros valores",
     "valuesSubtitle": "Lo que nos guía cada día",
@@ -1324,7 +1324,7 @@
   "partner": {
     "title": "Únase a la red Busmoov",
     "heroText": "Conviértase en socio y benefíciese de un flujo constante de solicitudes cualificadas para desarrollar su actividad.",
-    "statCarriers": "500+",
+    "statCarriers": "180+",
     "statCarriersLabel": "Transportistas asociados",
     "statTrips": "2000+",
     "statTripsLabel": "Viajes por año",
@@ -1550,5 +1550,15 @@
       "standard": "Equipaje estándar (1 maleta/pers)",
       "large": "Equipaje voluminoso"
     }
+  },
+  "proof": {
+    "stat1v": "+300 000",
+    "stat1l": "pasajeros al año en nuestra red",
+    "stat2v": "180",
+    "stat2l": "transportistas asociados verificados",
+    "stat3v": "24h",
+    "stat3l": "para recibir sus presupuestos",
+    "stat4v": "4",
+    "stat4l": "países cubiertos en Europa"
   }
 }

@@ -177,6 +177,28 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* Bande de preuve : les chiffres du réseau */}
+      <section className="py-10 px-4 bg-purple-dark text-white">
+        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div>
+            <p className="font-display text-3xl font-bold">{t('proof.stat1v', '+300 000')}</p>
+            <p className="text-white/70 text-sm mt-1">{t('proof.stat1l', 'passagers par an dans notre réseau')}</p>
+          </div>
+          <div>
+            <p className="font-display text-3xl font-bold">{t('proof.stat2v', '180')}</p>
+            <p className="text-white/70 text-sm mt-1">{t('proof.stat2l', 'autocaristes partenaires vérifiés')}</p>
+          </div>
+          <div>
+            <p className="font-display text-3xl font-bold">{t('proof.stat3v', '24h')}</p>
+            <p className="text-white/70 text-sm mt-1">{t('proof.stat3l', 'pour recevoir vos devis')}</p>
+          </div>
+          <div>
+            <p className="font-display text-3xl font-bold">{t('proof.stat4v', '4')}</p>
+            <p className="text-white/70 text-sm mt-1">{t('proof.stat4l', 'pays couverts en Europe')}</p>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-24 px-4 bg-white" id="features">
         <div className="max-w-7xl mx-auto">

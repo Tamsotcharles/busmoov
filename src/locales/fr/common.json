@@ -22,7 +22,7 @@
     "title1": "Location d'autocar",
     "title2": "avec chauffeur",
     "title3": "en France",
-    "subtitle": "Comparez jusqu'à 3 devis personnalisés de nos autocaristes partenaires. Réservation simple, rapide et au meilleur prix garanti.",
+    "subtitle": "Décrivez votre trajet en 2 minutes, recevez jusqu'à 3 devis personnalisés sous 24h — réservation 100 % en ligne au meilleur prix.",
     "cta": "Demander un devis gratuit"
   },
   "stats": {
@@ -34,7 +34,7 @@
     "title": "Pourquoi choisir Busmoov ?",
     "subtitle": "La solution la plus simple et fiable pour vos déplacements en groupe",
     "partners": {
-      "title": "+500 Autocaristes",
+      "title": "+180 Autocaristes",
       "description": "Un réseau de partenaires certifiés partout en France pour répondre à toutes vos demandes."
     },
     "response": {
@@ -803,10 +803,10 @@
       "title": "Location d'autocar",
       "titleHighlight": "avec chauffeur",
       "titleLocation": "partout en France",
-      "description": "Besoin d'un autocar pour votre groupe ? Busmoov vous met en relation avec plus de 500 autocaristes partenaires certifiés. Recevez jusqu'à 3 devis personnalisés en moins de 24h et voyagez en toute sérénité.",
+      "description": "Besoin d'un autocar pour votre groupe ? Busmoov vous met en relation avec plus de 180 autocaristes partenaires certifiés. Recevez jusqu'à 3 devis personnalisés en moins de 24h et voyagez en toute sérénité.",
       "cta": "Demander un devis gratuit",
       "trustBadge1": "Devis gratuit en 24h",
-      "trustBadge2": "500+ autocaristes certifiés",
+      "trustBadge2": "180+ autocaristes certifiés",
       "trustBadge3": "Service 100% transparent",
       "fleetTitle": "Notre flotte d'autocars disponibles",
       "fleetSubtitle": "Du minibus au car Grand Tourisme, trouvez le véhicule adapté à votre groupe de 8 à 94 passagers",
@@ -847,7 +847,7 @@
       "transfers": "Transferts",
       "transfersList": "Aéroports, Gares, Hôtels, Navettes événementielles",
       "coverageTitle": "Location d'autocar dans toute la France",
-      "coverageSubtitle": "Notre réseau de plus de 500 autocaristes couvre l'ensemble du territoire national et l'Europe",
+      "coverageSubtitle": "Notre réseau de plus de 180 autocaristes couvre l'ensemble du territoire national et l'Europe",
       "whyChooseTitle": "Pourquoi choisir Busmoov pour votre location d'autocar ?",
       "quoteIn24h": "Devis en moins de 24h",
       "quoteIn24hDesc": "Recevez jusqu'à 3 propositions de nos autocaristes partenaires rapidement.",
@@ -1292,7 +1292,7 @@
     "heroText": "Busmoov est une marque du groupe Navelys, leader français de la mise en relation entre voyageurs et autocaristes. Depuis plus de 5 ans, nous facilitons l'organisation de vos déplacements en groupe partout en France et en Europe.",
     "storyTitle": "Notre histoire",
     "storyP1": "Fondée en 2019, Busmoov est née d'un constat simple : réserver un autocar pour un groupe était souvent compliqué, chronophage et opaque.",
-    "storyP2": "Notre mission : simplifier la location d'autocar en mettant en relation les voyageurs avec un réseau de plus de 500 transporteurs partenaires certifiés dans toute la France.",
+    "storyP2": "Notre mission : simplifier la location d'autocar en mettant en relation les voyageurs avec un réseau de plus de 180 transporteurs partenaires certifiés dans toute la France.",
     "storyP3": "Aujourd'hui, Busmoov accompagne des milliers de clients chaque année : entreprises, associations, établissements scolaires, agences de voyage et particuliers.",
     "valuesTitle": "Nos valeurs",
     "valuesSubtitle": "Ce qui nous guide au quotidien",
@@ -1324,7 +1324,7 @@
   "partner": {
     "title": "Rejoignez le réseau Busmoov",
     "heroText": "Devenez partenaire et bénéficiez d'un flux constant de demandes qualifiées pour développer votre activité.",
-    "statCarriers": "500+",
+    "statCarriers": "180+",
     "statCarriersLabel": "Transporteurs partenaires",
     "statTrips": "2000+",
     "statTripsLabel": "Voyages par an",
@@ -1550,5 +1550,15 @@
       "standard": "Bagages standard (1 valise/pers)",
       "large": "Bagages volumineux"
     }
+  },
+  "proof": {
+    "stat1v": "+300 000",
+    "stat1l": "passagers par an dans notre réseau",
+    "stat2v": "180",
+    "stat2l": "autocaristes partenaires vérifiés",
+    "stat3v": "24h",
+    "stat3l": "pour recevoir vos devis",
+    "stat4v": "4",
+    "stat4l": "pays couverts en Europe"
   }
 }

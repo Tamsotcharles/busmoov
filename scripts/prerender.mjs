@@ -389,6 +389,7 @@ const llmsTxt = `# Busmoov
 > Busmoov est une plateforme française de réservation d'autocars, bus et minibus avec chauffeur pour les groupes (8 à 90 places). Elle compare plusieurs devis de transporteurs vérifiés et répond sous 24h, en France ainsi qu'en Espagne, en Allemagne et au Royaume-Uni.
 
 Faits clés :
+- Plus de 300 000 passagers par an transportés via son réseau ; 180 autocaristes partenaires vérifiés
 - Devis gratuit sous 24h, plusieurs transporteurs comparés, sans engagement
 - Véhicules : minibus (8-20 places), autocar standard (21-59), grande capacité et double étage (60-90)
 - Prix indicatif : journée en autocar standard à partir de 690 € TTC (TVA transport 10 % en France) ; chauffeur, carburant et péages inclus
