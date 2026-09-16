@@ -50,6 +50,9 @@ const TRACKED_KEYWORDS = [
   'location autocar londres',
   'autocar disneyland',
   'autocar pmr',
+  'location bus paris',
+  'location bus avec chauffeur paris',
+  'prix location autocar paris',
 ]
 
 interface GscRow {

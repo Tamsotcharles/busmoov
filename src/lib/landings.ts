@@ -870,6 +870,63 @@ export const landings: Landing[] = [
     ],
     serviceType: 'Location d\'autocar avec chauffeur pour Disneyland Paris',
   },
+  {
+    slug: '/location-bus-paris',
+    metaTitle: 'Location de bus à Paris avec chauffeur — Devis 24h | Busmoov',
+    metaDescription: 'Louez un bus avec chauffeur à Paris : minibus, bus 59 places, grand tourisme. Zones de dépose parisiennes maîtrisées, devis gratuit sous 24h.',
+    h1: 'Location de bus à Paris avec chauffeur',
+    sousTitre: 'Du minibus au double étage, un bus avec chauffeur pour vos groupes parisiens — soirées, transferts, événements — avec des chauffeurs qui connaissent Paris.',
+    intro: [
+      'Louer un bus à Paris, c\'est d\'abord une affaire de terrain : zones de dépose chronométrées, voies réservées, Pass Autocar, ZFE — la capitale est la ville la plus exigeante de France pour les véhicules de groupe. La différence se fait au chauffeur : nos partenaires franciliens y travaillent tous les jours.',
+      'Que vous cherchiez un minibus pour une soirée, un bus de 50 places pour un séminaire ou un double étage pour un grand événement, le principe Busmoov reste le même : vous décrivez le besoin, nous comparons plusieurs bus de transporteurs parisiens vérifiés, vous recevez les devis sous 24h.',
+    ],
+    sections: [
+      {
+        h2: 'Quel bus pour quel usage parisien ?',
+        liste: [
+          'Minibus 8-20 places : soirées, transferts gares et aéroports, navettes mariage dans Paris — passe partout, y compris les rues étroites',
+          'Bus standard 21-59 places : le format des séminaires, sorties scolaires et transferts d\'événements — voir aussi notre page [location de bus 50 places](/location-bus-50-places)',
+          'Grand tourisme et double étage 60-90 places : congrès, conventions et grands groupes touristiques',
+          'Navettes récurrentes pour salons (Porte de Versailles, Villepinte, Le Bourget) : rotations hôtels ↔ parc des expositions',
+        ],
+      },
+      {
+        h2: 'Les demandes parisiennes types',
+        liste: [
+          'Soirée d\'entreprise ou de gala avec retours échelonnés — le bus attend, un minibus complète pour les derniers départs',
+          'Transferts [aéroport CDG](/navette-aeroport-cdg) et [Orly](/navette-aeroport-orly) pour groupes avec bagages',
+          'Sortie CE à [Disneyland Paris](/autocar-disneyland-paris) ou excursion à Versailles',
+          'Tournages, productions et événementiel : mise à disposition à l\'heure ou à la journée avec chauffeur',
+          'Navettes de mariage entre Paris et les domaines de grande couronne',
+        ],
+      },
+      {
+        h2: 'Combien coûte un bus à Paris ?',
+        paragraphes: [
+          'Paris bénéficie de la plus forte densité de transporteurs de France — donc de tarifs compétitifs : un transfert simple en minibus démarre autour de 300 à 450 € TTC, une soirée avec mise à disposition autour de 600 à 900 € TTC, et la journée en bus standard à partir de 690 € TTC, chauffeur, carburant et péages inclus. Les mécanismes complets sont dans notre [guide des prix de location](/blog/prix-location-autocar), et le détail des zones de dépose parisiennes sur notre page [location d\'autocar à Paris](/location-autocar/paris).',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Peut-on louer un bus à Paris pour quelques heures seulement ?',
+        a: 'Oui — transferts simples et mises à disposition courtes (une soirée, une demi-journée) sont les formats les plus demandés à Paris. Le prix dépend de l\'amplitude du chauffeur plus que de la distance.',
+      },
+      {
+        q: 'Le bus peut-il circuler et stationner partout dans Paris ?',
+        a: 'La circulation oui (vignette Crit\'Air en règle), le stationnement non : les bus utilisent les zones de dépose autorisées et les parcs autocars. Nos chauffeurs franciliens proposent un point de prise en charge réaliste dès la confirmation — c\'est leur quotidien.',
+      },
+      {
+        q: 'Quelle différence entre cette page et la location d\'autocar à Paris ?',
+        a: 'Aucune côté service — bus, car et autocar désignent le même véhicule avec chauffeur. Notre page [location d\'autocar à Paris](/location-autocar/paris) détaille davantage les excursions au départ de la capitale ; celle-ci couvre tous les formats de bus pour les besoins dans Paris.',
+      },
+      {
+        q: 'Desservez-vous la banlieue depuis Paris ?',
+        a: 'Toute l\'Île-de-France, sans exception — petite et grande couronne, avec prise en charge au plus près de votre adresse. Voir notre page [location d\'autocar en Île-de-France](/location-autocar-ile-de-france).',
+      },
+    ],
+    serviceType: 'Location de bus avec chauffeur à Paris',
+  },
 ]
 
 export function getLanding(slug: string): Landing | undefined {

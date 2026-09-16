@@ -79,6 +79,7 @@ export const villes: Ville[] = [
       'Paris → Versailles, Disneyland, Vaux-le-Vicomte à la journée',
     ],
     liensUtiles: [
+      "Tous nos services parisiens et franciliens en un coup d'œil : la [location de bus à Paris](/location-bus-paris) pour les soirées, tournages et navettes urbaines, les transferts groupes vers [l'aéroport CDG](/navette-aeroport-cdg) et [Orly](/navette-aeroport-orly), l'[autocar pour Disneyland Paris](/autocar-disneyland-paris), la [visite de Versailles en autocar](/location-autocar/versailles), les [événements au Stade de France](/location-autocar/saint-denis) — et la [location d'autocar en Île-de-France](/location-autocar-ile-de-france) pour les départs de petite et grande couronne.",
       "Votre événement se joue hors d'Île-de-France ? Busmoov organise aussi la [location d'autocar à Lille](/location-autocar/lille) pour les groupes du Nord, et les navettes de la semaine de course avec la [location d'autocar au Mans](/location-autocar/le-mans). Avant de valider votre budget, notre guide du [prix de la location d'un autocar](/blog/prix-location-autocar) détaille ce qui fait varier un devis.",
     ],
     faq: [
