@@ -44,6 +44,12 @@ const TRACKED_KEYWORDS = [
   'location autocar long trajet',
   'autocariste toulouse',
   'autocar couchette',
+  'location autocar espagne',
+  'location autocar italie',
+  'location autocar belgique',
+  'location autocar londres',
+  'autocar disneyland',
+  'autocar pmr',
 ]
 
 interface GscRow {

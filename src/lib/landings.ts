@@ -294,7 +294,7 @@ export const landings: Landing[] = [
   {
     slug: '/autocar-couchette',
     metaTitle: 'Location d\'autocar couchette : tournées et trajets de nuit | Busmoov',
-    metaDescription: 'Autocar couchette (sleeper bus) pour tournées musicales, équipes sportives et longues distances de nuit — et les alternatives quand ce véhicule rare est indisponible.',
+    metaDescription: 'Autocar couchette (sleeper bus) pour tournées, équipes sportives et longues distances de nuit — et les alternatives quand ce véhicule rare manque.',
     h1: 'Location d\'autocar couchette',
     sousTitre: 'Le sleeper bus des tournées et des longues distances de nuit : un véhicule rare, que nous sourçons — avec les bonnes alternatives quand il n\'est pas disponible.',
     intro: [
@@ -344,6 +344,531 @@ export const landings: Landing[] = [
       },
     ],
     serviceType: 'Location d\'autocar couchette (sleeper bus)',
+  },
+  {
+    slug: '/location-autocar-espagne',
+    metaTitle: 'Location d\'autocar pour l\'Espagne depuis la France | Busmoov',
+    metaDescription: 'Autocar avec chauffeur France → Espagne : Barcelone, Madrid, Pays basque, Costa Brava. Distances, double équipage, formalités — devis gratuit sous 24h.',
+    h1: 'Location d\'autocar pour l\'Espagne',
+    sousTitre: 'Barcelone, Madrid, la Costa Brava ou le Pays basque : emmenez votre groupe en Espagne en autocar avec chauffeur, formalités et réglementation gérées.',
+    intro: [
+      'L\'Espagne est la première destination étrangère des groupes français en autocar : voyages scolaires à Barcelone, séjours plage sur la Costa Brava, escapades à San Sebastián, pèlerinages vers Compostelle. Le car reste le moyen le plus simple et le plus économique d\'y emmener 30 à 60 personnes avec leurs bagages.',
+      'Nos transporteurs partenaires disposent de la licence communautaire pour le transport international et font ces liaisons régulièrement — passage de frontière sans arrêt (espace Schengen), chauffeurs habitués aux autoroutes espagnoles et aux zones de dépose des grandes villes.',
+    ],
+    sections: [
+      {
+        h2: 'Distances et formats de voyage depuis la France',
+        liste: [
+          'Perpignan → Barcelone : 2h — faisable à la journée, même pour une sortie shopping à La Jonquera',
+          'Toulouse ou Montpellier → Barcelone : 3h30 à 4h — week-end ou séjour, aller-retour à la journée possible',
+          'Lyon → Barcelone (640 km) : journée de route classique avec pauses réglementaires',
+          'Paris → Barcelone (1 030 km) : nuit roulée en double équipage, ou étape — voir notre guide du [long trajet en autocar](/blog/autocar-long-trajet)',
+          'Biarritz → San Sebastián : 50 minutes — détaillé sur notre page [location d\'autocar à Biarritz](/location-autocar/biarritz)',
+          'Madrid, Séville, Valence : séjours de plusieurs jours avec car en mise à disposition sur place',
+        ],
+      },
+      {
+        h2: 'Ce que gère le transporteur en Espagne',
+        paragraphes: [
+          'Les grandes villes espagnoles encadrent les autocars de tourisme : zones de bus turístico à Barcelone (dépose réglementée près de la Sagrada Família ou du Camp Nou), aires dédiées à Madrid. Les chauffeurs qui font ces lignes connaissent les accès — et pour un séjour, le car reste sur place avec le groupe, hébergement du chauffeur intégré au devis.',
+        ],
+      },
+      {
+        h2: 'Formalités pour votre groupe',
+        liste: [
+          'Espace Schengen : aucune formalité de frontière, une pièce d\'identité en cours de validité par passager',
+          'Mineurs en voyage scolaire : autorisation de sortie de territoire (AST) + pièce d\'identité',
+          'Le véhicule et le chauffeur : licence communautaire, attestations et réglementation espagnole — c\'est l\'affaire du transporteur',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar pour l\'Espagne ?',
+        a: 'Au kilomètre sur les longues distances : comptez de l\'ordre de 5 à 7 € TTC/km parcouru. Exemples indicatifs aller-retour : Toulouse-Barcelone à la journée autour de 2 000 à 2 800 € TTC ; Paris-Barcelone en double équipage de l\'ordre de 6 000 à 8 000 € TTC. Devis précis gratuit sous 24h.',
+      },
+      {
+        q: 'Peut-on faire Paris-Barcelone de nuit ?',
+        a: 'Oui, en double équipage : deux chauffeurs se relaient, le groupe dort dans les sièges inclinables du grand tourisme, départ en soirée et arrivée au matin. Interdit en revanche pour les groupes de mineurs (pas de roulage entre minuit et 6h) — pour les scolaires, on planifie une étape.',
+      },
+      {
+        q: 'Le car peut-il rester avec nous pendant le séjour ?',
+        a: 'C\'est la formule habituelle : le car et le chauffeur restent en mise à disposition (excursions, soirées), avec les jours d\'immobilisation et l\'hébergement du chauffeur intégrés au devis.',
+      },
+    ],
+    serviceType: 'Location d\'autocar avec chauffeur pour l\'Espagne',
+  },
+  {
+    slug: '/location-autocar-italie',
+    metaTitle: 'Location d\'autocar pour l\'Italie depuis la France | Busmoov',
+    metaDescription: 'Autocar avec chauffeur France → Italie : Milan, Venise, Rome, lacs italiens. Distances, ZTL des villes italiennes, formalités — devis gratuit sous 24h.',
+    h1: 'Location d\'autocar pour l\'Italie',
+    sousTitre: 'Milan, Venise, Florence, Rome ou les lacs : l\'Italie en autocar avec chauffeur, avec un transporteur qui connaît les fameuses ZTL italiennes.',
+    intro: [
+      'Voyages scolaires d\'histoire de l\'art, pèlerinages vers Rome, escapades à Venise, séminaires sur les lacs : l\'Italie est une destination majeure des groupes français. Et c\'est le pays où le choix du bon transporteur compte le plus — les villes italiennes sont les plus réglementées d\'Europe pour les autocars.',
+      'Toutes les grandes villes italiennes appliquent des ZTL (zones à trafic limité) avec permis de bus payants obligatoires : à Rome, Florence ou Venise, un car sans autorisation est verbalisé automatiquement par caméra. Nos transporteurs habitués de l\'Italie achètent les permis en amont et connaissent les checkpoints bus — un point que le devis intègre dès le départ.',
+    ],
+    sections: [
+      {
+        h2: 'Distances depuis la France',
+        liste: [
+          'Nice → Milan ou Turin : 2h30 à 3h — faisable à la journée depuis la Côte d\'Azur (voir [location d\'autocar à Nice](/location-autocar/nice))',
+          'Lyon → Turin par le Fréjus : 3h — le tunnel est l\'affaire du transporteur (péage intégré)',
+          'Lyon ou Grenoble → Milan : 4h30 — week-end design ou match à San Siro',
+          'Paris → Milan (850 km) : journée complète de route ou nuit en double équipage',
+          'Venise, Florence : séjours 3-4 jours avec étapes ; Rome (1 400 km depuis Paris) : étape obligatoire ou combiné avion + car sur place',
+        ],
+      },
+      {
+        h2: 'Les ZTL : ce qui distingue un bon devis Italie',
+        paragraphes: [
+          'Chaque ville fixe ses règles : permis bus journaliers à Rome (par zone), checkpoints d\'entrée à Florence, terminal obligatoire du Tronchetto à Venise (les cars ne vont pas plus loin — le groupe continue en vaporetto). Ces permis coûtent de quelques dizaines à quelques centaines d\'euros par ville et par jour : un devis sérieux les liste noir sur blanc. C\'est exactement le genre de piège que nos transporteurs italophones évitent.',
+        ],
+      },
+      {
+        h2: 'Formalités et équipements',
+        liste: [
+          'Espace Schengen : pièce d\'identité par passager, AST pour les mineurs en scolaire',
+          'Vignettes environnementales des villes (Area B/C à Milan) : gérées par le transporteur',
+          'Hiver : équipements neige obligatoires sur les axes alpins du 15 novembre au 15 avril',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar pour l\'Italie ?',
+        a: 'La base kilométrique (5 à 7 € TTC/km) plus les permis ZTL des villes visitées. Exemple indicatif : Lyon-Milan aller-retour en étape autour de 4 000 à 5 500 € TTC ; un circuit Toscane d\'une semaine se chiffre sur mesure. Devis gratuit sous 24h, permis ZTL détaillés.',
+      },
+      {
+        q: 'L\'autocar peut-il entrer dans Venise ?',
+        a: 'Jusqu\'au terminal du Tronchetto ou du piazzale Roma uniquement — Venise est piétonne au-delà. Le groupe poursuit en vaporetto ; le car stationne au terminal, tout est organisé ainsi pour tous les groupes du monde.',
+      },
+      {
+        q: 'Rome en car depuis la France, réaliste ?',
+        a: 'À 1 400 km de Paris, Rome demande deux jours de route avec étape (Florence est l\'étape classique) — pertinent pour un circuit Italie complet. Pour Rome seule, l\'avion + un car local sur place est souvent plus rationnel : nous organisons aussi cette formule.',
+      },
+    ],
+    serviceType: 'Location d\'autocar avec chauffeur pour l\'Italie',
+  },
+  {
+    slug: '/location-autocar-belgique',
+    metaTitle: 'Location d\'autocar pour la Belgique depuis la France | Busmoov',
+    metaDescription: 'Autocar avec chauffeur France → Belgique : Bruxelles, Bruges, Gand, Anvers. LEZ belges, distances, formalités — devis gratuit sous 24h.',
+    h1: 'Location d\'autocar pour la Belgique',
+    sousTitre: 'Bruxelles, Bruges, Gand : la Belgique est la sortie étrangère la plus accessible des groupes français — 1h depuis Lille, une journée depuis Paris.',
+    intro: [
+      'La Belgique est l\'excursion transfrontalière par excellence : Bruges la médiévale, Bruxelles et sa Grand-Place, Gand, Anvers, les marchés de Noël, le shopping ou une visite d\'institutions européennes pour les scolaires. Depuis les Hauts-de-France, c\'est une sortie à la journée sans aucune contrainte ; depuis Paris, une grande journée ou un week-end.',
+      'Attention au détail qui pique : les trois grandes villes flamandes et Bruxelles appliquent des LEZ (zones à basses émissions) avec enregistrement préalable obligatoire des véhicules étrangers — une amende automatique tombe sans lui. Nos transporteurs frontaliers enregistrent leurs véhicules d\'office.',
+    ],
+    sections: [
+      {
+        h2: 'Distances et idées de sorties',
+        liste: [
+          'Lille → Bruges ou Bruxelles : 1h à 1h15 — l\'excursion reine des groupes nordistes (voir [location d\'autocar à Lille](/location-autocar/lille))',
+          'Paris → Bruxelles : 3h15 — journée complète Grand-Place + Atomium, ou week-end',
+          'Reims → Bruxelles : 2h30 par l\'A34 — sortie CE classique du Grand Est',
+          'Bruges, Gand, Anvers : combinables à deux villes dans une journée depuis le nord de la France',
+          'Marchés de Noël (Bruxelles, Bruges) : très demandés fin novembre-décembre, réserver tôt',
+        ],
+      },
+      {
+        h2: 'LEZ belges : l\'enregistrement obligatoire',
+        paragraphes: [
+          'Bruxelles, Anvers et Gand verbalisent par caméra tout véhicule non enregistré dans leur LEZ, même conforme — l\'enregistrement est gratuit mais doit être fait avant d\'entrer. C\'est l\'affaire du transporteur, pas la vôtre ; nos partenaires qui font la Belgique l\'ont intégré à leur routine. Les zones de dépose cars de Bruges (Bargeplein) et de Bruxelles sont également balisées et connues des chauffeurs.',
+        ],
+      },
+      {
+        h2: 'Formalités',
+        liste: [
+          'Espace Schengen : pièce d\'identité par passager, AST pour les mineurs',
+          'Aucun péage d\'autoroute pour les autocars de tourisme en Belgique',
+          'Institutions européennes (Parlamentarium, hémicycle) : réservation de groupe gratuite, dépose dédiée quartier européen',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar pour Bruxelles ou Bruges ?',
+        a: 'Depuis Lille, la journée démarre autour de 900 à 1 200 € TTC en autocar standard ; depuis Paris, comptez 1 400 à 1 900 € TTC selon l\'amplitude. Devis gratuit sous 24h, LEZ incluse.',
+      },
+      {
+        q: 'Peut-on combiner deux villes belges dans la journée ?',
+        a: 'Depuis le nord de la France, oui : Bruges le matin + Gand l\'après-midi est le combo classique. Depuis Paris, mieux vaut une seule ville pour garder du temps sur place.',
+      },
+      {
+        q: 'Faut-il des papiers particuliers pour un voyage scolaire en Belgique ?',
+        a: 'Pièce d\'identité + autorisation de sortie de territoire par élève, liste nominative à bord — comme pour toute sortie Schengen. Le détail est dans notre guide de la [sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar).',
+      },
+    ],
+    serviceType: 'Location d\'autocar avec chauffeur pour la Belgique',
+  },
+  {
+    slug: '/location-autocar-suisse',
+    metaTitle: 'Location d\'autocar pour la Suisse depuis la France | Busmoov',
+    metaDescription: 'Autocar avec chauffeur France → Suisse : Genève, Lausanne, Zurich, montagne. Redevance suisse, formalités douane — devis gratuit sous 24h.',
+    h1: 'Location d\'autocar pour la Suisse',
+    sousTitre: 'Genève, Lausanne, Zurich, les Alpes suisses : un pays hors UE mais dans Schengen — votre transporteur gère la redevance et la douane.',
+    intro: [
+      'Séminaires à Genève, sorties CE à Lausanne ou Montreux, marchés de Noël de Bâle et Zurich, excursions à Lucerne ou Interlaken : la Suisse attire les groupes français toute l\'année — et elle est à moins d\'une heure de Lyon, Annecy ou Besançon côté Léman.',
+      'Particularité : la Suisse est hors Union européenne mais dans Schengen. Pas de contrôle systématique des passagers (pièce d\'identité suffit), mais le véhicule doit s\'acquitter de la redevance forfaitaire suisse pour autocars — l\'équivalent de la vignette, gérée par le transporteur. Nos partenaires frontaliers passent la douane de Genève ou de Vallorbe chaque semaine.',
+    ],
+    sections: [
+      {
+        h2: 'Distances et destinations groupes',
+        liste: [
+          'Lyon ou Annecy → Genève : 1h30 / 45 min — détails sur nos pages [Lyon](/location-autocar/lyon) et [Grenoble](/location-autocar/grenoble)',
+          'Paris → Genève : 5h30 — journée de route, ou TGV + car sur place pour les séminaires',
+          'Strasbourg ou Mulhouse → Bâle et Zurich : 1h30 à 2h30 — marchés de Noël très demandés',
+          'Lucerne, Interlaken, Zermatt : circuits montagne de 2-4 jours, routes alpines maîtrisées',
+          'Montreux (festival de jazz), Davos, Bulle : événements et congrès avec navettes dédiées',
+        ],
+      },
+      {
+        h2: 'Redevance, douane et particularités suisses',
+        paragraphes: [
+          'Les autocars étrangers paient une redevance forfaitaire journalière ou annuelle pour circuler en Suisse — le transporteur l\'intègre au devis. Au passage de frontière, le chauffeur présente les documents du véhicule ; les passagers gardent simplement une pièce d\'identité à portée. À noter : les montants sur place sont en francs suisses et les autoroutes suisses n\'ont pas de péage au trajet (tout est dans la redevance).',
+        ],
+      },
+      {
+        h2: 'Montagne suisse : le terrain des chauffeurs confirmés',
+        paragraphes: [
+          'Cols, tunnels, routes de stations : la Suisse alpine exige des équipements hiver et des chauffeurs rodés à la montagne — c\'est le quotidien de nos transporteurs des Alpes et du Jura. Pour un séjour ski ou séminaire en altitude, le car reste sur place en mise à disposition.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar pour Genève ?',
+        a: 'Depuis Lyon, un aller-retour à la journée démarre autour de 1 100 à 1 500 € TTC redevance suisse incluse. Depuis Paris ou pour un circuit plusieurs jours, devis sur mesure sous 24h.',
+      },
+      {
+        q: 'Faut-il un passeport pour la Suisse ?',
+        a: 'Non : la Suisse est dans Schengen, une carte d\'identité en cours de validité suffit pour les ressortissants européens (AST en plus pour les mineurs en groupe scolaire).',
+      },
+      {
+        q: 'Peut-on payer les extras du groupe en euros sur place ?',
+        a: 'Souvent oui dans les zones touristiques, mais au taux du commerçant — prévoyez des francs suisses ou la carte. Côté transport, tout est réglé en euros dans votre devis Busmoov, redevance comprise.',
+      },
+    ],
+    serviceType: 'Location d\'autocar avec chauffeur pour la Suisse',
+  },
+  {
+    slug: '/location-autocar-allemagne',
+    metaTitle: 'Location d\'autocar pour l\'Allemagne depuis la France | Busmoov',
+    metaDescription: 'Autocar avec chauffeur France → Allemagne : marchés de Noël, Europa-Park, Munich, Berlin. Umweltzonen, distances — devis gratuit sous 24h.',
+    h1: 'Location d\'autocar pour l\'Allemagne',
+    sousTitre: 'Marchés de Noël, Europa-Park, Munich, Berlin ou la Forêt-Noire : l\'Allemagne en autocar avec chauffeur, vignette environnementale comprise.',
+    intro: [
+      'L\'Allemagne est une destination de groupe quatre saisons : Europa-Park (le parc préféré des CE de l\'Est de la France), les marchés de Noël de Cologne à Nuremberg, l\'Oktoberfest de Munich, Berlin pour les voyages scolaires d\'histoire, la Forêt-Noire pour les excursions nature. Depuis l\'Alsace et la Lorraine, la frontière est à quelques minutes.',
+      'Côté réglementation : la plupart des centres-villes allemands sont des Umweltzonen (zones environnementales) exigeant la vignette verte sur le pare-brise — les véhicules de nos transporteurs frontaliers en sont équipés d\'office. Autoroutes gratuites pour les autocars, réseau impeccable : rouler en Allemagne est un plaisir de chauffeur.',
+    ],
+    sections: [
+      {
+        h2: 'Distances et destinations phares',
+        liste: [
+          'Strasbourg → Europa-Park : 45 min — la sortie CE n°1 de l\'Est (voir [location d\'autocar à Strasbourg](/location-autocar/strasbourg))',
+          'Strasbourg → Fribourg et la Forêt-Noire : 1h — excursions nature et lacs (Titisee)',
+          'Metz-Nancy → Trèves, Cologne : 1h à 3h — marchés de Noël et croisières sur la Moselle',
+          'Paris → Cologne (500 km) : journée de route ; Munich (830 km) et Berlin (1 050 km) : étape ou nuit en double équipage — voir le [guide du long trajet](/blog/autocar-long-trajet)',
+          'Oktoberfest (fin sept.-début oct.) et marchés de Noël (fin nov.-déc.) : réserver plusieurs mois à l\'avance',
+        ],
+      },
+      {
+        h2: 'Umweltzone : la vignette qui ne s\'improvise pas',
+        paragraphes: [
+          'Berlin, Munich, Cologne, Stuttgart et des dizaines de villes n\'admettent que les véhicules porteurs de la vignette verte (grüne Plakette) — amende immédiate sinon, même pour un car étranger. Elle s\'achète à l\'avance et se colle une fois pour toutes : les transporteurs qui font l\'Allemagne l\'ont déjà. C\'est l\'un des points que nous vérifions en sélectionnant le véhicule pour votre trajet.',
+        ],
+      },
+      {
+        h2: 'Formalités',
+        liste: [
+          'Espace Schengen : pièce d\'identité par passager, AST pour les mineurs en scolaire',
+          'Autoroutes gratuites pour les autocars — pas de vignette autoroutière contrairement à la Suisse ou l\'Autriche',
+          'Voyages mémoriels scolaires (Berlin, camps) : nos transporteurs habitués connaissent les sites et leurs accès cars',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar pour Europa-Park ?',
+        a: 'Depuis Strasbourg-Colmar, l\'aller-retour à la journée démarre autour de 800 à 1 100 € TTC (amplitude longue : le parc ferme tard). Depuis Metz ou Besançon, comptez 1 300 à 1 800 € TTC. Devis gratuit sous 24h.',
+      },
+      {
+        q: 'Berlin en car pour un voyage scolaire, comment ça se passe ?',
+        a: 'À 1 050 km de Paris, le format classique est la nuit roulée en double équipage à l\'aller (interdite aux mineurs entre minuit et 6h — donc départ tôt le matin avec étape, ou double équipage de jour) puis le car en mise à disposition sur place pour les visites. Nous construisons le programme avec vous, réglementation comprise.',
+      },
+      {
+        q: 'Les marchés de Noël allemands sont-ils accessibles en car ?',
+        a: 'Très bien organisés : toutes les grandes villes ont des parkings cars dédiés à quelques minutes des marchés, souvent avec navettes. Décembre est la haute saison absolue des transporteurs de l\'Est — réservez dès septembre-octobre.',
+      },
+    ],
+    serviceType: 'Location d\'autocar avec chauffeur pour l\'Allemagne',
+  },
+  {
+    slug: '/location-autocar-pays-bas',
+    metaTitle: 'Location d\'autocar pour les Pays-Bas depuis la France | Busmoov',
+    metaDescription: 'Autocar avec chauffeur France → Pays-Bas : Amsterdam, Keukenhof, Rotterdam. Accès cars réglementés, distances — devis gratuit sous 24h.',
+    h1: 'Location d\'autocar pour les Pays-Bas',
+    sousTitre: 'Amsterdam, les tulipes du Keukenhof, Rotterdam : les Pays-Bas en autocar avec chauffeur — avec un pro des accès cars amstellodamois.',
+    intro: [
+      'Amsterdam et ses musées, le parc floral du Keukenhof au printemps, Rotterdam l\'architecturale, La Haye : les Pays-Bas sont une destination de choix pour les voyages scolaires, les clubs et les CE — à une journée de route du nord de la France.',
+      'Le point technique du pays : Amsterdam restreint fortement les autocars de tourisme. Le centre leur est largement fermé, les déposes se font sur des arrêts dédiés payants en périphérie du cœur historique, et le stationnement sur des parkings cars excentrés. Un transporteur qui connaît le dispositif transforme cette contrainte en simple formalité.',
+    ],
+    sections: [
+      {
+        h2: 'Distances et incontournables',
+        liste: [
+          'Lille → Amsterdam : 3h — la grande journée ou le week-end des groupes nordistes',
+          'Paris → Amsterdam (500 km) : 5h30 — week-end classique, ou étape à Bruges/Anvers à l\'aller',
+          'Keukenhof (mi-mars à mi-mai uniquement) : le parc aux 7 millions de tulipes, parking cars dédié — LA sortie printemps des clubs et associations',
+          'Rotterdam, La Haye, Delft : combinables en circuit 2-3 jours avec Amsterdam',
+          'Croisière sur les canaux : embarquements groupes coordonnés avec la dépose du car',
+        ],
+      },
+      {
+        h2: 'Amsterdam en car : le dispositif',
+        paragraphes: [
+          'Les cars déposent aux arrêts officiels (zone des musées, gare centrale côté IJ) avec un temps limité, puis stationnent aux parkings dédiés hors centre. La LEZ d\'Amsterdam impose par ailleurs des normes d\'émission récentes aux autocars. Nos transporteurs qui font la ligne connaissent les arrêts, les créneaux et les normes — le groupe, lui, ne voit qu\'une chose : il est déposé au bon endroit à la bonne heure.',
+        ],
+      },
+      {
+        h2: 'Formalités',
+        liste: [
+          'Espace Schengen : pièce d\'identité, AST pour les mineurs en scolaire',
+          'Keukenhof : billets groupes datés à réserver en amont — le car se cale sur votre créneau',
+          'Séjours : le car reste en mise à disposition, hébergement chauffeur au devis',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar pour Amsterdam ?',
+        a: 'Depuis Lille, la journée démarre autour de 1 500 à 2 000 € TTC ; depuis Paris, un week-end (aller-retour + mise à disposition sur place) se chiffre généralement entre 2 500 et 3 500 € TTC. Devis gratuit sous 24h.',
+      },
+      {
+        q: 'Le Keukenhof est-il faisable à la journée depuis Paris ?',
+        a: 'C\'est long mais courant en saison : départ très matinal, 5h de route, après-midi complète au parc, retour en soirée — une amplitude qui reste dans les clous d\'un seul chauffeur. Depuis Lille, c\'est une journée confortable.',
+      },
+      {
+        q: 'Un voyage scolaire à Amsterdam, quelles précautions ?',
+        a: 'Les classiques Schengen (pièce d\'identité + AST), et un programme calé sur les arrêts cars officiels — la maison Anne Frank et les musées se réservent des semaines à l\'avance pour les groupes. Voir aussi notre guide de la [sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar).',
+      },
+    ],
+    serviceType: 'Location d\'autocar avec chauffeur pour les Pays-Bas',
+  },
+  {
+    slug: '/location-autocar-portugal',
+    metaTitle: 'Location d\'autocar pour le Portugal depuis la France | Busmoov',
+    metaDescription: 'Autocar avec chauffeur France → Portugal : Lisbonne, Porto, Fatima. Longue distance, étapes en Espagne, pèlerinages — devis gratuit sous 24h.',
+    h1: 'Location d\'autocar pour le Portugal',
+    sousTitre: 'Lisbonne, Porto et surtout Fatima : le Portugal en autocar, la grande traversée des pèlerinages et des associations franco-portugaises.',
+    intro: [
+      'Le Portugal en autocar, c\'est d\'abord une tradition : celle des pèlerinages vers Fatima et des voyages des associations franco-portugaises qui rentrent au pays en groupe. C\'est aussi, de plus en plus, des circuits touristiques Porto-Lisbonne et des séjours surf sur la côte atlantique.',
+      'À 1 450 km de Bordeaux et 1 700 km de Paris (pour Porto), c\'est un vrai voyage longue distance : nuit roulée en double équipage à travers l\'Espagne, ou étape à Burgos/Salamanque — les deux formules se pratiquent, selon le groupe et le budget.',
+    ],
+    sections: [
+      {
+        h2: 'Les formats de voyage vers le Portugal',
+        liste: [
+          'Double équipage direct : Paris ou Bordeaux → Porto/Lisbonne en ~20-24h de route avec deux chauffeurs — la formule des associations',
+          'Avec étape espagnole (Burgos, Salamanque) : deux jours de route plus confortables, incontournable pour les groupes de mineurs',
+          'Fatima : les grands rendez-vous (13 mai, 13 octobre) mobilisent des cars de toute l\'Europe — réserver plusieurs mois à l\'avance',
+          'Circuits Porto + vallée du Douro + Lisbonne : 5 à 8 jours avec car en mise à disposition',
+          'Mécanique du long trajet (pauses, relais, kilométrage) : détaillée dans notre [guide de la longue distance](/blog/autocar-long-trajet)',
+        ],
+      },
+      {
+        h2: 'Ce que le transporteur gère sur la route',
+        paragraphes: [
+          'La traversée de l\'Espagne (péages, aires équipées pour les cars), les péages portugais dont certains sont à télépéage exclusif (le véhicule doit être équipé du badge — c\'est le cas des habitués de la ligne), et la réglementation des temps de conduite sur un trajet où elle structure tout. L\'hébergement des chauffeurs pendant le séjour est intégré au devis.',
+        ],
+      },
+      {
+        h2: 'Formalités',
+        liste: [
+          'Espace Schengen de bout en bout : pièce d\'identité par passager, AST pour les mineurs',
+          'Pèlerinages : nos transporteurs habitués de Fatima connaissent les parkings du sanctuaire et le dispositif des grandes dates',
+          'Sur place, le car reste avec le groupe : excursions (Braga, Coimbra, Sintra) incluses au programme',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar pour le Portugal ?',
+        a: 'C\'est un voyage au long cours : comptez de l\'ordre de 9 000 à 14 000 € TTC pour un aller-retour Paris-Fatima/Lisbonne en double équipage avec quelques jours de mise à disposition sur place — soit, sur un car plein, souvent moins cher par personne que l\'avion pour un groupe avec bagages. Devis précis gratuit sous 24h.',
+      },
+      {
+        q: 'Peut-on rouler de nuit jusqu\'au Portugal ?',
+        a: 'Oui en double équipage pour un groupe d\'adultes — c\'est la formule classique des associations. Pour les mineurs, le roulage entre minuit et 6h est interdit : on planifie deux jours avec étape en Espagne.',
+      },
+      {
+        q: 'Organisez-vous les pèlerinages vers Fatima ?',
+        a: 'Le transport, oui — c\'est une demande récurrente des paroisses et associations. Précisez les dates (attention aux 13 mai et 13 octobre, très chargés) et l\'effectif : nous consultons les transporteurs qui font la ligne chaque année.',
+      },
+    ],
+    serviceType: 'Location d\'autocar avec chauffeur pour le Portugal',
+  },
+  {
+    slug: '/location-autocar-royaume-uni',
+    metaTitle: 'Location d\'autocar pour le Royaume-Uni (Londres) | Busmoov',
+    metaDescription: 'Autocar avec chauffeur France → Londres et Royaume-Uni : passeport post-Brexit, Shuttle ou ferry, conduite à gauche — devis gratuit sous 24h.',
+    h1: 'Location d\'autocar pour le Royaume-Uni',
+    sousTitre: 'Londres en autocar : traversée par le Shuttle ou le ferry, formalités post-Brexit et conduite à gauche — des transporteurs qui font la ligne chaque semaine.',
+    intro: [
+      'Londres reste LA destination des voyages scolaires français, Brexit ou pas : British Museum, relève de la garde, Harry Potter Studios, comédies musicales. L\'autocar y garde un avantage décisif — il embarque le groupe porte à porte, traverse par Calais, et reste disponible sur place pour les visites.',
+      'Le Brexit a changé une chose essentielle : le passeport en cours de validité est obligatoire pour chaque passager (la carte d\'identité ne suffit plus), et les ressortissants non européens du groupe peuvent avoir besoin d\'un visa ou de l\'ETA britannique. C\'est LE point à verrouiller des semaines à l\'avance pour un groupe scolaire.',
+    ],
+    sections: [
+      {
+        h2: 'La traversée : Shuttle ou ferry',
+        liste: [
+          'Eurotunnel Le Shuttle (Calais → Folkestone, 35 min) : le car embarque dans la navette, le groupe reste à bord — rapide et insensible à la météo',
+          'Ferry (Calais → Douvres, 1h30) : moins cher, le groupe monte sur le pont — l\'option des budgets scolaires',
+          'Les formalités britanniques se passent côté français avant d\'embarquer : prévoir 1h à 1h30 de marge au terminal pour un groupe',
+          'Paris → Londres : 6 à 7h porte à porte ; Lille → Londres : 4h30',
+        ],
+      },
+      {
+        h2: 'Rouler à gauche, entrer dans Londres',
+        paragraphes: [
+          'Les chauffeurs qui font le Royaume-Uni sont rodés à la conduite à gauche et aux véhicules adaptés. À Londres, les cars doivent respecter la LEZ (normes d\'émission strictes, enregistrement préalable) et les zones de dépose touristiques — le stationnement se fait sur les coach parks officiels. Le congestion charge ne s\'applique pas aux autocars de plus de 9 places, un des rares cadeaux de la capitale britannique.',
+        ],
+      },
+      {
+        h2: 'Formalités post-Brexit : la checklist groupe',
+        liste: [
+          'Passeport en cours de validité pour CHAQUE passager — à vérifier dès l\'inscription au voyage',
+          'Élèves non-UE d\'un groupe scolaire : vérifier visa/ETA selon la nationalité, plusieurs semaines à l\'avance',
+          'AST pour les mineurs + liste nominative du groupe',
+          'Le transporteur gère les formalités du véhicule (autorisations UK, LEZ Londres)',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar pour Londres ?',
+        a: 'Depuis Paris, un séjour scolaire type de 3-4 jours (aller-retour + car sur place) se chiffre généralement entre 4 500 et 7 000 € TTC selon la saison et la traversée choisie — traversée du car incluse. Devis gratuit sous 24h.',
+      },
+      {
+        q: 'La carte d\'identité suffit-elle encore pour Londres ?',
+        a: 'Non — depuis le Brexit, le passeport est obligatoire pour tous, mineurs compris. C\'est la première chose à annoncer aux familles d\'un voyage scolaire : un passeport se fait en quelques semaines en mairie.',
+      },
+      {
+        q: 'Le car reste-t-il avec nous à Londres ?',
+        a: 'Oui, c\'est la formule habituelle : transferts hôtel, Studios Harry Potter (à 30 km du centre), Windsor ou Oxford en excursion — le car et son chauffeur restent en mise à disposition tout le séjour.',
+      },
+    ],
+    serviceType: 'Location d\'autocar avec chauffeur pour le Royaume-Uni',
+  },
+  {
+    slug: '/autocar-pmr',
+    metaTitle: 'Location d\'autocar PMR accessible fauteuil roulant | Busmoov',
+    metaDescription: 'Autocar et minibus PMR avec chauffeur : élévateur, ancrages fauteuil roulant, normes. Un parc rare — réservez tôt. Devis gratuit sous 24h.',
+    h1: 'Location d\'autocar accessible PMR',
+    sousTitre: 'Élévateur, emplacements fauteuil roulant, chauffeurs formés : le transport de groupe accessible existe — il se réserve juste plus tôt.',
+    intro: [
+      'Associations, établissements médico-sociaux, familles, clubs seniors : le besoin de transport de groupe accessible est immense, et l\'offre existe — autocars et minibus équipés d\'un élévateur (UFR) et d\'emplacements sécurisés pour fauteuils roulants, avec des chauffeurs formés à leur manipulation.',
+      'La réalité à connaître : ces véhicules sont rares. Un transporteur en possède un ou deux quand il en possède, et ils sont très demandés. La règle d\'or du transport PMR est donc simple : réserver le plus tôt possible — et décrire précisément les besoins pour dimensionner le bon véhicule.',
+    ],
+    sections: [
+      {
+        h2: 'Les véhicules accessibles',
+        liste: [
+          'Minibus PMR (jusqu\'à ~20 places) : rampe ou élévateur, 1 à 4 emplacements fauteuil — le plus courant et le plus souple',
+          'Autocar UFR : élévateur intégré, 1 à 8 emplacements fauteuil selon la configuration, le reste du groupe en sièges classiques',
+          'Emplacements à ancrages normalisés : le fauteuil est arrimé, son occupant ceinturé — sécurité identique à un siège',
+          'Les configurations mixtes (fauteuils + valides) se composent selon votre groupe : donnez le nombre exact de fauteuils, dont électriques (plus lourds et encombrants)',
+        ],
+      },
+      {
+        h2: 'Bien préparer votre demande',
+        paragraphes: [
+          'Trois informations font un devis PMR précis : le nombre de personnes en fauteuil (manuel ou électrique), le nombre d\'accompagnants et de passagers valides, et les conditions d\'accès aux points de départ et d\'arrivée (un élévateur a besoin d\'un espace plat et dégagé). Si certains passagers peuvent transférer sur un siège, dites-le aussi : cela ouvre plus de configurations de véhicules.',
+        ],
+      },
+      {
+        h2: 'Délais et conseils',
+        liste: [
+          'Réservez 4 à 8 semaines à l\'avance minimum — le parc PMR est compté, surtout en mai-juin et septembre',
+          'Prévoyez du temps aux montées/descentes : un élévateur, c\'est 2-3 minutes par fauteuil — le planning doit l\'intégrer',
+          'Sorties à la journée, transferts médicaux de groupe, vacances adaptées, événements familiaux : tous les formats se font',
+          'Le prix : légèrement supérieur à un véhicule standard équivalent (matériel spécifique et manipulations), chiffré au cas par cas',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar ou minibus PMR ?',
+        a: 'Comptez une majoration de l\'ordre de 15 à 30 % par rapport au véhicule standard équivalent, liée à la rareté du matériel et au temps de manipulation. Un minibus PMR à la journée démarre autour de 800 à 1 000 € TTC. Devis précis gratuit sous 24h avec la configuration exacte.',
+      },
+      {
+        q: 'Les fauteuils électriques sont-ils acceptés ?',
+        a: 'Oui, mais signalez-les impérativement : ils sont plus lourds (jusqu\'à 150 kg et plus) et tous les élévateurs n\'ont pas la même capacité. Le transporteur vérifie la compatibilité avant de confirmer.',
+      },
+      {
+        q: 'Le chauffeur aide-t-il aux montées et descentes ?',
+        a: 'Les chauffeurs de véhicules PMR sont formés à la manipulation de l\'élévateur et à l\'arrimage des fauteuils. Pour l\'accompagnement des personnes au-delà, prévoyez vos accompagnants habituels — le chauffeur sécurise le transport, il ne remplace pas un accompagnant.',
+      },
+      {
+        q: 'Peut-on mélanger passagers valides et personnes en fauteuil ?',
+        a: 'Bien sûr — c\'est la configuration la plus courante : un autocar UFR transporte le groupe entier, fauteuils arrimés aux emplacements dédiés et le reste du groupe en sièges. Un seul véhicule, tout le monde ensemble.',
+      },
+    ],
+    serviceType: 'Location d\'autocar et minibus accessibles PMR avec chauffeur',
+  },
+  {
+    slug: '/autocar-disneyland-paris',
+    metaTitle: 'Autocar pour Disneyland Paris : groupes, CE, scolaires | Busmoov',
+    metaDescription: 'Location d\'autocar pour Disneyland Paris : dépose gare routière des parcs, CE, anniversaires, scolaires. Prix et organisation — devis gratuit sous 24h.',
+    h1: 'Location d\'autocar pour Disneyland Paris',
+    sousTitre: 'La sortie de groupe n°1 de France : dépose à la gare routière des parcs, le car vous attend, retour à la fermeture — devis gratuit en 24h.',
+    intro: [
+      'Comités d\'entreprise, anniversaires, associations, sorties scolaires de fin d\'année, arbres de Noël : Disneyland Paris est la destination de groupe la plus demandée de France. Et l\'autocar y est roi — le parc dispose d\'une gare routière dédiée aux cars, à quelques minutes à pied des entrées des deux parcs.',
+      'Le format est rodé : prise en charge du groupe le matin, dépose à la gare routière de Marne-la-Vallée, le car stationne sur place toute la journée, et le retour se cale sur la fermeture ou le spectacle nocturne. Nos transporteurs franciliens y déposent des groupes toutes les semaines.',
+    ],
+    sections: [
+      {
+        h2: 'La journée type en autocar',
+        liste: [
+          'Départ calé pour l\'ouverture des parcs (9h30 en général) — depuis Paris, comptez 45 min à 1h de trajet',
+          'Dépose à la gare routière des parcs : 5 minutes à pied de Disneyland Park et des Walt Disney Studios',
+          'Le car reste stationné sur place (parking cars) : pas de rotation, le chauffeur est là toute la journée',
+          'Retour après la fermeture ou le spectacle du soir — l\'amplitude reste dans les clous d\'un seul chauffeur depuis l\'Île-de-France',
+          'Depuis la province (Lille, Reims, Rouen, Orléans…) : la journée reste faisable, l\'amplitude est calculée au devis',
+        ],
+      },
+      {
+        h2: 'CE, scolaires, anniversaires : les formats groupes',
+        paragraphes: [
+          'Les comités d\'entreprise combinent souvent billets groupes Disney et transport — nous gérons le car, la billetterie groupe se réserve auprès de Disney (tarifs dégressifs dès 20 personnes). Pour les sorties scolaires, les véhicules sont aux normes transport d\'enfants et le timing intègre les comptages : prévoir 20 minutes de battement à chaque montée. Pour un anniversaire ou un événement familial, un minibus 15-20 places suffit souvent — voir notre page [location de minibus](/services/location-minibus).',
+        ],
+      },
+      {
+        h2: 'Combien ça coûte ?',
+        paragraphes: [
+          'Depuis Paris ou la petite couronne, l\'aller-retour à la journée en autocar standard (jusqu\'à 59 places) se situe généralement entre 750 et 1 000 € TTC selon l\'amplitude — soit 13 à 18 € par personne sur un car plein, à ajouter aux billets d\'entrée. En minibus, comptez 500 à 700 € TTC. Depuis la province, le prix suit la distance — toutes les fourchettes sont dans notre [guide des prix](/blog/prix-location-autocar).',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Le car peut-il rester jusqu\'au spectacle nocturne ?',
+        a: 'Oui — c\'est même le format recommandé en été : le spectacle de clôture vaut le coup. Précisez-le au devis pour que l\'amplitude du chauffeur soit calculée en conséquence (depuis la province, un retour tardif peut nécessiter un second chauffeur).',
+      },
+      {
+        q: 'Où le groupe retrouve-t-il le car le soir ?',
+        a: 'À la gare routière des parcs, au même endroit que la dépose. Le chauffeur communique son emplacement exact et son numéro — fixez un point et une heure de regroupement dans le parc, la sortie de la foule prend du temps.',
+      },
+      {
+        q: 'Gérez-vous aussi les billets d\'entrée ?',
+        a: 'Non, uniquement le transport — la billetterie groupes se réserve directement auprès de Disneyland Paris (tarifs dès 20 personnes). Nos devis transport sont sans engagement : vous pouvez caler billets et car en parallèle.',
+      },
+      {
+        q: 'Peut-on venir de province à la journée ?',
+        a: 'Jusqu\'à environ 2h30-3h de route (Lille, Reims, Rouen, Orléans, Tours), oui — au-delà, le format week-end avec une nuit sur place devient plus confortable, le car restant en mise à disposition.',
+      },
+    ],
+    serviceType: 'Location d\'autocar avec chauffeur pour Disneyland Paris',
   },
 ]
 
