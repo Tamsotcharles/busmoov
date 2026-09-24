@@ -144,10 +144,20 @@ Deno.serve(async (req) => {
     }
     const serviceAccount = JSON.parse(rawKey)
 
-    // Première synchro : 28 jours ; ensuite : 5 jours glissants (les
-    // données GSC arrivent avec ~2 jours de latence).
-    const { count } = await supabase.from('seo_gsc_daily').select('*', { count: 'exact', head: true })
-    const days = count ? 5 : 28
+    // Fenêtre de synchro : depuis la dernière date présente en base
+    // (avec 2 jours de marge pour la latence GSC), pour ne jamais créer
+    // de trou quand les synchros s'espacent. Bornes : 5 à 28 jours.
+    const { data: lastRow } = await supabase
+      .from('seo_gsc_daily')
+      .select('date')
+      .order('date', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    let days = 28
+    if (lastRow?.date) {
+      const gap = Math.ceil((Date.now() - new Date(lastRow.date).getTime()) / (24 * 3600 * 1000))
+      days = Math.min(28, Math.max(5, gap + 2))
+    }
     const end = new Date()
     const start = new Date(Date.now() - days * 24 * 3600 * 1000)
 
