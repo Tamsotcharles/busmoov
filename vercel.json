@@ -19,7 +19,9 @@
         {
           "type": "header",
           "key": "accept-language",
-          "value": "^es.*"
+          "value": {
+            "pre": "es"
+          }
         }
       ],
       "destination": "/es",
@@ -31,7 +33,9 @@
         {
           "type": "header",
           "key": "accept-language",
-          "value": "^de.*"
+          "value": {
+            "pre": "de"
+          }
         }
       ],
       "destination": "/de",
@@ -43,7 +47,9 @@
         {
           "type": "header",
           "key": "accept-language",
-          "value": "^en.*"
+          "value": {
+            "pre": "en"
+          }
         }
       ],
       "destination": "/en",
