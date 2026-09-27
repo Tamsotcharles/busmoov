@@ -9,8 +9,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/es</loc>
@@ -20,8 +18,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/de</loc>
@@ -31,8 +27,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/en</loc>
@@ -42,8 +36,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/services/location-autocar</loc>
@@ -53,8 +45,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/coach-hire"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-autocar"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/es/servicios/alquiler-autocar</loc>
@@ -64,8 +54,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/coach-hire"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-autocar"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/de/leistungen/reisebus-mieten</loc>
@@ -75,8 +63,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/coach-hire"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-autocar"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/en/services/coach-hire</loc>
@@ -86,8 +72,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/coach-hire"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-autocar"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/services/location-minibus</loc>
@@ -97,8 +81,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/minibus-hire"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-minibus"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/es/servicios/alquiler-minibus</loc>
@@ -108,8 +90,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/minibus-hire"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-minibus"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/de/leistungen/minibus-mieten</loc>
@@ -119,8 +99,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/minibus-hire"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-minibus"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/en/services/minibus-hire</loc>
@@ -130,8 +108,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/minibus-hire"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/location-minibus"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/services/transfert-aeroport</loc>
@@ -141,8 +117,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/airport-transfer"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/transfert-aeroport"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/es/servicios/traslado-aeropuerto</loc>
@@ -152,8 +126,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/airport-transfer"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/transfert-aeroport"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/de/leistungen/flughafentransfer</loc>
@@ -163,8 +135,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/airport-transfer"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/transfert-aeroport"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/en/services/airport-transfer</loc>
@@ -174,8 +144,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/airport-transfer"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/transfert-aeroport"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/services/sorties-scolaires</loc>
@@ -185,8 +153,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/school-trips"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/sorties-scolaires"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/es/servicios/transporte-escolar</loc>
@@ -196,8 +162,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/school-trips"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/sorties-scolaires"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/de/leistungen/schuelertransport</loc>
@@ -207,8 +171,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/school-trips"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/sorties-scolaires"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/en/services/school-trips</loc>
@@ -218,8 +180,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/services/school-trips"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/services/sorties-scolaires"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/a-propos</loc>
@@ -229,8 +189,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/about"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/a-propos"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/es/sobre-nosotros</loc>
@@ -240,8 +198,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/about"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/a-propos"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/de/ueber-uns</loc>
@@ -251,8 +207,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/about"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/a-propos"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/en/about</loc>
@@ -262,8 +216,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/about"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/a-propos"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/contact</loc>
@@ -273,8 +225,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/contact"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/contact"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/es/contacto</loc>
@@ -284,8 +234,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/contact"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/contact"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/de/kontakt</loc>
@@ -295,8 +243,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/contact"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/contact"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/en/contact</loc>
@@ -306,8 +252,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/contact"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/contact"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/devenir-partenaire</loc>
@@ -317,8 +261,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/become-a-partner"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/devenir-partenaire"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/es/hazte-socio</loc>
@@ -328,8 +270,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/become-a-partner"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/devenir-partenaire"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/de/partner-werden</loc>
@@ -339,8 +279,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/become-a-partner"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/devenir-partenaire"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/en/become-a-partner</loc>
@@ -350,8 +288,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/become-a-partner"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/devenir-partenaire"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/cgv</loc>
@@ -361,8 +297,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/terms"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/cgv"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/es/condiciones-generales</loc>
@@ -372,8 +306,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/terms"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/cgv"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/de/agb</loc>
@@ -383,8 +315,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/terms"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/cgv"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/en/terms</loc>
@@ -394,8 +324,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/terms"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/cgv"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/mentions-legales</loc>
@@ -405,8 +333,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/legal-notice"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/mentions-legales"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/es/aviso-legal</loc>
@@ -416,8 +342,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/legal-notice"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/mentions-legales"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/de/impressum</loc>
@@ -427,8 +351,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/legal-notice"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/mentions-legales"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/en/legal-notice</loc>
@@ -438,8 +360,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/legal-notice"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/mentions-legales"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/confidentialite</loc>
@@ -449,8 +369,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/privacy"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/confidentialite"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/es/privacidad</loc>
@@ -460,8 +378,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/privacy"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/confidentialite"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/de/datenschutz</loc>
@@ -471,8 +387,6 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/privacy"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/confidentialite"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/en/privacy</loc>
@@ -482,325 +396,217 @@
     <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/privacy"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/confidentialite"/>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-bus</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/navette-aeroport-cdg</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-08</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/navette-aeroport-orly</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-08</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/navette-entreprise</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-08</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-bus-50-places</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-08</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar-ile-de-france</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-08</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/autocar-couchette</loc>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar-espagne</loc>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar-italie</loc>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar-belgique</loc>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar-suisse</loc>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar-allemagne</loc>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar-pays-bas</loc>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar-portugal</loc>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar-royaume-uni</loc>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/autocar-pmr</loc>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/autocar-disneyland-paris</loc>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-bus-paris</loc>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/paris</loc>
     <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/lyon</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-15</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/marseille</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/toulouse</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-15</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/bordeaux</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-15</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/lille</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/nantes</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/biarritz</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/arcachon</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/le-mans</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/montpellier</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/saint-etienne</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/strasbourg</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/grenoble</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/versailles</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-08</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/saint-denis</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-08</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/nice</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-15</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/rennes</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-08</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/reims</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-09-08</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-15</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/prix-location-autocar</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/organiser-sortie-scolaire-autocar</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/difference-bus-autocar-minibus</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-04</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/location-autocar-mariage</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-04</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/bus-soiree-etudiante-bde</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/transport-camp-scout-autocar</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/autocar-deplacement-entreprise</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-04</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/bus-team-building</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-04</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/bus-discotheque-soiree</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-04</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/autocar-bar-mitzvah</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/location-bus-sans-chauffeur</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-08</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/journee-mer-autocar</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-08</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/puy-du-fou-en-autocar</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-08</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog/autocar-long-trajet</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-15</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/zh</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-09-07</lastmod>
   </url>
 </urlset>

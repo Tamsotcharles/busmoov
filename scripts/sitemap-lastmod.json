@@ -1,0 +1,390 @@
+{
+  "https://www.busmoov.com/fr": {
+    "hash": "4ad9c457a1cd",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/es": {
+    "hash": "3c76a1972dde",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/de": {
+    "hash": "7e92dd2957e8",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/en": {
+    "hash": "c1b11b31ade0",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/services/location-autocar": {
+    "hash": "448656bb0440",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/es/servicios/alquiler-autocar": {
+    "hash": "adfb5e9d0054",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/de/leistungen/reisebus-mieten": {
+    "hash": "4c1e76c80e6b",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/en/services/coach-hire": {
+    "hash": "75f8442e9aab",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/services/location-minibus": {
+    "hash": "8eaf7e9e38ad",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/es/servicios/alquiler-minibus": {
+    "hash": "e4417338c537",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/de/leistungen/minibus-mieten": {
+    "hash": "eb64f8893f8f",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/en/services/minibus-hire": {
+    "hash": "70bd86c22e1e",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/services/transfert-aeroport": {
+    "hash": "6fbbad0c6193",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/es/servicios/traslado-aeropuerto": {
+    "hash": "d1c860de3f6a",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/de/leistungen/flughafentransfer": {
+    "hash": "274f2e1efdb4",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/en/services/airport-transfer": {
+    "hash": "924fad872bbb",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/services/sorties-scolaires": {
+    "hash": "c30613ea4c43",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/es/servicios/transporte-escolar": {
+    "hash": "3b130e961ef6",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/de/leistungen/schuelertransport": {
+    "hash": "0f65f97cebaf",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/en/services/school-trips": {
+    "hash": "240e75f13b4f",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/a-propos": {
+    "hash": "6fb6c7ee22e7",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/es/sobre-nosotros": {
+    "hash": "a6494b11cda8",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/de/ueber-uns": {
+    "hash": "5a7cec988e38",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/en/about": {
+    "hash": "4e232088846b",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/contact": {
+    "hash": "ce3319da73ba",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/es/contacto": {
+    "hash": "ccce692cdfc9",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/de/kontakt": {
+    "hash": "05a5ab827af3",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/en/contact": {
+    "hash": "1ac1be9fc48d",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/devenir-partenaire": {
+    "hash": "cc3867e18a26",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/es/hazte-socio": {
+    "hash": "fef91a5beb34",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/de/partner-werden": {
+    "hash": "5d1ce296ecf4",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/en/become-a-partner": {
+    "hash": "e2da5da9eca7",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/cgv": {
+    "hash": "e0f4f43d7370",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/es/condiciones-generales": {
+    "hash": "7a8ce9ebb500",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/de/agb": {
+    "hash": "ee9a9ddaa697",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/en/terms": {
+    "hash": "cc8f6121faf8",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/mentions-legales": {
+    "hash": "629878015504",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/es/aviso-legal": {
+    "hash": "b8d3693aa3d8",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/de/impressum": {
+    "hash": "f91e7bb1c913",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/en/legal-notice": {
+    "hash": "a4134a27572d",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/confidentialite": {
+    "hash": "d8d9df79e4b0",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/es/privacidad": {
+    "hash": "3e0f67bda7c5",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/de/datenschutz": {
+    "hash": "04e58a686f98",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/en/privacy": {
+    "hash": "302e595cb32e",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/location-bus": {
+    "hash": "824c062f8622",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/navette-aeroport-cdg": {
+    "hash": "8e7ff8ff1424",
+    "lastmod": "2026-09-08"
+  },
+  "https://www.busmoov.com/fr/navette-aeroport-orly": {
+    "hash": "5616c58ca777",
+    "lastmod": "2026-09-08"
+  },
+  "https://www.busmoov.com/fr/navette-entreprise": {
+    "hash": "ea836bac415d",
+    "lastmod": "2026-09-08"
+  },
+  "https://www.busmoov.com/fr/location-bus-50-places": {
+    "hash": "89a26d11b9af",
+    "lastmod": "2026-09-08"
+  },
+  "https://www.busmoov.com/fr/location-autocar-ile-de-france": {
+    "hash": "81542c0c3867",
+    "lastmod": "2026-09-08"
+  },
+  "https://www.busmoov.com/fr/autocar-couchette": {
+    "hash": "19a72efa99f9",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/location-autocar-espagne": {
+    "hash": "4c1251ea47a6",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/location-autocar-italie": {
+    "hash": "08a086b48562",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/location-autocar-belgique": {
+    "hash": "ba32e55555d4",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/location-autocar-suisse": {
+    "hash": "2cb0a106e9c0",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/location-autocar-allemagne": {
+    "hash": "b9a2a48a2772",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/location-autocar-pays-bas": {
+    "hash": "7df6052125dd",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/location-autocar-portugal": {
+    "hash": "76e03cecedf0",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/location-autocar-royaume-uni": {
+    "hash": "eb5d187a0f02",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/autocar-pmr": {
+    "hash": "80f7a89aaaf6",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/autocar-disneyland-paris": {
+    "hash": "423ae265ad1a",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/location-bus-paris": {
+    "hash": "b84d8dd6160d",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/location-autocar/paris": {
+    "hash": "77ef009b9f30",
+    "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/location-autocar/lyon": {
+    "hash": "12825cb09541",
+    "lastmod": "2026-09-15"
+  },
+  "https://www.busmoov.com/fr/location-autocar/marseille": {
+    "hash": "6bf35b66966e",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/location-autocar/toulouse": {
+    "hash": "f75393970b2e",
+    "lastmod": "2026-09-15"
+  },
+  "https://www.busmoov.com/fr/location-autocar/bordeaux": {
+    "hash": "410d79257c23",
+    "lastmod": "2026-09-15"
+  },
+  "https://www.busmoov.com/fr/location-autocar/lille": {
+    "hash": "43cb7495b50b",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/location-autocar/nantes": {
+    "hash": "bd5e140369c4",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/location-autocar/biarritz": {
+    "hash": "e48d9743f0b0",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/location-autocar/arcachon": {
+    "hash": "97212487b335",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/location-autocar/le-mans": {
+    "hash": "5ecd4817c2bf",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/location-autocar/montpellier": {
+    "hash": "4b405a75bba4",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/location-autocar/saint-etienne": {
+    "hash": "d71490e38597",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/location-autocar/strasbourg": {
+    "hash": "5db777d10f27",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/location-autocar/grenoble": {
+    "hash": "115412dbc939",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/location-autocar/versailles": {
+    "hash": "03a8eaa436e7",
+    "lastmod": "2026-09-08"
+  },
+  "https://www.busmoov.com/fr/location-autocar/saint-denis": {
+    "hash": "c4c863edadc9",
+    "lastmod": "2026-09-08"
+  },
+  "https://www.busmoov.com/fr/location-autocar/nice": {
+    "hash": "e3ebb3845a89",
+    "lastmod": "2026-09-15"
+  },
+  "https://www.busmoov.com/fr/location-autocar/rennes": {
+    "hash": "9822206e7fdf",
+    "lastmod": "2026-09-08"
+  },
+  "https://www.busmoov.com/fr/location-autocar/reims": {
+    "hash": "e20869979959",
+    "lastmod": "2026-09-08"
+  },
+  "https://www.busmoov.com/fr/blog": {
+    "hash": "c76b43d16c0e",
+    "lastmod": "2026-09-15"
+  },
+  "https://www.busmoov.com/fr/blog/prix-location-autocar": {
+    "hash": "90ff353dd4ab",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/blog/organiser-sortie-scolaire-autocar": {
+    "hash": "d73213f6e83e",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/blog/difference-bus-autocar-minibus": {
+    "hash": "37ad5493fc91",
+    "lastmod": "2026-09-04"
+  },
+  "https://www.busmoov.com/fr/blog/location-autocar-mariage": {
+    "hash": "06c842919c6e",
+    "lastmod": "2026-09-04"
+  },
+  "https://www.busmoov.com/fr/blog/bus-soiree-etudiante-bde": {
+    "hash": "79e4ed08fc94",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/blog/transport-camp-scout-autocar": {
+    "hash": "c34e872fea22",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/blog/autocar-deplacement-entreprise": {
+    "hash": "46bd7d8e742e",
+    "lastmod": "2026-09-04"
+  },
+  "https://www.busmoov.com/fr/blog/bus-team-building": {
+    "hash": "02abf3927e20",
+    "lastmod": "2026-09-04"
+  },
+  "https://www.busmoov.com/fr/blog/bus-discotheque-soiree": {
+    "hash": "3b4151032105",
+    "lastmod": "2026-09-04"
+  },
+  "https://www.busmoov.com/fr/blog/autocar-bar-mitzvah": {
+    "hash": "a39bccc6ffdb",
+    "lastmod": "2026-09-07"
+  },
+  "https://www.busmoov.com/fr/blog/location-bus-sans-chauffeur": {
+    "hash": "75b0b23814b7",
+    "lastmod": "2026-09-08"
+  },
+  "https://www.busmoov.com/fr/blog/journee-mer-autocar": {
+    "hash": "849fcd8e6444",
+    "lastmod": "2026-09-08"
+  },
+  "https://www.busmoov.com/fr/blog/puy-du-fou-en-autocar": {
+    "hash": "8b549b2e2c4d",
+    "lastmod": "2026-09-08"
+  },
+  "https://www.busmoov.com/fr/blog/autocar-long-trajet": {
+    "hash": "1c6b8b5c6897",
+    "lastmod": "2026-09-15"
+  },
+  "https://www.busmoov.com/zh": {
+    "hash": "4a2cdc47d04c",
+    "lastmod": "2026-09-07"
+  }
+}

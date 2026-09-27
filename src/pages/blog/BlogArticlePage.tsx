@@ -1,4 +1,5 @@
-import { useParams, Navigate, Link } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
+import { NotFoundPage } from '@/pages/NotFoundPage'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
@@ -44,7 +45,7 @@ export function BlogArticlePage() {
   const article = slug ? getArticle(slug) : undefined
 
   if (!article) {
-    return <Navigate to="/" replace />
+    return <NotFoundPage />
   }
 
   const path = `/blog/${article.slug}`

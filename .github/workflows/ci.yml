@@ -35,6 +35,12 @@ jobs:
       - name: Tests unitaires
         run: npm test
 
+      # Bloquant : scripts/sitemap-lastmod.json doit être commité avec le
+      # contenu modifié, sinon le <lastmod> du sitemap prend la date de
+      # chaque build au lieu de la date réelle de modification.
+      - name: Dates lastmod du sitemap
+        run: npm run check:sitemap
+
       # Bloquant : le build doit toujours produire un bundle.
       - name: Build de production
         run: npm run build
