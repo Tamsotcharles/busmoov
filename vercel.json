@@ -15,48 +15,6 @@
     },
     {
       "source": "/",
-      "has": [
-        {
-          "type": "header",
-          "key": "accept-language",
-          "value": {
-            "pre": "es"
-          }
-        }
-      ],
-      "destination": "/es",
-      "statusCode": 302
-    },
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "header",
-          "key": "accept-language",
-          "value": {
-            "pre": "de"
-          }
-        }
-      ],
-      "destination": "/de",
-      "statusCode": 302
-    },
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "header",
-          "key": "accept-language",
-          "value": {
-            "pre": "en"
-          }
-        }
-      ],
-      "destination": "/en",
-      "statusCode": 302
-    },
-    {
-      "source": "/",
       "destination": "/fr",
       "statusCode": 301
     },
