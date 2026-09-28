@@ -367,6 +367,12 @@ npm run preview  # Prévisualisation du build
 - `/contact` - Page de contact avec formulaire
 - `/devenir-partenaire` - Formulaire pour les transporteurs souhaitant rejoindre le réseau
 
+### Sitemap et redirections SEO
+
+- `public/sitemap.xml` est généré par `scripts/generate-sitemap.mjs` (lancé par `npm run build`). Le `<lastmod>` de chaque URL vient de `scripts/sitemap-lastmod.json`, qui mémorise une empreinte du contenu de la page : **après toute modification de contenu (villes, landings, blog, pages, locales), lancer `npm run seo:sitemap` et committer le manifeste**. La CI échoue sinon (`npm run check:sitemap`).
+- Les anciens chemins français sous préfixe es/de/en (`/de/services/sorties-scolaires`) et les pages sans préfixe de langue (`/mentions-legales`) sont redirigés en 301 dans `vercel.json`. Si un slug de `seoLocalizedPaths` ou de `landings.ts` change, ajouter la redirection : `src/lib/seo-redirects.test.ts` le vérifie.
+- Une URL inconnue affiche `NotFoundPage` (noindex) au lieu de rediriger vers l'accueil.
+
 ## Internationalisation (i18n)
 
 ### Langues supportées

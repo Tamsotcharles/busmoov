@@ -1,4 +1,5 @@
-import { useParams, Navigate, Link } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
+import { NotFoundPage } from '@/pages/NotFoundPage'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
@@ -19,7 +20,7 @@ export function VilleAutocarPage() {
   const ville = slug ? getVille(slug) : undefined
 
   if (!ville) {
-    return <Navigate to="/" replace />
+    return <NotFoundPage />
   }
 
   const path = `/location-autocar/${ville.slug}`

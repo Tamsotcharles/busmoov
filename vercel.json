@@ -4,12 +4,347 @@
   "redirects": [
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "busmoov.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "busmoov.com"
+        }
+      ],
       "destination": "https://www.busmoov.com/:path*",
+      "statusCode": 301
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept-language",
+          "value": {
+            "pre": "es"
+          }
+        }
+      ],
+      "destination": "/es",
+      "statusCode": 302
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept-language",
+          "value": {
+            "pre": "de"
+          }
+        }
+      ],
+      "destination": "/de",
+      "statusCode": 302
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept-language",
+          "value": {
+            "pre": "en"
+          }
+        }
+      ],
+      "destination": "/en",
+      "statusCode": 302
+    },
+    {
+      "source": "/",
+      "destination": "/fr",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/services/location-autocar",
+      "destination": "/es/servicios/alquiler-autocar",
+      "statusCode": 301
+    },
+    {
+      "source": "/de/services/location-autocar",
+      "destination": "/de/leistungen/reisebus-mieten",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/services/location-autocar",
+      "destination": "/en/services/coach-hire",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/services/location-minibus",
+      "destination": "/es/servicios/alquiler-minibus",
+      "statusCode": 301
+    },
+    {
+      "source": "/de/services/location-minibus",
+      "destination": "/de/leistungen/minibus-mieten",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/services/location-minibus",
+      "destination": "/en/services/minibus-hire",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/services/transfert-aeroport",
+      "destination": "/es/servicios/traslado-aeropuerto",
+      "statusCode": 301
+    },
+    {
+      "source": "/de/services/transfert-aeroport",
+      "destination": "/de/leistungen/flughafentransfer",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/services/transfert-aeroport",
+      "destination": "/en/services/airport-transfer",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/services/sorties-scolaires",
+      "destination": "/es/servicios/transporte-escolar",
+      "statusCode": 301
+    },
+    {
+      "source": "/de/services/sorties-scolaires",
+      "destination": "/de/leistungen/schuelertransport",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/services/sorties-scolaires",
+      "destination": "/en/services/school-trips",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/a-propos",
+      "destination": "/es/sobre-nosotros",
+      "statusCode": 301
+    },
+    {
+      "source": "/de/a-propos",
+      "destination": "/de/ueber-uns",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/a-propos",
+      "destination": "/en/about",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/contact",
+      "destination": "/es/contacto",
+      "statusCode": 301
+    },
+    {
+      "source": "/de/contact",
+      "destination": "/de/kontakt",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/devenir-partenaire",
+      "destination": "/es/hazte-socio",
+      "statusCode": 301
+    },
+    {
+      "source": "/de/devenir-partenaire",
+      "destination": "/de/partner-werden",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/devenir-partenaire",
+      "destination": "/en/become-a-partner",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/cgv",
+      "destination": "/es/condiciones-generales",
+      "statusCode": 301
+    },
+    {
+      "source": "/de/cgv",
+      "destination": "/de/agb",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/cgv",
+      "destination": "/en/terms",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/mentions-legales",
+      "destination": "/es/aviso-legal",
+      "statusCode": 301
+    },
+    {
+      "source": "/de/mentions-legales",
+      "destination": "/de/impressum",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/mentions-legales",
+      "destination": "/en/legal-notice",
+      "statusCode": 301
+    },
+    {
+      "source": "/es/confidentialite",
+      "destination": "/es/privacidad",
+      "statusCode": 301
+    },
+    {
+      "source": "/de/confidentialite",
+      "destination": "/de/datenschutz",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/confidentialite",
+      "destination": "/en/privacy",
+      "statusCode": 301
+    },
+    {
+      "source": "/a-propos",
+      "destination": "/fr/a-propos",
+      "statusCode": 301
+    },
+    {
+      "source": "/contact",
+      "destination": "/fr/contact",
+      "statusCode": 301
+    },
+    {
+      "source": "/devenir-partenaire",
+      "destination": "/fr/devenir-partenaire",
+      "statusCode": 301
+    },
+    {
+      "source": "/cgv",
+      "destination": "/fr/cgv",
+      "statusCode": 301
+    },
+    {
+      "source": "/mentions-legales",
+      "destination": "/fr/mentions-legales",
+      "statusCode": 301
+    },
+    {
+      "source": "/confidentialite",
+      "destination": "/fr/confidentialite",
+      "statusCode": 301
+    },
+    {
+      "source": "/services/:slug",
+      "destination": "/fr/services/:slug",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-bus",
+      "destination": "/fr/location-bus",
+      "statusCode": 301
+    },
+    {
+      "source": "/navette-aeroport-cdg",
+      "destination": "/fr/navette-aeroport-cdg",
+      "statusCode": 301
+    },
+    {
+      "source": "/navette-aeroport-orly",
+      "destination": "/fr/navette-aeroport-orly",
+      "statusCode": 301
+    },
+    {
+      "source": "/navette-entreprise",
+      "destination": "/fr/navette-entreprise",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-bus-50-places",
+      "destination": "/fr/location-bus-50-places",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-autocar-ile-de-france",
+      "destination": "/fr/location-autocar-ile-de-france",
+      "statusCode": 301
+    },
+    {
+      "source": "/autocar-couchette",
+      "destination": "/fr/autocar-couchette",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-autocar-espagne",
+      "destination": "/fr/location-autocar-espagne",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-autocar-italie",
+      "destination": "/fr/location-autocar-italie",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-autocar-belgique",
+      "destination": "/fr/location-autocar-belgique",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-autocar-suisse",
+      "destination": "/fr/location-autocar-suisse",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-autocar-allemagne",
+      "destination": "/fr/location-autocar-allemagne",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-autocar-pays-bas",
+      "destination": "/fr/location-autocar-pays-bas",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-autocar-portugal",
+      "destination": "/fr/location-autocar-portugal",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-autocar-royaume-uni",
+      "destination": "/fr/location-autocar-royaume-uni",
+      "statusCode": 301
+    },
+    {
+      "source": "/autocar-pmr",
+      "destination": "/fr/autocar-pmr",
+      "statusCode": 301
+    },
+    {
+      "source": "/autocar-disneyland-paris",
+      "destination": "/fr/autocar-disneyland-paris",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-bus-paris",
+      "destination": "/fr/location-bus-paris",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-autocar/:ville",
+      "destination": "/fr/location-autocar/:ville",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/:path*",
+      "destination": "/fr/blog/:path*",
       "statusCode": 301
     }
   ],
   "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/" }
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/"
+    }
   ]
 }

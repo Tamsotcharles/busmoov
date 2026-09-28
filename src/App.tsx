@@ -36,6 +36,7 @@ const BlogPage = lazy(() => import('@/pages/blog/BlogPage').then((m) => ({ defau
 const ZhLandingPage = lazy(() => import('@/pages/ZhLandingPage').then((m) => ({ default: m.ZhLandingPage })))
 const LandingSeoPage = lazy(() => import('@/pages/LandingSeoPage').then((m) => ({ default: m.LandingSeoPage })))
 const BlogArticlePage = lazy(() => import('@/pages/blog/BlogArticlePage').then((m) => ({ default: m.BlogArticlePage })))
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 
 const MesDevisPage = lazy(() => import('@/pages/client/MesDevisPage').then((m) => ({ default: m.MesDevisPage })))
 const InfosVoyagePage = lazy(() => import('@/pages/client/InfosVoyagePage').then((m) => ({ default: m.InfosVoyagePage })))
@@ -208,8 +209,9 @@ function PublicRoutes() {
       <Route path="/fournisseur/chauffeur" element={<ChauffeurInfoPage />} />
       <Route path="/fournisseur/proposition-tarif" element={<PropositionTarifPage />} />
 
-      {/* Fallback dans la langue */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* URL inconnue dans la langue : vraie page 404 (noindex) plutôt
+          qu'une redirection vers l'accueil, que Google traitait en soft 404 */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
     </Suspense>
     </ErrorBoundary>
