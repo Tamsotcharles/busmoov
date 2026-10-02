@@ -76,22 +76,20 @@ function renderPage({ lang, path, title, description, alternatePaths = null, jso
 const wrap = (inner) => `<main class="max-w-3xl mx-auto px-4 pt-24 pb-16">${inner}</main>`
 // Paragraphe pouvant contenir des liens markdown [ancre](/chemin) — chemins
 // internes FR, préfixés /fr dans le HTML statique.
+// Une URL http(s) est un lien externe (source d'un chiffre).
+const mdLink = (label, href) =>
+  /^https?:\/\//.test(href)
+    ? `<a class="text-magenta underline" href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}</a>`
+    : `<a class="text-magenta underline" href="/fr${href}">${esc(label)}</a>`
 const mdInline = (t) =>
   t.split(/(\[[^\]]+\]\([^)]+\))/g)
     .map((part) => {
       const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
-      return m ? `<a class="text-magenta underline" href="/fr${m[2]}">${esc(m[1])}</a>` : esc(part)
+      return m ? mdLink(m[1], m[2]) : esc(part)
     })
     .join('')
 const ulMd = (items) => `<ul class="list-disc pl-6 mb-3">${items.map((i) => `<li>${mdInline(i)}</li>`).join('')}</ul>`
-const pMd = (t) =>
-  `<p class="text-gray-700 mb-3">${t
-    .split(/(\[[^\]]+\]\([^)]+\))/g)
-    .map((part) => {
-      const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
-      return m ? `<a class="text-magenta underline" href="/fr${m[2]}">${esc(m[1])}</a>` : esc(part)
-    })
-    .join('')}</p>`
+const pMd = (t) => `<p class="text-gray-700 mb-3">${mdInline(t)}</p>`
 const h1 = (t) => `<h1 class="text-3xl font-bold mb-4">${esc(t)}</h1>`
 const h2 = (t) => `<h2 class="text-2xl font-bold mt-8 mb-3">${esc(t)}</h2>`
 const p = (t) => `<p class="text-gray-700 mb-3">${esc(t)}</p>`
@@ -288,6 +286,66 @@ for (const landing of landings) {
 }
 
 // ---- Pages villes (FR, contenu complet) ---------------------------------
+const h3 = (t) => `<h3 class="font-semibold mt-3">${esc(t)}</h3>`
+
+/** Format historique des pages villes. */
+function villeClassiqueBody(ville) {
+  const autres = villes.filter((v) => v.slug !== ville.slug).map(aVille).join(' · ')
+  return (
+    h1(ville.h1) +
+    p(ville.sousTitre) +
+    ville.intro.map(p).join('') +
+    h2(ville.sectionLocale.h2) +
+    ville.sectionLocale.paragraphes.map(p).join('') +
+    h2(ville.h2Destinations) +
+    ville.destinations.map((d) => h3(d.nom) + p(d.desc)).join('') +
+    h2(ville.h2Trajets) +
+    ul(ville.trajets) +
+    ville.liensUtiles.map(pMd).join('') +
+    h2(`Vos questions sur l'autocar à ${ville.nom}`) +
+    ville.faq.map((f) => h3(f.q) + p(f.a)).join('') +
+    p('Busmoov également disponible à :') + `<p class="mb-3">${autres}</p>`
+  )
+}
+
+/** Format enrichi : même ordre de blocs que SectionsEnrichies (React). */
+function villeEnrichieBody(ville) {
+  const th = (t) => `<th class="p-2 text-left">${esc(t)}</th>`
+  const td = (t) => `<td class="p-2">${esc(t)}</td>`
+  const tableau =
+    '<table class="w-full text-sm mb-3"><thead><tr>' +
+    [`Trajet au départ de ${ville.nom}`, 'Durée', 'Formule', 'Minibus 8 à 20 pl.', "Autocar jusqu'à 59 pl.", 'Par personne (car plein)'].map(th).join('') +
+    '</tr></thead><tbody>' +
+    ville.prix.lignes.map((l) => '<tr>' + [l.trajet, l.duree, l.formule, l.minibus, l.autocar, l.parPersonne].map(td).join('') + '</tr>').join('') +
+    '</tbody></table>'
+  const blocs = [ville.vehicules, ville.minibus, ville.sectionLocale].filter(Boolean)
+  const proches = ville.proximite.map((slug) => villes.find((v) => v.slug === slug)).filter(Boolean)
+  return (
+    h1(ville.h1) +
+    p(ville.sousTitre) +
+    ville.intro.map(p).join('') +
+    h2(ville.prix.h2) +
+    pMd(ville.prix.intro) +
+    tableau +
+    p(ville.prix.note) +
+    p(ville.prix.variation) +
+    h2(ville.commentLouer.h2) +
+    `<ol class="list-decimal pl-6 mb-3">${ville.commentLouer.etapes.map((e) => `<li>${esc(e)}</li>`).join('')}</ol>` +
+    p(ville.commentLouer.conseil) +
+    blocs.map((b) => h2(b.h2) + b.paragraphes.map(pMd).join('')).join('') +
+    h2(ville.visiter.h2) +
+    pMd(ville.visiter.intro) +
+    ville.visiter.lieux.map((l) => h3(l.nom) + pMd(`${l.trajet === 'en ville' ? 'En ville' : `À ${l.trajet} de ${ville.nom}`}. ${l.desc}`)).join('') +
+    h2(`Vos questions sur la location de bus à ${ville.nom}`) +
+    ville.faq.map((f) => h3(f.q) + p(f.a)).join('') +
+    h2(ville.budgets.h2) +
+    p(ville.budgets.intro) +
+    ul(ville.budgets.exemples) +
+    p(ville.budgets.note) +
+    (proches.length ? `<p class="mb-3">Location d'autocar près de ${esc(ville.nom)} : ${proches.map(aVille).join(' · ')}</p>` : '')
+  )
+}
+
 for (const ville of villes) {
   const jsonLd = [
     {
@@ -301,6 +359,15 @@ for (const ville of villes) {
     },
     {
       '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Accueil', item: `${BASE_URL}/fr` },
+        { '@type': 'ListItem', position: 2, name: "Location d'autocar", item: `${BASE_URL}/fr/services/location-autocar` },
+        { '@type': 'ListItem', position: 3, name: ville.nom, item: urlFor('fr', `/location-autocar/${ville.slug}`) },
+      ],
+    },
+    {
+      '@context': 'https://schema.org',
       '@type': 'FAQPage',
       mainEntity: ville.faq.map((f) => ({
         '@type': 'Question',
@@ -309,22 +376,7 @@ for (const ville of villes) {
       })),
     },
   ]
-  const autres = villes.filter((v) => v.slug !== ville.slug).map(aVille).join(' · ')
-  const body = wrap(
-    h1(ville.h1) +
-    p(ville.sousTitre) +
-    ville.intro.map(p).join('') +
-    h2(ville.sectionLocale.h2) +
-    ville.sectionLocale.paragraphes.map(p).join('') +
-    h2(ville.h2Destinations) +
-    ville.destinations.map((d) => `<h3 class="font-semibold mt-3">${esc(d.nom)}</h3>` + p(d.desc)).join('') +
-    h2(ville.h2Trajets) +
-    ul(ville.trajets) +
-    ville.liensUtiles.map(pMd).join('') +
-    h2(`Vos questions sur l'autocar à ${ville.nom}`) +
-    ville.faq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + p(f.a)).join('') +
-    p('Busmoov également disponible à :') + `<p class="mb-3">${autres}</p>`
-  )
+  const body = wrap(ville.format === 'enrichi' ? villeEnrichieBody(ville) : villeClassiqueBody(ville))
   renderPage({
     lang: 'fr',
     path: `/location-autocar/${ville.slug}`,
@@ -439,13 +491,35 @@ const llmsFull = [
     `Source : ${BASE_URL}/fr/location-autocar/${v.slug}`,
     v.sousTitre,
     ...v.intro,
-    `### ${v.sectionLocale.h2}`,
-    ...v.sectionLocale.paragraphes,
-    `### ${v.h2Destinations}`,
-    v.destinations.map((d) => `- ${d.nom} : ${d.desc}`).join('\n'),
-    `### ${v.h2Trajets}`,
-    v.trajets.map((t) => `- ${t}`).join('\n'),
-    ...v.liensUtiles,
+    ...(v.format === 'enrichi'
+      ? [
+          `### ${v.prix.h2}`,
+          v.prix.intro,
+          `| Trajet | Durée | Formule | Minibus 8 à 20 pl. | Autocar jusqu'à 59 pl. | Par personne |\n|---|---|---|---|---|---|\n` +
+            v.prix.lignes.map((l) => `| ${l.trajet} | ${l.duree} | ${l.formule} | ${l.minibus} | ${l.autocar} | ${l.parPersonne} |`).join('\n'),
+          v.prix.note,
+          v.prix.variation,
+          `### ${v.commentLouer.h2}`,
+          v.commentLouer.etapes.map((e, i) => `${i + 1}. ${e}`).join('\n'),
+          v.commentLouer.conseil,
+          ...[v.vehicules, v.minibus, v.sectionLocale].filter(Boolean).flatMap((b) => [`### ${b.h2}`, ...b.paragraphes]),
+          `### ${v.visiter.h2}`,
+          v.visiter.intro,
+          v.visiter.lieux.map((l) => `- ${l.nom} (${l.trajet}) : ${l.desc}`).join('\n'),
+          `### ${v.budgets.h2}`,
+          v.budgets.intro,
+          v.budgets.exemples.map((e) => `- ${e}`).join('\n'),
+          v.budgets.note,
+        ]
+      : [
+          `### ${v.sectionLocale.h2}`,
+          ...v.sectionLocale.paragraphes,
+          `### ${v.h2Destinations}`,
+          v.destinations.map((d) => `- ${d.nom} : ${d.desc}`).join('\n'),
+          `### ${v.h2Trajets}`,
+          v.trajets.map((t) => `- ${t}`).join('\n'),
+          ...v.liensUtiles,
+        ]),
     `### Questions fréquentes`,
     v.faq.map((f) => `**${f.q}**\n\n${f.a}`).join('\n\n'),
   ].join('\n\n')),
