@@ -230,7 +230,8 @@ function SectionsClassiques({ ville }: { ville: VilleClassique }) {
 
 /**
  * Format enrichi (template page ville d'octobre 2026), dans l'ordre du
- * template : prix, réservation, véhicules, minibus, sorties, FAQ, CTA,
+ * template : prix, trajets vers les grandes villes, réservation, véhicules,
+ * minibus, sorties, FAQ, CTA,
  * villes proches, budgets types.
  */
 function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
@@ -282,8 +283,45 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
         </div>
       </section>
 
-      {/* Comment louer */}
+      {/* Trajets vers les grandes villes */}
       <section className="py-12 bg-gray-50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-center mb-4">{ville.grandesVilles.h2}</h2>
+          <p className="text-gray-700 leading-relaxed max-w-3xl mx-auto mb-6">{ville.grandesVilles.intro}</p>
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-left">
+                <tr>
+                  <th className="p-3 font-semibold">Trajet</th>
+                  <th className="p-3 font-semibold">Distance</th>
+                  <th className="p-3 font-semibold">Durée en autocar</th>
+                  <th className="p-3 font-semibold">Formule</th>
+                  <th className="p-3 font-semibold">Minibus 8 à 20 pl.</th>
+                  <th className="p-3 font-semibold">Autocar jusqu'à 59 pl.</th>
+                  <th className="p-3 font-semibold">Par personne (car plein)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ville.grandesVilles.lignes.map((l) => (
+                  <tr key={l.destination} className="border-t border-gray-100">
+                    <td className="p-3 font-medium whitespace-nowrap">{l.destination}</td>
+                    <td className="p-3 whitespace-nowrap">{l.distance}</td>
+                    <td className="p-3 whitespace-nowrap">{l.duree}</td>
+                    <td className="p-3">{l.formule}</td>
+                    <td className="p-3 whitespace-nowrap">{l.minibus}</td>
+                    <td className="p-3 whitespace-nowrap">{l.autocar}</td>
+                    <td className="p-3 whitespace-nowrap">{l.parPersonne}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-gray-500 mt-3">{ville.grandesVilles.note}</p>
+        </div>
+      </section>
+
+      {/* Comment louer */}
+      <section className="py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-6">{ville.commentLouer.h2}</h2>
           <ol className="space-y-3 mb-6">

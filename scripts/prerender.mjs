@@ -331,6 +331,14 @@ function villeEnrichieBody(ville) {
     tableau +
     p(ville.prix.note) +
     p(ville.prix.variation) +
+    h2(ville.grandesVilles.h2) +
+    p(ville.grandesVilles.intro) +
+    '<table class="w-full text-sm mb-3"><thead><tr>' +
+    ['Trajet', 'Distance', 'Durée en autocar', 'Formule', 'Minibus 8 à 20 pl.', "Autocar jusqu'à 59 pl.", 'Par personne (car plein)'].map(th).join('') +
+    '</tr></thead><tbody>' +
+    ville.grandesVilles.lignes.map((l) => '<tr>' + [l.destination, l.distance, l.duree, l.formule, l.minibus, l.autocar, l.parPersonne].map(td).join('') + '</tr>').join('') +
+    '</tbody></table>' +
+    p(ville.grandesVilles.note) +
     h2(ville.commentLouer.h2) +
     `<ol class="list-decimal pl-6 mb-3">${ville.commentLouer.etapes.map((e) => `<li>${esc(e)}</li>`).join('')}</ol>` +
     p(ville.commentLouer.conseil) +
@@ -503,6 +511,11 @@ const llmsFull = [
             v.prix.lignes.map((l) => `| ${l.trajet} | ${l.duree} | ${l.formule} | ${l.minibus} | ${l.autocar} | ${l.parPersonne} |`).join('\n'),
           v.prix.note,
           v.prix.variation,
+          `### ${v.grandesVilles.h2}`,
+          v.grandesVilles.intro,
+          `| Trajet | Distance | Durée en autocar | Formule | Minibus 8 à 20 pl. | Autocar jusqu'à 59 pl. | Par personne |\n|---|---|---|---|---|---|---|\n` +
+            v.grandesVilles.lignes.map((l) => `| ${l.destination} | ${l.distance} | ${l.duree} | ${l.formule} | ${l.minibus} | ${l.autocar} | ${l.parPersonne} |`).join('\n'),
+          v.grandesVilles.note,
           `### ${v.commentLouer.h2}`,
           v.commentLouer.etapes.map((e, i) => `${i + 1}. ${e}`).join('\n'),
           v.commentLouer.conseil,
