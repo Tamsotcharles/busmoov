@@ -342,6 +342,7 @@ function villeEnrichieBody(ville) {
     h2(ville.commentLouer.h2) +
     `<ol class="list-decimal pl-6 mb-3">${ville.commentLouer.etapes.map((e) => `<li>${esc(e)}</li>`).join('')}</ol>` +
     p(ville.commentLouer.conseil) +
+    (ville.commentLouer.chauffeur ? pMd(ville.commentLouer.chauffeur) : '') +
     bloc(ville.vehicules) +
     bloc(ville.minibus) +
     h2(ville.visiter.h2) +
@@ -519,6 +520,7 @@ const llmsFull = [
           `### ${v.commentLouer.h2}`,
           v.commentLouer.etapes.map((e, i) => `${i + 1}. ${e}`).join('\n'),
           v.commentLouer.conseil,
+          ...(v.commentLouer.chauffeur ? [v.commentLouer.chauffeur] : []),
           ...[v.vehicules, v.minibus].flatMap((b) => [`### ${b.h2}`, b.paragraphes[0], ...(b.liste ? [b.liste.map((i) => `- ${i}`).join('\n')] : []), ...b.paragraphes.slice(1)]),
           `### ${v.visiter.h2}`,
           v.visiter.intro,

@@ -101,7 +101,13 @@ export interface VilleEnrichie extends VilleBase {
     lignes: VilleTrajetLigne[]
     note: string
   }
-  commentLouer: { h2: string; etapes: string[]; conseil: string }
+  commentLouer: {
+    h2: string
+    etapes: string[]
+    conseil: string
+    /** Ce que le chauffeur prend en charge, ancré dans la ville */
+    chauffeur?: string
+  }
   vehicules: VilleSection
   minibus: VilleSection
   visiter: { h2: string; intro: string; lieux: VilleLieu[] }
@@ -218,6 +224,7 @@ export const villes: Ville[] = [
         'Vous réservez avec un acompte de 30 %, puis transmettez les horaires et adresses exactes.',
       ],
       conseil: "Point de prise en charge conseillé : les abords des gares Part-Dieu ou Perrache, plutôt que le cœur de la Presqu'île, où un car ne peut pas rester à l'arrêt.",
+      chauffeur: "Avec un chauffeur, vous n'avez rien d'autre à gérer que votre groupe. C'est lui qui affronte les bouchons du tunnel de Fourvière, trouve où déposer tout le monde au pied de la basilique, monte les routes enneigées vers les stations et vous ramène du Beaujolais après la dégustation. Professionnel titulaire du permis D, il respecte des temps de conduite et de repos encadrés : votre groupe voyage l'esprit tranquille, et arrive à l'heure.",
     },
     vehicules: {
       h2: 'Minibus, autocar, double étage : quel véhicule à Lyon ?',

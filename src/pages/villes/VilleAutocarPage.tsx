@@ -336,6 +336,9 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
             <Info className="w-5 h-5 text-magenta flex-none mt-0.5" />
             <p className="text-gray-700 text-sm leading-relaxed">{ville.commentLouer.conseil}</p>
           </div>
+          {ville.commentLouer.chauffeur && (
+            <TextWithLinks text={ville.commentLouer.chauffeur} className="text-gray-700 leading-relaxed mt-6" />
+          )}
         </div>
       </section>
 
