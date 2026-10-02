@@ -77,7 +77,8 @@ export function VilleAutocarPage() {
 
       {ville.format === 'enrichi' && <IntroSection ville={ville} />}
 
-      {/* Atouts */}
+      {/* Atouts (format classique : le template enrichi enchaîne intro et formulaire) */}
+      {ville.format !== 'enrichi' && (
       <section className="py-12 bg-gray-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
           {atouts.map((a) => (
@@ -89,6 +90,7 @@ export function VilleAutocarPage() {
           ))}
         </div>
       </section>
+      )}
 
       {/* Formulaire de devis intégré */}
       <section id="devis" className="py-12 scroll-mt-24">
@@ -97,7 +99,7 @@ export function VilleAutocarPage() {
             Votre devis autocar à {ville.nom} en 2 minutes
           </h2>
           <p className="text-gray-600 text-center mb-8">
-            Gratuit et sans engagement — plusieurs propositions de transporteurs sous 24h.
+            Gratuit et sans engagement. Plusieurs propositions de transporteurs sous 24h.
           </p>
           <MultiStepQuoteForm />
         </div>
@@ -227,9 +229,9 @@ function SectionsClassiques({ ville }: { ville: VilleClassique }) {
 }
 
 /**
- * Format enrichi (template page ville d'octobre 2026) : prix, réservation,
- * véhicules, minibus, ancrage local, sorties, FAQ, budgets types, CTA et
- * villes proches.
+ * Format enrichi (template page ville d'octobre 2026), dans l'ordre du
+ * template : prix, réservation, véhicules, minibus, sorties, FAQ, CTA,
+ * villes proches, budgets types.
  */
 function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
   const localizedPath = useLocalizedPath()
@@ -299,28 +301,38 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
         </div>
       </section>
 
-      {/* Véhicules, minibus, ancrage local */}
-      {[ville.vehicules, ville.minibus, ville.sectionLocale].map((bloc, i) =>
-        bloc ? (
-          <section key={bloc.h2} className={`py-12 ${i % 2 === 1 ? 'bg-gray-50' : ''}`}>
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-              <h2 className="text-2xl font-bold text-center mb-6">{bloc.h2}</h2>
-              <div className="space-y-4">
-                {bloc.paragraphes.map((p, j) => (
-                  <TextWithLinks key={j} text={p} className="text-gray-700 leading-relaxed" />
-                ))}
-              </div>
+      {/* Véhicules et minibus */}
+      {[ville.vehicules, ville.minibus].map((bloc, i) => (
+        <section key={bloc.h2} className={`py-12 ${i === 1 ? 'bg-gray-50' : ''}`}>
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold text-center mb-6">{bloc.h2}</h2>
+            <div className="space-y-4">
+              {bloc.paragraphes.map((p, j) => (
+                <div key={j} className="space-y-4">
+                  <TextWithLinks text={p} className="text-gray-700 leading-relaxed" />
+                  {j === 0 && bloc.liste && (
+                    <ul className="space-y-2">
+                      {bloc.liste.map((item) => (
+                        <li key={item} className="flex items-start gap-3">
+                          <CheckCircle className="w-5 h-5 text-magenta flex-none mt-0.5" />
+                          <TextWithLinks as="span" text={item} className="text-gray-700" />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
             </div>
-          </section>
-        ) : null
-      )}
+          </div>
+        </section>
+      ))}
 
       {/* Sorties de groupe */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-4">{ville.visiter.h2}</h2>
           <TextWithLinks text={ville.visiter.intro} className="text-gray-700 leading-relaxed max-w-3xl mx-auto mb-8" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {ville.visiter.lieux.map((l) => (
               <div key={l.nom} className="card">
                 <div className="flex items-center gap-2 mb-1">
@@ -328,7 +340,7 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
                   <h3 className="font-semibold">{l.nom}</h3>
                 </div>
                 <p className="text-xs text-gray-500 mb-2">{l.trajet === 'en ville' ? 'En ville' : `À ${l.trajet} de ${ville.nom}`}</p>
-                <TextWithLinks text={l.desc} className="text-sm text-gray-600" />
+                <TextWithLinks text={l.desc} className="text-sm text-gray-600 leading-relaxed" />
               </div>
             ))}
           </div>
@@ -336,7 +348,7 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
       </section>
 
       {/* FAQ */}
-      <section className="py-12">
+      <section className="py-12 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-8">Vos questions sur la location de bus à {ville.nom}</h2>
           <div className="space-y-6">
@@ -350,7 +362,35 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
         </div>
       </section>
 
-      {/* Budgets types + CTA */}
+      {/* CTA devis */}
+      <section className="py-12">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-2xl font-bold mb-4">Prêt à réserver votre bus à {ville.nom} ?</p>
+          <p className="text-gray-600 mb-6">
+            Décrivez votre trajet en 2 minutes, recevez plusieurs devis gratuits sous 24h.
+          </p>
+          <a href="#devis" className="btn btn-primary inline-flex items-center gap-2">
+            Demander un devis gratuit <ArrowRight className="w-4 h-4" />
+          </a>
+        </div>
+      </section>
+
+      {/* Villes proches (bloc de maillage, pas de Hn) */}
+      {proches.length > 0 && (
+        <section className="pb-8">
+          <p className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-sm text-gray-500 text-center">
+            <span className="font-semibold text-gray-700">Location d'autocar près de {ville.nom} : </span>
+            {proches.map((v, i) => (
+              <span key={v.slug}>
+                <Link to={localizedPath(`/location-autocar/${v.slug}`)} className="text-magenta hover:underline">{v.nom}</Link>
+                {i < proches.length - 1 ? ' · ' : ''}
+              </span>
+            ))}
+          </p>
+        </section>
+      )}
+
+      {/* H2 Devis : budgets types */}
       <section className="py-12 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-4">{ville.budgets.h2}</h2>
@@ -363,29 +403,9 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
               </li>
             ))}
           </ul>
-          <p className="text-xs text-gray-500 mb-8">{ville.budgets.note}</p>
-          <div className="text-center">
-            <a href="#devis" className="btn btn-primary inline-flex items-center gap-2">
-              Demander un devis gratuit <ArrowRight className="w-4 h-4" />
-            </a>
-          </div>
+          <p className="text-xs text-gray-500">{ville.budgets.note}</p>
         </div>
       </section>
-
-      {/* Villes proches */}
-      {proches.length > 0 && (
-        <section className="py-8">
-          <p className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-sm text-gray-500 text-center">
-            <span className="font-semibold text-gray-700">Location d'autocar près de {ville.nom} : </span>
-            {proches.map((v, i) => (
-              <span key={v.slug}>
-                <Link to={localizedPath(`/location-autocar/${v.slug}`)} className="text-magenta hover:underline">{v.nom}</Link>
-                {i < proches.length - 1 ? ' · ' : ''}
-              </span>
-            ))}
-          </p>
-        </section>
-      )}
     </>
   )
 }

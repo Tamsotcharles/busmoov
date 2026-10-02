@@ -17,6 +17,8 @@ export interface VilleDestination {
 export interface VilleSection {
   h2: string
   paragraphes: string[]
+  /** Liste à puces insérée après le premier paragraphe (format enrichi) */
+  liste?: string[]
 }
 
 interface VilleBase {
@@ -85,8 +87,6 @@ export interface VilleEnrichie extends VilleBase {
   commentLouer: { h2: string; etapes: string[]; conseil: string }
   vehicules: VilleSection
   minibus: VilleSection
-  /** Bloc d'ancrage local optionnel, propre à la ville (ex. navettes ski) */
-  sectionLocale?: VilleSection
   visiter: { h2: string; intro: string; lieux: VilleLieu[] }
   budgets: { h2: string; intro: string; exemples: string[]; note: string }
   /** Slugs des pages villes voisines ou de la région (bloc de bas de page) */
@@ -158,15 +158,15 @@ export const villes: Ville[] = [
     format: 'enrichi',
     nom: 'Lyon',
     metaTitle: 'Location autocar et bus à Lyon avec chauffeur | Busmoov',
-    metaDescription: 'Autocar et minibus avec chauffeur à Lyon : Saint-Exupéry, salons à Eurexpo, navettes ski. Prix indicatifs et devis gratuit sous 24h.',
+    metaDescription: 'Autocar et minibus avec chauffeur à Lyon : transferts Saint-Exupéry, salons à Eurexpo, navettes ski. Devis gratuit sous 24h.',
     h1: "Location d'autocar et de bus avec chauffeur à Lyon",
     sousTitre: "Du minibus 8 places à l'autocar 59 places : des autocaristes du Rhône vérifiés et plusieurs devis gratuits sous 24h.",
     intro: [
-      "Vous cherchez un bus avec chauffeur à Lyon pour un salon à Eurexpo, un transfert vers Saint-Exupéry ou un week-end au ski ? Busmoov compare pour vous les devis d'autocaristes du Rhône et de l'Ain, du minibus 8 places à l'autocar grand tourisme. Décrivez votre trajet ci-dessous : vous recevez plusieurs propositions sous 24h.",
+      "Vous cherchez un bus à Lyon ? Salon à Eurexpo, transfert vers Saint-Exupéry, sortie scolaire ou week-end au ski : Busmoov compare pour vous les devis d'autocaristes du Rhône et de l'Ain, du minibus 8 places à l'autocar 59 places. Décrivez votre trajet ci-dessous, vous recevez plusieurs propositions sous 24h.",
     ],
     prix: {
       h2: "Prix d'une location de bus avec chauffeur à Lyon",
-      intro: "Voici les budgets à prévoir pour les trajets les plus courants au départ de Lyon. Notre [guide des prix de location d'autocar](/blog/prix-location-autocar) détaille tout ce qui entre dans un devis.",
+      intro: "Voici les budgets à prévoir pour les trajets les plus demandés au départ de Lyon, du transfert vers l'aéroport au week-end à Paris. Notre [guide des prix de location d'autocar](/blog/prix-location-autocar) détaille tout ce qui entre dans un devis.",
       lignes: [
         { trajet: 'Part-Dieu vers aéroport Saint-Exupéry', duree: '35 min', formule: 'Transfert aller simple', minibus: '350 à 450 €', autocar: '550 à 700 €', parPersonne: '11 à 14 €' },
         { trajet: 'Mise à disposition dans Lyon', duree: '5 h', formule: 'Demi-journée', minibus: '600 à 750 €', autocar: '800 à 950 €', parPersonne: '16 à 19 €' },
@@ -175,72 +175,71 @@ export const villes: Ville[] = [
         { trajet: 'Lyon vers Val Thorens', duree: '3 h 15', formule: 'Transfert aller simple', minibus: '800 à 1 000 €', autocar: '1 100 à 1 400 €', parPersonne: '22 à 28 €' },
         { trajet: 'Lyon vers Paris', duree: '5 h 30', formule: 'Aller-retour sur 2 jours', minibus: '1 700 à 2 200 €', autocar: '2 200 à 2 800 €', parPersonne: '44 à 56 €' },
       ],
-      variation: "Trois facteurs font bouger le prix : la date (les samedis de février vers les stations et la Fête des Lumières en décembre sont très demandés), l'amplitude de la journée, et le nombre de chauffeurs sur les longs trajets.",
-      note: 'Prix indicatifs TTC (TVA transport 10 %), estimés à partir de devis récents, octobre 2026. Péages inclus ; parking, hébergement et repas du chauffeur en sus. Autocar jusqu\'à 59 places, prix par personne calculé pour un car de 50 passagers.',
+      variation: "Trois facteurs font bouger le prix à Lyon. La date d'abord : les samedis de février vers les stations, la Fête des Lumières début décembre et les grands salons d'Eurexpo mobilisent beaucoup de cars. L'amplitude de la journée ensuite, attente sur place comprise. Enfin la distance : au-delà d'environ 9 heures de conduite dans la journée, un second chauffeur devient obligatoire.",
+      note: "Prix indicatifs TTC (TVA transport 10 %), estimés à partir de devis récents, octobre 2026. Péages inclus ; parking, hébergement et repas du chauffeur en sus. Prix par personne calculé pour un car de 50 passagers.",
     },
     commentLouer: {
       h2: 'Comment louer un autocar avec chauffeur à Lyon ?',
       etapes: [
-        'Décrivez votre trajet dans le formulaire : départ, destination, dates et nombre de passagers.',
+        'Décrivez votre trajet : départ, destination, dates et nombre de passagers.',
         'Nous consultons des autocaristes vérifiés du Rhône et des départements voisins.',
-        'Vous recevez plusieurs devis sous 24h et choisissez celui qui vous convient.',
-        "Vous réservez avec un acompte de 30 %, puis vous nous transmettez les horaires et adresses exactes.",
+        'Vous recevez plusieurs devis sous 24h et choisissez le plus adapté.',
+        'Vous réservez avec un acompte de 30 %, puis transmettez les horaires et adresses exactes.',
       ],
-      conseil: "Pour le rendez-vous, préférez les abords d'une gare (Part-Dieu, Perrache) ou un parking à la Presqu'île, où un car ne peut pas stationner longtemps.",
+      conseil: "Point de prise en charge conseillé : les abords des gares Part-Dieu ou Perrache, plutôt que le cœur de la Presqu'île, où un car ne peut pas rester à l'arrêt.",
     },
     vehicules: {
       h2: 'Minibus, autocar, double étage : quel véhicule à Lyon ?',
       paragraphes: [
-        "De 8 à 20 personnes, un minibus suffit. De 21 à 35, un midibus ou un autocar 35 places. De 36 à 59, c'est l'autocar standard, le format des [locations de bus 50 places](/location-bus-50-places) pour les comités d'entreprise et les associations. Au-delà de 60 personnes, un autocar à double étage ou deux cars.",
-        "La contrainte lyonnaise, c'est le stationnement dans les quartiers historiques : l'office de tourisme ne recense que 18 places autocars dans tout le 5e arrondissement, Vieux-Lyon et Fourvière compris. Avec plusieurs cars, le chauffeur dépose le groupe puis repart attendre ailleurs. Pour un petit comité, la [location de minibus avec chauffeur](/services/location-minibus) évite ce casse-tête.",
+        'Le bon véhicule dépend de votre effectif, mais aussi de votre destination dans Lyon :',
+        "La contrainte lyonnaise : à Fourvière comme au Vieux-Lyon, les places autocars sont rares, et avec un grand car le chauffeur dépose le groupe puis repart stationner. Pour un petit comité qui enchaîne les visites, la [location de minibus avec chauffeur](/services/location-minibus) évite ce casse-tête.",
+      ],
+      liste: [
+        '8 à 20 personnes : un minibus, le plus simple à garer en centre-ville.',
+        '21 à 35 personnes : un midibus ou un autocar 35 places, le format des classes et des clubs sportifs.',
+        "36 à 59 personnes : l'autocar standard, celui des [locations de bus 50 places](/location-bus-50-places) pour les comités d'entreprise et les associations.",
+        '60 personnes et plus : un autocar à double étage ou deux cars.',
       ],
     },
     minibus: {
       h2: 'Minibus avec chauffeur à Lyon : navettes gare et aéroport',
       paragraphes: [
-        "L'aéroport Lyon-Saint-Exupéry et sa gare TGV sont à environ 35 km de la Part-Dieu, soit 35 à 45 minutes de route hors heures de pointe. Le minibus est le bon format pour accueillir un petit groupe à la descente d'un vol ou d'un TGV et le déposer directement à l'hôtel ou au lieu de séminaire.",
-        "Autre usage fréquent : les navettes vers Eurexpo, à Chassieu, pendant les salons, et vers le Groupama Stadium, à Décines-Charpieu, les soirs de match ou de concert. Pour un groupe qui arrive en avion, notre service de [transfert aéroport en autocar](/services/transfert-aeroport) organise aussi le retour.",
-      ],
-    },
-    sectionLocale: {
-      h2: 'Navettes ski au départ de Lyon : Tarentaise et Oisans',
-      paragraphes: [
-        "Le schéma habituel : prise en charge à Part-Dieu ou Perrache tôt le matin. Pour les 3 Vallées (Val Thorens, Courchevel, Méribel), le car prend l'A43 puis l'A430 vers Albertville et la RN90 jusqu'à Moûtiers : comptez environ 3 h à 3 h 30 jusqu'à Val Thorens. Pour l'Alpe d'Huez, il passe par Grenoble puis la RD1091 dans l'Oisans, soit environ 2 h 45 à 3 h.",
-        "Les samedis des vacances de février sont les journées les plus chargées de l'année sur ces axes : les chauffeurs habitués partent plus tôt pour passer avant les bouchons. Le matériel voyage en soute ; comptez un sac de ski et une valise par personne pour dimensionner le véhicule. Du 1er novembre au 31 mars, les équipements hiver sont obligatoires dans les communes de montagne (loi Montagne) : le transporteur s'en charge.",
+        "Lyon compte trois gares utiles aux groupes : Part-Dieu, Perrache et la gare TGV de l'aéroport Saint-Exupéry. De Part-Dieu ou de Perrache, comptez environ 35 minutes de route jusqu'à l'aéroport, et une vingtaine de minutes jusqu'à Eurexpo, à Chassieu.",
+        "Deux usages reviennent souvent. L'arrivée en TGV à Part-Dieu, puis un transfert direct vers un séminaire à la Cité Internationale (moins de 10 minutes) ou à Eurexpo. Et l'arrivée en avion à Saint-Exupéry, puis la dépose à l'hôtel : notre service de [transfert aéroport](/services/transfert-aeroport) organise aussi le retour.",
       ],
     },
     visiter: {
       h2: 'Lyon et ses alentours en autocar : que voir en groupe ?',
-      intro: "Lyon compte 519 127 habitants ([Insee, population de référence 2023](https://www.insee.fr/fr/statistiques/8643952?geo=COM-69123)), et sa basilique de Fourvière accueille à elle seule plus de 2,5 millions de pèlerins et visiteurs par an selon le [sanctuaire de Fourvière](https://www.fourviere.org/fr/vie-du-site-notre-dame-de-fourviere/notre-dame-de-fourviere/la-basilique/) (consulté en octobre 2026). De quoi remplir une journée de groupe sans quitter la ville, puis rayonner autour.",
+      intro: "Lyon compte 519 127 habitants ([Insee, population de référence 2023](https://www.insee.fr/fr/statistiques/8643952?geo=COM-69123)), et sa basilique de Fourvière accueille à elle seule plus de 2,5 millions de pèlerins et visiteurs par an, selon le [sanctuaire de Fourvière](https://www.fourviere.org/fr/vie-du-site-notre-dame-de-fourviere/notre-dame-de-fourviere/la-basilique/) (consulté en octobre 2026). De quoi remplir une journée de groupe sans quitter la ville, avant de rayonner vers les Alpes, le Beaujolais ou l'Ain.",
       lieux: [
-        { nom: 'Fourvière et le Vieux-Lyon', trajet: 'en ville', desc: "La basilique domine la ville, le quartier Renaissance s'étend à ses pieds. L'office de tourisme indique des stationnements autocars rue Roger Radisson et place Abbé Larue à Fourvière, et quai Romain Rolland pour le Vieux-Lyon." },
-        { nom: 'Annecy et son lac', trajet: '1 h 45', desc: "Un classique des sorties d'entreprise : vieille ville, croisière sur le lac et retour en fin d'après-midi." },
-        { nom: 'Le Beaujolais', trajet: '40 min', desc: 'Route des vins, caves et repas de groupe autour de Villefranche-sur-Saône : avec le car, personne ne prend le volant au retour.' },
-        { nom: 'Pérouges et la Dombes', trajet: '40 min', desc: 'Cité médiévale de l\'Ain et parc des oiseaux de Villars-les-Dombes tout proche : un duo très demandé pour les [sorties scolaires en autocar](/services/sorties-scolaires).' },
-        { nom: 'Vienne', trajet: '40 min', desc: "Théâtre antique, temple d'Auguste et de Livie, et le festival Jazz à Vienne chaque été." },
+        { nom: 'Fourvière et le Vieux-Lyon', trajet: 'en ville', desc: "Le quartier Renaissance et la colline de Fourvière font partie du site historique de Lyon, inscrit au patrimoine mondial de l'UNESCO en 1998. Les cars stationnent rue Roger Radisson et place Abbé Larue à Fourvière, quai Romain Rolland au Vieux-Lyon : 18 places autocars en tout dans le 5e arrondissement selon l'office de tourisme." },
+        { nom: 'Annecy et son lac', trajet: '1 h 45', desc: "Vieille ville, canaux et croisière sur le lac : un classique des sorties de comités d'entreprise et des [déplacements d'entreprise en autocar](/blog/autocar-deplacement-entreprise). Départ le matin, retour à Lyon en fin d'après-midi." },
+        { nom: 'Le Beaujolais', trajet: '40 min', desc: "Dix crus, de Brouilly à Saint-Amour, et des domaines qui reçoivent les groupes pour une dégustation et un repas. Avec le car, personne ne prend le volant au retour." },
+        { nom: 'Les stations des Alpes', trajet: '2 h 45 à 3 h 30', desc: "Pour les 3 Vallées (Val Thorens, Courchevel, Méribel), le car prend l'A43 puis l'A430 vers Albertville et la RN90 jusqu'à Moûtiers. Pour l'Alpe d'Huez, il passe par Grenoble puis la RD1091 dans l'Oisans. Du 1er novembre au 31 mars, les équipements hiver sont obligatoires dans les communes de montagne (loi Montagne)." },
+        { nom: 'Pérouges', trajet: '40 min', desc: "Cité médiévale de l'Ain classée parmi les Plus Beaux Villages de France, avec le parc des oiseaux de Villars-les-Dombes tout proche : un duo très demandé pour les [sorties scolaires en autocar](/services/sorties-scolaires)." },
       ],
     },
     faq: [
       {
-        q: 'Combien coûte un bus de 50 places avec chauffeur à Lyon ?',
-        a: "Comptez environ 550 à 700 € TTC pour un transfert vers Saint-Exupéry et 950 à 1 200 € pour une journée à Annecy, soit 11 à 24 € par personne pour un car plein. Le prix exact dépend de la date, des horaires et du kilométrage.",
+        q: "Quel est le prix d'un bus de 50 places avec chauffeur à Lyon ?",
+        a: "Comptez environ 550 à 700 € TTC pour un transfert vers Saint-Exupéry, 950 à 1 200 € pour une journée à Annecy et 2 200 à 2 800 € pour un aller-retour à Paris sur 2 jours. Car plein, cela représente 11 à 56 € par personne.",
       },
       {
-        q: 'Quel prix pour un minibus avec chauffeur à Lyon ?',
-        a: "Pour 8 à 20 personnes, prévoyez environ 350 à 450 € TTC pour un transfert vers l'aéroport et 600 à 750 € pour une demi-journée de mise à disposition. Vous recevez plusieurs devis gratuits sous 24h.",
+        q: "Combien coûte la location d'un bus avec chauffeur pour 30 personnes à Lyon ?",
+        a: "Un autocar 35 places revient un peu moins cher qu'un 50 places : environ 850 à 1 100 € TTC pour une journée à Annecy, 700 à 900 € pour une sortie dans le Beaujolais.",
       },
       {
-        q: 'Combien de temps à l\'avance réserver un car à Lyon ?',
-        a: "Deux à trois semaines suffisent la plupart du temps. Pour un samedi de février vers les stations, la Fête des Lumières ou un grand salon à Eurexpo, réservez plusieurs semaines à l'avance : les cars partent vite.",
+        q: "Quel est le prix moyen d'un minibus avec chauffeur à Lyon ?",
+        a: "Pour 8 à 20 personnes, prévoyez environ 350 à 450 € TTC pour un transfert vers l'aéroport et 600 à 750 € pour une demi-journée de mise à disposition en ville.",
       },
     ],
     budgets: {
       h2: 'Votre devis de bus avec chauffeur à Lyon en 24h',
-      intro: 'Chaque devis est établi pour votre trajet. Pour vous donner un ordre d\'idée, voici trois budgets types :',
+      intro: "Chaque devis est établi pour votre trajet, vos horaires et votre effectif. Pour vous donner un ordre d'idée, voici trois budgets types au départ de Lyon :",
       exemples: [
-        "Comité d'entreprise de 50 personnes, Lyon vers Annecy à la journée, autocar 53 places : 950 à 1 200 € TTC.",
-        'Club sportif de 30 personnes, Lyon vers Toulouse aller-retour sur 2 jours, autocar 35 places : 2 300 à 2 900 € TTC, hébergement du chauffeur en sus.',
-        'Séminaire de 15 personnes, navette Part-Dieu vers Eurexpo aller et retour en demi-journée, minibus 20 places : 600 à 750 € TTC.',
+        "Comité d'entreprise de 50 personnes, Lyon vers Annecy à la journée, autocar 53 places, juin : 950 à 1 200 € TTC.",
+        'Club sportif de 30 personnes, Lyon vers Toulouse aller-retour sur 2 jours, autocar 35 places, mars : 2 300 à 2 900 € TTC, hébergement du chauffeur en sus.',
+        'Séminaire de 15 personnes, navette Part-Dieu vers Eurexpo aller et retour, minibus 20 places, janvier : 600 à 750 € TTC.',
       ],
       note: 'Budgets indicatifs estimés à partir de devis récents, octobre 2026.',
     },

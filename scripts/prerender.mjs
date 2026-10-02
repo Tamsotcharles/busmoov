@@ -318,7 +318,9 @@ function villeEnrichieBody(ville) {
     '</tr></thead><tbody>' +
     ville.prix.lignes.map((l) => '<tr>' + [l.trajet, l.duree, l.formule, l.minibus, l.autocar, l.parPersonne].map(td).join('') + '</tr>').join('') +
     '</tbody></table>'
-  const blocs = [ville.vehicules, ville.minibus, ville.sectionLocale].filter(Boolean)
+  // Liste à puces insérée après le premier paragraphe du bloc
+  const bloc = (b) =>
+    h2(b.h2) + b.paragraphes.map((t, j) => pMd(t) + (j === 0 && b.liste ? `<ul class="list-disc pl-6 mb-3">${b.liste.map((i) => `<li>${mdInline(i)}</li>`).join('')}</ul>` : '')).join('')
   const proches = ville.proximite.map((slug) => villes.find((v) => v.slug === slug)).filter(Boolean)
   return (
     h1(ville.h1) +
@@ -332,17 +334,19 @@ function villeEnrichieBody(ville) {
     h2(ville.commentLouer.h2) +
     `<ol class="list-decimal pl-6 mb-3">${ville.commentLouer.etapes.map((e) => `<li>${esc(e)}</li>`).join('')}</ol>` +
     p(ville.commentLouer.conseil) +
-    blocs.map((b) => h2(b.h2) + b.paragraphes.map(pMd).join('')).join('') +
+    bloc(ville.vehicules) +
+    bloc(ville.minibus) +
     h2(ville.visiter.h2) +
     pMd(ville.visiter.intro) +
     ville.visiter.lieux.map((l) => h3(l.nom) + pMd(`${l.trajet === 'en ville' ? 'En ville' : `À ${l.trajet} de ${ville.nom}`}. ${l.desc}`)).join('') +
     h2(`Vos questions sur la location de bus à ${ville.nom}`) +
     ville.faq.map((f) => h3(f.q) + p(f.a)).join('') +
+    p(`Prêt à réserver votre bus à ${ville.nom} ? Décrivez votre trajet en 2 minutes, recevez plusieurs devis gratuits sous 24h.`) +
+    (proches.length ? `<p class="mb-3">Location d'autocar près de ${esc(ville.nom)} : ${proches.map(aVille).join(' · ')}</p>` : '') +
     h2(ville.budgets.h2) +
     p(ville.budgets.intro) +
     ul(ville.budgets.exemples) +
-    p(ville.budgets.note) +
-    (proches.length ? `<p class="mb-3">Location d'autocar près de ${esc(ville.nom)} : ${proches.map(aVille).join(' · ')}</p>` : '')
+    p(ville.budgets.note)
   )
 }
 
@@ -502,7 +506,7 @@ const llmsFull = [
           `### ${v.commentLouer.h2}`,
           v.commentLouer.etapes.map((e, i) => `${i + 1}. ${e}`).join('\n'),
           v.commentLouer.conseil,
-          ...[v.vehicules, v.minibus, v.sectionLocale].filter(Boolean).flatMap((b) => [`### ${b.h2}`, ...b.paragraphes]),
+          ...[v.vehicules, v.minibus].flatMap((b) => [`### ${b.h2}`, b.paragraphes[0], ...(b.liste ? [b.liste.map((i) => `- ${i}`).join('\n')] : []), ...b.paragraphes.slice(1)]),
           `### ${v.visiter.h2}`,
           v.visiter.intro,
           v.visiter.lieux.map((l) => `- ${l.nom} (${l.trajet}) : ${l.desc}`).join('\n'),
