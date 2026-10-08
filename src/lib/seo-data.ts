@@ -115,8 +115,8 @@ export const ogLocales: Record<SeoLanguage, string> = {
 export const seoConfig: Record<SeoPageKey, Record<SeoLanguage, SeoPageMeta>> = {
   'home': {
     fr: {
-      title: 'Location d\'autocar avec chauffeur — Devis gratuit | Busmoov',
-      description: 'Louez un bus, autocar ou minibus avec chauffeur partout en France. Comparez plusieurs devis de transporteurs vérifiés en 24h, au meilleur prix.',
+      title: 'Location d\'autocar avec chauffeur : 3 devis en 24h | Busmoov',
+      description: 'Louez un bus, autocar ou minibus avec chauffeur partout en France. Jusqu\'à 3 devis gratuits de transporteurs vérifiés en 24h, prix ferme, sans engagement.',
     },
     es: {
       title: 'Alquiler de autocar con conductor — Presupuesto gratis | Busmoov',

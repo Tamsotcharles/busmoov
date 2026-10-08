@@ -1,7 +1,7 @@
 {
   "https://www.busmoov.com/fr": {
-    "hash": "4ad9c457a1cd",
-    "lastmod": "2026-09-16"
+    "hash": "d0abf6bb3307",
+    "lastmod": "2026-10-08"
   },
   "https://www.busmoov.com/es": {
     "hash": "3c76a1972dde",
@@ -192,8 +192,12 @@
     "lastmod": "2026-09-08"
   },
   "https://www.busmoov.com/fr/location-bus-50-places": {
-    "hash": "89a26d11b9af",
-    "lastmod": "2026-09-08"
+    "hash": "19606c20e1a7",
+    "lastmod": "2026-10-08"
+  },
+  "https://www.busmoov.com/fr/devis-autocar": {
+    "hash": "cad1fa04e8a5",
+    "lastmod": "2026-10-08"
   },
   "https://www.busmoov.com/fr/location-autocar-ile-de-france": {
     "hash": "81542c0c3867",
@@ -328,8 +332,8 @@
     "lastmod": "2026-09-15"
   },
   "https://www.busmoov.com/fr/blog/prix-location-autocar": {
-    "hash": "90ff353dd4ab",
-    "lastmod": "2026-09-07"
+    "hash": "5459bbd34926",
+    "lastmod": "2026-10-08"
   },
   "https://www.busmoov.com/fr/blog/organiser-sortie-scolaire-autocar": {
     "hash": "d73213f6e83e",

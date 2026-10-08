@@ -6,11 +6,20 @@
  * majorations régionales) : uniquement des fourchettes indicatives.
  */
 
+/** Tableau simple (en-têtes + lignes de texte). Partagé avec les landings. */
+export interface TableauSeo {
+  /** Légende affichée au-dessus du tableau (et <caption> en HTML). */
+  caption?: string
+  headers: string[]
+  rows: string[][]
+}
+
 export type BlogBlock =
   | { type: 'h2'; text: string }
   | { type: 'p'; text: string }
   | { type: 'ul'; items: string[] }
   | { type: 'callout'; text: string }
+  | ({ type: 'table' } & TableauSeo)
 
 export interface BlogArticle {
   slug: string
@@ -26,8 +35,8 @@ export const articles: BlogArticle[] = [
   {
     slug: 'prix-location-autocar',
     titre: 'Combien coûte la location d\'un autocar avec chauffeur ? Tarifs 2026',
-    metaTitle: 'Prix location autocar avec chauffeur 2026 : tarifs et exemples | Busmoov',
-    metaDescription: 'Combien coûte un autocar avec chauffeur ? Fourchettes 2026 : journée dès 690 € TTC, facteurs de prix, exemples concrets, conseils pour payer moins cher.',
+    metaTitle: 'Prix location autocar avec chauffeur 2026 : tarifs | Busmoov',
+    metaDescription: 'Combien coûte un autocar avec chauffeur ? Tarifs 2026 par distance et taille de bus : journée dès 690 € TTC, transfert, séjour. Tableaux et exemples.',
     datePublication: '2026-09-04',
     extrait: 'Journée dès 690 € TTC, transferts, séjours : les vraies fourchettes de prix d\'un autocar avec chauffeur, ce qui les fait varier et comment payer moins cher.',
     blocks: [
@@ -43,6 +52,45 @@ export const articles: BlogArticle[] = [
         'Longue distance : au-delà des trajets régionaux, le prix se calcule essentiellement au kilomètre',
       ]},
       { type: 'callout', text: 'Tous les prix du transport de voyageurs s\'entendent TTC avec une TVA à 10 % en France.' },
+      { type: 'h2', text: 'Tarifs 2026 par distance et taille de bus' },
+      { type: 'p', text: 'Les ordres de grandeur ci-dessous sont ceux constatés sur les devis de nos transporteurs en 2026, pour un départ depuis une grande agglomération, hors haute saison. Chauffeur, carburant et péages sont inclus. Ils servent à cadrer un budget, pas à remplacer un devis : la disponibilité réelle le jour J fait bouger le prix dans la fourchette, parfois au-delà.' },
+      { type: 'table',
+        caption: 'Aller-retour dans la journée — prix TTC indicatifs selon la distance aller',
+        headers: ['Distance (aller)', 'Minibus 8-20 places', 'Autocar standard 21-59 places', 'Grande capacité 60-90 places'],
+        rows: [
+          ['Moins de 50 km', '620 à 750 €', '690 à 830 €', '800 à 1 400 €'],
+          ['50 à 100 km', '800 à 1 000 €', '900 à 1 100 €', '1 050 à 1 900 €'],
+          ['100 à 200 km', '1 000 à 1 250 €', '1 100 à 1 400 €', '1 250 à 2 400 €'],
+          ['200 à 300 km', '1 700 à 2 100 €', '1 900 à 2 300 €', '2 200 à 3 900 €'],
+          ['Plus de 300 km', 'Sur devis', 'Sur devis', 'Sur devis'],
+        ],
+      },
+      { type: 'p', text: 'Au-delà de 300 km aller, la journée dépasse l\'amplitude légale d\'un seul chauffeur : le devis prévoit soit un second chauffeur, soit une nuit sur place. Pour la grande capacité, l\'écart est large parce qu\'il recouvre des véhicules très différents, du 63 places au double étage de 90 places.' },
+      { type: 'table',
+        caption: 'Transfert aller simple (aéroport, gare, événement) — autocar standard, prix TTC indicatifs',
+        headers: ['Distance', 'Autocar standard 21-59 places'],
+        rows: [
+          ['Moins de 20 km', '400 à 500 €'],
+          ['20 à 50 km', '500 à 600 €'],
+          ['50 à 100 km', '650 à 850 €'],
+          ['100 à 200 km', '950 à 1 300 €'],
+          ['200 à 300 km', '1 350 à 1 700 €'],
+          ['300 à 500 km', '2 000 à 3 100 €'],
+          ['500 à 1 000 km', '3 200 à 4 800 €'],
+        ],
+      },
+      { type: 'p', text: 'Pour un minibus, retirez environ 10 % ; pour un autocar grande capacité, ajoutez 15 à 70 % selon la taille. Un transfert aller simple n\'est pas la moitié d\'un aller-retour : le car revient à vide, et c\'est facturé.' },
+      { type: 'table',
+        caption: 'Séjour de plusieurs jours — autocar standard, prix TTC indicatifs',
+        headers: ['Formule', '2 jours', '3 jours'],
+        rows: [
+          ['Le car repart entre l\'aller et le retour, trajet de 100 à 200 km', '1 800 à 2 100 €', '2 300 à 2 600 €'],
+          ['Le car repart entre l\'aller et le retour, trajet de 300 à 500 km', '2 800 à 3 700 €', '3 300 à 4 200 €'],
+          ['Le car reste à disposition sur place, trajet jusqu\'à 200 km', '2 200 à 2 500 €', '2 900 à 3 200 €'],
+          ['Le car reste à disposition sur place, trajet de 300 à 500 km', '3 300 à 3 900 €', '4 000 à 4 600 €'],
+        ],
+      },
+      { type: 'p', text: 'Au-delà de 6 jours, chaque journée supplémentaire est facturée à un tarif forfaitaire, plus élevé si le car et le chauffeur restent à disposition. Pour un format précis, notre page [bus 50 places](/location-bus-50-places) détaille les tarifs du véhicule le plus demandé, et la [location de bus](/location-bus) compare toutes les capacités.' },
       { type: 'h2', text: 'Les 6 facteurs qui font varier le prix' },
       { type: 'p', text: '1. La distance, évidemment — mais par tranches : un trajet de 80 km et un trajet de 95 km peuvent coûter le même prix, car les transporteurs raisonnent en tranches kilométriques.' },
       { type: 'p', text: '2. L\'amplitude horaire du chauffeur : c\'est le temps entre son départ du dépôt et son retour, pas seulement votre temps de trajet. Un aller-retour avec 6 heures d\'attente sur place mobilise le chauffeur toute la journée. Au-delà de 12 heures d\'amplitude, la réglementation impose un second chauffeur, ce qui ajoute environ 500 € TTC au transfert.' },
@@ -68,7 +116,7 @@ export const articles: BlogArticle[] = [
         'Comparez plusieurs transporteurs : sur un même trajet, l\'écart entre deux devis atteint couramment 15 à 25 % — c\'est exactement ce que Busmoov fait pour vous en une seule demande',
       ]},
       { type: 'h2', text: 'Obtenir un prix précis pour votre trajet' },
-      { type: 'p', text: 'Décrivez votre trajet (départ, destination, date, horaires, nombre de passagers) dans notre formulaire de [location d\'autocar avec chauffeur](/services/location-autocar) : vous recevez sous 24 h plusieurs devis gratuits de transporteurs vérifiés, sans engagement. Au départ d\'une grande ville ? Nos pages dédiées, comme la [location d\'autocar sur Paris](/location-autocar/paris) ou la [location d\'autocar à Lyon](/location-autocar/lyon), détaillent les trajets types. Le prix affiché est ferme et tout compris — carburant, péages et chauffeur inclus.' },
+      { type: 'p', text: 'Décrivez votre trajet (départ, destination, date, horaires, nombre de passagers) dans notre formulaire de [devis autocar](/devis-autocar) : vous recevez sous 24 h jusqu\'à trois devis gratuits de transporteurs vérifiés, sans engagement. Au départ d\'une grande ville ? Nos pages dédiées, comme la [location d\'autocar sur Paris](/location-autocar/paris) ou la [location d\'autocar à Lyon](/location-autocar/lyon), détaillent les trajets types. Le prix affiché est ferme et tout compris — carburant, péages et chauffeur inclus.' },
     ],
   },
   {

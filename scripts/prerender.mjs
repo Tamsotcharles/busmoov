@@ -97,6 +97,16 @@ const h2 = (t) => `<h2 class="text-2xl font-bold mt-8 mb-3">${esc(t)}</h2>`
 const p = (t) => `<p class="text-gray-700 mb-3">${esc(t)}</p>`
 const ul = (items) => `<ul class="list-disc pl-6 mb-3">${items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>`
 const aVille = (v) => `<a class="text-magenta underline" href="/fr/location-autocar/${v.slug}">${esc(v.nom)}</a>`
+// Tableau SEO (même structure que src/components/ui/TableauSeo.tsx).
+const tableau = ({ caption, headers, rows }) =>
+  `<div class="overflow-x-auto my-6"><table class="w-full text-sm border-collapse">` +
+  (caption ? `<caption class="text-left text-sm font-semibold text-gray-700 mb-2">${esc(caption)}</caption>` : '') +
+  `<thead><tr>${headers.map((h) => `<th class="bg-purple-50 text-left font-semibold text-gray-800 px-3 py-2 border border-gray-200">${esc(h)}</th>`).join('')}</tr></thead>` +
+  `<tbody>${rows.map((r, i) => `<tr${i % 2 === 1 ? ' class="bg-gray-50"' : ''}>${r.map((c, j) => `<td class="px-3 py-2 border border-gray-200 text-gray-700${j === 0 ? ' font-medium whitespace-nowrap' : ''}">${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
+const tableauMd = ({ caption, headers, rows }) =>
+  (caption ? `**${caption}**\n\n` : '') +
+  `| ${headers.join(' | ')} |\n| ${headers.map(() => '---').join(' | ')} |\n` +
+  rows.map((r) => `| ${r.join(' | ')} |`).join('\n')
 
 // ---- Pages multilingues : head uniquement -------------------------------
 // (+ entité Organization sur les pages d'accueil, pour les crawlers IA
@@ -272,7 +282,8 @@ for (const landing of landings) {
     landing.sections.map((s) =>
       h2(s.h2) +
       (s.paragraphes ?? []).map(pMd).join('') +
-      (s.liste ? ulMd(s.liste) : '')
+      (s.liste ? ulMd(s.liste) : '') +
+      (s.tableau ? tableau(s.tableau) : '')
     ).join('') +
     h2('Questions fréquentes') +
     landing.faq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + pMd(f.a)).join('')
@@ -367,6 +378,7 @@ for (const article of articles) {
         case 'p': return pMd(b.text)
         case 'callout': return pMd(b.text)
         case 'ul': return ul(b.items)
+        case 'table': return tableau(b)
         default: return ''
       }
     }).join('')
@@ -426,6 +438,7 @@ const blockToMd = (b) => {
     case 'p': return b.text
     case 'callout': return `> ${b.text}`
     case 'ul': return b.items.map((i) => `- ${i}`).join('\n')
+    case 'table': return tableauMd(b)
     default: return ''
   }
 }

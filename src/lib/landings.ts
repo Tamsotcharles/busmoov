@@ -5,10 +5,14 @@
  * [ancre](/chemin). Ajouter une page = ajouter une entrée ici.
  */
 
+import type { TableauSeo } from './blog'
+
 export interface LandingSection {
   h2: string
   paragraphes?: string[]
   liste?: string[]
+  /** Tableau rendu après les paragraphes et la liste. */
+  tableau?: TableauSeo
 }
 
 export interface LandingFaq {
@@ -187,8 +191,8 @@ export const landings: Landing[] = [
   },
   {
     slug: '/location-bus-50-places',
-    metaTitle: 'Location de bus 50 places avec chauffeur — Devis 24h | Busmoov',
-    metaDescription: 'Louez un bus 49 à 59 places avec chauffeur : le format le plus demandé et le plus économique par personne. Plusieurs devis gratuits sous 24h.',
+    metaTitle: 'Bus 50 places avec chauffeur : tarifs 2026, devis | Busmoov',
+    metaDescription: 'Tarif d\'un bus 50 places avec chauffeur 2026 : journée dès 690 € TTC, transfert, week-end. Le format le plus économique par personne. Devis gratuit en 24h.',
     h1: 'Location de bus 50 places avec chauffeur',
     sousTitre: 'Le format le plus demandé de France : un autocar de tourisme de 49 à 59 places, chauffeur professionnel inclus, au meilleur prix par personne.',
     intro: [
@@ -207,10 +211,22 @@ export const landings: Landing[] = [
         ],
       },
       {
-        h2: 'Combien coûte un bus de 50 places ?',
+        h2: 'Tarif d\'un bus 50 places avec chauffeur en 2026',
         paragraphes: [
-          'À partir de 690 € TTC la journée pour un aller-retour local — soit environ 14 € par personne sur un car plein. Un transfert simple (aéroport, gare, événement) coûte moins ; un long trajet se calcule au kilomètre. Toutes les fourchettes sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
+          'À partir de 690 € TTC la journée pour un aller-retour local — soit environ 14 € par personne sur un car plein. Un transfert simple (aéroport, gare, événement) coûte moins ; un long trajet se calcule au kilomètre. Voici les ordres de grandeur constatés sur nos devis pour un autocar standard au départ d\'une grande agglomération ; toutes les fourchettes et les facteurs de variation sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
         ],
+        tableau: {
+          caption: 'Prix TTC indicatifs 2026 pour un bus 50 places, chauffeur, carburant et péages inclus',
+          headers: ['Prestation', 'Prix indicatif', 'Par personne (50 passagers)'],
+          rows: [
+            ['Transfert aller simple, moins de 50 km (aéroport, gare)', '400 à 600 €', '8 à 12 €'],
+            ['Journée locale, aller-retour (moins de 50 km)', '690 à 830 €', '14 à 17 €'],
+            ['Journée régionale, aller-retour (100 à 200 km)', '1 100 à 1 400 €', '22 à 28 €'],
+            ['Transfert aller simple, 100 à 200 km', '950 à 1 300 €', '19 à 26 €'],
+            ['Week-end 2 jours, car à disposition (moins de 200 km)', '2 200 à 2 500 €', '44 à 50 €'],
+            ['Longue distance (plus de 300 km)', 'Sur devis, au kilomètre', '—'],
+          ],
+        },
       },
       {
         h2: 'Et si nous sommes 45, 55 ou 62 ?',
@@ -234,6 +250,97 @@ export const landings: Landing[] = [
       },
     ],
     serviceType: 'Location de bus 50 places avec chauffeur',
+  },
+  {
+    slug: '/devis-autocar',
+    metaTitle: 'Devis autocar gratuit en ligne : 3 offres en 24h | Busmoov',
+    metaDescription: 'Devis autocar ou bus avec chauffeur en 2 minutes : jusqu\'à 3 offres de transporteurs vérifiés sous 24h, prix ferme tout compris, sans engagement.',
+    h1: 'Devis autocar avec chauffeur : jusqu\'à 3 offres en 24h',
+    sousTitre: 'Décrivez votre trajet en 2 minutes, recevez jusqu\'à 3 devis gratuits de transporteurs vérifiés, puis réservez en ligne — ou pas : c\'est sans engagement.',
+    intro: [
+      'Un devis d\'autocar, c\'est d\'abord une question de temps : appeler cinq autocaristes, répéter cinq fois le même trajet, attendre cinq réponses qui n\'arrivent pas au même rythme. Busmoov inverse la logique. Vous décrivez votre besoin une seule fois ; nous interrogeons les transporteurs de notre réseau disponibles sur votre date et vous recevez jusqu\'à trois propositions comparables, sous 24 heures.',
+      'Chaque devis est ferme et tout compris : chauffeur professionnel, carburant, péages et TVA. Pas de frais cachés, pas de supplément découvert la veille du départ. Vous comparez, vous choisissez — ou vous laissez tomber, sans qu\'on vous relance pendant des semaines.',
+    ],
+    sections: [
+      {
+        h2: 'Comment obtenir votre devis autocar en ligne',
+        liste: [
+          '1. Décrivez le trajet dans le formulaire ci-dessus : départ, destination, date, horaires, nombre de passagers. Deux minutes suffisent.',
+          '2. Sous 24 heures, vous recevez jusqu\'à 3 devis de transporteurs vérifiés (licence, assurances, véhicules contrôlés), présentés de façon identique pour comparer facilement.',
+          '3. Vous validez le devis qui vous convient depuis votre espace client, vous réglez l\'acompte en ligne, et vous recevez les coordonnées du chauffeur avant le départ.',
+        ],
+      },
+      {
+        h2: 'Ce qu\'il faut préciser pour un devis juste',
+        paragraphes: [
+          'Plus la demande est précise, plus le devis est fiable — et moins il bouge ensuite. Les informations qui comptent vraiment :',
+        ],
+        liste: [
+          'L\'effectif exact, accompagnateurs compris : c\'est lui qui fixe la taille du véhicule (un [bus de 50 places](/location-bus-50-places) ne coûte pas le même prix qu\'un [minibus](/services/location-minibus))',
+          'Les horaires de départ et de retour : l\'amplitude de travail du chauffeur pèse autant que la distance dans le prix',
+          'Le format du trajet : aller simple, aller-retour dans la journée, ou séjour avec le car qui reste sur place',
+          'Les options utiles : bagages volumineux, Wi-Fi, toilettes à bord, accessibilité fauteuil roulant',
+          'Les contraintes du lieu : centre-ville piéton, parking autocar, site avec horaires imposés',
+        ],
+      },
+      {
+        h2: 'Que contient un devis Busmoov ?',
+        paragraphes: [
+          'Un prix TTC ferme, valable jusqu\'à la date indiquée sur le devis, avec le détail de la prestation : type de véhicule et capacité, trajet et horaires retenus, conditions d\'acompte et de solde, conditions d\'annulation. Chauffeur, carburant et péages sont inclus par défaut. Si le trajet implique un second chauffeur (amplitude supérieure à 12 heures) ou une nuit sur place, c\'est écrit noir sur blanc, pas découvert à la facture.',
+          'Les devis sont établis par nos transporteurs partenaires, puis vérifiés par notre équipe avant envoi : cohérence du véhicule avec l\'effectif, respect de la réglementation sur les temps de conduite, prix dans les fourchettes du marché.',
+        ],
+      },
+      {
+        h2: 'Combien coûte un autocar ? Les repères avant de demander',
+        paragraphes: [
+          'Pour savoir à quoi vous attendre, voici les ordres de grandeur constatés sur nos devis en 2026, pour un départ depuis une grande agglomération. Le détail complet, avec les facteurs qui font varier le prix, est dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
+        ],
+        tableau: {
+          caption: 'Prix TTC indicatifs 2026, chauffeur, carburant et péages inclus',
+          headers: ['Prestation', 'Autocar standard (21-59 places)', 'Minibus (8-20 places)'],
+          rows: [
+            ['Transfert aller simple, moins de 50 km', '400 à 600 €', '360 à 540 €'],
+            ['Journée locale, aller-retour (moins de 50 km)', '690 à 830 €', '620 à 750 €'],
+            ['Journée régionale, aller-retour (100 à 200 km)', '1 100 à 1 400 €', '1 000 à 1 250 €'],
+            ['Week-end 2 jours, car à disposition (moins de 200 km)', '2 200 à 2 500 €', '2 000 à 2 250 €'],
+            ['Longue distance (plus de 300 km)', 'Sur devis, au kilomètre', 'Sur devis, au kilomètre'],
+          ],
+        },
+      },
+      {
+        h2: 'Un devis autocar pour quel besoin ?',
+        liste: [
+          '[Sortie ou voyage scolaire](/services/sorties-scolaires) : véhicules aux normes transport d\'enfants, devis adapté aux budgets d\'établissement',
+          '[Déplacement d\'entreprise](/blog/autocar-deplacement-entreprise) : séminaire, salon, navette événementielle, facturation société',
+          'Mariage, anniversaire, enterrement de vie de célibataire : navettes entre les lieux de la fête, retour de nuit inclus',
+          '[Transfert aéroport](/navette-aeroport-cdg) ou gare pour un groupe avec bagages',
+          'Club sportif, association, paroisse : déplacements réguliers ou ponctuels, [partout en France](/services/location-autocar) et [en Europe](/location-autocar-espagne)',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Le devis autocar est-il vraiment gratuit et sans engagement ?',
+        a: 'Oui. Demander un devis ne vous engage à rien : vous recevez les propositions, vous les comparez, et vous ne payez que si vous réservez. Aucun frais de dossier, aucune relance commerciale insistante.',
+      },
+      {
+        q: 'En combien de temps reçoit-on les devis ?',
+        a: 'Sous 24 heures ouvrées dans la grande majorité des cas, souvent en quelques heures pour un trajet classique. Pour un départ dans moins de 48 heures, indiquez-le dans la demande : nous priorisons les transporteurs disponibles immédiatement.',
+      },
+      {
+        q: 'Pourquoi les devis reçus n\'ont-ils pas tous le même prix ?',
+        a: 'Chaque transporteur chiffre selon sa flotte, la distance de son dépôt à votre point de départ et son planning du jour. L\'écart entre deux devis sur un même trajet atteint couramment 15 à 25 % : c\'est précisément pour cela qu\'on en compare plusieurs.',
+      },
+      {
+        q: 'Combien de temps un devis reste-t-il valable ?',
+        a: 'La date de validité figure sur chaque devis, en général 7 à 15 jours. Passé ce délai, le véhicule n\'est plus bloqué pour vous : en haute saison (mai-juin, voyages scolaires), mieux vaut valider rapidement.',
+      },
+      {
+        q: 'Peut-on modifier le trajet après avoir reçu un devis ?',
+        a: 'Oui, tant que la réservation n\'est pas confirmée, le devis est simplement réactualisé. Après confirmation, les modifications mineures (horaire, adresse de prise en charge) sont gérées directement avec le transporteur ; un changement de date ou d\'effectif donne lieu à un nouveau devis.',
+      },
+    ],
+    serviceType: 'Devis autocar avec chauffeur',
   },
   {
     slug: '/location-autocar-ile-de-france',

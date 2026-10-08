@@ -3,6 +3,7 @@ import { Footer } from '@/components/layout/Footer'
 import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
 import { SeoFr } from '@/components/seo/Seo'
 import { TextWithLinks } from '@/components/ui/TextWithLinks'
+import { TableauSeo } from '@/components/ui/TableauSeo'
 import { getSiteBaseUrl } from '@/lib/utils'
 import type { Landing } from '@/lib/landings'
 import { Clock, Shield, Bus, CheckCircle, ArrowRight } from 'lucide-react'
@@ -106,6 +107,7 @@ export function LandingSeoPage({ landing }: { landing: Landing }) {
                 ))}
               </ul>
             )}
+            {section.tableau && <TableauSeo {...section.tableau} />}
           </div>
         </section>
       ))}
