@@ -266,6 +266,11 @@
       "statusCode": 301
     },
     {
+      "source": "/devis-autocar",
+      "destination": "/fr/devis-autocar",
+      "statusCode": 301
+    },
+    {
       "source": "/location-autocar-ile-de-france",
       "destination": "/fr/location-autocar-ile-de-france",
       "statusCode": 301
