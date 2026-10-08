@@ -7,6 +7,7 @@ import { seoConfig, seoLocalizedPaths, locationBusMeta } from '../src/lib/seo-da
 import { villes } from '../src/lib/villes.ts'
 import { articles } from '../src/lib/blog.ts'
 import { landings } from '../src/lib/landings.ts'
+import { maillageServices } from '../src/lib/maillage.ts'
 
 /**
  * Prérendu statique des pages publiques, SANS navigateur headless :
@@ -134,6 +135,14 @@ const locales = Object.fromEntries(
 )
 const t = (lang, key) => key.split('.').reduce((o, seg) => (o && typeof o === 'object' ? o[seg] : undefined), locales[lang]) ?? ''
 
+// Bloc de maillage interne FR des pages services (même structure que
+// src/components/seo/MaillageFr.tsx ; vide dans les autres langues).
+const maillageFr = (lang, page) => {
+  if (lang !== 'fr') return ''
+  const bloc = maillageServices[page]
+  return h2(bloc.h2) + bloc.paragraphes.map(pMd).join('') + h2(bloc.villesH2) + `<p class="mb-3">${villes.map(aVille).join(' · ')}</p>`
+}
+
 /** Corps statique des pages multilingues, construit depuis les traductions. */
 function multilingualBody(page, lang) {
   switch (page) {
@@ -150,16 +159,45 @@ function multilingualBody(page, lang) {
         steps
       )
     }
-    case 'location-autocar':
+    case 'location-autocar': {
+      const k = (s) => t(lang, `services.busRental.${s}`)
+      const h3p = (titre, texte) => `<h3 class="font-semibold mt-3">${esc(titre)}</h3>` + p(texte)
       return wrap(
-        h1(`${t(lang, 'services.busRental.title')} ${t(lang, 'services.busRental.titleHighlight')} ${t(lang, 'services.busRental.titleLocation')}`) +
-        p(t(lang, 'services.busRental.description'))
+        h1(`${k('title')} ${k('titleHighlight')} ${k('titleLocation')}`) +
+        p(k('description')) +
+        h2(k('fleetTitle')) + p(k('fleetSubtitle')) +
+        ['minibus', 'standard', 'grandTourisme', 'doubleEtage'].map((v) => h3p(`${k(v)} (${k(`${v}Capacity`)})`, k(`${v}Desc`))).join('') +
+        h2(k('equipmentTitle')) + p(k('equipmentSubtitle')) +
+        ul(['wifi', 'airCon', 'plugs', 'screens'].map((e) => `${k(e)} : ${k(`${e}Desc`)}`)) +
+        h2(k('occasionsTitle')) + p(k('occasionsSubtitle')) +
+        ['privateEvents', 'businessEvents', 'leisure', 'school', 'associations', 'transfers'].map((o) => h3p(k(o), k(`${o}List`))).join('') +
+        h2(k('whyChooseTitle')) +
+        ['quoteIn24h', 'verifiedCarriers', 'proDrivers', 'bestPrice'].map((w) => h3p(k(w), k(`${w}Desc`))).join('') +
+        h2(k('includedTitle')) +
+        ul([1, 2, 3, 4, 5, 6, 7].map((n) => k(`included${n}`))) +
+        h2(k('coverageTitle')) + p(k('coverageSubtitle')) +
+        maillageFr(lang, 'location-autocar')
       )
-    case 'location-minibus':
+    }
+    case 'location-minibus': {
+      const k = (s) => t(lang, `services.minibusRental.${s}`)
+      const h3p = (titre, texte) => `<h3 class="font-semibold mt-3">${esc(titre)}</h3>` + p(texte)
       return wrap(
-        h1(`${t(lang, 'services.minibusRental.title')} ${t(lang, 'services.minibusRental.titleHighlight')}`) +
-        p(t(lang, 'services.minibusRental.description'))
+        h1(`${k('title')} ${k('titleHighlight')} ${k('titleSuffix')}`) +
+        p(k('description')) +
+        h2(k('advantagesTitle')) + p(k('advantagesSubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`advantage${n}Title`), k(`advantage${n}Desc`))).join('') +
+        h2(k('capacityTitle')) + p(k('capacitySubtitle')) +
+        ['mini8', 'mini12', 'mini20'].map((m) => h3p(k(`${m}Title`), k(`${m}Desc`)) + ul([1, 2, 3, 4].map((n) => k(`${m}Usage${n}`)))).join('') +
+        h2(k('occasionsTitle')) + p(k('occasionsSubtitle')) +
+        ['occasionPro', 'occasionPrivate', 'occasionTourism', 'occasionTransfer'].map((o) => `<h3 class="font-semibold mt-3">${esc(k(o))}</h3>` + ul([1, 2, 3, 4].map((n) => k(`${o}Item${n}`)))).join('') +
+        h2(k('whyTitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`why${n}Title`), k(`why${n}Desc`))).join('') +
+        h2(k('includedTitle')) +
+        ul([1, 2, 3, 4, 5, 6, 7].map((n) => k(`included${n}`))) +
+        maillageFr(lang, 'location-minibus')
       )
+    }
     case 'transfert-aeroport':
       return wrap(
         h1(`${t(lang, 'services.airportTransfer.title')} ${t(lang, 'services.airportTransfer.titleHighlight')} ${t(lang, 'services.airportTransfer.titleSuffix')}`) +
@@ -245,14 +283,58 @@ for (const [page, paths] of Object.entries(seoLocalizedPaths)) {
   count++
 }
 
-// ---- Page pilier location-bus (FR) --------------------------------------
-renderPage({
-  lang: 'fr',
-  path: '/location-bus',
-  title: locationBusMeta.title,
-  description: locationBusMeta.description,
-  body: wrap(h1(locationBusMeta.h1) + p(locationBusMeta.sousTitre)),
-})
+// ---- Page pilier location-bus (FR, contenu complet) ----------------------
+{
+  const lb = await import('../src/lib/location-bus.ts')
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      serviceType: 'Location de bus avec chauffeur',
+      description: locationBusMeta.description,
+      url: urlFor('fr', '/location-bus'),
+      provider: { '@type': 'Organization', name: 'Busmoov', url: BASE_URL },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: lb.locationBusFaq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ]
+  const body = wrap(
+    h1(locationBusMeta.h1) +
+    p(locationBusMeta.sousTitre) +
+    lb.locationBusAtouts.map((a) => `<h3 class="font-semibold mt-3">${esc(a.titre)}</h3>` + p(a.desc)).join('') +
+    lb.locationBusIntro.map(pMd).join('') +
+    h2('Quel bus pour votre groupe ?') +
+    lb.locationBusTypes.map((ty) => `<h3 class="font-semibold mt-3">${esc(ty.titre)}</h3>` + pMd(`${ty.desc} [En savoir plus](${ty.lien})`)).join('') +
+    pMd(lb.locationBusTypesNote) +
+    h2(lb.locationBusPrix.h2) +
+    lb.locationBusPrix.paragraphes.map(pMd).join('') +
+    tableau(lb.locationBusPrix.tableau) +
+    lb.locationBusPrix.apres.map(pMd).join('') +
+    h2('Pour quelles occasions louer un bus ?') +
+    ulMd(lb.locationBusOccasions) +
+    h2(lb.locationBusEtapes.h2) +
+    ulMd(lb.locationBusEtapes.liste) +
+    h2('Questions fréquentes') +
+    lb.locationBusFaq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + pMd(f.a)).join('') +
+    h2(lb.locationBusVillesH2) +
+    `<p class="mb-3">${villes.map(aVille).join(' · ')}</p>`
+  )
+  renderPage({
+    lang: 'fr',
+    path: '/location-bus',
+    title: locationBusMeta.title,
+    description: locationBusMeta.description,
+    jsonLd,
+    body,
+  })
+}
 
 // ---- Landing pages SEO (FR, pilotées par landings.ts) -------------------
 for (const landing of landings) {

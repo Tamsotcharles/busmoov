@@ -137,6 +137,7 @@ export const villes: Ville[] = [
     ],
     liensUtiles: [
       "Côté Alpes, la [location d'autocar à Grenoble](/location-autocar/grenoble) couvre l'Oisans et le Vercors ; côté Forez, la [location d'autocar à Saint-Étienne](/location-autocar/saint-etienne) gère notamment les déplacements de supporters. Et pour un petit comité, la [location de minibus avec chauffeur](/services/location-minibus) est souvent la formule la plus souple.",
+      "Avant de valider votre budget, notre guide des [tarifs de location d'autocar](/blog/prix-location-autocar) donne les fourchettes 2026 par distance : une journée Lyon → Annecy ou Lyon → Beaujolais se situe dans la tranche régionale. Le [devis autocar en ligne](/devis-autocar) vous apporte ensuite jusqu'à 3 propositions sous 24h.",
     ],
     faq: [
       {
@@ -193,6 +194,7 @@ export const villes: Ville[] = [
     ],
     liensUtiles: [
       "Le long de l'arc méditerranéen, nous assurons aussi la [location d'autocar à Montpellier](/location-autocar/montpellier) ; vers le nord, la [location d'autocar avec chauffeur à Lyon](/location-autocar/lyon) prend le relais. Pour un groupe qui atterrit à Marignane, tout est détaillé sur notre page de [transfert aéroport en autocar](/services/transfert-aeroport).",
+      "Combien prévoir ? Notre guide [combien coûte un autocar avec chauffeur](/blog/prix-location-autocar) détaille les prix par distance et par taille de véhicule, calanques comprises. Puis décrivez votre trajet dans notre [formulaire de devis autocar](/devis-autocar) : jusqu'à 3 offres de transporteurs provençaux sous 24h.",
     ],
     faq: [
       {
@@ -249,6 +251,7 @@ export const villes: Ville[] = [
     ],
     liensUtiles: [
       "Dans le grand Sud-Ouest, Busmoov couvre également la [location d'autocar à Bordeaux](/location-autocar/bordeaux) et, sur l'axe méditerranéen, la [location de car à Montpellier](/location-autocar/montpellier). Les établissements scolaires trouveront les règles d'encadrement dans notre guide de la [sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar).",
+      "Pour chiffrer une journée vers Carcassonne, Albi ou les Pyrénées, consultez les [prix de location d'un autocar en 2026](/blog/prix-location-autocar) avant de demander votre [devis de bus](/devis-autocar). Le format 50 places, le plus courant pour les groupes toulousains, a sa [page tarifs dédiée](/location-bus-50-places).",
     ],
     faq: [
       {
@@ -305,6 +308,7 @@ export const villes: Ville[] = [
     ],
     liensUtiles: [
       "Pour prolonger vers l'océan, voyez la [location d'autocar à Arcachon](/location-autocar/arcachon) ; plus au sud, la [location d'autocar à Biarritz](/location-autocar/biarritz) couvre tout le Pays basque. Un doute sur le vocabulaire ? Notre article [bus, car ou autocar : quelles différences ?](/blog/difference-bus-autocar-minibus) met tout le monde d'accord.",
+      "Journée dans le vignoble, transfert Mérignac ou week-end au Bassin : notre [guide des prix de location d'autocar](/blog/prix-location-autocar) vous donne l'ordre de grandeur de chaque formule. Pour un chiffrage précis au départ de Bordeaux, demandez votre [devis autocar gratuit](/devis-autocar).",
     ],
     faq: [
       {
@@ -417,6 +421,7 @@ export const villes: Ville[] = [
     ],
     liensUtiles: [
       "Depuis le grand Ouest, nous assurons aussi la [location d'autocar au Mans](/location-autocar/le-mans) — pratique pour combiner circuit des 24 Heures et châteaux — et la [location d'un autocar à Bordeaux](/location-autocar/bordeaux) plus au sud. Pour une classe, notre page [autocar pour sorties scolaires](/services/sorties-scolaires) détaille les véhicules aux normes.",
+      "Vers les plages, le Puy du Fou ou Rennes, le prix dépend surtout de la distance et de l'amplitude de la journée : tout est expliqué dans notre guide [tarifs d'un autocar avec chauffeur](/blog/prix-location-autocar). Le [devis en ligne](/devis-autocar) vous donne ensuite jusqu'à 3 propositions nantaises sous 24h.",
     ],
     faq: [
       {
@@ -473,6 +478,7 @@ export const villes: Ville[] = [
     ],
     liensUtiles: [
       "Entre deux séminaires, les groupes basques remontent volontiers vers la [location d'autocar à Bordeaux](/location-autocar/bordeaux) ou rejoignent la ville rose via la [location d'autocar à Toulouse](/location-autocar/toulouse). Pour un transfert en comité restreint, un [minibus avec chauffeur](/services/location-minibus) suffit souvent.",
+      "Un transfert depuis l'aéroport de Biarritz, une journée à Saint-Sébastien ou une semaine de surf trip ne se chiffrent pas pareil : notre guide des [prix de location d'autocar](/blog/prix-location-autocar) donne les fourchettes de chaque formule, avant votre [demande de devis autocar](/devis-autocar).",
     ],
     faq: [
       {
@@ -585,6 +591,7 @@ export const villes: Ville[] = [
     ],
     liensUtiles: [
       "Beaucoup de groupes combinent la Sarthe et la capitale : notre page de [location d'autocar avec chauffeur à Paris](/location-autocar/paris) couvre les départs franciliens, et la [location d'autocar à Nantes](/location-autocar/nantes) prend le relais côté Atlantique.",
+      "Semaine des 24 Heures ou sortie scolaire ordinaire, les tarifs ne sont pas les mêmes : notre guide [combien coûte la location d'un autocar](/blog/prix-location-autocar) explique l'effet de la saison et de l'amplitude horaire. Réservez tôt via notre [devis autocar en ligne](/devis-autocar) pour les dates de course.",
     ],
     faq: [
       {
@@ -641,6 +648,7 @@ export const villes: Ville[] = [
     ],
     liensUtiles: [
       "Sur l'axe méditerranéen, Busmoov organise aussi la [location d'autocar à Marseille](/location-autocar/marseille) — transferts croisières compris — et, vers l'ouest, la [location d'autocar à Toulouse](/location-autocar/toulouse). Pour un groupe qui arrive en avion, le [transfert aéroport pour groupes](/services/transfert-aeroport) se réserve en une seule demande.",
+      "Plages, Camargue, Cévennes ou transfert vers l'aéroport de Montpellier : repérez votre formule dans le guide des [tarifs de location d'autocar 2026](/blog/prix-location-autocar), puis demandez jusqu'à 3 [devis d'autocar](/devis-autocar) à nos transporteurs héraultais, sous 24h.",
     ],
     faq: [
       {
@@ -697,6 +705,7 @@ export const villes: Ville[] = [
     ],
     liensUtiles: [
       "À 50 minutes, la [location d'autocar à Lyon](/location-autocar/lyon) ouvre sur Eurexpo et Saint-Exupéry ; côté massifs, la [location d'autocar dans les Alpes à Grenoble](/location-autocar/grenoble) prend le relais pour les stations. Les clubs peuvent aussi passer par notre page de [location de bus](/location-bus) pour dimensionner le véhicule d'équipe.",
+      "Déplacement de supporters à Lyon, sortie dans le Pilat ou séjour au ski : notre guide des [prix d'un autocar avec chauffeur](/blog/prix-location-autocar) vous donne l'ordre de grandeur de chaque trajet. Le [formulaire de devis autocar](/devis-autocar) fait le reste, avec jusqu'à 3 offres sous 24h.",
     ],
     faq: [
       {
@@ -809,6 +818,7 @@ export const villes: Ville[] = [
     ],
     liensUtiles: [
       "Porte d'entrée des Alpes, Grenoble fonctionne en tandem avec la [location d'autocar à Lyon](/location-autocar/lyon) pour les arrivées TGV et Saint-Exupéry. Du minibus au double étage, notre page de [location de bus avec chauffeur](/location-bus) aide à choisir la bonne taille de véhicule.",
+      "Transfert vers les stations, journée en Chartreuse ou classe de neige à la semaine : le [guide des prix de location d'autocar](/blog/prix-location-autocar) détaille les tarifs journée, transfert et séjour. Pour un chiffrage exact depuis Grenoble, demandez votre [devis de bus en ligne](/devis-autocar).",
     ],
     faq: [
       {
@@ -851,6 +861,7 @@ export const villes: Ville[] = [
     h2Trajets: 'Trajets types à Versailles',
     liensUtiles: [
       'Les groupes parisiens qui visitent le château passent par notre page [location d\'autocar à Paris](/location-autocar/paris) — 45 minutes de trajet ; pour l\'ensemble de la région, voyez la [location d\'autocar en Île-de-France](/location-autocar-ile-de-france). Et pour une classe, notre guide de la [sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar) détaille l\'encadrement.',
+      "Un aller-retour Paris → Versailles ou une journée château et jardins relève de la tranche locale de notre guide des [prix de location d'autocar](/blog/prix-location-autocar) ; le [bus 50 places](/location-bus-50-places), format le plus demandé pour les visites de groupe, a sa page tarifs dédiée.",
     ],
     destinations: [
       { nom: 'Le château et Trianon', desc: 'La visite de groupe par excellence — dépose place d\'Armes ou grilles de la Reine, créneaux réservés.' },
@@ -907,6 +918,7 @@ export const villes: Ville[] = [
     h2Trajets: 'Trajets types à Saint-Denis',
     liensUtiles: [
       'Pour un vol de groupe, notre [navette aéroport CDG](/navette-aeroport-cdg) part de Saint-Denis en un quart d\'heure ; côté capitale, voyez la [location d\'autocar sur Paris](/location-autocar/paris) et, pour toute la région, la [location d\'autocar en Île-de-France](/location-autocar-ile-de-france).',
+      "Navette vers le Stade de France, transfert CDG ou sortie scolaire en Seine-Saint-Denis : les fourchettes par formule sont dans notre guide [combien coûte un autocar avec chauffeur](/blog/prix-location-autocar). Décrivez votre besoin dans notre [devis autocar en ligne](/devis-autocar) : jusqu'à 3 propositions sous 24h.",
     ],
     destinations: [
       { nom: 'Le Stade de France', desc: 'Matchs, finales et concerts : navettes supporters et groupes depuis toute la France, parkings cars réservés.' },
@@ -963,6 +975,7 @@ export const villes: Ville[] = [
     h2Trajets: 'Trajets types à Nice',
     liensUtiles: [
       'Sur l\'arc méditerranéen, nous couvrons aussi la [location d\'autocar à Marseille](/location-autocar/marseille) — transferts croisières compris — et la [location d\'autocar à Montpellier](/location-autocar/montpellier). Pour un groupe qui atterrit à Nice-Côte d\'Azur, le fonctionnement des [transferts aéroport en groupe](/services/transfert-aeroport) est détaillé sur notre page service.',
+      "Transfert aéroport Nice Côte d'Azur, journée à Monaco ou excursion dans l'arrière-pays : notre guide des [tarifs d'un autocar avec chauffeur](/blog/prix-location-autocar) donne les prix par distance, avec la majoration de haute saison estivale. Demandez ensuite votre [devis autocar](/devis-autocar) : jusqu'à 3 offres azuréennes sous 24h.",
     ],
     destinations: [
       { nom: 'Monaco', desc: 'Rocher, casino et musée océanographique à 30 minutes — parkings cars imposés, chauffeurs rodés au protocole.' },
@@ -1075,6 +1088,7 @@ export const villes: Ville[] = [
     h2Trajets: 'Trajets types à Reims',
     liensUtiles: [
       'Les séminaires parisiens combinent souvent Reims avec notre [location d\'autocar sur Paris](/location-autocar/paris) — 1h30 de route ; côté est, la [location d\'autocar à Strasbourg](/location-autocar/strasbourg) couvre la route des vins d\'Alsace. Pour une soirée qui se prolonge dans le vignoble, un [minibus avec chauffeur](/services/location-minibus) gère les retours tardifs.',
+      "Journée dans le vignoble champenois ou transfert vers Paris, le tarif dépend de la distance et de l'amplitude : repérez votre formule dans le guide des [prix de location d'autocar 2026](/blog/prix-location-autocar), puis demandez jusqu'à 3 [devis d'autocar](/devis-autocar) à nos transporteurs marnais.",
     ],
     destinations: [
       { nom: 'Les grandes maisons de Reims', desc: 'Veuve Clicquot, Taittinger, Pommery : crayères classées et dégustations sur réservation.' },
