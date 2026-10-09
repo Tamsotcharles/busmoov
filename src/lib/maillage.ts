@@ -25,7 +25,7 @@ export const maillageServices: Record<'location-autocar' | 'location-minibus', M
     h2: 'Aller plus loin : minibus, tarifs et devis',
     paragraphes: [
       'Un minibus coûte environ 10 % de moins qu\'un autocar standard sur le même trajet : les fourchettes détaillées par distance sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar). Pour un chiffrage précis, demandez votre [devis en ligne](/devis-autocar) : jusqu\'à 3 propositions de transporteurs vérifiés sous 24h.',
-      'Le minibus est le véhicule type des [transferts aéroport](/services/transfert-aeroport), vers [Roissy CDG](/navette-aeroport-cdg) comme vers [Orly](/navette-aeroport-orly), et des [navettes d\'entreprise](/navette-entreprise). Au-delà de 20 passagers, passez à la [location de bus](/location-bus) : le [bus 50 places](/location-bus-50-places) devient vite plus économique par personne.',
+      'Le minibus est le véhicule type des [transferts aéroport](/services/transfert-aeroport), vers [Roissy CDG](/navette-aeroport-cdg) comme vers [Orly](/navette-aeroport-orly), et des [navettes d\'entreprise](/navette-entreprise). Pour un groupe de 15 à 20 personnes, notre page [minibus 20 places](/location-minibus-20-places) détaille les tarifs ; au-delà, passez à la [location de bus](/location-bus) : le [bus 50 places](/location-bus-50-places) devient vite plus économique par personne.',
     ],
     villesH2: 'Location de minibus au départ de votre ville',
   },

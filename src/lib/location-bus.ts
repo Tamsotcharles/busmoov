@@ -32,9 +32,9 @@ export const locationBusAtouts = [
 ]
 
 export const locationBusTypes: LocationBusType[] = [
-  { titre: 'Minibus (8-20 places)', desc: 'Transferts VIP, petits comités, navettes mariage : le format souple qui passe partout, avec chauffeur.', lien: '/services/location-minibus' },
+  { titre: 'Minibus (8-20 places)', desc: 'Transferts VIP, petits comités, navettes mariage : le format souple qui passe partout, avec chauffeur.', lien: '/location-minibus-20-places' },
   { titre: 'Bus standard (21-59 places)', desc: 'Le format le plus demandé et le plus économique par personne : sorties, excursions, voyages scolaires.', lien: '/location-bus-50-places' },
-  { titre: 'Bus grand tourisme (60-90 places)', desc: 'Grande capacité et double étage pour les grands événements : sièges inclinables, écrans, soutes XXL.', lien: '/services/location-autocar' },
+  { titre: 'Bus grand tourisme (60-90 places)', desc: 'Grande capacité et double étage pour les grands événements : sièges inclinables, écrans, soutes XXL.', lien: '/location-autocar-grande-capacite' },
 ]
 
 export const locationBusTypesNote =

@@ -271,6 +271,16 @@
       "statusCode": 301
     },
     {
+      "source": "/location-minibus-20-places",
+      "destination": "/fr/location-minibus-20-places",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-autocar-grande-capacite",
+      "destination": "/fr/location-autocar-grande-capacite",
+      "statusCode": 301
+    },
+    {
       "source": "/location-autocar-ile-de-france",
       "destination": "/fr/location-autocar-ile-de-france",
       "statusCode": 301

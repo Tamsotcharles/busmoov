@@ -192,8 +192,8 @@
     "lastmod": "2026-09-08"
   },
   "https://www.busmoov.com/fr/location-bus-50-places": {
-    "hash": "19606c20e1a7",
-    "lastmod": "2026-10-08"
+    "hash": "639d35f33604",
+    "lastmod": "2026-10-09"
   },
   "https://www.busmoov.com/fr/devis-autocar": {
     "hash": "cad1fa04e8a5",
@@ -250,6 +250,14 @@
   "https://www.busmoov.com/fr/location-bus-paris": {
     "hash": "b84d8dd6160d",
     "lastmod": "2026-09-16"
+  },
+  "https://www.busmoov.com/fr/location-minibus-20-places": {
+    "hash": "c29339609f16",
+    "lastmod": "2026-10-09"
+  },
+  "https://www.busmoov.com/fr/location-autocar-grande-capacite": {
+    "hash": "3ea48aae4c7c",
+    "lastmod": "2026-10-09"
   },
   "https://www.busmoov.com/fr/location-autocar/paris": {
     "hash": "77ef009b9f30",
@@ -328,8 +336,8 @@
     "lastmod": "2026-10-08"
   },
   "https://www.busmoov.com/fr/blog": {
-    "hash": "c76b43d16c0e",
-    "lastmod": "2026-09-15"
+    "hash": "556105557f0e",
+    "lastmod": "2026-10-09"
   },
   "https://www.busmoov.com/fr/blog/prix-location-autocar": {
     "hash": "5459bbd34926",
@@ -386,6 +394,14 @@
   "https://www.busmoov.com/fr/blog/autocar-long-trajet": {
     "hash": "1c6b8b5c6897",
     "lastmod": "2026-09-15"
+  },
+  "https://www.busmoov.com/fr/blog/autocar-ou-train-groupe": {
+    "hash": "df769ca95d22",
+    "lastmod": "2026-10-09"
+  },
+  "https://www.busmoov.com/fr/blog/transfert-aeroport-groupe-mode-emploi": {
+    "hash": "4bc5758c8fa2",
+    "lastmod": "2026-10-09"
   },
   "https://www.busmoov.com/zh": {
     "hash": "4a2cdc47d04c",
