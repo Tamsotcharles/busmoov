@@ -1,5 +1,6 @@
 // @ts-ignore
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts'
 // @ts-ignore
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -13,6 +14,7 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
+  if (!isCronOrAdminCaller(req)) return unauthorizedResponse(corsHeaders)
 
   try {
     const supabaseClient = createClient(

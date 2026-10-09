@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts'
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 /**
@@ -43,6 +44,7 @@ interface WorkflowRule {
   trigger_event: string
   conditions: {
     days_after_devis?: number
+    max_days_late?: number
   } | null
   action_config: {
     template?: string
@@ -76,7 +78,7 @@ interface Dossier {
   return_date: string | null
   passengers: number
   status: string
-  language: string | null
+  country_code: string | null
   created_at: string
   devis: Devis[]
 }
@@ -194,7 +196,8 @@ async function sendReminderEmail(
 
   // Générer le lien vers l'espace client
   const baseUrl = 'https://busmoov.com'
-  const lang = dossier.language || 'fr'
+  // Langue déduite du pays (la colonne dossiers.language n'existe pas).
+  const lang = ({ ES: 'es', DE: 'de', GB: 'en' } as Record<string, string>)[(dossier.country_code || 'FR').toUpperCase()] || 'fr'
   const lienEspaceClient = `${baseUrl}/${lang}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`
 
   const emailData = {
@@ -246,6 +249,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
+  if (!isCronOrAdminCaller(req)) return unauthorizedResponse(corsHeaders)
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -313,7 +317,7 @@ Deno.serve(async (req) => {
         return_date,
         passengers,
         status,
-        language,
+        country_code,
         created_at,
         devis!inner(
           id,
@@ -382,6 +386,12 @@ Deno.serve(async (req) => {
 
         // Vérifier si le délai est atteint
         if (daysSinceSent < daysAfterDevis) continue
+
+        // Trop tard pour relancer : au-delà de max_days_late jours après le
+        // délai prévu (défaut 14), on ne relance plus. Évite une rafale de
+        // relances sur de vieux devis quand le cron redémarre après une panne.
+        const maxDaysLate = rule.conditions?.max_days_late ?? 14
+        if (daysSinceSent > daysAfterDevis + maxDaysLate) continue
 
         // Template email à utiliser (défini dans la règle ou par défaut)
         const templateKey = rule.action_config?.template || `quote_reminder_${daysAfterDevis}d`

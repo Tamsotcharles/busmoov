@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 // Domaines autorisés pour CORS
@@ -621,6 +622,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
+  if (!isCronOrAdminCaller(req)) return unauthorizedResponse(corsHeaders)
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)

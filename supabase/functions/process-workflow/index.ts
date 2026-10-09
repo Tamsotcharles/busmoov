@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts';
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -253,6 +254,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+  if (!isCronOrAdminCaller(req)) return unauthorizedResponse(corsHeaders)
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -372,11 +374,13 @@ Deno.serve(async (req) => {
           const today = new Date();
           const futureDate = new Date();
           futureDate.setDate(today.getDate() + 30); // Check next 30 days
+          // Uniquement les dossiers réservés : un prospect (new, pending-client,
+          // pending-devis) ne doit recevoir ni rappel de solde ni demande
+          // d'infos voyage.
           dossiersQuery = dossiersQuery
             .gte("departure_date", today.toISOString().split("T")[0])
             .lte("departure_date", futureDate.toISOString().split("T")[0])
-            .not("status", "eq", "completed")
-            .not("status", "eq", "cancelled");
+            .not("status", "in", '("new","pending-client","pending-devis","completed","cancelled")');
           break;
         case "payment_received":
           // Recent payments - would be triggered directly
