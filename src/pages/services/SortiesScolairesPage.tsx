@@ -6,6 +6,8 @@ import { GraduationCap, Bus, Shield, Clock, CheckCircle, Star, Phone, ArrowRight
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
 import { useCurrentCountry } from '@/hooks/useCountrySettings'
+import { MaillageFr } from '@/components/seo/MaillageFr'
+import { maillageServices } from '@/lib/maillage'
 
 export function SortiesScolairesPage() {
   const { t } = useTranslation()
@@ -516,6 +518,8 @@ export function SortiesScolairesPage() {
           </div>
         </div>
       </section>
+
+      <MaillageFr bloc={maillageServices['sorties-scolaires']} />
 
       <Footer />
     </div>

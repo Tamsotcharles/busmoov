@@ -198,16 +198,74 @@ function multilingualBody(page, lang) {
         maillageFr(lang, 'location-minibus')
       )
     }
-    case 'transfert-aeroport':
+    case 'transfert-aeroport': {
+      const k = (s) => t(lang, `services.airportTransfer.${s}`)
+      const h3p = (titre, texte) => `<h3 class="font-semibold mt-3">${esc(titre)}</h3>` + p(texte)
       return wrap(
-        h1(`${t(lang, 'services.airportTransfer.title')} ${t(lang, 'services.airportTransfer.titleHighlight')} ${t(lang, 'services.airportTransfer.titleSuffix')}`) +
-        p(t(lang, 'services.airportTransfer.description'))
+        h1(`${k('title')} ${k('titleHighlight')} ${k('titleSuffix')}`) +
+        p(k('description')) +
+        h2(k('howItWorksTitle')) + p(k('howItWorksSubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`step${n}Title`), k(`step${n}Desc`))).join('') +
+        h2(k('typesTitle')) + p(k('typesSubtitle')) +
+        ['typeGroup', 'typePro', 'typeEvent'].map((ty) => h3p(k(ty), k(`${ty}Desc`)) + ul([1, 2, 3, 4].map((n) => k(`${ty}Feature${n}`)))).join('') +
+        h2(k('fleetTitle')) + p(k('fleetSubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(`${k(`vehicle${n}`)} : ${k(`vehicle${n}Price`)}`, k(`vehicle${n}Ideal`))).join('') +
+        p(k('pricingNote')) +
+        h2(k('optionsTitle')) +
+        ul([1, 2, 3, 4, 5].map((n) => `${k(`option${n}`)} : ${k(`option${n}Desc`)}`)) +
+        h2(k('advantagesTitle')) + p(k('advantagesSubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`advantage${n}Title`), k(`advantage${n}Desc`))).join('') +
+        h2(k('includedTitle')) + p(k('includedSubtitle')) +
+        ul([1, 2, 3, 4, 5, 6, 7].map((n) => k(`included${n}`))) +
+        maillageFr(lang, 'transfert-aeroport')
       )
-    case 'sorties-scolaires':
+    }
+    case 'sorties-scolaires': {
+      const k = (s) => t(lang, `services.schoolTrips.${s}`)
+      const h3p = (titre, texte) => `<h3 class="font-semibold mt-3">${esc(titre)}</h3>` + p(texte)
       return wrap(
-        h1(`${t(lang, 'services.schoolTrips.title')} ${t(lang, 'services.schoolTrips.titleHighlight')} ${t(lang, 'services.schoolTrips.titleSuffix')}`) +
-        p(t(lang, 'services.schoolTrips.description'))
+        h1(`${k('title')} ${k('titleHighlight')} ${k('titleSuffix')}`) +
+        p(k('description')) +
+        h2(k('tripsTitle')) + p(k('tripsSubtitle')) +
+        [1, 2, 3, 4, 5, 6].map((n) => h3p(k(`trip${n}Title`), `${k(`trip${n}Desc`)} ${k(`trip${n}Examples`)}`)).join('') +
+        h2(k('vehiclesTitle')) + p(k('vehiclesSubtitle')) +
+        [1, 2, 3].map((n) => h3p(`${k(`vehicle${n}Title`)} (${k(`vehicle${n}Capacity`)})`, `${k(`vehicle${n}Ideal`)} ${k(`vehicle${n}Features`)}`)).join('') +
+        h2(k('safetyTitle')) + p(k('safetySubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`safety${n}Title`), k(`safety${n}Desc`))).join('') +
+        h2(k('docsTitle')) + p(k('docsSubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`doc${n}Title`), k(`doc${n}Desc`))).join('') +
+        h2(k('howItWorksTitle')) + p(k('howItWorksSubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`step${n}Title`), k(`step${n}Desc`))).join('') +
+        h2(k('includedTitle')) +
+        ul([1, 2, 3, 4, 5, 6, 7, 8].map((n) => k(`included${n}`))) +
+        maillageFr(lang, 'sorties-scolaires')
       )
+    }
+    case 'contact':
+      return wrap(
+        h1(t(lang, 'contact.title')) +
+        p(t(lang, 'contact.subtitle')) +
+        p(t(lang, 'contact.teamAvailable')) +
+        ul([
+          `${t(lang, 'contact.phone')} : +33 1 76 31 12 83`,
+          `${t(lang, 'contact.email')} : infos@busmoov.com`,
+          `${t(lang, 'contact.hours')} : ${t(lang, 'contact.hoursValue')}`,
+        ])
+      )
+    case 'a-propos': {
+      const k = (s) => t(lang, `about.${s}`)
+      const h3p = (titre, texte) => `<h3 class="font-semibold mt-3">${esc(titre)}</h3>` + p(texte)
+      return wrap(
+        h1(k('title')) +
+        p(k('heroText')) +
+        h2(k('storyTitle')) +
+        [1, 2, 3].map((n) => p(k(`storyP${n}`))).join('') +
+        h2(k('valuesTitle')) + p(k('valuesSubtitle')) +
+        ['Expertise', 'Quality', 'Reliability', 'Service'].map((v) => h3p(k(`value${v}`), k(`value${v}Desc`))).join('') +
+        h2(k('commitmentTitle')) +
+        ul([1, 2, 3, 4, 5, 6].map((n) => k(`commitment${n}`)))
+      )
+    }
     default:
       return ''
   }

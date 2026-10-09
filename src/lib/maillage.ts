@@ -12,7 +12,25 @@ export interface MaillageBloc {
   villesH2: string
 }
 
-export const maillageServices: Record<'location-autocar' | 'location-minibus', MaillageBloc> = {
+export type MaillageServiceKey = 'location-autocar' | 'location-minibus' | 'transfert-aeroport' | 'sorties-scolaires'
+
+export const maillageServices: Record<MaillageServiceKey, MaillageBloc> = {
+  'transfert-aeroport': {
+    h2: 'Aller plus loin : nos pages par aéroport et nos guides',
+    paragraphes: [
+      'Les deux aéroports parisiens ont leur page dédiée, avec les terminaux, le timing et les prix : [navette aéroport Roissy CDG](/navette-aeroport-cdg) et [navette aéroport Orly](/navette-aeroport-orly). Avant de réserver, notre guide [organiser un transfert aéroport pour un groupe](/blog/transfert-aeroport-groupe-mode-emploi) détaille les quatre étapes, les erreurs classiques et la checklist à envoyer au transporteur.',
+      'Selon la taille du groupe : [minibus 20 places](/location-minibus-20-places) jusqu\'à 18 voyageurs avec bagages, [bus 50 places](/location-bus-50-places) au-delà, [autocar grande capacité](/location-autocar-grande-capacite) pour les très grands groupes. Les fourchettes de prix par distance sont dans le guide du [prix de la location d\'un autocar](/blog/prix-location-autocar), et le [devis en ligne](/devis-autocar) vous apporte jusqu\'à 3 propositions sous 24h.',
+    ],
+    villesH2: 'Transfert aéroport au départ de votre ville',
+  },
+  'sorties-scolaires': {
+    h2: 'Aller plus loin : organiser la sortie, destinations et budget',
+    paragraphes: [
+      'Notre guide [organiser une sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar) reprend les étapes, les documents et les règles de sécurité. Côté destinations, les plus demandées ont leur page : [autocar pour Disneyland Paris](/autocar-disneyland-paris), [Puy du Fou en autocar](/blog/puy-du-fou-en-autocar), [journée à la mer](/blog/journee-mer-autocar), et pour les voyages à l\'étranger, nos pages [Espagne](/location-autocar-espagne), [Italie](/location-autocar-italie) et [Royaume-Uni](/location-autocar-royaume-uni).',
+      'Pour le budget : une classe avec ses accompagnateurs tient dans un [bus 50 places](/location-bus-50-places), deux classes dans un [autocar grande capacité](/location-autocar-grande-capacite). Les fourchettes par distance sont dans le guide du [prix de la location d\'un autocar](/blog/prix-location-autocar), et un [devis en ligne](/devis-autocar) vous donne jusqu\'à 3 propositions sous 24h, adaptées aux budgets d\'établissement.',
+    ],
+    villesH2: 'Sorties scolaires au départ de votre ville',
+  },
   'location-autocar': {
     h2: 'Aller plus loin : nos pages et guides sur la location d\'autocar',
     paragraphes: [

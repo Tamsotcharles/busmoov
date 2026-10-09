@@ -6,6 +6,8 @@ import { Plane, Bus, Clock, Shield, CheckCircle, Star, Phone, ArrowRight, MapPin
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
 import { useCurrentCountry } from '@/hooks/useCountrySettings'
+import { MaillageFr } from '@/components/seo/MaillageFr'
+import { maillageServices } from '@/lib/maillage'
 
 export function TransfertAeroportPage() {
   const { t } = useTranslation()
@@ -399,6 +401,8 @@ export function TransfertAeroportPage() {
           </div>
         </div>
       </section>
+
+      <MaillageFr bloc={maillageServices['transfert-aeroport']} />
 
       <Footer />
     </div>
