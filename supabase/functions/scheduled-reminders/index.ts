@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { countryToLang, formatDateLong, type EmailLang } from '../_shared/lang.ts'
 import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
@@ -121,7 +122,7 @@ async function processOffreFlashReminders(
     const expiresAt = new Date(devis.promo_expires_at)
     const hoursRemaining = Math.max(0, Math.round((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60)))
 
-    const emailLanguage = (dossier.country_code || 'FR').toLowerCase()
+    const emailLanguage = countryToLang(dossier.country_code)
 
     // Générer le lien espace client
     const baseUrl = Deno.env.get('APP_URL') || 'https://busmoov.com'
@@ -136,7 +137,7 @@ async function processOffreFlashReminders(
           reference: dossier.reference,
           departure: dossier.departure,
           arrival: dossier.arrival,
-          departure_date: formatDate(dossier.departure_date),
+          departure_date: formatDate(dossier.departure_date, emailLanguage),
           passengers: String(dossier.passengers),
           prix_barre: devis.promo_original_price?.toFixed(2).replace('.', ',') || '',
           prix_ttc: devis.price_ttc?.toFixed(2).replace('.', ',') || '',
@@ -182,14 +183,8 @@ async function processOffreFlashReminders(
 /**
  * Formate une date en français
  */
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+function formatDate(dateStr: string, lang: EmailLang = 'fr'): string {
+  return formatDateLong(dateStr, lang)
 }
 
 /**
@@ -252,7 +247,7 @@ async function processQuoteReminders(
   for (const dossier of eligibleDossiers) {
     if (!dossier.client_email) continue
 
-    const emailLanguage = (dossier.country_code || 'FR').toLowerCase()
+    const emailLanguage = countryToLang(dossier.country_code)
     const baseUrl = Deno.env.get('APP_URL') || 'https://busmoov.com'
     const clientAccessUrl = `${baseUrl}/${emailLanguage}/espace-client?ref=${encodeURIComponent(dossier.reference)}&email=${encodeURIComponent(dossier.client_email)}`
 
@@ -266,7 +261,7 @@ async function processQuoteReminders(
           reference: dossier.reference,
           departure: dossier.departure,
           arrival: dossier.arrival,
-          departure_date: formatDate(dossier.departure_date),
+          departure_date: formatDate(dossier.departure_date, emailLanguage),
           passengers: String(dossier.passengers),
           nb_devis: String(nbDevis),
           lien_espace_client: clientAccessUrl,
@@ -367,7 +362,7 @@ async function processPaymentReminders(
       const factures = dossier.factures as { type: string; status: string; total_ttc: number }[]
       const acompteFacture = factures.find(f => f.type === 'acompte')
 
-      const emailLanguage = (dossier.country_code || 'FR').toLowerCase()
+      const emailLanguage = countryToLang(dossier.country_code)
       const baseUrl = Deno.env.get('APP_URL') || 'https://busmoov.com'
       const paymentUrl = `${baseUrl}/${emailLanguage}/recapitulatif/${dossier.id}`
 
@@ -379,7 +374,7 @@ async function processPaymentReminders(
             reference: dossier.reference,
             departure: dossier.departure,
             arrival: dossier.arrival,
-            departure_date: formatDate(dossier.departure_date),
+            departure_date: formatDate(dossier.departure_date, emailLanguage),
             passengers: String(dossier.passengers),
             montant_acompte: acompteFacture?.total_ttc?.toFixed(2).replace('.', ',') || '',
             lien_paiement: paymentUrl,
@@ -461,7 +456,7 @@ async function processPaymentReminders(
       const soldeFacture = factures.find(f => f.type === 'solde')
       const daysUntilDeparture = Math.ceil((new Date(dossier.departure_date).getTime() - now.getTime()) / (24 * 60 * 60 * 1000))
 
-      const emailLanguage = (dossier.country_code || 'FR').toLowerCase()
+      const emailLanguage = countryToLang(dossier.country_code)
       const baseUrl = Deno.env.get('APP_URL') || 'https://busmoov.com'
       const paymentUrl = `${baseUrl}/${emailLanguage}/recapitulatif/${dossier.id}`
 
@@ -473,7 +468,7 @@ async function processPaymentReminders(
             reference: dossier.reference,
             departure: dossier.departure,
             arrival: dossier.arrival,
-            departure_date: formatDate(dossier.departure_date),
+            departure_date: formatDate(dossier.departure_date, emailLanguage),
             passengers: String(dossier.passengers),
             montant_solde: soldeFacture?.total_ttc?.toFixed(2).replace('.', ',') || '',
             jours_avant_depart: String(daysUntilDeparture),
@@ -569,7 +564,7 @@ async function processInfoVoyageReminders(
     if (!dossier.client_email) continue
 
     const daysUntilDeparture = Math.ceil((new Date(dossier.departure_date).getTime() - now.getTime()) / (24 * 60 * 60 * 1000))
-    const emailLanguage = (dossier.country_code || 'FR').toLowerCase()
+    const emailLanguage = countryToLang(dossier.country_code)
     const baseUrl = Deno.env.get('APP_URL') || 'https://busmoov.com'
     const infosVoyageUrl = `${baseUrl}/${emailLanguage}/infos-voyage/${dossier.id}`
 
@@ -581,7 +576,7 @@ async function processInfoVoyageReminders(
           reference: dossier.reference,
           departure: dossier.departure,
           arrival: dossier.arrival,
-          departure_date: formatDate(dossier.departure_date),
+          departure_date: formatDate(dossier.departure_date, emailLanguage),
           passengers: String(dossier.passengers),
           jours_avant_depart: String(daysUntilDeparture),
           lien_infos_voyage: infosVoyageUrl,

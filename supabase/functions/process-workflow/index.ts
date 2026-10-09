@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { formatDateShort } from '../_shared/lang.ts';
 import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts';
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -552,7 +553,7 @@ Deno.serve(async (req) => {
             departure: dossier.departure || "",
             arrival: dossier.arrival || "",
             departure_date: dossier.departure_date
-              ? new Date(dossier.departure_date).toLocaleDateString("fr-FR")
+              ? formatDateShort(dossier.departure_date, language)
               : "",
             passengers: String(dossier.passengers || 0),
             total_ttc: formatCurrency(dossier.price_ttc),
