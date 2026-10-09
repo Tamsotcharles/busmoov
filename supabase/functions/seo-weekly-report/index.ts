@@ -165,7 +165,8 @@ Deno.serve(async (req) => {
       : `<tr>${td('Aucune requête entre les positions 11 et 20 cette semaine.')}</tr>`
 
     const periode = `${fmtDateFr(isoDay(curStart))} au ${fmtDateFr(isoDay(curEnd))}`
-    const subject = `SEO Busmoov, semaine du ${periode} : ${fmtInt(gCur.clicks)} clics, ${fmtInt(gCur.impressions)} impressions, position ${fmtPos(gCur.position)}`
+    const plural = (n: number, mot: string) => `${fmtInt(n)} ${mot}${n > 1 ? 's' : ''}`
+    const subject = `SEO Busmoov, semaine du ${periode} : ${plural(gCur.clicks, 'clic')}, ${plural(gCur.impressions, 'impression')}, position ${fmtPos(gCur.position)}`
 
     const html = `
 <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:760px">

@@ -216,6 +216,8 @@ Dans `supabase/functions/` :
 | `mollie-webhook` | Webhook de paiement Mollie |
 | `resend-webhook` | Webhook de tracking emails Resend |
 | `get-emails` | Lecture des emails |
+| `gsc-sync` | Synchro Search Console → `seo_gsc_daily` (page admin SEO, ou `force: true` en service_role) |
+| `seo-weekly-report` | Rapport SEO hebdo par email (lundi 06:00 UTC via pg_cron, jeton vault `seo_report_cron_token` = secret `SEO_REPORT_CRON_TOKEN`, destinataire `SEO_REPORT_TO`, `{"dry_run": true}` pour tester sans envoi). Déployée avec `--no-verify-jwt`, auth dans la fonction |
 
 #### ⚠️ Fonctions déployées mais absentes du dépôt
 Ces trois fonctions répondent en production sans que leur source soit versionnée.
