@@ -6,11 +6,20 @@
  * majorations régionales) : uniquement des fourchettes indicatives.
  */
 
+/** Tableau simple (en-têtes + lignes de texte). Partagé avec les landings. */
+export interface TableauSeo {
+  /** Légende affichée au-dessus du tableau (et <caption> en HTML). */
+  caption?: string
+  headers: string[]
+  rows: string[][]
+}
+
 export type BlogBlock =
   | { type: 'h2'; text: string }
   | { type: 'p'; text: string }
   | { type: 'ul'; items: string[] }
   | { type: 'callout'; text: string }
+  | ({ type: 'table' } & TableauSeo)
 
 export interface BlogArticle {
   slug: string
@@ -26,8 +35,8 @@ export const articles: BlogArticle[] = [
   {
     slug: 'prix-location-autocar',
     titre: 'Combien coûte la location d\'un autocar avec chauffeur ? Tarifs 2026',
-    metaTitle: 'Prix location autocar avec chauffeur 2026 : tarifs et exemples | Busmoov',
-    metaDescription: 'Combien coûte un autocar avec chauffeur ? Fourchettes 2026 : journée dès 690 € TTC, facteurs de prix, exemples concrets, conseils pour payer moins cher.',
+    metaTitle: 'Prix location autocar avec chauffeur 2026 : tarifs | Busmoov',
+    metaDescription: 'Combien coûte un autocar avec chauffeur ? Tarifs 2026 par distance et taille de bus : journée dès 690 € TTC, transfert, séjour. Tableaux et exemples.',
     datePublication: '2026-09-04',
     extrait: 'Journée dès 690 € TTC, transferts, séjours : les vraies fourchettes de prix d\'un autocar avec chauffeur, ce qui les fait varier et comment payer moins cher.',
     blocks: [
@@ -43,6 +52,45 @@ export const articles: BlogArticle[] = [
         'Longue distance : au-delà des trajets régionaux, le prix se calcule essentiellement au kilomètre',
       ]},
       { type: 'callout', text: 'Tous les prix du transport de voyageurs s\'entendent TTC avec une TVA à 10 % en France.' },
+      { type: 'h2', text: 'Tarifs 2026 par distance et taille de bus' },
+      { type: 'p', text: 'Les ordres de grandeur ci-dessous sont ceux constatés sur les devis de nos transporteurs en 2026, pour un départ depuis une grande agglomération, hors haute saison. Chauffeur, carburant et péages sont inclus. Ils servent à cadrer un budget, pas à remplacer un devis : la disponibilité réelle le jour J fait bouger le prix dans la fourchette, parfois au-delà.' },
+      { type: 'table',
+        caption: 'Aller-retour dans la journée — prix TTC indicatifs selon la distance aller',
+        headers: ['Distance (aller)', 'Minibus 8-20 places', 'Autocar standard 21-59 places', 'Grande capacité 60-90 places'],
+        rows: [
+          ['Moins de 50 km', '620 à 750 €', '690 à 830 €', '800 à 1 400 €'],
+          ['50 à 100 km', '800 à 1 000 €', '900 à 1 100 €', '1 050 à 1 900 €'],
+          ['100 à 200 km', '1 000 à 1 250 €', '1 100 à 1 400 €', '1 250 à 2 400 €'],
+          ['200 à 300 km', '1 700 à 2 100 €', '1 900 à 2 300 €', '2 200 à 3 900 €'],
+          ['Plus de 300 km', 'Sur devis', 'Sur devis', 'Sur devis'],
+        ],
+      },
+      { type: 'p', text: 'Au-delà de 300 km aller, la journée dépasse l\'amplitude légale d\'un seul chauffeur : le devis prévoit soit un second chauffeur, soit une nuit sur place. Pour la grande capacité, l\'écart est large parce qu\'il recouvre des véhicules très différents, du 63 places au double étage de 90 places.' },
+      { type: 'table',
+        caption: 'Transfert aller simple (aéroport, gare, événement) — autocar standard, prix TTC indicatifs',
+        headers: ['Distance', 'Autocar standard 21-59 places'],
+        rows: [
+          ['Moins de 20 km', '400 à 500 €'],
+          ['20 à 50 km', '500 à 600 €'],
+          ['50 à 100 km', '650 à 850 €'],
+          ['100 à 200 km', '950 à 1 300 €'],
+          ['200 à 300 km', '1 350 à 1 700 €'],
+          ['300 à 500 km', '2 000 à 3 100 €'],
+          ['500 à 1 000 km', '3 200 à 4 800 €'],
+        ],
+      },
+      { type: 'p', text: 'Pour un minibus, retirez environ 10 % ; pour un autocar grande capacité, ajoutez 15 à 70 % selon la taille. Un transfert aller simple n\'est pas la moitié d\'un aller-retour : le car revient à vide, et c\'est facturé.' },
+      { type: 'table',
+        caption: 'Séjour de plusieurs jours — autocar standard, prix TTC indicatifs',
+        headers: ['Formule', '2 jours', '3 jours'],
+        rows: [
+          ['Le car repart entre l\'aller et le retour, trajet de 100 à 200 km', '1 800 à 2 100 €', '2 300 à 2 600 €'],
+          ['Le car repart entre l\'aller et le retour, trajet de 300 à 500 km', '2 800 à 3 700 €', '3 300 à 4 200 €'],
+          ['Le car reste à disposition sur place, trajet jusqu\'à 200 km', '2 200 à 2 500 €', '2 900 à 3 200 €'],
+          ['Le car reste à disposition sur place, trajet de 300 à 500 km', '3 300 à 3 900 €', '4 000 à 4 600 €'],
+        ],
+      },
+      { type: 'p', text: 'Au-delà de 6 jours, chaque journée supplémentaire est facturée à un tarif forfaitaire, plus élevé si le car et le chauffeur restent à disposition. Pour un format précis, notre page [bus 50 places](/location-bus-50-places) détaille les tarifs du véhicule le plus demandé, et la [location de bus](/location-bus) compare toutes les capacités.' },
       { type: 'h2', text: 'Les 6 facteurs qui font varier le prix' },
       { type: 'p', text: '1. La distance, évidemment — mais par tranches : un trajet de 80 km et un trajet de 95 km peuvent coûter le même prix, car les transporteurs raisonnent en tranches kilométriques.' },
       { type: 'p', text: '2. L\'amplitude horaire du chauffeur : c\'est le temps entre son départ du dépôt et son retour, pas seulement votre temps de trajet. Un aller-retour avec 6 heures d\'attente sur place mobilise le chauffeur toute la journée. Au-delà de 12 heures d\'amplitude, la réglementation impose un second chauffeur, ce qui ajoute environ 500 € TTC au transfert.' },
@@ -68,7 +116,7 @@ export const articles: BlogArticle[] = [
         'Comparez plusieurs transporteurs : sur un même trajet, l\'écart entre deux devis atteint couramment 15 à 25 % — c\'est exactement ce que Busmoov fait pour vous en une seule demande',
       ]},
       { type: 'h2', text: 'Obtenir un prix précis pour votre trajet' },
-      { type: 'p', text: 'Décrivez votre trajet (départ, destination, date, horaires, nombre de passagers) dans notre formulaire de [location d\'autocar avec chauffeur](/services/location-autocar) : vous recevez sous 24 h plusieurs devis gratuits de transporteurs vérifiés, sans engagement. Au départ d\'une grande ville ? Nos pages dédiées, comme la [location d\'autocar sur Paris](/location-autocar/paris) ou la [location d\'autocar à Lyon](/location-autocar/lyon), détaillent les trajets types. Le prix affiché est ferme et tout compris — carburant, péages et chauffeur inclus.' },
+      { type: 'p', text: 'Décrivez votre trajet (départ, destination, date, horaires, nombre de passagers) dans notre formulaire de [devis autocar](/devis-autocar) : vous recevez sous 24 h jusqu\'à trois devis gratuits de transporteurs vérifiés, sans engagement. Au départ d\'une grande ville ? Nos pages dédiées, comme la [location d\'autocar sur Paris](/location-autocar/paris) ou la [location d\'autocar à Lyon](/location-autocar/lyon), détaillent les trajets types. Le prix affiché est ferme et tout compris — carburant, péages et chauffeur inclus.' },
     ],
   },
   {
@@ -473,6 +521,120 @@ export const articles: BlogArticle[] = [
       ]},
       { type: 'h2', text: 'Demander un devis pour votre long trajet' },
       { type: 'p', text: 'Indiquez le trajet complet, les dates, l\'effectif et vos contraintes horaires : plusieurs devis gratuits sous 24h, construits dans le respect de la réglementation — double équipage ou étapes inclus dès le chiffrage. Départs de [Paris](/location-autocar/paris), [Lyon](/location-autocar/lyon) et de toute la France.' },
+    ],
+  },
+  {
+    slug: 'autocar-ou-train-groupe',
+    titre: 'Train ou autocar pour un voyage de groupe ? Le comparatif honnête',
+    metaTitle: 'Train ou autocar pour un groupe : le comparatif | Busmoov',
+    metaDescription: 'Prix, horaires, bagages, porte-à-porte : train ou autocar pour déplacer un groupe de 20 à 60 personnes ? Comparatif chiffré, avec les cas où chacun gagne.',
+    datePublication: '2026-10-09',
+    extrait: 'Le train est rapide et propre, l\'autocar est porte-à-porte et souvent moins cher pour un groupe : comparatif chiffré pour choisir sans a priori, et le combo gagnant.',
+    blocks: [
+      { type: 'p', text: 'À chaque voyage de groupe, la même hésitation : réserver 45 billets de train ou louer un autocar ? Les deux ont leurs partisans, et les deux ont raison dans certains cas. Plutôt qu\'un plaidoyer, voici une comparaison poste par poste, avec des ordres de grandeur réels pour un groupe de 40 personnes, et les situations où chaque solution l\'emporte.' },
+      { type: 'h2', text: 'Le prix : la comparaison que tout le monde fait en premier' },
+      { type: 'p', text: 'Sur le papier, le billet de train à tarif groupe paraît imbattable. Mais il faut comparer le coût total du déplacement, pas le prix unitaire : pour un groupe, l\'autocar se facture au véhicule, quel que soit le nombre de passagers, alors que le train se multiplie par le nombre de voyageurs.' },
+      { type: 'table',
+        caption: 'Ordres de grandeur 2026 pour un groupe de 40 personnes, hors promotions et hors haute saison',
+        headers: ['Trajet', 'Train (40 billets groupe)', 'Autocar standard'],
+        rows: [
+          ['Paris → Lille, aller simple (220 km)', '1 000 à 1 800 €', '1 350 à 1 700 €'],
+          ['Paris → Deauville, journée aller-retour (200 km)', '1 400 à 2 400 €', '1 100 à 1 400 €'],
+          ['Lyon → Annecy, journée aller-retour (140 km)', '1 200 à 2 000 €', '1 100 à 1 400 €'],
+          ['Lyon → Marseille, journée aller-retour (310 km)', '2 000 à 3 600 €', '2 300 à 2 900 €'],
+        ],
+      },
+      { type: 'p', text: 'Lecture : sur un aller simple entre deux grandes gares, le train tient la comparaison. Dès qu\'il s\'agit d\'une journée aller-retour vers une destination de loisirs, l\'autocar coûte moins cher pour le groupe, et l\'écart se creuse quand le train impose une correspondance ou une navette à l\'arrivée. Les fourchettes autocar détaillées par distance sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).' },
+      { type: 'h2', text: 'Ce que le prix du billet ne dit pas' },
+      { type: 'ul', items: [
+        'Le dernier kilomètre : la gare n\'est jamais le point d\'arrivée. Château, parc, plage, hôtel : il faut une navette, un tram ou des taxis, à ajouter au budget et au planning',
+        'Les bagages : 40 valises sur un quai, dans un escalator, puis dans un wagon où les espaces sont comptés, c\'est une logistique à part entière. L\'autocar a des soutes',
+        'Les horaires : le train part à l\'heure du train. L\'autocar part à l\'heure du groupe, attend les retardataires et s\'adapte si la visite dure plus longtemps',
+        'Le rassemblement : un groupe de 40 personnes dans une gare, c\'est 40 personnes à ne pas perdre. Dans un autocar, le groupe reste ensemble du départ à l\'arrivée',
+        'Les grèves et les retards : le train en subit, l\'autocar aussi (trafic), mais l\'autocar ne supprime jamais votre trajet',
+      ]},
+      { type: 'h2', text: 'Quand le train gagne' },
+      { type: 'ul', items: [
+        'Longue distance entre deux grandes villes : Paris → Marseille ou Lille → Bordeaux, le TGV fait en 3 heures ce que l\'autocar fait en 8, avec une nuit sur place ou un second chauffeur',
+        'Destination en centre-ville desservie par la gare : séminaire dans un hôtel de gare, visite d\'une ville dense où l\'autocar ne peut ni circuler ni stationner',
+        'Petit groupe de moins de 12 personnes : le prix d\'un minibus ne s\'amortit plus, sauf besoin de porte-à-porte',
+        'Budget carbone prioritaire : le TGV est électrique et quasi imbattable sur ce critère',
+      ]},
+      { type: 'h2', text: 'Quand l\'autocar gagne' },
+      { type: 'ul', items: [
+        'Journée aller-retour vers un site de loisirs ou de nature : parc, plage, château, station, où la gare la plus proche est à 20 km',
+        'Groupe de 25 à 60 personnes avec bagages : scolaires, clubs, associations, séminaires résidentiels',
+        'Circuit avec plusieurs étapes dans la journée, ou séjour avec le car à disposition sur place',
+        'Horaires imposés par l\'événement : match, concert, mariage, où il faut partir à 23h30 et pas au dernier train de 21h40',
+        'Zones mal desservies : la France rurale, les stations de ski, le littoral hors saison',
+      ]},
+      { type: 'h2', text: 'Et l\'empreinte carbone ?' },
+      { type: 'p', text: 'Le train électrique est imbattable : de l\'ordre de 3 g de CO2 par passager et par kilomètre en TGV selon l\'ADEME. Mais l\'autocar plein est le deuxième mode le plus sobre, autour de 30 g par passager-kilomètre, contre 150 g et plus pour une voiture occupée par une seule personne. Autrement dit, un autocar de 50 personnes émet moins que 10 voitures, et à peu près autant qu\'un TER diesel. Si le train n\'est pas pratique, l\'autocar reste un choix responsable ; c\'est le covoiturage en voitures individuelles qu\'il faut éviter.' },
+      { type: 'h2', text: 'Le combo gagnant : train + autocar' },
+      { type: 'p', text: 'Pour un voyage lointain, la solution la plus efficace mélange souvent les deux : le TGV pour la longue distance, puis un autocar qui attend le groupe en gare d\'arrivée pour la journée sur place et le retour à la gare. On garde la vitesse du train et le porte-à-porte de l\'autocar. Le transporteur local chiffre la journée de mise à disposition depuis la gare : c\'est exactement le type de demande que nos [pages villes](/location-autocar/lyon) couvrent, de [Marseille](/location-autocar/marseille) à [Lille](/location-autocar/lille).' },
+      { type: 'h2', text: 'Obtenir les deux chiffres pour décider' },
+      { type: 'p', text: 'Demandez vos billets de groupe d\'un côté, et de l\'autre décrivez votre trajet dans notre formulaire de [devis autocar](/devis-autocar) : jusqu\'à 3 propositions sous 24h, gratuites et sans engagement. Avec les deux montants sous les yeux, la décision prend deux minutes. Et pour les groupes de 15 à 20 personnes, le [minibus 20 places](/location-minibus-20-places) est souvent le juste milieu.' },
+    ],
+  },
+  {
+    slug: 'transfert-aeroport-groupe-mode-emploi',
+    titre: 'Organiser un transfert aéroport pour un groupe : le mode d\'emploi',
+    metaTitle: 'Transfert aéroport pour un groupe : mode d\'emploi | Busmoov',
+    metaDescription: 'Timing, terminal, suivi de vol, bagages, prix : comment organiser le transfert aéroport d\'un groupe en autocar ou minibus, étape par étape et sans stress.',
+    datePublication: '2026-10-09',
+    extrait: 'Dimensionner le véhicule, caler le timing sur le vol, fixer le point de rendez-vous, gérer le retour : la méthode pour un transfert aéroport de groupe sans stress.',
+    blocks: [
+      { type: 'p', text: 'Un transfert aéroport de groupe est un trajet simple qui peut très mal se passer : un terminal confondu, une marge trop courte, un chauffeur qui attend au mauvais niveau, et 45 personnes ratent leur vol. La bonne nouvelle, c\'est que tout se prévoit. Voici la méthode que suivent les organisateurs expérimentés, en quatre étapes, avec les prix à prévoir.' },
+      { type: 'h2', text: 'Étape 1 : dimensionner le véhicule, bagages compris' },
+      { type: 'p', text: 'Pour un transfert aéroport, les bagages comptent autant que les passagers. Une valise en soute par personne plus un bagage cabine, c\'est la règle, et c\'est ce qui disqualifie le minibus au-delà de 15 à 18 personnes. Jusqu\'à 18 voyageurs, un [minibus 20 places](/location-minibus-20-places) à grande soute fait l\'affaire ; de 20 à 55, un autocar standard ; au-delà, un [autocar grande capacité](/location-autocar-grande-capacite) ou deux véhicules. Indiquez le nombre exact de valises dans votre demande.' },
+      { type: 'h2', text: 'Étape 2 : caler le timing sur le vol, pas sur le trajet' },
+      { type: 'p', text: 'L\'erreur classique est de calculer le départ à partir du temps de route. Il faut partir de l\'heure de présentation à l\'enregistrement, remonter du temps de trajet à l\'heure réelle de circulation, puis ajouter une marge de groupe : 45 personnes montent et descendent moins vite que 4.' },
+      { type: 'table',
+        caption: 'Repères de timing pour un départ depuis Paris intra-muros',
+        headers: ['Type de vol', 'Présentation à l\'aéroport', 'Départ du groupe vers CDG', 'Départ du groupe vers Orly'],
+        rows: [
+          ['Vol européen, enregistrement en ligne fait', '2h avant', '3h15 à 3h30 avant le décollage', '3h à 3h15 avant'],
+          ['Vol européen, enregistrement sur place', '2h30 avant', '3h45 à 4h avant', '3h30 à 3h45 avant'],
+          ['Vol long-courrier ou Outre-mer', '3h avant', '4h15 à 4h30 avant', '4h à 4h15 avant'],
+          ['Heure de pointe (7h-9h30, 17h-19h30)', 'idem', 'ajouter 30 à 45 min', 'ajouter 20 à 30 min'],
+        ],
+      },
+      { type: 'p', text: 'Ces repères intègrent 45 minutes à 1h15 de route vers Roissy et 30 à 50 minutes vers Orly selon l\'heure. Depuis la banlieue ou la province, le transporteur recalcule : c\'est son métier, et il connaît les créneaux où l\'A1 ou l\'A6 saturent. Le détail par aéroport est sur nos pages [navette aéroport CDG](/navette-aeroport-cdg) et [navette aéroport Orly](/navette-aeroport-orly).' },
+      { type: 'h2', text: 'Étape 3 : fixer le point de rendez-vous et le terminal' },
+      { type: 'ul', items: [
+        'Au départ : un point de rassemblement unique, précis et accessible à un autocar de 12 m, pas « devant l\'école » mais « avenue X, côté parking, 20 m après le feu ». Le chauffeur le reçoit par écrit',
+        'Le terminal : vérifiez-le sur la réservation de la compagnie 48h avant, pas de mémoire. À CDG, les terminaux 1, 2A à 2G et 3 ne sont pas au même endroit ; une erreur coûte 20 minutes',
+        'La dépose : au niveau Départs du bon terminal, sur la zone cars. Le groupe descend, récupère ses bagages en soute, le véhicule repart. Comptez 10 minutes pour 50 personnes',
+        'Un responsable par véhicule, avec le numéro du chauffeur et la liste des passagers. En cas de retardataire, c\'est lui qui décide, pas le chauffeur',
+      ]},
+      { type: 'h2', text: 'Étape 4 : le retour, le suivi de vol et l\'attente' },
+      { type: 'p', text: 'Au retour, donnez le numéro de vol au transporteur : le chauffeur le suit en temps réel et se cale sur l\'atterrissage effectif, pas sur l\'horaire prévu. Une franchise d\'attente après l\'atterrissage est incluse dans le devis, pour absorber le passage des contrôles et la livraison des bagages, comptez 45 minutes à 1h pour un groupe sur un vol international. Le point de rendez-vous de sortie (porte, zone autocars) est communiqué avec les coordonnées du chauffeur avant le voyage. Si votre groupe est réparti sur deux vols, dites-le : l\'autocar enchaîne les terminaux, ou attend le second vol.' },
+      { type: 'h2', text: 'Combien coûte un transfert aéroport de groupe ?' },
+      { type: 'ul', items: [
+        'Paris ↔ Roissy CDG : 300 à 450 € TTC en minibus, 450 à 690 € TTC en autocar standard, selon l\'horaire et le point de départ',
+        'Paris ↔ Orly : 250 à 400 € TTC en minibus, 400 à 650 € TTC en autocar standard',
+        'Province ↔ aéroport régional (Lyon Saint-Exupéry, Nice, Bordeaux-Mérignac, Toulouse-Blagnac) : du même ordre pour un transfert de moins de 50 km, voir nos pages villes, par exemple [Lyon](/location-autocar/lyon) ou [Nice](/location-autocar/nice)',
+        'Prix ferme, chauffeur, carburant, péages et franchise d\'attente inclus ; un aller-retour à deux dates différentes se chiffre comme deux transferts',
+      ]},
+      { type: 'p', text: 'À comparer aux 12 taxis ou aux 45 billets de RER plus les correspondances avec bagages qu\'il faudrait pour le même groupe. Les fourchettes de tous les trajets sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).' },
+      { type: 'h2', text: 'Les cinq erreurs qui font rater un vol' },
+      { type: 'ul', items: [
+        'Calculer le départ sur le temps de trajet au lieu de l\'heure de présentation',
+        'Confondre les terminaux ou ne pas vérifier un changement de terminal de dernière minute',
+        'Sous-estimer les bagages et se retrouver avec un minibus plein aux trois quarts de valises',
+        'Donner un point de rendez-vous inaccessible à un autocar, qui doit alors stationner à 300 m',
+        'Ne pas transmettre le numéro de vol pour le retour, et laisser le chauffeur deviner l\'heure d\'atterrissage',
+      ]},
+      { type: 'h2', text: 'La checklist à envoyer au transporteur' },
+      { type: 'ul', items: [
+        'Nombre exact de passagers et de valises en soute',
+        'Adresse précise du point de rassemblement et heure de départ souhaitée',
+        'Numéro de vol, compagnie, terminal et heure de décollage (et d\'atterrissage pour le retour)',
+        'Nom et téléphone du responsable de groupe',
+        'Besoins particuliers : fauteuil roulant, siège enfant, bagages hors format (skis, instruments, vélos)',
+      ]},
+      { type: 'h2', text: 'Réserver votre transfert' },
+      { type: 'p', text: 'Décrivez le transfert dans notre formulaire de [devis autocar](/devis-autocar) avec ces éléments : vous recevez sous 24h jusqu\'à 3 propositions de transporteurs qui font les aéroports toutes les semaines. Pour un départ très matinal ou de nuit, précisez-le : c\'est un trajet ordinaire pour eux, et le prix l\'intègre.' },
     ],
   },
 ]

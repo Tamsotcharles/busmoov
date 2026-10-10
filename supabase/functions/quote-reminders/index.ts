@@ -1,4 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { countryToLang, formatDateLong, formatCurrencyFor, labelsFor, type EmailLang } from '../_shared/lang.ts'
+import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts'
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 /**
@@ -43,6 +45,7 @@ interface WorkflowRule {
   trigger_event: string
   conditions: {
     days_after_devis?: number
+    max_days_late?: number
   } | null
   action_config: {
     template?: string
@@ -76,23 +79,24 @@ interface Dossier {
   return_date: string | null
   passengers: number
   status: string
-  language: string | null
+  country_code: string | null
   created_at: string
   devis: Devis[]
 }
 
 /**
- * Génère le HTML du récapitulatif des devis
+ * Génère le HTML du récapitulatif des devis (libellés dans la langue du dossier)
  */
-function generateDevisRecapHtml(devis: Devis[]): string {
-  if (!devis.length) return '<p>Aucun devis disponible</p>'
+function generateDevisRecapHtml(devis: Devis[], lang: EmailLang): string {
+  const L = labelsFor(lang)
+  if (!devis.length) return `<p>${L.noQuote}</p>`
 
   let html = '<table style="width: 100%; border-collapse: collapse;">'
   html += `
     <tr style="background: #f5f5f5;">
-      <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Transporteur</th>
-      <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Véhicule</th>
-      <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">Prix TTC</th>
+      <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">${L.carrier}</th>
+      <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">${L.vehicle}</th>
+      <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">${L.priceIncl}</th>
     </tr>
   `
 
@@ -100,21 +104,13 @@ function generateDevisRecapHtml(devis: Devis[]): string {
   const sortedDevis = [...devis].sort((a, b) => (a.price_ttc || 0) - (b.price_ttc || 0))
 
   sortedDevis.forEach((d, index) => {
-    const transporteurName = d.transporteur?.name || 'Transporteur partenaire'
-    const vehicleLabel = getVehicleLabel(d.vehicle_type, d.nombre_cars)
-    const prixFormate = new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0
-    }).format(d.price_ttc)
+    const transporteurName = d.transporteur?.name || L.partnerCarrier
+    const vehicleLabel = getVehicleLabel(d.vehicle_type, d.nombre_cars, lang)
+    const prixFormate = formatCurrencyFor(d.price_ttc, lang)
 
     // Le moins cher en vert
-    const rowStyle = index === 0
-      ? 'background: #e8f5e9;'
-      : ''
-    const priceStyle = index === 0
-      ? 'color: #2e7d32; font-weight: bold;'
-      : 'font-weight: bold;'
+    const rowStyle = index === 0 ? 'background: #e8f5e9;' : ''
+    const priceStyle = index === 0 ? 'color: #2e7d32; font-weight: bold;' : 'font-weight: bold;'
 
     html += `
       <tr style="${rowStyle}">
@@ -127,15 +123,12 @@ function generateDevisRecapHtml(devis: Devis[]): string {
 
   html += '</table>'
 
-  // Ajouter un badge "meilleur prix" pour le premier
+  // Badge « meilleur prix » si plusieurs devis
   if (sortedDevis.length > 1) {
+    const ecart = formatCurrencyFor(sortedDevis[sortedDevis.length - 1].price_ttc - sortedDevis[0].price_ttc, lang)
     html += `
       <p style="margin-top: 10px; font-size: 13px; color: #2e7d32;">
-        <strong>Meilleur prix !</strong> Économisez ${new Intl.NumberFormat('fr-FR', {
-          style: 'currency',
-          currency: 'EUR',
-          minimumFractionDigits: 0
-        }).format(sortedDevis[sortedDevis.length - 1].price_ttc - sortedDevis[0].price_ttc)} par rapport à l'offre la plus élevée.
+        <strong>${L.bestPrice}</strong> ${L.save} ${ecart} ${L.vsHighest}
       </p>
     `
   }
@@ -146,36 +139,24 @@ function generateDevisRecapHtml(devis: Devis[]): string {
 /**
  * Retourne un label lisible pour le type de véhicule
  */
-function getVehicleLabel(vehicleType: string | null, nombreCars: number | null): string {
+function getVehicleLabel(vehicleType: string | null, nombreCars: number | null, lang: EmailLang): string {
+  const L = labelsFor(lang)
   const labels: Record<string, string> = {
-    'minibus': 'Minibus',
-    'standard': 'Autocar standard',
-    '60-63': 'Autocar 60-63 places',
-    '70': 'Grand autocar 70 places',
-    '83-90': 'Autocar grande capacité',
-    'autocar': 'Autocar',
+    'minibus': L.minibus,
+    'standard': L.standard,
+    '60-63': L.c60,
+    '70': L.c70,
+    '83-90': L.c83,
+    'autocar': L.coach,
   }
 
-  let label = labels[vehicleType || 'autocar'] || 'Autocar'
+  let label = labels[vehicleType || 'autocar'] || L.coach
 
   if (nombreCars && nombreCars > 1) {
-    label = `${nombreCars} ${label.toLowerCase()}s`
+    label = `${nombreCars} × ${label}`
   }
 
   return label
-}
-
-/**
- * Formate une date en français
- */
-function formatDateFr(dateStr: string): string {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  })
 }
 
 /**
@@ -194,7 +175,7 @@ async function sendReminderEmail(
 
   // Générer le lien vers l'espace client
   const baseUrl = 'https://busmoov.com'
-  const lang = dossier.language || 'fr'
+  const lang = countryToLang(dossier.country_code)
   const lienEspaceClient = `${baseUrl}/${lang}/mes-devis?ref=${dossier.reference}&email=${encodeURIComponent(dossier.client_email)}`
 
   const emailData = {
@@ -205,7 +186,7 @@ async function sendReminderEmail(
       reference: dossier.reference,
       departure: dossier.departure?.split('(')[0]?.trim() || dossier.departure,
       arrival: dossier.arrival?.split('(')[0]?.trim() || dossier.arrival,
-      departure_date: formatDateFr(dossier.departure_date),
+      departure_date: formatDateLong(dossier.departure_date, lang),
       passengers: String(dossier.passengers || 0),
       nb_devis: String(dossier.devis.length),
       devis_recap: devisRecapHtml,
@@ -246,6 +227,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
+  if (!isCronOrAdminCaller(req)) return unauthorizedResponse(corsHeaders)
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -313,7 +295,7 @@ Deno.serve(async (req) => {
         return_date,
         passengers,
         status,
-        language,
+        country_code,
         created_at,
         devis!inner(
           id,
@@ -383,13 +365,19 @@ Deno.serve(async (req) => {
         // Vérifier si le délai est atteint
         if (daysSinceSent < daysAfterDevis) continue
 
+        // Trop tard pour relancer : au-delà de max_days_late jours après le
+        // délai prévu (défaut 14), on ne relance plus. Évite une rafale de
+        // relances sur de vieux devis quand le cron redémarre après une panne.
+        const maxDaysLate = rule.conditions?.max_days_late ?? 14
+        if (daysSinceSent > daysAfterDevis + maxDaysLate) continue
+
         // Template email à utiliser (défini dans la règle ou par défaut)
         const templateKey = rule.action_config?.template || `quote_reminder_${daysAfterDevis}d`
 
         console.log(`Dossier ${dossier.reference}: envoi relance J+${daysAfterDevis} via règle "${rule.name}"`)
 
         // Générer le récapitulatif des devis
-        const devisRecapHtml = generateDevisRecapHtml(devisSent)
+        const devisRecapHtml = generateDevisRecapHtml(devisSent, countryToLang(dossier.country_code))
 
         if (dryRun) {
           results.push({

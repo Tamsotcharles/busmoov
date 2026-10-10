@@ -9,6 +9,7 @@ import { getArticle, articles, type BlogBlock } from '@/lib/blog'
 import { getSiteBaseUrl } from '@/lib/utils'
 import { ArrowLeft, Calendar, Info } from 'lucide-react'
 import { TextWithLinks } from '@/components/ui/TextWithLinks'
+import { TableauSeo } from '@/components/ui/TableauSeo'
 
 function formatDateFr(iso: string): string {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -35,6 +36,8 @@ function Block({ block }: { block: BlogBlock }) {
           <p className="text-gray-700 text-sm leading-relaxed">{block.text}</p>
         </div>
       )
+    case 'table':
+      return <TableauSeo caption={block.caption} headers={block.headers} rows={block.rows} />
   }
 }
 

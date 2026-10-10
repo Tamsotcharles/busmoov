@@ -1,5 +1,7 @@
 // @ts-ignore
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { countryToLang } from '../_shared/lang.ts'
+import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts'
 // @ts-ignore
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -13,6 +15,7 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
+  if (!isCronOrAdminCaller(req)) return unauthorizedResponse(corsHeaders)
 
   try {
     const supabaseClient = createClient(
@@ -148,7 +151,7 @@ async function sendReviewRequestEmail(
 ): Promise<boolean> {
   try {
     // Déterminer la langue à partir du country_code du dossier
-    const language = (dossier.country_code || 'FR').toLowerCase()
+    const language = countryToLang(dossier.country_code)
 
     const baseUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://busmoov.com'
     const reviewUrl = `${baseUrl}/avis?token=${reviewToken}`

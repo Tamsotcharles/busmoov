@@ -5,10 +5,14 @@
  * [ancre](/chemin). Ajouter une page = ajouter une entrée ici.
  */
 
+import type { TableauSeo } from './blog'
+
 export interface LandingSection {
   h2: string
   paragraphes?: string[]
   liste?: string[]
+  /** Tableau rendu après les paragraphes et la liste. */
+  tableau?: TableauSeo
 }
 
 export interface LandingFaq {
@@ -187,8 +191,8 @@ export const landings: Landing[] = [
   },
   {
     slug: '/location-bus-50-places',
-    metaTitle: 'Location de bus 50 places avec chauffeur — Devis 24h | Busmoov',
-    metaDescription: 'Louez un bus 49 à 59 places avec chauffeur : le format le plus demandé et le plus économique par personne. Plusieurs devis gratuits sous 24h.',
+    metaTitle: 'Bus 50 places avec chauffeur : tarifs 2026, devis | Busmoov',
+    metaDescription: 'Tarif d\'un bus 50 places avec chauffeur 2026 : journée dès 690 € TTC, transfert, week-end. Le format le plus économique par personne. Devis gratuit en 24h.',
     h1: 'Location de bus 50 places avec chauffeur',
     sousTitre: 'Le format le plus demandé de France : un autocar de tourisme de 49 à 59 places, chauffeur professionnel inclus, au meilleur prix par personne.',
     intro: [
@@ -207,15 +211,27 @@ export const landings: Landing[] = [
         ],
       },
       {
-        h2: 'Combien coûte un bus de 50 places ?',
+        h2: 'Tarif d\'un bus 50 places avec chauffeur en 2026',
         paragraphes: [
-          'À partir de 690 € TTC la journée pour un aller-retour local — soit environ 14 € par personne sur un car plein. Un transfert simple (aéroport, gare, événement) coûte moins ; un long trajet se calcule au kilomètre. Toutes les fourchettes sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
+          'À partir de 690 € TTC la journée pour un aller-retour local — soit environ 14 € par personne sur un car plein. Un transfert simple (aéroport, gare, événement) coûte moins ; un long trajet se calcule au kilomètre. Voici les ordres de grandeur constatés sur nos devis pour un autocar standard au départ d\'une grande agglomération ; toutes les fourchettes et les facteurs de variation sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
         ],
+        tableau: {
+          caption: 'Prix TTC indicatifs 2026 pour un bus 50 places, chauffeur, carburant et péages inclus',
+          headers: ['Prestation', 'Prix indicatif', 'Par personne (50 passagers)'],
+          rows: [
+            ['Transfert aller simple, moins de 50 km (aéroport, gare)', '400 à 600 €', '8 à 12 €'],
+            ['Journée locale, aller-retour (moins de 50 km)', '690 à 830 €', '14 à 17 €'],
+            ['Journée régionale, aller-retour (100 à 200 km)', '1 100 à 1 400 €', '22 à 28 €'],
+            ['Transfert aller simple, 100 à 200 km', '950 à 1 300 €', '19 à 26 €'],
+            ['Week-end 2 jours, car à disposition (moins de 200 km)', '2 200 à 2 500 €', '44 à 50 €'],
+            ['Longue distance (plus de 300 km)', 'Sur devis, au kilomètre', '—'],
+          ],
+        },
       },
       {
         h2: 'Et si nous sommes 45, 55 ou 62 ?',
         paragraphes: [
-          'En dessous de 45 personnes, le même autocar standard reste souvent la bonne réponse (le prix ne baisse pas beaucoup avec un véhicule plus petit, sauf à passer au [minibus](/services/location-minibus) sous 20 personnes). Au-delà de 59, deux options : un autocar grande capacité (60 à 90 places, y compris double étage) ou deux véhicules coordonnés — le devis compare les deux. Le tour complet des tailles est sur notre page [location de bus](/location-bus).',
+          'En dessous de 45 personnes, le même autocar standard reste souvent la bonne réponse (le prix ne baisse pas beaucoup avec un véhicule plus petit, sauf à passer au [minibus](/services/location-minibus) sous 20 personnes). Au-delà de 59, deux options : un [autocar grande capacité](/location-autocar-grande-capacite) (60 à 90 places, y compris double étage) ou deux véhicules coordonnés — le devis compare les deux. Le tour complet des tailles est sur notre page [location de bus](/location-bus).',
         ],
       },
     ],
@@ -234,6 +250,97 @@ export const landings: Landing[] = [
       },
     ],
     serviceType: 'Location de bus 50 places avec chauffeur',
+  },
+  {
+    slug: '/devis-autocar',
+    metaTitle: 'Devis autocar gratuit en ligne : 3 offres en 24h | Busmoov',
+    metaDescription: 'Devis autocar ou bus avec chauffeur en 2 minutes : jusqu\'à 3 offres de transporteurs vérifiés sous 24h, prix ferme tout compris, sans engagement.',
+    h1: 'Devis autocar avec chauffeur : jusqu\'à 3 offres en 24h',
+    sousTitre: 'Décrivez votre trajet en 2 minutes, recevez jusqu\'à 3 devis gratuits de transporteurs vérifiés, puis réservez en ligne — ou pas : c\'est sans engagement.',
+    intro: [
+      'Un devis d\'autocar, c\'est d\'abord une question de temps : appeler cinq autocaristes, répéter cinq fois le même trajet, attendre cinq réponses qui n\'arrivent pas au même rythme. Busmoov inverse la logique. Vous décrivez votre besoin une seule fois ; nous interrogeons les transporteurs de notre réseau disponibles sur votre date et vous recevez jusqu\'à trois propositions comparables, sous 24 heures.',
+      'Chaque devis est ferme et tout compris : chauffeur professionnel, carburant, péages et TVA. Pas de frais cachés, pas de supplément découvert la veille du départ. Vous comparez, vous choisissez — ou vous laissez tomber, sans qu\'on vous relance pendant des semaines.',
+    ],
+    sections: [
+      {
+        h2: 'Comment obtenir votre devis autocar en ligne',
+        liste: [
+          '1. Décrivez le trajet dans le formulaire ci-dessus : départ, destination, date, horaires, nombre de passagers. Deux minutes suffisent.',
+          '2. Sous 24 heures, vous recevez jusqu\'à 3 devis de transporteurs vérifiés (licence, assurances, véhicules contrôlés), présentés de façon identique pour comparer facilement.',
+          '3. Vous validez le devis qui vous convient depuis votre espace client, vous réglez l\'acompte en ligne, et vous recevez les coordonnées du chauffeur avant le départ.',
+        ],
+      },
+      {
+        h2: 'Ce qu\'il faut préciser pour un devis juste',
+        paragraphes: [
+          'Plus la demande est précise, plus le devis est fiable — et moins il bouge ensuite. Les informations qui comptent vraiment :',
+        ],
+        liste: [
+          'L\'effectif exact, accompagnateurs compris : c\'est lui qui fixe la taille du véhicule (un [bus de 50 places](/location-bus-50-places) ne coûte pas le même prix qu\'un [minibus](/services/location-minibus))',
+          'Les horaires de départ et de retour : l\'amplitude de travail du chauffeur pèse autant que la distance dans le prix',
+          'Le format du trajet : aller simple, aller-retour dans la journée, ou séjour avec le car qui reste sur place',
+          'Les options utiles : bagages volumineux, Wi-Fi, toilettes à bord, accessibilité fauteuil roulant',
+          'Les contraintes du lieu : centre-ville piéton, parking autocar, site avec horaires imposés',
+        ],
+      },
+      {
+        h2: 'Que contient un devis Busmoov ?',
+        paragraphes: [
+          'Un prix TTC ferme, valable jusqu\'à la date indiquée sur le devis, avec le détail de la prestation : type de véhicule et capacité, trajet et horaires retenus, conditions d\'acompte et de solde, conditions d\'annulation. Chauffeur, carburant et péages sont inclus par défaut. Si le trajet implique un second chauffeur (amplitude supérieure à 12 heures) ou une nuit sur place, c\'est écrit noir sur blanc, pas découvert à la facture.',
+          'Les devis sont établis par nos transporteurs partenaires, puis vérifiés par notre équipe avant envoi : cohérence du véhicule avec l\'effectif, respect de la réglementation sur les temps de conduite, prix dans les fourchettes du marché.',
+        ],
+      },
+      {
+        h2: 'Combien coûte un autocar ? Les repères avant de demander',
+        paragraphes: [
+          'Pour savoir à quoi vous attendre, voici les ordres de grandeur constatés sur nos devis en 2026, pour un départ depuis une grande agglomération. Le détail complet, avec les facteurs qui font varier le prix, est dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
+        ],
+        tableau: {
+          caption: 'Prix TTC indicatifs 2026, chauffeur, carburant et péages inclus',
+          headers: ['Prestation', 'Autocar standard (21-59 places)', 'Minibus (8-20 places)'],
+          rows: [
+            ['Transfert aller simple, moins de 50 km', '400 à 600 €', '360 à 540 €'],
+            ['Journée locale, aller-retour (moins de 50 km)', '690 à 830 €', '620 à 750 €'],
+            ['Journée régionale, aller-retour (100 à 200 km)', '1 100 à 1 400 €', '1 000 à 1 250 €'],
+            ['Week-end 2 jours, car à disposition (moins de 200 km)', '2 200 à 2 500 €', '2 000 à 2 250 €'],
+            ['Longue distance (plus de 300 km)', 'Sur devis, au kilomètre', 'Sur devis, au kilomètre'],
+          ],
+        },
+      },
+      {
+        h2: 'Un devis autocar pour quel besoin ?',
+        liste: [
+          '[Sortie ou voyage scolaire](/services/sorties-scolaires) : véhicules aux normes transport d\'enfants, devis adapté aux budgets d\'établissement',
+          '[Déplacement d\'entreprise](/blog/autocar-deplacement-entreprise) : séminaire, salon, navette événementielle, facturation société',
+          'Mariage, anniversaire, enterrement de vie de célibataire : navettes entre les lieux de la fête, retour de nuit inclus',
+          '[Transfert aéroport](/navette-aeroport-cdg) ou gare pour un groupe avec bagages',
+          'Club sportif, association, paroisse : déplacements réguliers ou ponctuels, [partout en France](/services/location-autocar) et [en Europe](/location-autocar-espagne)',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Le devis autocar est-il vraiment gratuit et sans engagement ?',
+        a: 'Oui. Demander un devis ne vous engage à rien : vous recevez les propositions, vous les comparez, et vous ne payez que si vous réservez. Aucun frais de dossier, aucune relance commerciale insistante.',
+      },
+      {
+        q: 'En combien de temps reçoit-on les devis ?',
+        a: 'Sous 24 heures ouvrées dans la grande majorité des cas, souvent en quelques heures pour un trajet classique. Pour un départ dans moins de 48 heures, indiquez-le dans la demande : nous priorisons les transporteurs disponibles immédiatement.',
+      },
+      {
+        q: 'Pourquoi les devis reçus n\'ont-ils pas tous le même prix ?',
+        a: 'Chaque transporteur chiffre selon sa flotte, la distance de son dépôt à votre point de départ et son planning du jour. L\'écart entre deux devis sur un même trajet atteint couramment 15 à 25 % : c\'est précisément pour cela qu\'on en compare plusieurs.',
+      },
+      {
+        q: 'Combien de temps un devis reste-t-il valable ?',
+        a: 'La date de validité figure sur chaque devis, en général 7 à 15 jours. Passé ce délai, le véhicule n\'est plus bloqué pour vous : en haute saison (mai-juin, voyages scolaires), mieux vaut valider rapidement.',
+      },
+      {
+        q: 'Peut-on modifier le trajet après avoir reçu un devis ?',
+        a: 'Oui, tant que la réservation n\'est pas confirmée, le devis est simplement réactualisé. Après confirmation, les modifications mineures (horaire, adresse de prise en charge) sont gérées directement avec le transporteur ; un changement de date ou d\'effectif donne lieu à un nouveau devis.',
+      },
+    ],
+    serviceType: 'Devis autocar avec chauffeur',
   },
   {
     slug: '/location-autocar-ile-de-france',
@@ -926,6 +1033,153 @@ export const landings: Landing[] = [
       },
     ],
     serviceType: 'Location de bus avec chauffeur à Paris',
+  },
+  {
+    slug: '/location-minibus-20-places',
+    metaTitle: 'Minibus 20 places avec chauffeur : tarifs et devis | Busmoov',
+    metaDescription: 'Louez un minibus 15 à 20 places avec chauffeur : transfert dès 360 € TTC, journée dès 620 € TTC. Accès centre-ville, bagages inclus, devis gratuit en 24h.',
+    h1: 'Location de minibus 20 places avec chauffeur',
+    sousTitre: 'De 15 à 20 passagers : le véhicule qui passe partout, chauffeur professionnel inclus, à partir de 360 € TTC le transfert.',
+    intro: [
+      'Entre le van de 8 places et l\'autocar de 50, il y a un format que les groupes moyens demandent sans cesse : le minibus de 15 à 20 places. Une équipe de sport, un comité de direction, une noce intime, une classe dédoublée, un groupe d\'amis pour un week-end : c\'est exactement la taille où un grand autocar coûterait trop cher et où deux voitures ne suffisent plus.',
+      'Le minibus a deux atouts que l\'autocar n\'a pas : il entre dans les centres-villes et les parkings ordinaires, et il coûte environ 10 % de moins sur le même trajet. Nos transporteurs en alignent dans toute la France, en 15, 17, 19 et 20 places selon les modèles ; décrivez votre effectif exact et vous recevez jusqu\'à 3 [devis de minibus](/devis-autocar) sous 24h.',
+    ],
+    sections: [
+      {
+        h2: 'Minibus 15, 17 ou 20 places : lequel choisir ?',
+        liste: [
+          'Minibus 15-17 places : châssis type Sprinter ou Crafter allongé, 1 bagage cabine par personne en soute, idéal pour les transferts et les sorties à la journée',
+          'Minibus 19-20 places : version la plus longue, souvent avec une vraie soute arrière pour les valises, le bon choix pour un week-end ou un séjour',
+          'Au-delà de 20 passagers, ou avec beaucoup de bagages, on bascule sur un [autocar standard](/location-bus-50-places) : le prix par personne redevient plus intéressant à partir de 25 à 30 voyageurs',
+          'En dessous de 9 places, une [location de minibus](/services/location-minibus) 8 places ou un van suffit',
+        ],
+      },
+      {
+        h2: 'Tarif d\'un minibus 20 places avec chauffeur en 2026',
+        paragraphes: [
+          'Un minibus se facture comme un autocar, selon la distance et l\'amplitude de la journée du chauffeur, avec environ 10 % de moins qu\'un autocar standard. Chauffeur, carburant et péages sont inclus. Voici les ordres de grandeur constatés sur nos devis pour un départ depuis une grande agglomération, hors haute saison.',
+        ],
+        tableau: {
+          caption: 'Prix TTC indicatifs 2026 pour un minibus 15 à 20 places, chauffeur, carburant et péages inclus',
+          headers: ['Prestation', 'Prix indicatif', 'Par personne (18 passagers)'],
+          rows: [
+            ['Transfert aller simple, moins de 50 km (aéroport, gare)', '360 à 540 €', '20 à 30 €'],
+            ['Journée locale, aller-retour (moins de 50 km)', '620 à 750 €', '34 à 42 €'],
+            ['Journée régionale, aller-retour (100 à 200 km)', '1 000 à 1 250 €', '56 à 69 €'],
+            ['Week-end 2 jours, minibus à disposition (moins de 200 km)', '2 000 à 2 250 €', '111 à 125 €'],
+            ['Longue distance (plus de 300 km)', 'Sur devis, au kilomètre', '—'],
+          ],
+        },
+      },
+      {
+        h2: 'Quand le minibus est le bon choix, et quand il ne l\'est plus',
+        paragraphes: [
+          'Le minibus gagne dès que l\'accès compte : hôtels de centre-ville, ruelles, parkings souterrains, domaines viticoles aux allées étroites, dépose devant une mairie. Il gagne aussi sur les trajets courts et fréquents, comme une navette de mariage en plusieurs rotations, où un autocar tournerait à moitié vide.',
+          'Il perd son intérêt quand le groupe approche 25 personnes, ou quand chacun voyage avec une grosse valise : à ce stade, un autocar de 30 à 50 places coûte à peine plus et offre de vraies soutes. Et pour un long trajet, le confort d\'un autocar (sièges inclinables, toilettes, espace aux jambes) fait la différence sur 4 heures de route. Les fourchettes complètes de chaque formule sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
+        ],
+      },
+      {
+        h2: 'Ce que comprend la location',
+        liste: [
+          'Chauffeur professionnel, titulaire du permis D et de la qualification transport de voyageurs',
+          'Climatisation, sièges individuels avec ceintures, bagages inclus selon la capacité de soute',
+          'Carburant, péages et assurance passagers compris dans le prix du devis',
+          'Sur demande : Wi-Fi, prises USB, siège PMR ou véhicule accessible, voir notre page [autocar PMR](/autocar-pmr)',
+          'Transferts aéroport avec suivi de vol : [Roissy CDG](/navette-aeroport-cdg) et [Orly](/navette-aeroport-orly)',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Un minibus 20 places peut-il entrer dans Paris ou Lyon intra-muros ?',
+        a: 'Oui, c\'est son grand avantage sur l\'autocar : gabarit de camionnette, hauteur inférieure à 3 m, il circule et stationne là où un car de 12 m ne peut pas. Seules les zones strictement piétonnes et certaines voies à gabarit réduit restent interdites.',
+      },
+      {
+        q: 'Combien de bagages peut-on emporter dans un minibus ?',
+        a: 'Comptez un bagage cabine par personne sur les 15-17 places, et une valise moyenne par personne sur les 19-20 places équipés d\'une soute arrière. Précisez le volume de bagages dans votre demande : si c\'est juste, le transporteur proposera un modèle à soute agrandie ou un autocar.',
+      },
+      {
+        q: 'Peut-on louer un minibus 20 places sans chauffeur ?',
+        a: 'Non : au-delà de 9 places, le permis D et la qualification professionnelle sont obligatoires. Le chauffeur est toujours inclus, voir notre article [louer un bus sans chauffeur](/blog/location-bus-sans-chauffeur).',
+      },
+      {
+        q: 'Le minibus est-il vraiment moins cher qu\'un autocar ?',
+        a: 'D\'environ 10 % sur un même trajet, parce que le véhicule consomme moins et coûte moins cher à exploiter. Mais le chauffeur, lui, coûte la même chose : c\'est pour cela que l\'écart n\'est pas plus grand et qu\'à partir de 25 à 30 passagers, l\'autocar redevient plus économique par personne.',
+      },
+    ],
+    serviceType: 'Location de minibus 20 places avec chauffeur',
+  },
+  {
+    slug: '/location-autocar-grande-capacite',
+    metaTitle: 'Autocar 60 à 90 places avec chauffeur : devis 24h | Busmoov',
+    metaDescription: 'Louez un autocar grande capacité, 60, 70 ou 90 places double étage, avec chauffeur : tarifs 2026, quand préférer deux véhicules, devis gratuit sous 24h.',
+    h1: 'Location d\'autocar grande capacité : 60 à 90 places',
+    sousTitre: 'Autocar 63 places, 70 places ou double étage jusqu\'à 90 places : un seul véhicule pour tout le groupe, chauffeur professionnel inclus.',
+    intro: [
+      'Au-delà de 59 passagers, l\'autocar standard ne suffit plus et la question se pose : un seul grand véhicule ou deux autocars ? La réponse dépend de l\'effectif exact, du trajet et des accès sur place. Les autocars grande capacité existent en trois formats, de 60 à 90 places, et nos transporteurs en ont dans leurs flottes partout en France, souvent dans les grandes agglomérations.',
+      'Un groupe qui voyage dans un seul autocar, c\'est un seul chauffeur, un seul horaire, un seul point de rendez-vous et aucun risque de séparer les accompagnateurs des enfants. Décrivez votre effectif réel et votre trajet : nous comparons pour vous l\'option grande capacité et l\'option deux véhicules, avec jusqu\'à 3 [devis d\'autocar](/devis-autocar) sous 24h.',
+    ],
+    sections: [
+      {
+        h2: 'Les trois formats grande capacité',
+        liste: [
+          'Autocar 60 à 63 places : un autocar de tourisme allongé (jusqu\'à 15 m), même confort que le standard, souvent la réponse la plus économique pour un groupe de 60 à 63 personnes',
+          'Autocar 70 places : châssis à trois essieux, soutes très larges, le format des voyages scolaires de deux classes avec accompagnateurs et des grandes délégations',
+          'Autocar double étage 80 à 90 places : deux niveaux, vue panoramique à l\'étage, le véhicule des très grands groupes, avec des contraintes de hauteur (4 m) et d\'accès à anticiper',
+        ],
+      },
+      {
+        h2: 'Tarif d\'un autocar grande capacité en 2026',
+        paragraphes: [
+          'Un autocar grande capacité coûte de 15 à 70 % de plus qu\'un autocar standard selon le format, mais il reste moins cher que deux véhicules. Chauffeur, carburant et péages sont inclus. Voici les ordres de grandeur constatés sur nos devis pour un départ depuis une grande agglomération, hors haute saison.',
+        ],
+        tableau: {
+          caption: 'Prix TTC indicatifs 2026 selon le format, chauffeur, carburant et péages inclus',
+          headers: ['Prestation', 'Autocar 60 à 70 places', 'Double étage 80 à 90 places'],
+          rows: [
+            ['Transfert aller simple, moins de 50 km', '500 à 720 €', '750 à 950 €'],
+            ['Journée locale, aller-retour (moins de 50 km)', '800 à 1 100 €', '1 150 à 1 450 €'],
+            ['Journée régionale, aller-retour (100 à 200 km)', '1 250 à 1 800 €', '1 850 à 2 400 €'],
+            ['Longue distance ou séjour de plusieurs jours', 'Sur devis', 'Sur devis'],
+          ],
+        },
+      },
+      {
+        h2: 'Un grand autocar ou deux véhicules ?',
+        paragraphes: [
+          'Pour 60 à 63 personnes, l\'autocar 63 places gagne presque toujours : il coûte environ 15 % de plus qu\'un standard, contre le double pour deux autocars. Pour 64 à 70 personnes, l\'autocar 70 places reste moins cher que deux véhicules dans la grande majorité des cas. Au-delà de 90, deux autocars s\'imposent, et le devis coordonne les deux chauffeurs sur le même horaire.',
+          'Le double étage change l\'équation : plus cher, moins répandu dans les flottes, il exige des accès dégagés (hauteur de 4 m, pas de parking couvert, pas de petites routes de montagne). Pour 80 personnes vers un site sans contrainte, c\'est l\'option la plus économique ; vers un village ou une station de ski, deux autocars standard seront plus sûrs. Le comparatif complet des tailles est sur notre page [location de bus](/location-bus), et les fourchettes de chaque format dans le guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
+        ],
+      },
+      {
+        h2: 'Les contraintes d\'accès à vérifier avant de réserver',
+        liste: [
+          'Hauteur : 3,7 m pour un autocar 70 places, 4 m pour un double étage, à comparer aux ponts, parkings et portiques sur le parcours',
+          'Stationnement : prévoir une zone de dépose de 15 m et un stationnement autocar à proximité du site',
+          'Centres historiques et zones à trafic limité : souvent interdits aux véhicules de plus de 12 m, voir nos pages [Italie](/location-autocar-italie) et [Belgique](/location-autocar-belgique) pour les règles locales',
+          'Accessibilité : certains grands autocars sont équipés d\'un élévateur fauteuil, voir notre page [autocar PMR](/autocar-pmr)',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Nous sommes 62 : faut-il un autocar grande capacité ou deux autocars standard ?',
+        a: 'Un seul autocar de 63 places, sans hésiter : environ 15 % de plus qu\'un standard, contre le double pour deux véhicules. Indiquez votre effectif exact, accompagnateurs et chauffeur de groupe compris, pour que le véhicule proposé ait bien un siège pour chacun.',
+      },
+      {
+        q: 'Un autocar double étage peut-il aller partout ?',
+        a: 'Non. Sa hauteur de 4 m lui interdit les parkings couverts, certains ponts et de nombreuses routes de montagne ; son gabarit complique les centres anciens. Pour un trajet autoroutier vers un site équipé (parc d\'attractions, stade, aéroport), aucun problème. Pour un village ou une station, préférez deux autocars standard.',
+      },
+      {
+        q: 'Les autocars grande capacité ont-ils des toilettes et le Wi-Fi ?',
+        a: 'La plupart des 70 places et double étage sont des véhicules grand tourisme : toilettes, Wi-Fi, prises USB, écrans et sièges inclinables sont courants. Précisez vos besoins dans la demande, le transporteur confirme l\'équipement exact du véhicule affecté.',
+      },
+      {
+        q: 'Quel délai pour trouver un autocar de 70 ou 90 places ?',
+        a: 'Ces véhicules sont moins nombreux que les standards : comptez 4 à 6 semaines hors saison, et 2 à 3 mois pour un samedi de mai-juin ou une période de voyages scolaires. Plus tôt vous demandez, plus vous avez de choix et de marge sur le prix.',
+      },
+    ],
+    serviceType: 'Location d\'autocar grande capacité 60 à 90 places',
   },
 ]
 

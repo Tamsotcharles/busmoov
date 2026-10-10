@@ -6,6 +6,8 @@ import { Bus, Users, Shield, Clock, MapPin, CheckCircle, Star, Phone, ArrowRight
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
 import { useCurrentCountry } from '@/hooks/useCountrySettings'
+import { MaillageFr } from '@/components/seo/MaillageFr'
+import { maillageServices } from '@/lib/maillage'
 
 export function LocationMinibusPage() {
   const { t } = useTranslation()
@@ -488,6 +490,8 @@ export function LocationMinibusPage() {
           </div>
         </div>
       </section>
+
+      <MaillageFr bloc={maillageServices['location-minibus']} />
 
       <Footer />
     </div>

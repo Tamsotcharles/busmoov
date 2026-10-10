@@ -1,4 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { countryToLang, formatDateMedium } from '../_shared/lang.ts';
+import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts';
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -53,6 +55,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+  if (!isCronOrAdminCaller(req)) return unauthorizedResponse(corsHeaders)
 
   try {
     // Initialize Supabase client
@@ -100,6 +103,7 @@ Deno.serve(async (req) => {
         departure_date,
         return_date,
         passengers,
+        country_code,
         transporteur_id,
         transporteur:transporteurs (
           id,
@@ -279,11 +283,11 @@ Deno.serve(async (req) => {
                   reference: dossier.reference,
                   departure: dossier.departure,
                   arrival: dossier.arrival,
-                  departure_date: new Date(dossier.departure_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+                  departure_date: formatDateMedium(dossier.departure_date, countryToLang(dossier.country_code)),
                   passengers: String(dossier.passengers),
                   lien_chauffeur: link,
                   dossier_id: dossier.id,
-                  language: 'fr', // Emails aux transporteurs toujours en français
+                  language: countryToLang(dossier.country_code), // transporteur local au pays du dossier
                 },
               }),
             });

@@ -216,6 +216,36 @@ Dans `supabase/functions/` :
 | `mollie-webhook` | Webhook de paiement Mollie |
 | `resend-webhook` | Webhook de tracking emails Resend |
 | `get-emails` | Lecture des emails |
+| `gsc-sync` | Synchro Search Console → `seo_gsc_daily` (page admin SEO, ou `force: true` en service_role) |
+| `seo-weekly-report` | Rapport SEO hebdo par email (lundi 06:00 UTC via pg_cron, jeton vault `seo_report_cron_token` = secret `SEO_REPORT_CRON_TOKEN`, destinataire `SEO_REPORT_TO`, `{"dry_run": true}` pour tester sans envoi). Déployée avec `--no-verify-jwt`, auth dans la fonction |
+
+#### Fonctions planifiées (pg_cron) — mécanisme unique depuis le 9 oct. 2026
+
+Les crons appellent les Edge Functions via `public.cron_call_edge(nom, body, timeout_ms)`,
+qui lit le jeton `cron_token` dans **vault** et l'envoie en `Authorization: Bearer`.
+Le même jeton est le secret `CRON_TOKEN` des fonctions, vérifié par
+`supabase/functions/_shared/cron-auth.ts` (accepte aussi la clé service_role et
+un JWT `authenticated` pour les boutons de l'admin). Ces fonctions sont déployées
+avec **`--no-verify-jwt`** : sans ce flag, la passerelle exige un JWT et le jeton
+est rejeté avant d'atteindre la fonction.
+
+| Job | Horaire (UTC) | Fonction |
+|-----|---------------|----------|
+| process-auto-devis | toutes les 30 min | `process-auto-devis` (timeout 120 s) |
+| auto-complete-dossiers | 05:00 | `auto-complete-dossiers` |
+| seo-weekly-report | lundi 06:00 | `seo-weekly-report` (jeton distinct `seo_report_cron_token`) |
+| daily-chauffeur-request | 07:00 | `daily-chauffeur-request` |
+| process-workflows | 08:00 | `process-workflow` (règles `workflow_rules`) |
+| daily-departure-reminders | 08:00 | fonction SQL `check_departure_reminders()` (timeline seulement) |
+| quote-reminders-daily | 09:00 | `quote-reminders` (relances J+3/J+7, `max_days_late` 14 j) |
+| scheduled-reminders-hourly | chaque heure | `scheduled-reminders` (`automation_settings`) |
+
+Les triggers `workflow_devis_sent`, `workflow_dossier_completed`,
+`workflow_chauffeur_received` passent par `trigger_workflow_with_data()`, qui
+utilise le même helper. **Ne jamais remettre une clé en dur dans `cron.job`** ;
+pour un nouveau job : `select cron.schedule('nom', '…', $$ select public.cron_call_edge('fonction'); $$);`.
+Diagnostic : `select * from net._http_response order by created desc` (6 h d'historique)
+et `cron.job_run_details` (« succeeded » signifie seulement que le SQL a tourné).
 
 #### ⚠️ Fonctions déployées mais absentes du dépôt
 Ces trois fonctions répondent en production sans que leur source soit versionnée.

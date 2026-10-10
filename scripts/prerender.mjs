@@ -7,6 +7,7 @@ import { seoConfig, seoLocalizedPaths, locationBusMeta } from '../src/lib/seo-da
 import { villes } from '../src/lib/villes.ts'
 import { articles } from '../src/lib/blog.ts'
 import { landings } from '../src/lib/landings.ts'
+import { maillageServices } from '../src/lib/maillage.ts'
 
 /**
  * Prérendu statique des pages publiques, SANS navigateur headless :
@@ -95,6 +96,16 @@ const h2 = (t) => `<h2 class="text-2xl font-bold mt-8 mb-3">${esc(t)}</h2>`
 const p = (t) => `<p class="text-gray-700 mb-3">${esc(t)}</p>`
 const ul = (items) => `<ul class="list-disc pl-6 mb-3">${items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>`
 const aVille = (v) => `<a class="text-magenta underline" href="/fr/location-autocar/${v.slug}">${esc(v.nom)}</a>`
+// Tableau SEO (même structure que src/components/ui/TableauSeo.tsx).
+const tableau = ({ caption, headers, rows }) =>
+  `<div class="overflow-x-auto my-6"><table class="w-full text-sm border-collapse">` +
+  (caption ? `<caption class="text-left text-sm font-semibold text-gray-700 mb-2">${esc(caption)}</caption>` : '') +
+  `<thead><tr>${headers.map((h) => `<th class="bg-purple-50 text-left font-semibold text-gray-800 px-3 py-2 border border-gray-200">${esc(h)}</th>`).join('')}</tr></thead>` +
+  `<tbody>${rows.map((r, i) => `<tr${i % 2 === 1 ? ' class="bg-gray-50"' : ''}>${r.map((c, j) => `<td class="px-3 py-2 border border-gray-200 text-gray-700${j === 0 ? ' font-medium whitespace-nowrap' : ''}">${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
+const tableauMd = ({ caption, headers, rows }) =>
+  (caption ? `**${caption}**\n\n` : '') +
+  `| ${headers.join(' | ')} |\n| ${headers.map(() => '---').join(' | ')} |\n` +
+  rows.map((r) => `| ${r.join(' | ')} |`).join('\n')
 
 // ---- Pages multilingues : head uniquement -------------------------------
 // (+ entité Organization sur les pages d'accueil, pour les crawlers IA
@@ -122,6 +133,14 @@ const locales = Object.fromEntries(
 )
 const t = (lang, key) => key.split('.').reduce((o, seg) => (o && typeof o === 'object' ? o[seg] : undefined), locales[lang]) ?? ''
 
+// Bloc de maillage interne FR des pages services (même structure que
+// src/components/seo/MaillageFr.tsx ; vide dans les autres langues).
+const maillageFr = (lang, page) => {
+  if (lang !== 'fr') return ''
+  const bloc = maillageServices[page]
+  return h2(bloc.h2) + bloc.paragraphes.map(pMd).join('') + h2(bloc.villesH2) + `<p class="mb-3">${villes.map(aVille).join(' · ')}</p>`
+}
+
 /** Corps statique des pages multilingues, construit depuis les traductions. */
 function multilingualBody(page, lang) {
   switch (page) {
@@ -138,26 +157,113 @@ function multilingualBody(page, lang) {
         steps
       )
     }
-    case 'location-autocar':
+    case 'location-autocar': {
+      const k = (s) => t(lang, `services.busRental.${s}`)
+      const h3p = (titre, texte) => `<h3 class="font-semibold mt-3">${esc(titre)}</h3>` + p(texte)
       return wrap(
-        h1(`${t(lang, 'services.busRental.title')} ${t(lang, 'services.busRental.titleHighlight')} ${t(lang, 'services.busRental.titleLocation')}`) +
-        p(t(lang, 'services.busRental.description'))
+        h1(`${k('title')} ${k('titleHighlight')} ${k('titleLocation')}`) +
+        p(k('description')) +
+        h2(k('fleetTitle')) + p(k('fleetSubtitle')) +
+        ['minibus', 'standard', 'grandTourisme', 'doubleEtage'].map((v) => h3p(`${k(v)} (${k(`${v}Capacity`)})`, k(`${v}Desc`))).join('') +
+        h2(k('equipmentTitle')) + p(k('equipmentSubtitle')) +
+        ul(['wifi', 'airCon', 'plugs', 'screens'].map((e) => `${k(e)} : ${k(`${e}Desc`)}`)) +
+        h2(k('occasionsTitle')) + p(k('occasionsSubtitle')) +
+        ['privateEvents', 'businessEvents', 'leisure', 'school', 'associations', 'transfers'].map((o) => h3p(k(o), k(`${o}List`))).join('') +
+        h2(k('whyChooseTitle')) +
+        ['quoteIn24h', 'verifiedCarriers', 'proDrivers', 'bestPrice'].map((w) => h3p(k(w), k(`${w}Desc`))).join('') +
+        h2(k('includedTitle')) +
+        ul([1, 2, 3, 4, 5, 6, 7].map((n) => k(`included${n}`))) +
+        h2(k('coverageTitle')) + p(k('coverageSubtitle')) +
+        maillageFr(lang, 'location-autocar')
       )
-    case 'location-minibus':
+    }
+    case 'location-minibus': {
+      const k = (s) => t(lang, `services.minibusRental.${s}`)
+      const h3p = (titre, texte) => `<h3 class="font-semibold mt-3">${esc(titre)}</h3>` + p(texte)
       return wrap(
-        h1(`${t(lang, 'services.minibusRental.title')} ${t(lang, 'services.minibusRental.titleHighlight')}`) +
-        p(t(lang, 'services.minibusRental.description'))
+        h1(`${k('title')} ${k('titleHighlight')} ${k('titleSuffix')}`) +
+        p(k('description')) +
+        h2(k('advantagesTitle')) + p(k('advantagesSubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`advantage${n}Title`), k(`advantage${n}Desc`))).join('') +
+        h2(k('capacityTitle')) + p(k('capacitySubtitle')) +
+        ['mini8', 'mini12', 'mini20'].map((m) => h3p(k(`${m}Title`), k(`${m}Desc`)) + ul([1, 2, 3, 4].map((n) => k(`${m}Usage${n}`)))).join('') +
+        h2(k('occasionsTitle')) + p(k('occasionsSubtitle')) +
+        ['occasionPro', 'occasionPrivate', 'occasionTourism', 'occasionTransfer'].map((o) => `<h3 class="font-semibold mt-3">${esc(k(o))}</h3>` + ul([1, 2, 3, 4].map((n) => k(`${o}Item${n}`)))).join('') +
+        h2(k('whyTitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`why${n}Title`), k(`why${n}Desc`))).join('') +
+        h2(k('includedTitle')) +
+        ul([1, 2, 3, 4, 5, 6, 7].map((n) => k(`included${n}`))) +
+        maillageFr(lang, 'location-minibus')
       )
-    case 'transfert-aeroport':
+    }
+    case 'transfert-aeroport': {
+      const k = (s) => t(lang, `services.airportTransfer.${s}`)
+      const h3p = (titre, texte) => `<h3 class="font-semibold mt-3">${esc(titre)}</h3>` + p(texte)
       return wrap(
-        h1(`${t(lang, 'services.airportTransfer.title')} ${t(lang, 'services.airportTransfer.titleHighlight')} ${t(lang, 'services.airportTransfer.titleSuffix')}`) +
-        p(t(lang, 'services.airportTransfer.description'))
+        h1(`${k('title')} ${k('titleHighlight')} ${k('titleSuffix')}`) +
+        p(k('description')) +
+        h2(k('howItWorksTitle')) + p(k('howItWorksSubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`step${n}Title`), k(`step${n}Desc`))).join('') +
+        h2(k('typesTitle')) + p(k('typesSubtitle')) +
+        ['typeGroup', 'typePro', 'typeEvent'].map((ty) => h3p(k(ty), k(`${ty}Desc`)) + ul([1, 2, 3, 4].map((n) => k(`${ty}Feature${n}`)))).join('') +
+        h2(k('fleetTitle')) + p(k('fleetSubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(`${k(`vehicle${n}`)} : ${k(`vehicle${n}Price`)}`, k(`vehicle${n}Ideal`))).join('') +
+        p(k('pricingNote')) +
+        h2(k('optionsTitle')) +
+        ul([1, 2, 3, 4, 5].map((n) => `${k(`option${n}`)} : ${k(`option${n}Desc`)}`)) +
+        h2(k('advantagesTitle')) + p(k('advantagesSubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`advantage${n}Title`), k(`advantage${n}Desc`))).join('') +
+        h2(k('includedTitle')) + p(k('includedSubtitle')) +
+        ul([1, 2, 3, 4, 5, 6, 7].map((n) => k(`included${n}`))) +
+        maillageFr(lang, 'transfert-aeroport')
       )
-    case 'sorties-scolaires':
+    }
+    case 'sorties-scolaires': {
+      const k = (s) => t(lang, `services.schoolTrips.${s}`)
+      const h3p = (titre, texte) => `<h3 class="font-semibold mt-3">${esc(titre)}</h3>` + p(texte)
       return wrap(
-        h1(`${t(lang, 'services.schoolTrips.title')} ${t(lang, 'services.schoolTrips.titleHighlight')} ${t(lang, 'services.schoolTrips.titleSuffix')}`) +
-        p(t(lang, 'services.schoolTrips.description'))
+        h1(`${k('title')} ${k('titleHighlight')} ${k('titleSuffix')}`) +
+        p(k('description')) +
+        h2(k('tripsTitle')) + p(k('tripsSubtitle')) +
+        [1, 2, 3, 4, 5, 6].map((n) => h3p(k(`trip${n}Title`), `${k(`trip${n}Desc`)} ${k(`trip${n}Examples`)}`)).join('') +
+        h2(k('vehiclesTitle')) + p(k('vehiclesSubtitle')) +
+        [1, 2, 3].map((n) => h3p(`${k(`vehicle${n}Title`)} (${k(`vehicle${n}Capacity`)})`, `${k(`vehicle${n}Ideal`)} ${k(`vehicle${n}Features`)}`)).join('') +
+        h2(k('safetyTitle')) + p(k('safetySubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`safety${n}Title`), k(`safety${n}Desc`))).join('') +
+        h2(k('docsTitle')) + p(k('docsSubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`doc${n}Title`), k(`doc${n}Desc`))).join('') +
+        h2(k('howItWorksTitle')) + p(k('howItWorksSubtitle')) +
+        [1, 2, 3, 4].map((n) => h3p(k(`step${n}Title`), k(`step${n}Desc`))).join('') +
+        h2(k('includedTitle')) +
+        ul([1, 2, 3, 4, 5, 6, 7, 8].map((n) => k(`included${n}`))) +
+        maillageFr(lang, 'sorties-scolaires')
       )
+    }
+    case 'contact':
+      return wrap(
+        h1(t(lang, 'contact.title')) +
+        p(t(lang, 'contact.subtitle')) +
+        p(t(lang, 'contact.teamAvailable')) +
+        ul([
+          `${t(lang, 'contact.phone')} : +33 1 76 31 12 83`,
+          `${t(lang, 'contact.email')} : infos@busmoov.com`,
+          `${t(lang, 'contact.hours')} : ${t(lang, 'contact.hoursValue')}`,
+        ])
+      )
+    case 'a-propos': {
+      const k = (s) => t(lang, `about.${s}`)
+      const h3p = (titre, texte) => `<h3 class="font-semibold mt-3">${esc(titre)}</h3>` + p(texte)
+      return wrap(
+        h1(k('title')) +
+        p(k('heroText')) +
+        h2(k('storyTitle')) +
+        [1, 2, 3].map((n) => p(k(`storyP${n}`))).join('') +
+        h2(k('valuesTitle')) + p(k('valuesSubtitle')) +
+        ['Expertise', 'Quality', 'Reliability', 'Service'].map((v) => h3p(k(`value${v}`), k(`value${v}Desc`))).join('') +
+        h2(k('commitmentTitle')) +
+        ul([1, 2, 3, 4, 5, 6].map((n) => k(`commitment${n}`)))
+      )
+    }
     default:
       return ''
   }
@@ -233,14 +339,58 @@ for (const [page, paths] of Object.entries(seoLocalizedPaths)) {
   count++
 }
 
-// ---- Page pilier location-bus (FR) --------------------------------------
-renderPage({
-  lang: 'fr',
-  path: '/location-bus',
-  title: locationBusMeta.title,
-  description: locationBusMeta.description,
-  body: wrap(h1(locationBusMeta.h1) + p(locationBusMeta.sousTitre)),
-})
+// ---- Page pilier location-bus (FR, contenu complet) ----------------------
+{
+  const lb = await import('../src/lib/location-bus.ts')
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      serviceType: 'Location de bus avec chauffeur',
+      description: locationBusMeta.description,
+      url: urlFor('fr', '/location-bus'),
+      provider: { '@type': 'Organization', name: 'Busmoov', url: BASE_URL },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: lb.locationBusFaq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ]
+  const body = wrap(
+    h1(locationBusMeta.h1) +
+    p(locationBusMeta.sousTitre) +
+    lb.locationBusAtouts.map((a) => `<h3 class="font-semibold mt-3">${esc(a.titre)}</h3>` + p(a.desc)).join('') +
+    lb.locationBusIntro.map(pMd).join('') +
+    h2('Quel bus pour votre groupe ?') +
+    lb.locationBusTypes.map((ty) => `<h3 class="font-semibold mt-3">${esc(ty.titre)}</h3>` + pMd(`${ty.desc} [En savoir plus](${ty.lien})`)).join('') +
+    pMd(lb.locationBusTypesNote) +
+    h2(lb.locationBusPrix.h2) +
+    lb.locationBusPrix.paragraphes.map(pMd).join('') +
+    tableau(lb.locationBusPrix.tableau) +
+    lb.locationBusPrix.apres.map(pMd).join('') +
+    h2('Pour quelles occasions louer un bus ?') +
+    ulMd(lb.locationBusOccasions) +
+    h2(lb.locationBusEtapes.h2) +
+    ulMd(lb.locationBusEtapes.liste) +
+    h2('Questions fréquentes') +
+    lb.locationBusFaq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + pMd(f.a)).join('') +
+    h2(lb.locationBusVillesH2) +
+    `<p class="mb-3">${villes.map(aVille).join(' · ')}</p>`
+  )
+  renderPage({
+    lang: 'fr',
+    path: '/location-bus',
+    title: locationBusMeta.title,
+    description: locationBusMeta.description,
+    jsonLd,
+    body,
+  })
+}
 
 // ---- Landing pages SEO (FR, pilotées par landings.ts) -------------------
 for (const landing of landings) {
@@ -270,7 +420,8 @@ for (const landing of landings) {
     landing.sections.map((s) =>
       h2(s.h2) +
       (s.paragraphes ?? []).map(pMd).join('') +
-      (s.liste ? ulMd(s.liste) : '')
+      (s.liste ? ulMd(s.liste) : '') +
+      (s.tableau ? tableau(s.tableau) : '')
     ).join('') +
     h2('Questions fréquentes') +
     landing.faq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + pMd(f.a)).join('')
@@ -353,7 +504,7 @@ function villeEnrichieBody(ville) {
     p(`Prêt à réserver votre bus à ${ville.nom} ? Décrivez votre trajet en 2 minutes, recevez plusieurs devis gratuits sous 24h.`) +
     (proches.length ? `<p class="mb-3">Location d'autocar près de ${esc(ville.nom)} : ${proches.map(aVille).join(' · ')}</p>` : '') +
     h2(ville.budgets.h2) +
-    p(ville.budgets.intro) +
+    pMd(ville.budgets.intro) +
     ul(ville.budgets.exemples) +
     p(ville.budgets.note)
   )
@@ -432,6 +583,7 @@ for (const article of articles) {
         case 'p': return pMd(b.text)
         case 'callout': return pMd(b.text)
         case 'ul': return ul(b.items)
+        case 'table': return tableau(b)
         default: return ''
       }
     }).join('')
@@ -491,6 +643,7 @@ const blockToMd = (b) => {
     case 'p': return b.text
     case 'callout': return `> ${b.text}`
     case 'ul': return b.items.map((i) => `- ${i}`).join('\n')
+    case 'table': return tableauMd(b)
     default: return ''
   }
 }

@@ -36,10 +36,16 @@ function getCorsHeaders(origin: string | null) {
   }
 }
 
-/** Rôle porté par le JWT de l'appelant (anon / authenticated / service_role). */
+/**
+ * Rôle porté par le JWT de l'appelant (anon / authenticated / service_role).
+ * La clé service_role peut ne pas être un JWT (format sb_secret_…) : on la
+ * compare d'abord directement, comme send-email. Appels internes :
+ * seo-weekly-report (force: true). Déployée avec --no-verify-jwt.
+ */
 function getJwtRole(req: Request): string | null {
   const auth = req.headers.get('authorization')
   if (!auth?.startsWith('Bearer ')) return null
+  if (auth.slice(7) === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) return 'service_role'
   try {
     const payload = JSON.parse(atob(auth.slice(7).split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
     return payload.role ?? null

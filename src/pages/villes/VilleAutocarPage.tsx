@@ -435,7 +435,7 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
       <section className="py-12 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-4">{ville.budgets.h2}</h2>
-          <p className="text-gray-700 leading-relaxed mb-4">{ville.budgets.intro}</p>
+          <TextWithLinks text={ville.budgets.intro} className="text-gray-700 leading-relaxed mb-4" />
           <ul className="space-y-3 mb-3">
             {ville.budgets.exemples.map((e) => (
               <li key={e} className="flex items-start gap-3">

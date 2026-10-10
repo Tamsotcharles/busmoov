@@ -32,6 +32,29 @@ function getLanguageFromCountry(countryCode: string | null | undefined): string 
   }
 }
 
+// Libellés de paiement dans la langue du dossier (injectés dans les templates)
+function paymentLabel(lang: string, isTotal: boolean, acomptePercent: number): string {
+  const t: Record<string, [string, string]> = {
+    fr: ['le paiement total', `un acompte de ${acomptePercent}%`],
+    es: ['el pago total', `un anticipo del ${acomptePercent}%`],
+    de: ['die Gesamtzahlung', `eine Anzahlung von ${acomptePercent}%`],
+    en: ['the full payment', `a ${acomptePercent}% deposit`],
+  }
+  const pair = t[lang] || t.fr
+  return isTotal ? pair[0] : pair[1]
+}
+
+function paymentMethodLabel(lang: string, isCard: boolean): string {
+  const t: Record<string, [string, string]> = {
+    fr: ['Carte bancaire', 'Virement bancaire'],
+    es: ['Tarjeta bancaria', 'Transferencia bancaria'],
+    de: ['Kreditkarte', 'Banküberweisung'],
+    en: ['Bank card', 'Bank transfer'],
+  }
+  const pair = t[lang] || t.fr
+  return isCard ? pair[0] : pair[1]
+}
+
 // Helper pour générer une URL localisée
 function generateLocalizedUrl(baseUrl: string, path: string, countryCode: string | null | undefined, params: Record<string, string>): string {
   const lang = getLanguageFromCountry(countryCode)
@@ -400,12 +423,10 @@ serve(async (req) => {
           is_paiement_total: isPaiementTotal ? 'true' : '',
           is_acompte: isPaiementTotal ? '' : 'true',
           // Intitule pret a afficher : « paiement total » ou « acompte de X% »
-          libelle_paiement: isPaiementTotal
-            ? 'le paiement total'
-            : `un acompte de ${acomptePercent}%`,
+          libelle_paiement: paymentLabel(getLanguageFromCountry(countryCode), isPaiementTotal, acomptePercent),
           lien_espace_client: lienEspaceClient,
           lien_paiement: lienPaiement || '',
-          payment_method: payment_method === 'cb' ? 'Carte bancaire' : 'Virement bancaire',
+          payment_method: paymentMethodLabel(getLanguageFromCountry(countryCode), payment_method === 'cb'),
           is_virement: payment_method === 'virement' ? 'true' : '',
           // RIB (affiche seulement si virement dans le template)
           bank_name: countryData?.bank_name || '',
