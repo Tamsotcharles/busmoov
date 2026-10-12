@@ -64,7 +64,7 @@ export const landings: Landing[] = [
       {
         h2: 'Pour qui, et à quel prix ?',
         paragraphes: [
-          'Voyages scolaires vers l\'étranger, séminaires qui accueillent des participants, groupes de touristes en circuit, sportifs en déplacement : tout groupe de 8 à 90 personnes avec des bagages. Un transfert simple Paris ↔ CDG en minibus démarre autour de 300 à 450 € TTC selon l\'horaire ; en autocar standard, comptez de l\'ordre de 450 à 690 € TTC. Le prix est ferme : chauffeur, carburant et péages inclus. Pour le détail des tarifs, voir notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
+          'Voyages scolaires vers l\'étranger, séminaires qui accueillent des participants, groupes de touristes en circuit, sportifs en déplacement : tout groupe de 8 à 90 personnes avec des bagages. Un transfert simple Paris ↔ CDG en minibus démarre à partir de 350 € TTC selon l\'horaire ; en autocar standard, à partir de 400 € TTC. Le prix est ferme : chauffeur, carburant et péages inclus. Pour le détail des tarifs, voir notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
         ],
       },
     ],
@@ -111,7 +111,7 @@ export const landings: Landing[] = [
       {
         h2: 'Combien coûte une navette Orly pour un groupe ?',
         paragraphes: [
-          'Un transfert simple Paris ↔ Orly démarre autour de 250 à 400 € TTC en minibus (8-20 personnes) et de 400 à 650 € TTC en autocar standard, selon l\'horaire et le point de départ. Prix ferme, chauffeur et péages inclus — à comparer aux 15 taxis qu\'il faudrait pour le même groupe. Les fourchettes détaillées sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
+          'Un transfert simple Paris ↔ Orly démarre à partir de 350 € TTC en minibus (8-20 personnes) et de 400 € TTC en autocar standard, selon l\'horaire et le point de départ. Prix ferme, chauffeur et péages inclus — à comparer aux 15 taxis qu\'il faudrait pour le même groupe. Les fourchettes détaillées sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
         ],
       },
       {
@@ -165,7 +165,7 @@ export const landings: Landing[] = [
       {
         h2: 'Combien ça coûte ?',
         paragraphes: [
-          'Une navette événementielle à la journée démarre à 690 € TTC en autocar standard. Pour une desserte régulière, le tarif se construit sur le circuit, la fréquence et la durée d\'engagement — un devis sur mesure avec un interlocuteur unique, révisable quand vos effectifs évoluent. Facturation mensuelle entreprise, paiement par virement.',
+          'Une navette événementielle à la journée démarre à 700 € TTC en autocar standard. Pour une desserte régulière, le tarif se construit sur le circuit, la fréquence et la durée d\'engagement — un devis sur mesure avec un interlocuteur unique, révisable quand vos effectifs évoluent. Facturation mensuelle entreprise, paiement par virement.',
         ],
       },
     ],
@@ -192,7 +192,7 @@ export const landings: Landing[] = [
   {
     slug: '/location-bus-50-places',
     metaTitle: 'Bus 50 places avec chauffeur : tarifs 2026, devis | Busmoov',
-    metaDescription: 'Tarif d\'un bus 50 places avec chauffeur 2026 : journée dès 690 € TTC, transfert, week-end. Le format le plus économique par personne. Devis gratuit en 24h.',
+    metaDescription: 'Tarif d\'un bus 50 places avec chauffeur 2026 : journée dès 700 € TTC, transfert, week-end. Le format le plus économique par personne. Devis gratuit en 24h.',
     h1: 'Location de bus 50 places avec chauffeur',
     sousTitre: 'Le format le plus demandé de France : un autocar de tourisme de 49 à 59 places, chauffeur professionnel inclus, au meilleur prix par personne.',
     intro: [
@@ -213,18 +213,17 @@ export const landings: Landing[] = [
       {
         h2: 'Tarif d\'un bus 50 places avec chauffeur en 2026',
         paragraphes: [
-          'À partir de 690 € TTC la journée pour un aller-retour local — soit environ 14 € par personne sur un car plein. Un transfert simple (aéroport, gare, événement) coûte moins ; un long trajet se calcule au kilomètre. Voici les ordres de grandeur constatés sur nos devis pour un autocar standard au départ d\'une grande agglomération ; toutes les fourchettes et les facteurs de variation sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
+          'À partir de 700 € TTC la journée pour un aller-retour local — soit environ 14 € par personne sur un car plein. Un transfert simple (aéroport, gare, événement) coûte moins ; un long trajet se calcule au kilomètre. Voici les ordres de grandeur constatés sur nos devis pour un autocar standard au départ d\'une grande agglomération ; toutes les fourchettes et les facteurs de variation sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
         ],
         tableau: {
-          caption: 'Prix TTC indicatifs 2026 pour un bus 50 places, chauffeur, carburant et péages inclus',
-          headers: ['Prestation', 'Prix indicatif', 'Par personne (50 passagers)'],
+          caption: 'Prix de départ indicatifs 2026 pour un bus 50 places, TTC, chauffeur, carburant et péages inclus',
+          headers: ['Prestation', 'Prix de départ', 'Par personne (50 passagers)'],
           rows: [
-            ['Transfert aller simple, moins de 50 km (aéroport, gare)', '400 à 600 €', '8 à 12 €'],
-            ['Journée locale, aller-retour (moins de 50 km)', '690 à 830 €', '14 à 17 €'],
-            ['Journée régionale, aller-retour (100 à 200 km)', '1 100 à 1 400 €', '22 à 28 €'],
-            ['Transfert aller simple, 100 à 200 km', '950 à 1 300 €', '19 à 26 €'],
-            ['Week-end 2 jours, car à disposition (moins de 200 km)', '2 200 à 2 500 €', '44 à 50 €'],
-            ['Longue distance (plus de 300 km)', 'Sur devis, au kilomètre', '—'],
+            ['Transfert aller simple local (aéroport, gare)', 'à partir de 400 €', 'environ 8 €'],
+            ['Journée locale, aller-retour', 'à partir de 700 €', 'environ 14 €'],
+            ['Journée régionale, aller-retour', 'à partir de 1 000 €', 'environ 20 €'],
+            ['Week-end 2 jours', 'à partir de 1 800 €', 'environ 36 €'],
+            ['Longue distance', 'Sur devis, au kilomètre', '—'],
           ],
         },
       },
@@ -296,14 +295,14 @@ export const landings: Landing[] = [
           'Pour savoir à quoi vous attendre, voici les ordres de grandeur constatés sur nos devis en 2026, pour un départ depuis une grande agglomération. Le détail complet, avec les facteurs qui font varier le prix, est dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
         ],
         tableau: {
-          caption: 'Prix TTC indicatifs 2026, chauffeur, carburant et péages inclus',
+          caption: 'Prix de départ indicatifs 2026, TTC, chauffeur, carburant et péages inclus',
           headers: ['Prestation', 'Autocar standard (21-59 places)', 'Minibus (8-20 places)'],
           rows: [
-            ['Transfert aller simple, moins de 50 km', '400 à 600 €', '360 à 540 €'],
-            ['Journée locale, aller-retour (moins de 50 km)', '690 à 830 €', '620 à 750 €'],
-            ['Journée régionale, aller-retour (100 à 200 km)', '1 100 à 1 400 €', '1 000 à 1 250 €'],
-            ['Week-end 2 jours, car à disposition (moins de 200 km)', '2 200 à 2 500 €', '2 000 à 2 250 €'],
-            ['Longue distance (plus de 300 km)', 'Sur devis, au kilomètre', 'Sur devis, au kilomètre'],
+            ['Transfert aller simple local', 'à partir de 400 €', 'à partir de 350 €'],
+            ['Journée locale, aller-retour', 'à partir de 700 €', 'à partir de 600 €'],
+            ['Journée régionale, aller-retour', 'à partir de 1 000 €', 'à partir de 900 €'],
+            ['Week-end 2 jours', 'à partir de 1 800 €', 'à partir de 1 600 €'],
+            ['Longue distance', 'Sur devis, au kilomètre', 'Sur devis, au kilomètre'],
           ],
         },
       },
@@ -374,7 +373,7 @@ export const landings: Landing[] = [
       {
         h2: 'Les prix en Île-de-France',
         paragraphes: [
-          'Bonne nouvelle : l\'Île-de-France fait partie des zones tarifaires les plus compétitives de France. Une journée en autocar standard démarre à 690 € TTC, un transfert aéroport simple coûte moins — toutes les fourchettes sont dans notre [guide des prix](/blog/prix-location-autocar). Les créneaux les plus tendus de l\'année : samedis de mai-juin (mariages) et périodes de salons.',
+          'Bonne nouvelle : l\'Île-de-France fait partie des zones tarifaires les plus compétitives de France. Une journée en autocar standard démarre à 700 € TTC, un transfert aéroport simple coûte moins — toutes les fourchettes sont dans notre [guide des prix](/blog/prix-location-autocar). Les créneaux les plus tendus de l\'année : samedis de mai-juin (mariages) et périodes de salons.',
         ],
       },
     ],
@@ -428,7 +427,7 @@ export const landings: Landing[] = [
       {
         h2: 'L\'alternative : la nuit en grand tourisme avec double équipage',
         paragraphes: [
-          'Quand le couchette n\'est pas disponible — ou que son tarif de niche dépasse le budget — la solution éprouvée est l\'autocar grand tourisme de nuit : sièges inclinables grand espacement, deux chauffeurs qui se relaient (le véhicule ne s\'arrête que pour les pauses réglementaires), départ en soirée, arrivée au matin. C\'est ainsi que voyagent la plupart des groupes longue distance en Europe. Notre page [location de bus](/location-bus) détaille les niveaux de confort ; pour le budget, voyez le [guide des prix](/blog/prix-location-autocar) — le double équipage ajoute environ 500 € TTC au trajet.',
+          'Quand le couchette n\'est pas disponible — ou que son tarif de niche dépasse le budget — la solution éprouvée est l\'autocar grand tourisme de nuit : sièges inclinables grand espacement, deux chauffeurs qui se relaient (le véhicule ne s\'arrête que pour les pauses réglementaires), départ en soirée, arrivée au matin. C\'est ainsi que voyagent la plupart des groupes longue distance en Europe. Notre page [location de bus](/location-bus) détaille les niveaux de confort ; pour le budget, voyez le [guide des prix](/blog/prix-location-autocar) — le double équipage ajoute quelques centaines d\'euros au trajet.',
         ],
       },
     ],
@@ -492,7 +491,7 @@ export const landings: Landing[] = [
     faq: [
       {
         q: 'Combien coûte un autocar pour l\'Espagne ?',
-        a: 'Au kilomètre sur les longues distances : comptez de l\'ordre de 5 à 7 € TTC/km parcouru. Exemples indicatifs aller-retour : Toulouse-Barcelone à la journée autour de 2 000 à 2 800 € TTC ; Paris-Barcelone en double équipage de l\'ordre de 6 000 à 8 000 € TTC. Devis précis gratuit sous 24h.',
+        a: 'Au kilomètre sur les longues distances : le prix se calcule au kilomètre. Exemples indicatifs aller-retour : Toulouse-Barcelone à la journée à partir de 2 000 € TTC environ ; Paris-Barcelone en double équipage à partir de 6 000 € TTC environ. Devis précis gratuit sous 24h.',
       },
       {
         q: 'Peut-on faire Paris-Barcelone de nuit ?',
@@ -544,7 +543,7 @@ export const landings: Landing[] = [
     faq: [
       {
         q: 'Combien coûte un autocar pour l\'Italie ?',
-        a: 'La base kilométrique (5 à 7 € TTC/km) plus les permis ZTL des villes visitées. Exemple indicatif : Lyon-Milan aller-retour en étape autour de 4 000 à 5 500 € TTC ; un circuit Toscane d\'une semaine se chiffre sur mesure. Devis gratuit sous 24h, permis ZTL détaillés.',
+        a: 'La base kilométrique plus les permis ZTL des villes visitées. Exemple indicatif : Lyon-Milan aller-retour en étape à partir de 4 000 € TTC environ ; un circuit Toscane d\'une semaine se chiffre sur mesure. Devis gratuit sous 24h, permis ZTL détaillés.',
       },
       {
         q: 'L\'autocar peut-il entrer dans Venise ?',
@@ -596,7 +595,7 @@ export const landings: Landing[] = [
     faq: [
       {
         q: 'Combien coûte un autocar pour Bruxelles ou Bruges ?',
-        a: 'Depuis Lille, la journée démarre autour de 900 à 1 200 € TTC en autocar standard ; depuis Paris, comptez 1 400 à 1 900 € TTC selon l\'amplitude. Devis gratuit sous 24h, LEZ incluse.',
+        a: 'Depuis Lille, la journée démarre autour de 900 € TTC en autocar standard ; depuis Paris, comptez à partir de 1 400 € TTC selon l\'amplitude. Devis gratuit sous 24h, LEZ incluse.',
       },
       {
         q: 'Peut-on combiner deux villes belges dans la journée ?',
@@ -646,7 +645,7 @@ export const landings: Landing[] = [
     faq: [
       {
         q: 'Combien coûte un autocar pour Genève ?',
-        a: 'Depuis Lyon, un aller-retour à la journée démarre autour de 1 100 à 1 500 € TTC redevance suisse incluse. Depuis Paris ou pour un circuit plusieurs jours, devis sur mesure sous 24h.',
+        a: 'Depuis Lyon, un aller-retour à la journée démarre autour de 1 100 € TTC redevance suisse incluse. Depuis Paris ou pour un circuit plusieurs jours, devis sur mesure sous 24h.',
       },
       {
         q: 'Faut-il un passeport pour la Suisse ?',
@@ -698,7 +697,7 @@ export const landings: Landing[] = [
     faq: [
       {
         q: 'Combien coûte un autocar pour Europa-Park ?',
-        a: 'Depuis Strasbourg-Colmar, l\'aller-retour à la journée démarre autour de 800 à 1 100 € TTC (amplitude longue : le parc ferme tard). Depuis Metz ou Besançon, comptez 1 300 à 1 800 € TTC. Devis gratuit sous 24h.',
+        a: 'Depuis Strasbourg-Colmar, l\'aller-retour à la journée démarre autour de 800 € TTC (amplitude longue : le parc ferme tard). Depuis Metz ou Besançon, comptez à partir de 1 300 € TTC. Devis gratuit sous 24h.',
       },
       {
         q: 'Berlin en car pour un voyage scolaire, comment ça se passe ?',
@@ -750,7 +749,7 @@ export const landings: Landing[] = [
     faq: [
       {
         q: 'Combien coûte un autocar pour Amsterdam ?',
-        a: 'Depuis Lille, la journée démarre autour de 1 500 à 2 000 € TTC ; depuis Paris, un week-end (aller-retour + mise à disposition sur place) se chiffre généralement entre 2 500 et 3 500 € TTC. Devis gratuit sous 24h.',
+        a: 'Depuis Lille, la journée démarre autour de 1 500 € TTC ; depuis Paris, un week-end (aller-retour + mise à disposition sur place) se chiffre à partir de 2 500 € TTC environ. Devis gratuit sous 24h.',
       },
       {
         q: 'Le Keukenhof est-il faisable à la journée depuis Paris ?',
@@ -802,7 +801,7 @@ export const landings: Landing[] = [
     faq: [
       {
         q: 'Combien coûte un autocar pour le Portugal ?',
-        a: 'C\'est un voyage au long cours : comptez de l\'ordre de 9 000 à 14 000 € TTC pour un aller-retour Paris-Fatima/Lisbonne en double équipage avec quelques jours de mise à disposition sur place — soit, sur un car plein, souvent moins cher par personne que l\'avion pour un groupe avec bagages. Devis précis gratuit sous 24h.',
+        a: 'C\'est un voyage au long cours : comptez à partir de 9 000 € TTC environ pour un aller-retour Paris-Fatima/Lisbonne en double équipage avec quelques jours de mise à disposition sur place — soit, sur un car plein, souvent moins cher par personne que l\'avion pour un groupe avec bagages. Devis précis gratuit sous 24h.',
       },
       {
         q: 'Peut-on rouler de nuit jusqu\'au Portugal ?',
@@ -854,7 +853,7 @@ export const landings: Landing[] = [
     faq: [
       {
         q: 'Combien coûte un autocar pour Londres ?',
-        a: 'Depuis Paris, un séjour scolaire type de 3-4 jours (aller-retour + car sur place) se chiffre généralement entre 4 500 et 7 000 € TTC selon la saison et la traversée choisie — traversée du car incluse. Devis gratuit sous 24h.',
+        a: 'Depuis Paris, un séjour scolaire type de 3-4 jours (aller-retour + car sur place) se chiffre généralement à partir de 4 500 € TTC environ selon la saison et la traversée choisie — traversée du car incluse. Devis gratuit sous 24h.',
       },
       {
         q: 'La carte d\'identité suffit-elle encore pour Londres ?',
@@ -906,7 +905,7 @@ export const landings: Landing[] = [
     faq: [
       {
         q: 'Combien coûte un autocar ou minibus PMR ?',
-        a: 'Comptez une majoration de l\'ordre de 15 à 30 % par rapport au véhicule standard équivalent, liée à la rareté du matériel et au temps de manipulation. Un minibus PMR à la journée démarre autour de 800 à 1 000 € TTC. Devis précis gratuit sous 24h avec la configuration exacte.',
+        a: 'Comptez une majoration de l\'ordre de 15 à 30 % par rapport au véhicule standard équivalent, liée à la rareté du matériel et au temps de manipulation. Un minibus PMR à la journée démarre autour de 800 € TTC. Devis précis gratuit sous 24h avec la configuration exacte.',
       },
       {
         q: 'Les fauteuils électriques sont-ils acceptés ?',
@@ -953,7 +952,7 @@ export const landings: Landing[] = [
       {
         h2: 'Combien ça coûte ?',
         paragraphes: [
-          'Depuis Paris ou la petite couronne, l\'aller-retour à la journée en autocar standard (jusqu\'à 59 places) se situe généralement entre 750 et 1 000 € TTC selon l\'amplitude — soit 13 à 18 € par personne sur un car plein, à ajouter aux billets d\'entrée. En minibus, comptez 500 à 700 € TTC. Depuis la province, le prix suit la distance — toutes les fourchettes sont dans notre [guide des prix](/blog/prix-location-autocar).',
+          'Depuis Paris ou la petite couronne, l\'aller-retour à la journée en autocar standard (jusqu\'à 59 places) démarre autour de 750 € TTC selon l\'amplitude — soit environ 15 € par personne sur un car plein, à ajouter aux billets d\'entrée. En minibus, comptez à partir de 500 € TTC. Depuis la province, le prix suit la distance — toutes les fourchettes sont dans notre [guide des prix](/blog/prix-location-autocar).',
         ],
       },
     ],
@@ -1010,7 +1009,7 @@ export const landings: Landing[] = [
       {
         h2: 'Combien coûte un bus à Paris ?',
         paragraphes: [
-          'Paris bénéficie de la plus forte densité de transporteurs de France — donc de tarifs compétitifs : un transfert simple en minibus démarre autour de 300 à 450 € TTC, une soirée avec mise à disposition autour de 600 à 900 € TTC, et la journée en bus standard à partir de 690 € TTC, chauffeur, carburant et péages inclus. Les mécanismes complets sont dans notre [guide des prix de location](/blog/prix-location-autocar), et le détail des zones de dépose parisiennes sur notre page [location d\'autocar à Paris](/location-autocar/paris).',
+          'Paris bénéficie de la plus forte densité de transporteurs de France — donc de tarifs compétitifs : un transfert simple en minibus démarre à partir de 350 € TTC, une soirée avec mise à disposition à partir de 600 € TTC, et la journée en bus standard à partir de 700 € TTC, chauffeur, carburant et péages inclus. Les mécanismes complets sont dans notre [guide des prix de location](/blog/prix-location-autocar), et le détail des zones de dépose parisiennes sur notre page [location d\'autocar à Paris](/location-autocar/paris).',
         ],
       },
     ],
@@ -1037,12 +1036,12 @@ export const landings: Landing[] = [
   {
     slug: '/location-minibus-20-places',
     metaTitle: 'Minibus 20 places avec chauffeur : tarifs et devis | Busmoov',
-    metaDescription: 'Louez un minibus 15 à 20 places avec chauffeur : transfert dès 360 € TTC, journée dès 620 € TTC. Accès centre-ville, bagages inclus, devis gratuit en 24h.',
+    metaDescription: 'Louez un minibus 15 à 20 places avec chauffeur : transfert dès 350 € TTC, journée dès 600 € TTC. Accès centre-ville, bagages inclus, devis gratuit en 24h.',
     h1: 'Location de minibus 20 places avec chauffeur',
-    sousTitre: 'De 15 à 20 passagers : le véhicule qui passe partout, chauffeur professionnel inclus, à partir de 360 € TTC le transfert.',
+    sousTitre: 'De 15 à 20 passagers : le véhicule qui passe partout, chauffeur professionnel inclus, à partir de 350 € TTC le transfert.',
     intro: [
       'Entre le van de 8 places et l\'autocar de 50, il y a un format que les groupes moyens demandent sans cesse : le minibus de 15 à 20 places. Une équipe de sport, un comité de direction, une noce intime, une classe dédoublée, un groupe d\'amis pour un week-end : c\'est exactement la taille où un grand autocar coûterait trop cher et où deux voitures ne suffisent plus.',
-      'Le minibus a deux atouts que l\'autocar n\'a pas : il entre dans les centres-villes et les parkings ordinaires, et il coûte environ 10 % de moins sur le même trajet. Nos transporteurs en alignent dans toute la France, en 15, 17, 19 et 20 places selon les modèles ; décrivez votre effectif exact et vous recevez jusqu\'à 3 [devis de minibus](/devis-autocar) sous 24h.',
+      'Le minibus a deux atouts que l\'autocar n\'a pas : il entre dans les centres-villes et les parkings ordinaires, et il coûte un peu moins cher sur le même trajet. Nos transporteurs en alignent dans toute la France, en 15, 17, 19 et 20 places selon les modèles ; décrivez votre effectif exact et vous recevez jusqu\'à 3 [devis de minibus](/devis-autocar) sous 24h.',
     ],
     sections: [
       {
@@ -1057,17 +1056,17 @@ export const landings: Landing[] = [
       {
         h2: 'Tarif d\'un minibus 20 places avec chauffeur en 2026',
         paragraphes: [
-          'Un minibus se facture comme un autocar, selon la distance et l\'amplitude de la journée du chauffeur, avec environ 10 % de moins qu\'un autocar standard. Chauffeur, carburant et péages sont inclus. Voici les ordres de grandeur constatés sur nos devis pour un départ depuis une grande agglomération, hors haute saison.',
+          'Un minibus se facture comme un autocar, selon la distance et l\'amplitude de la journée du chauffeur, un peu moins cher qu\'un autocar standard. Chauffeur, carburant et péages sont inclus. Voici les ordres de grandeur constatés sur nos devis pour un départ depuis une grande agglomération, hors haute saison.',
         ],
         tableau: {
-          caption: 'Prix TTC indicatifs 2026 pour un minibus 15 à 20 places, chauffeur, carburant et péages inclus',
-          headers: ['Prestation', 'Prix indicatif', 'Par personne (18 passagers)'],
+          caption: 'Prix de départ indicatifs 2026 pour un minibus 15 à 20 places, TTC, chauffeur, carburant et péages inclus',
+          headers: ['Prestation', 'Prix de départ', 'Par personne (18 passagers)'],
           rows: [
-            ['Transfert aller simple, moins de 50 km (aéroport, gare)', '360 à 540 €', '20 à 30 €'],
-            ['Journée locale, aller-retour (moins de 50 km)', '620 à 750 €', '34 à 42 €'],
-            ['Journée régionale, aller-retour (100 à 200 km)', '1 000 à 1 250 €', '56 à 69 €'],
-            ['Week-end 2 jours, minibus à disposition (moins de 200 km)', '2 000 à 2 250 €', '111 à 125 €'],
-            ['Longue distance (plus de 300 km)', 'Sur devis, au kilomètre', '—'],
+            ['Transfert aller simple local (aéroport, gare)', 'à partir de 350 €', 'environ 20 €'],
+            ['Journée locale, aller-retour', 'à partir de 600 €', 'environ 35 €'],
+            ['Journée régionale, aller-retour', 'à partir de 900 €', 'environ 50 €'],
+            ['Week-end 2 jours', 'à partir de 1 600 €', 'environ 90 €'],
+            ['Longue distance', 'Sur devis, au kilomètre', '—'],
           ],
         },
       },
@@ -1131,15 +1130,15 @@ export const landings: Landing[] = [
       {
         h2: 'Tarif d\'un autocar grande capacité en 2026',
         paragraphes: [
-          'Un autocar grande capacité coûte de 15 à 70 % de plus qu\'un autocar standard selon le format, mais il reste moins cher que deux véhicules. Chauffeur, carburant et péages sont inclus. Voici les ordres de grandeur constatés sur nos devis pour un départ depuis une grande agglomération, hors haute saison.',
+          'Un autocar grande capacité coûte plus cher qu\'un autocar standard, d\'autant plus que le format est grand, mais il reste moins cher que deux véhicules. Chauffeur, carburant et péages sont inclus. Voici les ordres de grandeur constatés sur nos devis pour un départ depuis une grande agglomération, hors haute saison.',
         ],
         tableau: {
-          caption: 'Prix TTC indicatifs 2026 selon le format, chauffeur, carburant et péages inclus',
+          caption: 'Prix de départ indicatifs 2026 selon le format, TTC, chauffeur, carburant et péages inclus',
           headers: ['Prestation', 'Autocar 60 à 70 places', 'Double étage 80 à 90 places'],
           rows: [
-            ['Transfert aller simple, moins de 50 km', '500 à 720 €', '750 à 950 €'],
-            ['Journée locale, aller-retour (moins de 50 km)', '800 à 1 100 €', '1 150 à 1 450 €'],
-            ['Journée régionale, aller-retour (100 à 200 km)', '1 250 à 1 800 €', '1 850 à 2 400 €'],
+            ['Transfert aller simple local', 'à partir de 500 €', 'à partir de 700 €'],
+            ['Journée locale, aller-retour', 'à partir de 800 €', 'à partir de 1 100 €'],
+            ['Journée régionale, aller-retour', 'à partir de 1 200 €', 'à partir de 1 800 €'],
             ['Longue distance ou séjour de plusieurs jours', 'Sur devis', 'Sur devis'],
           ],
         },
@@ -1147,7 +1146,7 @@ export const landings: Landing[] = [
       {
         h2: 'Un grand autocar ou deux véhicules ?',
         paragraphes: [
-          'Pour 60 à 63 personnes, l\'autocar 63 places gagne presque toujours : il coûte environ 15 % de plus qu\'un standard, contre le double pour deux autocars. Pour 64 à 70 personnes, l\'autocar 70 places reste moins cher que deux véhicules dans la grande majorité des cas. Au-delà de 90, deux autocars s\'imposent, et le devis coordonne les deux chauffeurs sur le même horaire.',
+          'Pour 60 à 63 personnes, l\'autocar 63 places gagne presque toujours : il coûte un peu plus qu\'un standard, contre le double pour deux autocars. Pour 64 à 70 personnes, l\'autocar 70 places reste moins cher que deux véhicules dans la grande majorité des cas. Au-delà de 90, deux autocars s\'imposent, et le devis coordonne les deux chauffeurs sur le même horaire.',
           'Le double étage change l\'équation : plus cher, moins répandu dans les flottes, il exige des accès dégagés (hauteur de 4 m, pas de parking couvert, pas de petites routes de montagne). Pour 80 personnes vers un site sans contrainte, c\'est l\'option la plus économique ; vers un village ou une station de ski, deux autocars standard seront plus sûrs. Le comparatif complet des tailles est sur notre page [location de bus](/location-bus), et les fourchettes de chaque format dans le guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
         ],
       },
@@ -1164,7 +1163,7 @@ export const landings: Landing[] = [
     faq: [
       {
         q: 'Nous sommes 62 : faut-il un autocar grande capacité ou deux autocars standard ?',
-        a: 'Un seul autocar de 63 places, sans hésiter : environ 15 % de plus qu\'un standard, contre le double pour deux véhicules. Indiquez votre effectif exact, accompagnateurs et chauffeur de groupe compris, pour que le véhicule proposé ait bien un siège pour chacun.',
+        a: 'Un seul autocar de 63 places, sans hésiter : un peu plus cher qu\'un standard, contre le double pour deux véhicules. Indiquez votre effectif exact, accompagnateurs et chauffeur de groupe compris, pour que le véhicule proposé ait bien un siège pour chacun.',
       },
       {
         q: 'Un autocar double étage peut-il aller partout ?',

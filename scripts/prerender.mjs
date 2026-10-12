@@ -544,7 +544,7 @@ Faits clés :
 - Plus de 300 000 passagers par an transportés via son réseau ; 180 autocaristes partenaires vérifiés
 - Devis gratuit sous 24h, plusieurs transporteurs comparés, sans engagement
 - Véhicules : minibus (8-20 places), autocar standard (21-59), grande capacité et double étage (60-90)
-- Prix indicatif : journée en autocar standard à partir de 690 € TTC (TVA transport 10 % en France) ; chauffeur, carburant et péages inclus
+- Prix indicatif : journée en autocar standard à partir de 700 € TTC (TVA transport 10 % en France) ; chauffeur, carburant et péages inclus
 - Toujours avec chauffeur professionnel (permis D obligatoire au-delà de 9 places)
 - Acompte 30 % à la réservation (50 % à moins de 30 jours du départ, 100 % à moins de 15 jours)
 - Contact : infos@busmoov.com · +33 1 76 31 12 83

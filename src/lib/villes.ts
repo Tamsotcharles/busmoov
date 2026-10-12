@@ -85,7 +85,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte la location d\'un autocar avec chauffeur à Paris ?',
-        a: 'Une journée en autocar standard (jusqu\'à 59 places) démarre à 690 € TTC pour un aller-retour local. Le tarif dépend de la distance, de l\'amplitude horaire et de la taille du véhicule. Un transfert aéroport simple coûte moins cher qu\'une mise à disposition à la journée : demandez un devis gratuit, vous recevez plusieurs propositions sous 24h.',
+        a: 'Une journée en autocar standard (jusqu\'à 59 places) démarre à 700 € TTC pour un aller-retour local. Le tarif dépend de la distance, de l\'amplitude horaire et de la taille du véhicule. Un transfert aéroport simple coûte moins cher qu\'une mise à disposition à la journée : demandez un devis gratuit, vous recevez plusieurs propositions sous 24h.',
       },
       {
         q: 'Le chauffeur connaît-il les règles de circulation des cars à Paris ?',
@@ -142,7 +142,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Lyon ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un aller-retour local. Un transfert vers une station des Alpes ou l\'aéroport Saint-Exupéry est chiffré selon la distance et l\'horaire. Vous recevez plusieurs devis gratuits de transporteurs de la région sous 24h.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un aller-retour local. Un transfert vers une station des Alpes ou l\'aéroport Saint-Exupéry est chiffré selon la distance et l\'horaire. Vous recevez plusieurs devis gratuits de transporteurs de la région sous 24h.',
       },
       {
         q: 'Faites-vous les transferts vers les stations de ski ?',
@@ -199,7 +199,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte la location d\'un autocar à Marseille ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un aller-retour local ; un transfert port ↔ aéroport pour un groupe est chiffré selon l\'horaire et le nombre de passagers. Vous recevez plusieurs devis gratuits de transporteurs provençaux sous 24h.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un aller-retour local ; un transfert port ↔ aéroport pour un groupe est chiffré selon l\'horaire et le nombre de passagers. Vous recevez plusieurs devis gratuits de transporteurs provençaux sous 24h.',
       },
       {
         q: 'Gérez-vous les transferts pour les croisières ?',
@@ -256,7 +256,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Toulouse ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un aller-retour local. Carcassonne ou Albi à la journée restent dans les petites tranches kilométriques, donc parmi les sorties les plus économiques. Vous recevez plusieurs devis gratuits sous 24h.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un aller-retour local. Carcassonne ou Albi à la journée restent dans les petites tranches kilométriques, donc parmi les sorties les plus économiques. Vous recevez plusieurs devis gratuits sous 24h.',
       },
       {
         q: 'Peut-on aller en Andorre en autocar ?',
@@ -313,7 +313,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte la location d\'un autocar à Bordeaux ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un aller-retour local ; un circuit vignobles avec plusieurs étapes est chiffré selon l\'itinéraire et l\'amplitude. Vous recevez plusieurs devis gratuits de transporteurs girondins sous 24h.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un aller-retour local ; un circuit vignobles avec plusieurs étapes est chiffré selon l\'itinéraire et l\'amplitude. Vous recevez plusieurs devis gratuits de transporteurs girondins sous 24h.',
       },
       {
         q: 'Le car peut-il nous attendre pendant les dégustations ?',
@@ -369,7 +369,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Lille ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un aller-retour local. Une excursion à Bruges ou Bruxelles reste dans les tranches kilométriques basses — c\'est l\'une des sorties transfrontalières les plus économiques de France. Devis gratuit sous 24h.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un aller-retour local. Une excursion à Bruges ou Bruxelles reste dans les tranches kilométriques basses — c\'est l\'une des sorties transfrontalières les plus économiques de France. Devis gratuit sous 24h.',
       },
       {
         q: 'Peut-on passer en Belgique sans formalité ?',
@@ -426,7 +426,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Nantes ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un aller-retour local. L\'aller-retour Puy du Fou, avec son amplitude longue (les spectacles finissent tard), se chiffre selon l\'horaire de retour — précisez si vous restez pour la Cinéscénie. Devis gratuit sous 24h.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un aller-retour local. L\'aller-retour Puy du Fou, avec son amplitude longue (les spectacles finissent tard), se chiffre selon l\'horaire de retour — précisez si vous restez pour la Cinéscénie. Devis gratuit sous 24h.',
       },
       {
         q: 'Comment se passe une journée Puy du Fou en autocar ?',
@@ -483,7 +483,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Biarritz ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un aller-retour local ; les transferts aéroport et navettes de soirée sont chiffrés selon l\'horaire. En été et pendant les grands week-ends de surf, réservez tôt : la côte basque est l\'une des zones les plus demandées de France. Devis gratuit sous 24h.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un aller-retour local ; les transferts aéroport et navettes de soirée sont chiffrés selon l\'horaire. En été et pendant les grands week-ends de surf, réservez tôt : la côte basque est l\'une des zones les plus demandées de France. Devis gratuit sous 24h.',
       },
       {
         q: 'Peut-on aller en Espagne (San Sebastián, Bilbao) en autocar ?',
@@ -539,7 +539,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Arcachon ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un circuit local. Le transfert Bordeaux ↔ Arcachon pour un groupe est l\'une des demandes les plus courantes et reste économique. Devis gratuit sous 24h.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un circuit local. Le transfert Bordeaux ↔ Arcachon pour un groupe est l\'une des demandes les plus courantes et reste économique. Devis gratuit sous 24h.',
       },
       {
         q: 'L\'autocar peut-il circuler sur le Bassin en été ?',
@@ -596,7 +596,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur au Mans ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un aller-retour local. Pendant la semaine des 24 Heures, la demande explose et les tarifs suivent les disponibilités : réservez plusieurs mois à l\'avance. Devis gratuit sous 24h.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un aller-retour local. Pendant la semaine des 24 Heures, la demande explose et les tarifs suivent les disponibilités : réservez plusieurs mois à l\'avance. Devis gratuit sous 24h.',
       },
       {
         q: 'Comment organiser des navettes pour les 24 Heures du Mans ?',
@@ -653,7 +653,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Montpellier ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un aller-retour local — la Camargue ou le pont du Gard restent dans les petites tranches kilométriques. Devis gratuit de transporteurs de l\'Hérault sous 24h.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un aller-retour local — la Camargue ou le pont du Gard restent dans les petites tranches kilométriques. Devis gratuit de transporteurs de l\'Hérault sous 24h.',
       },
       {
         q: 'Gérez-vous les navettes de congrès au Corum ?',
@@ -710,7 +710,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Saint-Étienne ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un aller-retour local. Un déplacement de supporters se chiffre selon la distance du stade adverse et l\'attente pendant le match. Devis gratuit sous 24h.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un aller-retour local. Un déplacement de supporters se chiffre selon la distance du stade adverse et l\'attente pendant le match. Devis gratuit sous 24h.',
       },
       {
         q: 'Organisez-vous les déplacements de supporters ?',
@@ -766,7 +766,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Strasbourg ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un aller-retour local. En période de marché de Noël (fin novembre à fin décembre), la demande est très forte : réservez dès septembre-octobre. Devis gratuit sous 24h.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un aller-retour local. En période de marché de Noël (fin novembre à fin décembre), la demande est très forte : réservez dès septembre-octobre. Devis gratuit sous 24h.',
       },
       {
         q: 'Comment se passe la dépose au marché de Noël de Strasbourg ?',
@@ -823,7 +823,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Grenoble ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un aller-retour local. Un transfert station se chiffre selon la distance et la saison — les samedis de vacances de février sont les créneaux les plus tendus de l\'année. Devis gratuit sous 24h.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un aller-retour local. Un transfert station se chiffre selon la distance et la saison — les samedis de vacances de février sont les créneaux les plus tendus de l\'année. Devis gratuit sous 24h.',
       },
       {
         q: 'Les cars sont-ils équipés pour la montagne ?',
@@ -880,7 +880,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar pour visiter Versailles ?',
-        a: 'Depuis Paris ou l\'Île-de-France, l\'aller-retour à la journée en autocar standard démarre à 690 € TTC, stationnement place d\'Armes en sus (tarif journalier du parking cars). Devis gratuit sous 24h.',
+        a: 'Depuis Paris ou l\'Île-de-France, l\'aller-retour à la journée en autocar standard démarre à 700 € TTC, stationnement place d\'Armes en sus (tarif journalier du parking cars). Devis gratuit sous 24h.',
       },
       {
         q: 'Le car peut-il rester sur place pendant la visite ?',
@@ -911,7 +911,7 @@ export const villes: Ville[] = [
       h2: 'Jour de match ou de concert au Stade de France',
       paragraphes: [
         'Les grands événements déclenchent un dispositif spécifique : parkings autocars réservés autour du stade (à prébooker pour les grosses affiches), axes coupés à la sortie, et une évacuation qui prend du temps — comptez 45 minutes à 1 heure entre le coup de sifflet final et le départ réel du car. Les chauffeurs habitués arrivent 2 heures avant l\'événement et donnent au groupe un point de regroupement précis pour le retour.',
-        'Pour les concerts qui finissent tard, vérifiez l\'amplitude : un aller-retour depuis la province avec retour à 2h du matin peut imposer un second chauffeur (environ 500 € TTC) — nos devis l\'intègrent d\'office quand c\'est le cas, pas de surprise au retour.',
+        'Pour les concerts qui finissent tard, vérifiez l\'amplitude : un aller-retour depuis la province avec retour à 2h du matin peut imposer un second chauffeur (quelques centaines d\'euros) — nos devis l\'intègrent d\'office quand c\'est le cas, pas de surprise au retour.',
       ],
     },
     h2Destinations: 'Depuis Saint-Denis : événements et patrimoine du nord francilien',
@@ -937,7 +937,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un car pour un match au Stade de France ?',
-        a: 'Depuis l\'Île-de-France, l\'aller-retour en soirée avec attente pendant le match démarre autour de 800 à 1 000 € TTC en autocar standard. Depuis la province, le prix suit la distance et l\'amplitude — devis gratuit sous 24h avec le parking événement inclus quand il est réservable.',
+        a: 'Depuis l\'Île-de-France, l\'aller-retour en soirée avec attente pendant le match démarre autour de 800 € TTC en autocar standard. Depuis la province, le prix suit la distance et l\'amplitude — devis gratuit sous 24h avec le parking événement inclus quand il est réservable.',
       },
       {
         q: 'Le car peut-il stationner près du stade pendant l\'événement ?',
@@ -994,7 +994,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Nice ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC pour un circuit local. L\'été et pendant le Grand Prix de Monaco ou le festival de Cannes, réservez très tôt : la Côte d\'Azur est la zone la plus tendue de France sur ces semaines-là.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC pour un circuit local. L\'été et pendant le Grand Prix de Monaco ou le festival de Cannes, réservez très tôt : la Côte d\'Azur est la zone la plus tendue de France sur ces semaines-là.',
       },
       {
         q: 'Peut-on entrer dans Monaco en autocar ?',
@@ -1050,7 +1050,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Rennes ?',
-        a: 'Une journée en autocar standard démarre à 690 € TTC ; le circuit Mont Saint-Michel + Saint-Malo se chiffre selon l\'amplitude. À noter : l\'Ille-et-Vilaine fait partie des zones bretonnes où les prix sont légèrement plus élevés qu\'ailleurs — la mise en concurrence de plusieurs transporteurs y est d\'autant plus utile.',
+        a: 'Une journée en autocar standard démarre à 700 € TTC ; le circuit Mont Saint-Michel + Saint-Malo se chiffre selon l\'amplitude. À noter : l\'Ille-et-Vilaine fait partie des zones bretonnes où les prix sont légèrement plus élevés qu\'ailleurs — la mise en concurrence de plusieurs transporteurs y est d\'autant plus utile.',
       },
       {
         q: 'Le car peut-il monter jusqu\'au Mont Saint-Michel ?',
@@ -1107,7 +1107,7 @@ export const villes: Ville[] = [
     faq: [
       {
         q: 'Combien coûte un circuit champagne en autocar ?',
-        a: 'Depuis Reims, la journée en mise à disposition démarre à 690 € TTC en autocar standard (visites et dégustations à réserver auprès des maisons, de 15 à 50 € par personne selon les caves). Depuis Paris, comptez de l\'ordre de 1 200 à 1 600 € TTC la journée complète.',
+        a: 'Depuis Reims, la journée en mise à disposition démarre à 700 € TTC en autocar standard (visites et dégustations à réserver auprès des maisons, de 15 à 50 € par personne selon les caves). Depuis Paris, comptez à partir de 1 200 € TTC environ la journée complète.',
       },
       {
         q: 'Le car attend-il pendant les visites et le déjeuner ?',
