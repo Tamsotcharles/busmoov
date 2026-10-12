@@ -7,10 +7,12 @@ import './lib/i18n'
 import App from './App.tsx'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { installGlobalErrorHandlers } from '@/lib/report-error'
+import { captureAttribution } from '@/lib/attribution'
 
 // Capte les promesses rejetees et les erreurs hors rendu, que les
 // ErrorBoundary de React ne voient pas.
 installGlobalErrorHandlers()
+captureAttribution()
 
 const queryClient = new QueryClient({
   defaultOptions: {

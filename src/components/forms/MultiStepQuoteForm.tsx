@@ -7,6 +7,7 @@ import { useCurrentCountry } from '@/hooks/useCountrySettings'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
 import { cn } from '@/lib/utils'
 import { trackEvent } from '@/lib/analytics'
+import { getLeadSource } from '@/lib/attribution'
 
 type TripType = 'round-trip' | 'one-way' | 'circuit'
 
@@ -184,6 +185,7 @@ export function MultiStepQuoteForm() {
         luggage_type: formData.luggageType || null,
         special_requests: notes || null,
         country_code: countryCode,
+        source: getLeadSource(),
       } as any)
 
       // Conversion GA4 : demande de devis envoyée
