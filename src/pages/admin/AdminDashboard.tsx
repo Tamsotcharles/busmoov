@@ -5337,6 +5337,19 @@ L'équipe Busmoov`
                     Lien paiement
                   </button>
                 )}
+                {/* Vue client : l'espace client tel que le client le voit (même lien que l'email) */}
+                {dossier.client_email && (
+                  <a
+                    href={generateClientAccessUrl(dossier.reference, dossier.client_email, dossier.country_code)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary"
+                    title="Ouvrir l'espace client dans un nouvel onglet, comme le client le voit"
+                  >
+                    <Eye size={16} />
+                    Vue client
+                  </a>
+                )}
                 {/* Lien infos voyage */}
                 <button
                   onClick={generateInfosVoyageLink}

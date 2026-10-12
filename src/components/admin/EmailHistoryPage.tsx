@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Mail, RefreshCw, CheckCircle, Clock, AlertCircle, Send, Eye, XCircle, X, ExternalLink } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { Mail, RefreshCw, CheckCircle, Clock, AlertCircle, Send, Eye, XCircle, X, ExternalLink, UserRound } from 'lucide-react'
+import { formatDate, generateClientAccessUrl } from '@/lib/utils'
 
 interface EmailLog {
   id: string
@@ -22,7 +22,21 @@ interface EmailLog {
   html_content: string | null
   dossiers?: {
     reference: string
+    client_email: string | null
+    country_code: string | null
   } | null
+}
+
+/**
+ * Lien « voir comme le client » : l'espace client s'ouvre avec la référence
+ * et l'email du dossier (même lien que dans l'email envoyé). Uniquement si
+ * l'email est bien parti au client, pas à un transporteur.
+ */
+function clientViewUrl(email: EmailLog): string | null {
+  const d = email.dossiers
+  if (!d?.reference || !d.client_email) return null
+  if (email.recipient.trim().toLowerCase() !== d.client_email.trim().toLowerCase()) return null
+  return generateClientAccessUrl(d.reference, d.client_email, d.country_code)
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
@@ -68,7 +82,7 @@ export function EmailHistoryPage() {
         .from('email_logs' as any)
         .select(`
           *,
-          dossiers (reference)
+          dossiers (reference, client_email, country_code)
         `)
         .order('created_at', { ascending: false })
         .limit(100) as any)
@@ -310,17 +324,30 @@ export function EmailHistoryPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                      {email.html_content ? (
-                        <button
-                          onClick={() => setPreviewEmail(email)}
-                          className="p-1.5 text-gray-400 hover:text-magenta hover:bg-magenta/10 rounded-lg transition-colors"
-                          title="Voir le contenu de l'email"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
-                      ) : (
-                        <span className="text-gray-300 text-xs">-</span>
-                      )}
+                      <div className="inline-flex items-center gap-1">
+                        {email.html_content ? (
+                          <button
+                            onClick={() => setPreviewEmail(email)}
+                            className="p-1.5 text-gray-400 hover:text-magenta hover:bg-magenta/10 rounded-lg transition-colors"
+                            title="Voir le contenu de l'email"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <span className="text-gray-300 text-xs">-</span>
+                        )}
+                        {clientViewUrl(email) && (
+                          <a
+                            href={clientViewUrl(email) || '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1.5 text-gray-400 hover:text-purple hover:bg-purple/10 rounded-lg transition-colors"
+                            title="Vue client : ouvrir l'espace client comme le client le voit"
+                          >
+                            <UserRound className="h-4 w-4" />
+                          </a>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 )
@@ -377,6 +404,18 @@ export function EmailHistoryPage() {
                     {previewEmail.dossiers.reference}
                     <ExternalLink size={12} />
                   </a>
+                  {clientViewUrl(previewEmail) && (
+                    <a
+                      href={clientViewUrl(previewEmail) || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-3 inline-flex items-center gap-1 text-purple hover:underline"
+                      title="Ouvrir l'espace client comme le client le voit"
+                    >
+                      <UserRound size={12} />
+                      Vue client
+                    </a>
+                  )}
                 </div>
               )}
               {previewEmail.template_key && (
