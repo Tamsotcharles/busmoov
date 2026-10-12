@@ -11040,6 +11040,16 @@ function NewDevisModal({
     })
   }
 
+  // Auto-calculate HT depuis le TTC saisi (même taux)
+  const handlePriceTTCChange = (value: number) => {
+    const tvaRate = dossier?.tva_rate || getTvaRateByCountry(dossier?.country_code)
+    setFormData({
+      ...formData,
+      price_ttc: value,
+      price_ht: Math.round((value / (1 + tvaRate / 100)) * 100) / 100,
+    })
+  }
+
   // Auto-calculate Prix achat TTC from HT (using dossier TVA rate)
   const handlePriceAchatHTChange = (value: number) => {
     const tvaRate = dossier?.tva_rate || getTvaRateByCountry(dossier?.country_code)
@@ -11556,7 +11566,7 @@ function NewDevisModal({
                 type="number"
                 className="input bg-blue-100"
                 value={formData.price_ttc}
-                onChange={(e) => setFormData({ ...formData, price_ttc: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => handlePriceTTCChange(parseFloat(e.target.value) || 0)}
               />
             </div>
           </div>
