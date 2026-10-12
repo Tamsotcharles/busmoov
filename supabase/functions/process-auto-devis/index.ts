@@ -803,9 +803,22 @@ function calculatePriceFromGrid(
   const coeff = capacites.find(c => c.code === vehicleType)?.coefficient || 1
 
   let prixBase = 0
+  // Km hors grille : dernière tranche + 3 € × 2 par km au-delà du maximum de
+  // la grille, ajouté AVANT le coefficient véhicule (même règle que le
+  // formulaire admin, pricing-rules.ts). Avant : « Prix non trouvé » au-delà.
+  let supplementHorsGrille = 0
+  const derniereTranche = <T extends { km_max: number }>(list: T[]): T | undefined =>
+    list.reduce<T | undefined>((best, t) => (!best || Number(t.km_max) > Number(best.km_max) ? t : best), undefined)
+  const horsGrille = (maxGrille: number) => {
+    supplementHorsGrille = (km - maxGrille) * TARIFS_HORS_GRILLE.PRIX_KM_SUPPLEMENTAIRE * 2
+  }
 
   if (serviceType === 'aller_simple') {
-    const tarif = tarifs.allerSimple.find(t => km >= t.km_min && km <= t.km_max)
+    let tarif = tarifs.allerSimple.find(t => km >= t.km_min && km <= t.km_max)
+    if (!tarif && km > TARIFS_HORS_GRILLE.GRILLE_ALLER_SIMPLE_MAX) {
+      tarif = derniereTranche(tarifs.allerSimple)
+      horsGrille(TARIFS_HORS_GRILLE.GRILLE_ALLER_SIMPLE_MAX)
+    }
     if (tarif) prixBase = Number(tarif.prix_public)
   } else if (serviceType === 'ar_1j') {
     if (km <= TARIFS_HORS_GRILLE.PETIT_KM_SEUIL) {
@@ -819,14 +832,22 @@ function calculatePriceFromGrid(
           : TARIFS_HORS_GRILLE.PETIT_KM_AMPLITUDE_5H_PLUS_50
       }
     } else {
-      const tarif = tarifs.ar1j.find(t => km >= t.km_min && km <= t.km_max)
+      let tarif = tarifs.ar1j.find(t => km >= t.km_min && km <= t.km_max)
+      if (!tarif && km > TARIFS_HORS_GRILLE.GRILLE_AR_1J_MAX) {
+        tarif = derniereTranche(tarifs.ar1j)
+        horsGrille(TARIFS_HORS_GRILLE.GRILLE_AR_1J_MAX)
+      }
       if (tarif) {
         const amplitudeKey = `prix_${amplitude || '12h'}` as keyof TarifAR1J
         prixBase = Number(tarif[amplitudeKey]) || Number(tarif.prix_12h) || Number(tarif.prix_8h) || 0
       }
     }
   } else if (serviceType === 'ar_mad') {
-    const tarif = tarifs.arMad.find(t => km >= t.km_min && km <= t.km_max)
+    let tarif = tarifs.arMad.find(t => km >= t.km_min && km <= t.km_max)
+    if (!tarif && km > TARIFS_HORS_GRILLE.GRILLE_AR_MAD_MAX) {
+      tarif = derniereTranche(tarifs.arMad)
+      horsGrille(TARIFS_HORS_GRILLE.GRILLE_AR_MAD_MAX)
+    }
     if (tarif) {
       const supplementParJour = Number(tarif.supplement_jour) || 800
 
@@ -877,7 +898,11 @@ function calculatePriceFromGrid(
         return null
       }
     } else {
-      const tarif = tarifs.arSansMad.find(t => km >= t.km_min && km <= t.km_max)
+      let tarif = tarifs.arSansMad.find(t => km >= t.km_min && km <= t.km_max)
+      if (!tarif && km > TARIFS_HORS_GRILLE.GRILLE_AR_SANS_MAD_MAX) {
+        tarif = derniereTranche(tarifs.arSansMad)
+        horsGrille(TARIFS_HORS_GRILLE.GRILLE_AR_SANS_MAD_MAX)
+      }
       if (tarif) {
         const supplementParJour = Number(tarif.supplement_jour) || 600
 
@@ -916,8 +941,9 @@ function calculatePriceFromGrid(
 
   if (prixBase <= 0) return null
 
-  // Prix TTC final (grille contient TTC)
-  return Math.round(prixBase * coeff * nombreCars)
+  // Prix TTC final (grille contient TTC) ; le supplément hors grille entre
+  // dans l'assiette du coefficient véhicule, comme dans le formulaire admin.
+  return Math.round((prixBase + supplementHorsGrille) * coeff * nombreCars)
 }
 
 /**
