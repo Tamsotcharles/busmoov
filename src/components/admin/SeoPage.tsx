@@ -131,15 +131,28 @@ export function SeoPage() {
   const dataQuery = useQuery({
     queryKey: ['seo-gsc-daily', syncQuery.dataUpdatedAt],
     queryFn: async (): Promise<GscRow[]> => {
+      // PostgREST plafonne chaque réponse à 1 000 lignes (max-rows), quel que
+      // soit le .limit() demandé : 56 jours font ~3 000 lignes, lues par pages.
+      // Sans cela, seules les lignes les plus anciennes arrivaient et les
+      // 28 derniers jours apparaissaient à zéro.
       const since = isoDay(new Date(Date.now() - 56 * dayMs))
-      const { data, error } = await supabase
-        .from('seo_gsc_daily')
-        .select('date, dimension, key, clicks, impressions, position')
-        .gte('date', since)
-        .order('date', { ascending: true })
-        .limit(20000)
-      if (error) throw error
-      return (data ?? []) as GscRow[]
+      const PAGE = 1000
+      const rows: GscRow[] = []
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase
+          .from('seo_gsc_daily')
+          .select('date, dimension, key, clicks, impressions, position')
+          .gte('date', since)
+          .order('date', { ascending: true })
+          .order('dimension', { ascending: true })
+          .order('key', { ascending: true })
+          .range(from, from + PAGE - 1)
+        if (error) throw error
+        const batch = (data ?? []) as GscRow[]
+        rows.push(...batch)
+        if (batch.length < PAGE) break
+      }
+      return rows
     },
   })
 
