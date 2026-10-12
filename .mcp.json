@@ -12,6 +12,13 @@
       "env": {
         "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
       }
+    },
+    "gsc": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-gsc@0.3.0"],
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "${GSC_SERVICE_ACCOUNT_FILE}"
+      }
     }
   }
 }
