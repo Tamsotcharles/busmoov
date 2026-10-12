@@ -1458,6 +1458,8 @@ export function AdminDashboard() {
                             dossier={dossier}
                             statutEffectif={statutDe(dossier)}
                             etatFrs={etatFrsDe(dossier)}
+                            hasAutoDevis={autoDevisMap[dossier.id]}
+                            onCancelAutoDevis={() => handleCancelAutoDevisSequence(dossier.id)}
                             onView={() => {
                               // Ouvrir directement le détail du dossier
                               handleSelectDossier(dossier)
@@ -2066,7 +2068,7 @@ export function AdminDashboard() {
   )
 }
 
-function DossierRow({ dossier, onView, statutEffectif, etatFrs }: { dossier: DossierWithRelations; onView: () => void; statutEffectif?: string; etatFrs?: string }) {
+function DossierRow({ dossier, onView, statutEffectif, etatFrs, hasAutoDevis, onCancelAutoDevis }: { dossier: DossierWithRelations; onView: () => void; statutEffectif?: string; etatFrs?: string; hasAutoDevis?: boolean; onCancelAutoDevis?: () => void }) {
   const contrat = Array.isArray(dossier.contrats) ? dossier.contrats[0] : dossier.contrats
   const isSigned = contrat?.signed_at
 
@@ -2081,12 +2083,6 @@ function DossierRow({ dossier, onView, statutEffectif, etatFrs }: { dossier: Dos
             {COUNTRY_FLAGS[dossier.country_code || 'FR']}
           </span>
           <span className="font-semibold">#{dossier.reference}</span>
-          {isSigned && (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
-              <CheckCircle size={10} />
-              Signé
-            </span>
-          )}
         </div>
       </td>
       <td className="px-4 py-3">
@@ -2094,10 +2090,7 @@ function DossierRow({ dossier, onView, statutEffectif, etatFrs }: { dossier: Dos
         <div className="text-xs text-gray-500">{dossier.client_company || dossier.client_email}</div>
       </td>
       <td className="px-4 py-3">
-        <div className="flex items-center gap-1">
-          <StatusBadge status={statutEffectif || dossier.status || 'new'} size="sm" />
-          {dossier.requires_manual_review && <CotationManuelleBadge reason={dossier.manual_review_reason} />}
-        </div>
+        <DossierBadges dossier={dossier} statutEffectif={statutEffectif} hasAutoDevis={hasAutoDevis} onCancelAutoDevis={onCancelAutoDevis} />
       </td>
       <td className="px-4 py-3">
         <div>{formatDate(dossier.created_at)}</div>
@@ -2198,46 +2191,7 @@ function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAut
             <span className="font-display font-bold text-purple-dark">
               #{dossier.reference}
             </span>
-            <StatusBadge status={statutEffectif || dossier.status || 'new'} size="sm" />
-            {dossier.requires_manual_review && <CotationManuelleBadge reason={dossier.manual_review_reason} />}
-            {isSigned && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                <CheckCircle size={12} />
-                Contrat signé
-              </span>
-            )}
-            {hasAutoDevis && (
-              <button
-                className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full hover:bg-orange-200 transition-colors"
-                title="Cliquer pour annuler la séquence auto-devis"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onCancelAutoDevis?.()
-                }}
-              >
-                <Zap size={12} />
-                Auto
-                <XCircle size={12} className="ml-1" />
-              </button>
-            )}
-            {isPromoActive && flashOriginalPrice && flashCurrentPrice && (
-              <span
-                className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-semibold rounded-full animate-pulse"
-                title={`Offre Flash ACTIVE : ${formatPrice(flashOriginalPrice)} → ${formatPrice(flashCurrentPrice)} (expire ${formatDateTime(flashExpiresAt)})`}
-              >
-                <Zap size={12} />
-                Flash -{formatPrice(flashOriginalPrice - flashCurrentPrice)}
-              </span>
-            )}
-            {shouldShowOriginalPrice && flashOriginalPrice && (
-              <span
-                className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-400 text-white text-xs font-semibold rounded-full"
-                title={`Offre Flash EXPIRÉE le ${formatDateTime(flashExpiresAt)} - Prix revenu à ${formatPrice(flashOriginalPrice)}`}
-              >
-                <Clock size={12} />
-                Flash expirée
-              </span>
-            )}
+            <DossierBadges dossier={dossier} statutEffectif={statutEffectif} hasAutoDevis={hasAutoDevis} onCancelAutoDevis={onCancelAutoDevis} />
           </div>
           <div className="font-medium text-gray-900">{dossier.client_name}</div>
           <div className="text-sm text-gray-500">{dossier.client_email}</div>
@@ -3768,6 +3722,80 @@ function CotationManuelleBadge({ reason }: { reason?: string | null }) {
     >
       ✋ Cotation manuelle
     </span>
+  )
+}
+
+/**
+ * Badges d'un dossier, identiques dans le tableau du dashboard et les cartes
+ * de la page Dossiers : statut effectif, cotation manuelle, auto-devis (jamais
+ * en même temps que la cotation manuelle), contrat signé, offre flash.
+ */
+function DossierBadges({
+  dossier,
+  statutEffectif,
+  hasAutoDevis,
+  onCancelAutoDevis,
+}: {
+  dossier: DossierWithRelations
+  statutEffectif?: string
+  hasAutoDevis?: boolean
+  onCancelAutoDevis?: () => void
+}) {
+  const contrat = Array.isArray(dossier.contrats) ? dossier.contrats[0] : dossier.contrats
+  const isSigned = !!contrat?.signed_at
+  const devisWithPromo = (dossier.devis || []).find(
+    (d: any) => d.promo_expires_at && d.promo_original_price,
+  ) as any
+  const promoExpiresAt = devisWithPromo?.promo_expires_at as string | undefined
+  const isPromoActive = promoExpiresAt ? new Date(promoExpiresAt) > new Date() : false
+  const isPromoExpired = promoExpiresAt ? new Date(promoExpiresAt) <= new Date() : false
+  const flashOriginalPrice = devisWithPromo?.promo_original_price as number | undefined
+  const flashCurrentPrice = devisWithPromo?.price_ttc as number | undefined
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <StatusBadge status={statutEffectif || dossier.status || 'new'} size="sm" />
+      {dossier.requires_manual_review && <CotationManuelleBadge reason={dossier.manual_review_reason} />}
+      {/* Un dossier à coter à la main n'est jamais aussi en auto-devis */}
+      {hasAutoDevis && !dossier.requires_manual_review && (
+        <button
+          className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full hover:bg-orange-200 transition-colors"
+          title="Auto-devis en cours — cliquer pour annuler la séquence"
+          onClick={(e) => {
+            e.stopPropagation()
+            onCancelAutoDevis?.()
+          }}
+        >
+          <Zap size={12} />
+          Auto
+          <XCircle size={12} className="ml-1" />
+        </button>
+      )}
+      {isSigned && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+          <CheckCircle size={12} />
+          Signé
+        </span>
+      )}
+      {isPromoActive && flashOriginalPrice && flashCurrentPrice && (
+        <span
+          className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-semibold rounded-full animate-pulse"
+          title={`Offre Flash ACTIVE : ${formatPrice(flashOriginalPrice)} → ${formatPrice(flashCurrentPrice)} (expire ${formatDateTime(promoExpiresAt)})`}
+        >
+          <Zap size={12} />
+          Flash -{formatPrice(flashOriginalPrice - flashCurrentPrice)}
+        </span>
+      )}
+      {isPromoExpired && flashOriginalPrice && (
+        <span
+          className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-400 text-white text-xs font-semibold rounded-full"
+          title={`Offre Flash EXPIRÉE le ${formatDateTime(promoExpiresAt)} - Prix revenu à ${formatPrice(flashOriginalPrice)}`}
+        >
+          <Clock size={12} />
+          Flash expirée
+        </span>
+      )}
+    </div>
   )
 }
 

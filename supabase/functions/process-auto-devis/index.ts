@@ -794,7 +794,8 @@ function calculatePriceFromGrid(
     arMad: TarifARMAD[]
     arSansMad: TarifARSansMAD[]
   },
-  capacites: CapaciteVehicule[]
+  capacites: CapaciteVehicule[],
+  amplitudeHeures: number | null = null
 ): number | null {
   if (km <= 0) return null
 
@@ -807,10 +808,22 @@ function calculatePriceFromGrid(
     const tarif = tarifs.allerSimple.find(t => km >= t.km_min && km <= t.km_max)
     if (tarif) prixBase = Number(tarif.prix_public)
   } else if (serviceType === 'ar_1j') {
-    const tarif = tarifs.ar1j.find(t => km >= t.km_min && km <= t.km_max)
-    if (tarif) {
-      const amplitudeKey = `prix_${amplitude || '12h'}` as keyof TarifAR1J
-      prixBase = Number(tarif[amplitudeKey]) || Number(tarif.prix_12h) || Number(tarif.prix_8h) || 0
+    if (km <= TARIFS_HORS_GRILLE.PETIT_KM_SEUIL) {
+      // Petits km (≤ 50 km) : forfait, la grille AR 1J commence au-dessus.
+      // Même règle que le front (pricing-rules.ts) : 690 €, ou 790 € / 830 €
+      // si l'amplitude dépasse 5 h selon que la distance est ≤ 20 km ou non.
+      prixBase = TARIFS_HORS_GRILLE.PETIT_KM_BASE
+      if (amplitudeHeures && amplitudeHeures > 5) {
+        prixBase = km <= 20
+          ? TARIFS_HORS_GRILLE.PETIT_KM_AMPLITUDE_5H_PLUS
+          : TARIFS_HORS_GRILLE.PETIT_KM_AMPLITUDE_5H_PLUS_50
+      }
+    } else {
+      const tarif = tarifs.ar1j.find(t => km >= t.km_min && km <= t.km_max)
+      if (tarif) {
+        const amplitudeKey = `prix_${amplitude || '12h'}` as keyof TarifAR1J
+        prixBase = Number(tarif[amplitudeKey]) || Number(tarif.prix_12h) || Number(tarif.prix_8h) || 0
+      }
     }
   } else if (serviceType === 'ar_mad') {
     const tarif = tarifs.arMad.find(t => km >= t.km_min && km <= t.km_max)
@@ -1147,6 +1160,13 @@ Deno.serve(async (req) => {
               manual_review_reason: 'Villes de départ ou arrivée manquantes',
             })
             .eq('id', dossier.id)
+
+          // Cotation manuelle => plus d'auto-devis (l'un ou l'autre).
+          // L'admin peut réactiver depuis la fiche dossier une fois le point réglé.
+          await supabase
+            .from('dossiers_auto_devis')
+            .update({ is_active: false, updated_at: new Date().toISOString() })
+            .eq('id', autoDevis.id)
         }
 
         results.push({
@@ -1174,6 +1194,13 @@ Deno.serve(async (req) => {
               manual_review_reason: `Distance non calculable: ${departure} → ${arrival}`,
             })
             .eq('id', dossier.id)
+
+          // Cotation manuelle => plus d'auto-devis (l'un ou l'autre).
+          // L'admin peut réactiver depuis la fiche dossier une fois le point réglé.
+          await supabase
+            .from('dossiers_auto_devis')
+            .update({ is_active: false, updated_at: new Date().toISOString() })
+            .eq('id', autoDevis.id)
         }
 
         results.push({
@@ -1263,7 +1290,8 @@ Deno.serve(async (req) => {
         vehicleType,
         nombreCars,
         tarifs,
-        capacites
+        capacites,
+        infosTrajet.amplitudeJournee ?? null
       )
 
       if (!priceResult) {
@@ -1278,6 +1306,13 @@ Deno.serve(async (req) => {
               manual_review_reason: `Prix non trouvé: ${km}km, ${serviceType}, ${dureeJours}j`,
             })
             .eq('id', dossier.id)
+
+          // Cotation manuelle => plus d'auto-devis (l'un ou l'autre).
+          // L'admin peut réactiver depuis la fiche dossier une fois le point réglé.
+          await supabase
+            .from('dossiers_auto_devis')
+            .update({ is_active: false, updated_at: new Date().toISOString() })
+            .eq('id', autoDevis.id)
         }
 
         results.push({
@@ -1497,6 +1532,8 @@ Deno.serve(async (req) => {
         .from('dossiers')
         .update({
           status: 'pending-client',
+          requires_manual_review: false,
+          manual_review_reason: null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', dossier.id)
