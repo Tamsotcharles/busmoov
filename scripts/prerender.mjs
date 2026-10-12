@@ -143,6 +143,14 @@ const maillageFr = (lang, page) => {
   return h2(bloc.h2) + bloc.paragraphes.map(pMd).join('') + h2(bloc.villesH2) + `<p class="mb-3">${villes.map(aVille).join(' · ')}</p>`
 }
 
+// Liens clés de la home en HTML statique (la navigation React n'y est pas) :
+// sans eux, la page la plus forte du site ne transmet rien aux crawlers
+// qui n'exécutent pas le JavaScript.
+const homeLiensFr = () =>
+  h2('Nos services et guides') +
+  pMd('Tout ce qu\'il faut pour organiser un déplacement de groupe : la [location d\'autocar avec chauffeur](/services/location-autocar) partout en France, la [location de bus](/location-bus) du minibus au double étage, la [location de minibus](/services/location-minibus) pour les petits groupes, les [transferts aéroport](/services/transfert-aeroport) et les [sorties scolaires](/services/sorties-scolaires).') +
+  pMd('Avant de réserver, consultez notre guide du [prix de la location d\'un bus avec chauffeur](/blog/prix-location-autocar), puis demandez votre [devis autocar gratuit](/devis-autocar) : jusqu\'à 3 propositions sous 24h. Busmoov est présent dans toute la France, de la [location d\'autocar à Paris](/location-autocar/paris) à [Lyon](/location-autocar/lyon), [Marseille](/location-autocar/marseille), [Toulouse](/location-autocar/toulouse) et [Bordeaux](/location-autocar/bordeaux).')
+
 /** Corps statique des pages multilingues, construit depuis les traductions. */
 function multilingualBody(page, lang) {
   switch (page) {
@@ -156,7 +164,8 @@ function multilingualBody(page, lang) {
         p(t(lang, 'hero.subtitle')) +
         h2(t(lang, 'howItWorks.title')) +
         p(t(lang, 'howItWorks.subtitle')) +
-        steps
+        steps +
+        (lang === 'fr' ? homeLiensFr() : '')
       )
     }
     case 'location-autocar': {
