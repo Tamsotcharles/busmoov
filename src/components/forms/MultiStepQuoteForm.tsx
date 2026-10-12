@@ -9,6 +9,15 @@ import { cn } from '@/lib/utils'
 import { trackEvent } from '@/lib/analytics'
 import { getLeadSource } from '@/lib/attribution'
 
+const CLE_DERNIERE_DEMANDE = 'busmoov:derniere-demande'
+interface DerniereDemande { signature: string; reference: string; email: string; at: number }
+function lireDerniereDemande(): DerniereDemande | null {
+  try { const raw = localStorage.getItem(CLE_DERNIERE_DEMANDE); return raw ? (JSON.parse(raw) as DerniereDemande) : null } catch { return null }
+}
+function memoriserDerniereDemande(d: DerniereDemande): void {
+  try { localStorage.setItem(CLE_DERNIERE_DEMANDE, JSON.stringify(d)) } catch { /* stockage indisponible : pas bloquant */ }
+}
+
 type TripType = 'round-trip' | 'one-way' | 'circuit'
 
 export function MultiStepQuoteForm() {
@@ -167,6 +176,19 @@ export function MultiStepQuoteForm() {
       const langToCountry: Record<string, string> = { fr: 'FR', es: 'ES', de: 'DE', en: 'GB' }
       const countryCode = langToCountry[i18n.language] || 'FR'
 
+      // Anti-doublon : la même demande (email + trajet + date) renvoyée dans
+      // les 30 minutes (double clic, retour arrière, « je l'ai bien envoyée ? »)
+      // ne crée pas une seconde demande : on renvoie vers l'espace client de la
+      // première. Observé en prod : 2 demandes sur 25 étaient des doublons.
+      const signature = [formData.email, formData.departure, formData.arrival, formData.departureDate]
+        .map((v) => (v || '').trim().toLowerCase()).join('|')
+      const recent = lireDerniereDemande()
+      if (recent && recent.signature === signature && Date.now() - recent.at < 30 * 60 * 1000) {
+        trackEvent('duplicate_lead_prevented', { reference: recent.reference })
+        navigate(`/${i18n.language || 'fr'}/mes-devis?ref=${recent.reference}&email=${encodeURIComponent(recent.email)}`)
+        return
+      }
+
       const result = await createDemande.mutateAsync({
         client_name: formData.name,
         client_email: formData.email,
@@ -187,6 +209,8 @@ export function MultiStepQuoteForm() {
         country_code: countryCode,
         source: getLeadSource(),
       } as any)
+
+      memoriserDerniereDemande({ signature, reference: result.reference, email: result.client_email, at: Date.now() })
 
       // Conversion GA4 : demande de devis envoyée
       trackEvent('generate_lead', {
