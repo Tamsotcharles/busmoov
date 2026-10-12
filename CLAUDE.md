@@ -217,6 +217,7 @@ Dans `supabase/functions/` :
 | `resend-webhook` | Webhook de tracking emails Resend |
 | `get-emails` | Lecture des emails |
 | `gsc-sync` | Synchro Search Console → `seo_gsc_daily` (page admin SEO, ou `force: true` en service_role) |
+| `create-dossier` | Formulaire public et admin : demande + dossier + auto-devis + email de confirmation (service_role) |
 | `manage-users` | Comptes de l'équipe (`admin_users` + `auth.users`) : `list`, `create`, `update`, `set_password`. Réservée aux rôles `admin`/`super_admin` (JWT). Création sans email envoyé : l'admin saisit email + mot de passe |
 | `change-admin-password` | Changement du mot de passe de l'utilisateur connecté (source récupérée de la prod le 12 oct. 2026) |
 | `seo-weekly-report` | Rapport SEO hebdo par email (lundi 06:00 UTC via pg_cron, jeton vault `seo_report_cron_token` = secret `SEO_REPORT_CRON_TOKEN`, destinataire `SEO_REPORT_TO`, `{"dry_run": true}` pour tester sans envoi). Déployée avec `--no-verify-jwt`, auth dans la fonction |
@@ -249,16 +250,10 @@ pour un nouveau job : `select cron.schedule('nom', '…', $$ select public.cron_
 Diagnostic : `select * from net._http_response order by created desc` (6 h d'historique)
 et `cron.job_run_details` (« succeeded » signifie seulement que le SQL a tourné).
 
-#### ⚠️ Fonctions déployées mais absentes du dépôt
-Ces deux fonctions répondent en production sans que leur source soit versionnée.
-Personne ne peut les relire ni les auditer, et un redéploiement depuis le dépôt
-ne les recréerait pas. À récupérer via `npx supabase functions download <nom>`
-(fait pour `change-admin-password` le 12 oct. 2026).
-
-| Fonction | Rôle supposé |
-|----------|--------------|
-| `validate-client-access` | Contrôle d'accès à l'espace client |
-| `get-client-data` | Lecture des données client |
+#### Fonctions récupérées depuis la prod
+`validate-client-access`, `get-client-data` et `change-admin-password` tournaient en
+production sans source versionnée ; récupérées le 12 oct. 2026 via
+`npx supabase functions download <nom>`. Le dépôt est désormais complet.
 
 ## Rôles de l'équipe admin (`admin_users.role`)
 
@@ -269,15 +264,17 @@ ne les recréerait pas. À récupérer via `npx supabase functions download <nom
   uniquement** : les RLS des tables de paramétrage restent ouvertes (chantier séparé).
 - Un compte Supabase Auth qui n'est pas dans `admin_users` (actif) voit « Compte non
   autorisé ». Les comptes se créent depuis l'admin via `manage-users`, jamais à la main.
-- **RLS, état au 12 oct. 2026** (migration `20261012170000`) : tables internes fermées
-  à l'anonyme (grilles tarifaires, paramètres sauf `payment_settings`, templates,
-  workflows, logs, rappels, transporteurs, timeline en lecture, paiements fournisseurs,
-  liens de paiement) ; plus de suppression anonyme des dossiers. **Étape 2 non faite** :
-  `dossiers`, `devis`, `demandes`, `voyage_infos` restent lisibles et modifiables en
-  anonyme (espace client, infos voyage, validation BPA) — à migrer vers des policies
-  par référence+email ou vers `get-client-data`. Les pages fournisseur à jeton
-  (`ValidationBpaPage`) doivent envoyer `x-validation-token` via `createTokenClient()`.
-  Vérifier avec la clé anon : `curl -H "apikey: <anon>" .../rest/v1/transporteurs?select=id`.
+- **RLS, état au 12 oct. 2026** (migrations `20261012170000` et `20261012190000`) :
+  plus aucune règle ouverte. Tables internes réservées à l'équipe (`is_admin()`).
+  Parcours sans compte : les pages client déclarent `x-client-ref` + `x-client-email`
+  (hook `useClientAccess`, injectés par le client Supabase partagé) et les pages
+  fournisseur / avis `x-validation-token` ; les policies passent par
+  `rls_dossier_access(id)` (client ou jeton) et `rls_dossier_client(id)` (client
+  seulement : devis, paiements, contrats, factures, messages). **Toute nouvelle page
+  publique doit appeler `useClientAccess`**, sinon elle ne voit rien. Création depuis
+  le formulaire public : Edge Function `create-dossier` (service_role), plus
+  d'insertion anonyme. Test : `curl -H "apikey: <anon>" .../rest/v1/dossiers?select=id`
+  doit renvoyer 0 ligne ; avec les deux en-têtes du dossier, 1 ligne.
 - `timeline.author_id` / `author_initials` sont remplis par le trigger
   `timeline_set_author` à partir de `auth.uid()` : les actions client (anon) et les
   crons (service_role) n'ont pas d'auteur. Ne pas renseigner ces colonnes à la main.
