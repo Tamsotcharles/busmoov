@@ -1487,6 +1487,7 @@ export function AdminDashboard() {
                     <option value="confirmed">Confirmé</option>
                     <option value="completed">Terminé</option>
                     <option value="cancelled">Abandonné</option>
+                    <option value="archived">📦 Archivés (transférés)</option>
                     <option value="facture-fournisseur-pending">Att. facture fournisseur</option>
                   </select>
                   <select
