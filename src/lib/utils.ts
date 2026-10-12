@@ -1858,7 +1858,7 @@ async function geocodeCity(city: string, countryCode: string = 'fr', lang: strin
     )
     const data = await response.json()
 
-    const feature = pickBestGeocodeFeature((data.features || []) as GeoapifyFeature[], countryCode)
+    const feature = pickBestGeocodeFeature((data.features || []) as GeoapifyFeature[], countryCode, city)
     if (feature) {
       return {
         lat: feature.properties.lat,

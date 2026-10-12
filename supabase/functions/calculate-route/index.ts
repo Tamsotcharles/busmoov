@@ -37,7 +37,7 @@ async function geocodeCity(city: string, countryCode: string = 'fr', lang: strin
       `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=5${filterParam}&apiKey=${GEOAPIFY_API_KEY}`
     )
     const data = await response.json()
-    const feature = pickBestGeocodeFeature(data.features || [], countryCode)
+    const feature = pickBestGeocodeFeature(data.features || [], countryCode, city)
     if (feature) {
       const coords = feature.geometry.coordinates
       return { lat: coords[1], lon: coords[0] }

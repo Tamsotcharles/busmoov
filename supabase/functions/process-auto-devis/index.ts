@@ -712,7 +712,7 @@ async function geocodeCity(city: string, countryCode: string = 'fr', lang: strin
     )
     const data = await response.json()
 
-    const feature = pickBestGeocodeFeature(data.features || [], countryCode)
+    const feature = pickBestGeocodeFeature(data.features || [], countryCode, city)
     if (feature) {
       const coords = feature.geometry.coordinates
       return { lat: coords[1], lon: coords[0] }

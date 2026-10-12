@@ -1,34 +1,65 @@
 import { describe, it, expect } from 'vitest'
-import { pickBestGeocodeFeature } from './geocode'
+import { pickBestGeocodeFeature, geocodeTokens } from './geocode'
 
-const f = (result_type: string, country_code: string, name: string) => ({ properties: { result_type, country_code, name } })
+const f = (result_type: string, country_code: string, formatted: string) => ({
+  properties: { result_type, country_code, formatted, name: formatted.split(',')[0] },
+})
+
+describe('geocodeTokens', () => {
+  it('normalise accents, casse et ponctuation, ignore les mots d\'une lettre', () => {
+    expect(geocodeTokens("Val d'Isère, 73150")).toEqual(['val', 'isere', '73150'])
+    expect(geocodeTokens('Aéroport Lyon Saint-Exupéry')).toEqual(['aeroport', 'lyon', 'saint', 'exupery'])
+  })
+})
 
 describe('pickBestGeocodeFeature', () => {
-  it('écarte le département quand une ville précise existe dans le pays', () => {
+  it('écarte le département quand une ville précise existe', () => {
     const r = pickBestGeocodeFeature([
-      f('state', 'fr', 'Isère'),
-      f('city', 'fr', "Val-d'Isère"),
-      f('city', 'td', 'Isere'),
-    ], 'fr')
-    expect(r?.properties.name).toBe("Val-d'Isère")
+      f('state', 'fr', 'Isère, France'),
+      f('city', 'fr', "73150 Val-d'Isère, France"),
+      f('city', 'td', 'Isere, Ouara, Tchad'),
+    ], 'fr', 'Val d isère')
+    expect(r?.properties.formatted).toBe("73150 Val-d'Isère, France")
   })
 
-  it('garde le département si rien de plus précis dans le pays', () => {
-    const r = pickBestGeocodeFeature([f('state', 'fr', 'Isère'), f('city', 'td', 'Isere')], 'fr')
-    expect(r?.properties.name).toBe('Isère')
+  it('garde le département si rien de plus précis', () => {
+    const r = pickBestGeocodeFeature([f('state', 'fr', 'Isère, France')], 'fr', 'Isère')
+    expect(r?.properties.formatted).toBe('Isère, France')
   })
 
-  it('conserve l\'ordre Geoapify entre lieux précis', () => {
-    const r = pickBestGeocodeFeature([f('building', 'fr', 'D 517'), f('building', 'fr', 'D 302')], 'fr')
-    expect(r?.properties.name).toBe('D 517')
+  it('préfère le résultat qui reprend le plus de mots de la saisie (aéroport vs village homonyme)', () => {
+    const r = pickBestGeocodeFeature([
+      f('city', 'fr', 'Saint-Exupéry, NAQ, France'),
+      f('amenity', 'fr', 'Aéroport Lyon Saint-Exupéry - Gare TGV, Parvis de la Gare, 69124 Colombier-Saugnieu, France'),
+      f('amenity', 'fr', "Taxi Aéroport Lyon, Rue d'Espagne, 69124 Colombier-Saugnieu, France"),
+    ], 'fr', 'Aéroport Lyon Saint-Exupéry, France')
+    expect(r?.properties.formatted).toContain('Aéroport Lyon Saint-Exupéry - Gare TGV')
   })
 
-  it('ne restreint pas au pays : Bruges Belgique reste possible', () => {
-    const r = pickBestGeocodeFeature([f('city', 'be', 'Bruges')], 'fr')
-    expect(r?.properties.name).toBe('Bruges')
+  it('respecte un pays explicite dans la saisie (Bruges Belgique, pas Bruges France)', () => {
+    const r = pickBestGeocodeFeature([
+      f('city', 'fr', 'Bruges-Capbis-Mifaget, NAQ, France'),
+      f('city', 'be', 'Bruges, Flandre-Occidentale, Belgique'),
+    ], 'fr', 'Bruges, Flandre, Belgique')
+    expect(r?.properties.country_code).toBe('be')
+  })
+
+  it('à égalité, préfère le pays demandé puis l\'ordre Geoapify', () => {
+    const r = pickBestGeocodeFeature([
+      f('city', 'us', 'Paris, TX, United States'),
+      f('city', 'fr', 'Paris, IDF, France'),
+    ], 'fr', 'Paris')
+    expect(r?.properties.country_code).toBe('fr')
+    const r2 = pickBestGeocodeFeature([f('building', 'fr', 'D 517, France'), f('building', 'fr', 'D 302, France')], 'fr', 'route')
+    expect(r2?.properties.formatted).toBe('D 517, France')
+  })
+
+  it('sans saisie, se comporte comme avant (premier lieu précis du pays)', () => {
+    const r = pickBestGeocodeFeature([f('city', 'td', 'Isere, Tchad'), f('city', 'fr', 'Isère-ville, France')], 'fr')
+    expect(r?.properties.country_code).toBe('fr')
   })
 
   it('renvoie null sans résultat', () => {
-    expect(pickBestGeocodeFeature([], 'fr')).toBeNull()
+    expect(pickBestGeocodeFeature([], 'fr', 'x')).toBeNull()
   })
 })
