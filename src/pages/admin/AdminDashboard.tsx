@@ -514,7 +514,7 @@ export function AdminDashboard() {
   // Les filtres croisés (calculés cote client sur plusieurs dimensions) ne
   // sont pas des statuts Supabase : useDossiers ne doit pas les passer comme
   // status, sinon il ne trouverait rien.
-  const crossFilters = ['x-pending-payment', 'x-pending-solde', 'x-pending-reservation', 'x-pending-info', 'x-infos-to-validate', 'x-pending-driver']
+  const crossFilters = ['x-cotation-manuelle', 'x-pending-payment', 'x-pending-solde', 'x-pending-reservation', 'x-pending-info', 'x-infos-to-validate', 'x-pending-driver']
   const specialFilters = ['flash-active', 'facture-fournisseur-pending', 'signed-only', ...crossFilters]
   const { data: dossiers = [], isLoading: dossiersLoading } = useDossiers({
     status: statusFilter && !specialFilters.includes(statusFilter) ? statusFilter : undefined,
@@ -571,7 +571,13 @@ export function AdminDashboard() {
       const contrat = (d.contrats || [])[0]
       return contrat?.acompte_amount ?? d.acompte_amount ?? Math.round((d.price_ttc || 0) * 0.3)
     }
+    const hasDevisEnvoye = (d: any) =>
+      (d.devis || []).some((v: any) => v.status === 'sent' || v.status === 'accepted')
     return {
+      // Hors règles auto-devis, aucun devis parti, pas signé : à coter à la main.
+      cotationManuelle: (d: any) =>
+        !!d.requires_manual_review && !isSigned(d) && !isClosed(d) &&
+        d.status !== 'archived' && !hasDevisEnvoye(d),
       // Signé, acompte (ou totalité) pas encore reçu.
       pendingPayment: (d: any) => isSigned(d) && !isClosed(d) && montantRecu(d) < acompteRequis(d),
       // Signé, acompte acquis mais le prix total n'est pas encore soldé.
@@ -609,6 +615,7 @@ export function AdminDashboard() {
   // Compteurs des cards, calcules sur TOUS les dossiers (dossiers est filtre
   // par le statut selectionne, il ne convient pas pour les totaux).
   const crossStats = useMemo(() => ({
+    cotationManuelle: allDossiers.filter(cardPredicates.cotationManuelle).length,
     pendingPayment: allDossiers.filter(cardPredicates.pendingPayment).length,
     pendingSolde: allDossiers.filter(cardPredicates.pendingSolde).length,
     pendingReservation: allDossiers.filter(cardPredicates.pendingReservation).length,
@@ -904,7 +911,8 @@ export function AdminDashboard() {
 
       // Filtres croisés des cards (conditions multi-dimensions).
       const matchesCross =
-        statusFilter === 'x-pending-payment' ? cardPredicates.pendingPayment(d)
+        statusFilter === 'x-cotation-manuelle' ? cardPredicates.cotationManuelle(d)
+        : statusFilter === 'x-pending-payment' ? cardPredicates.pendingPayment(d)
         : statusFilter === 'x-pending-solde' ? cardPredicates.pendingSolde(d)
         : statusFilter === 'x-pending-reservation' ? cardPredicates.pendingReservation(d)
         : statusFilter === 'x-pending-info' ? cardPredicates.pendingInfo(d)
@@ -971,6 +979,7 @@ export function AdminDashboard() {
   const statsCards = [
     { label: 'Total', value: stats?.total || 0, icon: FolderOpen, color: 'blue', filter: '' },
     { label: 'Nouveaux', value: stats?.new || 0, icon: Plus, color: 'cyan', filter: 'new' },
+    { label: '✋ À coter', value: crossStats.cotationManuelle, icon: Calculator, color: 'amber', filter: 'x-cotation-manuelle' },
     { label: 'Att. client', value: stats?.pendingClient || 0, icon: Clock, color: 'orange', filter: 'pending-client' },
     { label: 'Att. paiement', value: crossStats.pendingPayment, icon: Euro, color: 'amber', filter: 'x-pending-payment' },
     { label: 'Att. solde', value: crossStats.pendingSolde, icon: Euro, color: 'yellow', filter: 'x-pending-solde' },
@@ -1086,6 +1095,7 @@ export function AdminDashboard() {
                     <option value="">Tous statuts</option>
                     <option value="flash-active">⚡ Offre Flash active</option>
                     <option value="new">📥 Nouveau</option>
+                    <option value="x-cotation-manuelle">✋ À coter manuellement</option>
                     <option value="quotes_sent">📤 Devisé</option>
                     <option value="pending-client">⏳ Att. retour client</option>
                     <option value="x-pending-payment">💳 Att. paiement</option>
@@ -1476,6 +1486,7 @@ export function AdminDashboard() {
                   >
                     <option value="">Tous statuts</option>
                     <option value="new">Nouveau</option>
+                    <option value="x-cotation-manuelle">✋ À coter manuellement</option>
                     <option value="quotes_sent">Devisé</option>
                     <option value="pending-client">Att. retour client</option>
                     <option value="x-pending-payment">Att. paiement</option>
@@ -2070,11 +2081,7 @@ function DossierRow({ dossier, onView, statutEffectif, etatFrs }: { dossier: Dos
       <td className="px-4 py-3">
         <div className="flex items-center gap-1">
           <StatusBadge status={statutEffectif || dossier.status || 'new'} size="sm" />
-          {dossier.requires_manual_review && (
-            <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
-              ⭐
-            </span>
-          )}
+          {dossier.requires_manual_review && <CotationManuelleBadge reason={dossier.manual_review_reason} />}
         </div>
       </td>
       <td className="px-4 py-3">
@@ -2177,11 +2184,7 @@ function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAut
               #{dossier.reference}
             </span>
             <StatusBadge status={statutEffectif || dossier.status || 'new'} size="sm" />
-            {dossier.requires_manual_review && (
-              <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
-                ⭐
-              </span>
-            )}
+            {dossier.requires_manual_review && <CotationManuelleBadge reason={dossier.manual_review_reason} />}
             {isSigned && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
                 <CheckCircle size={12} />
@@ -3737,6 +3740,22 @@ L'équipe Busmoov`,
 }
 
 // Dossier Detail View Component
+/**
+ * Dossier hors règles de l'auto-devis (même ville, rotations/MAD, circuit,
+ * distance ou prix introuvable) : aucun devis ne partira tout seul, il faut
+ * une cotation manuelle. Remplace l'ancienne étoile ⭐ peu lisible.
+ */
+function CotationManuelleBadge({ reason }: { reason?: string | null }) {
+  return (
+    <span
+      title={reason || 'Hors règles auto-devis : cotation manuelle à faire'}
+      className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full cursor-help whitespace-nowrap"
+    >
+      ✋ Cotation manuelle
+    </span>
+  )
+}
+
 function DossierDetailView({
   dossier,
   transporteurs,
@@ -5222,11 +5241,7 @@ L'équipe Busmoov`
             </div>
             <div className="flex items-center gap-1">
               <StatusBadge status={statutEffectif || dossier.status || 'new'} />
-              {dossier.requires_manual_review && (
-                <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
-                  ⭐
-                </span>
-              )}
+              {dossier.requires_manual_review && <CotationManuelleBadge reason={dossier.manual_review_reason} />}
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -6948,11 +6963,7 @@ L'équipe Busmoov`,
               ) : (
                 <div className="flex items-center gap-1">
                   <StatusBadge status={statutEffectif || dossier.status || 'new'} />
-                  {dossier.requires_manual_review && (
-                    <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
-                      ⭐
-                    </span>
-                  )}
+                  {dossier.requires_manual_review && <CotationManuelleBadge reason={dossier.manual_review_reason} />}
                 </div>
               )}
             </div>
@@ -15106,11 +15117,7 @@ ${dossier.special_requests ? '\n' + dossier.special_requests : ''}`
                     <span className="text-sm text-gray-500">|</span>
                     <div className="flex items-center gap-1">
                       <StatusBadge status={statutDe(dossier)} size="sm" />
-                      {dossier.requires_manual_review && (
-                        <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
-                          ⭐
-                        </span>
-                      )}
+                      {dossier.requires_manual_review && <CotationManuelleBadge reason={dossier.manual_review_reason} />}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
