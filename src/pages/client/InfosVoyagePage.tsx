@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Check, Info, Phone, MapPin, Bus, Users, Calendar, Euro, Briefcase, MessageSquare, Loader2, Route } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useClientAccess } from '@/hooks/useClientAccess'
 import { useCreateOrUpdateVoyageInfo, useUpdateDossier } from '@/hooks/useSupabase'
 import { ChatWidget } from '@/components/chat/ChatWidget'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
@@ -40,6 +41,7 @@ export function InfosVoyagePage() {
   const [searchParams] = useSearchParams()
   const reference = searchParams.get('ref') || ''
   const email = searchParams.get('email') || ''
+  useClientAccess({ reference, email })
 
   const [dossier, setDossier] = useState<DossierWithRelations | null>(null)
   const [demande, setDemande] = useState<any>(null)

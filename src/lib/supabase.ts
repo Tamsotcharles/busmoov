@@ -12,7 +12,36 @@ const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabaseUrl = (envUrl && envUrl.startsWith('http')) ? envUrl : DEFAULT_SUPABASE_URL
 const supabaseAnonKey = (envKey && envKey.length > 50) ? envKey : DEFAULT_SUPABASE_ANON_KEY
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+/**
+ * Accès client / fournisseur sans compte : les pages publiques s'identifient
+ * par des en-têtes (référence + email du dossier, ou jeton fournisseur) que
+ * les policies RLS lisent via current_setting('request.headers'). Sans ces
+ * en-têtes, un visiteur anonyme ne voit aucun dossier.
+ */
+const clientAccessHeaders: Record<string, string> = {}
+const isHeaderSafe = (v: string) => /^[\x20-\x7e]*$/.test(v)
+
+export function setClientAccess(access: { reference?: string | null; email?: string | null; token?: string | null }) {
+  for (const k of Object.keys(clientAccessHeaders)) delete clientAccessHeaders[k]
+  const ref = access.reference?.trim().toUpperCase()
+  const email = access.email?.trim().toLowerCase()
+  const token = access.token?.trim()
+  if (ref && isHeaderSafe(ref)) clientAccessHeaders['x-client-ref'] = ref
+  if (email && isHeaderSafe(email)) clientAccessHeaders['x-client-email'] = email
+  if (token && isHeaderSafe(token)) clientAccessHeaders['x-validation-token'] = token
+}
+export const clearClientAccess = () => setClientAccess({})
+
+const fetchWithClientAccess: typeof fetch = (input, init) => {
+  if (Object.keys(clientAccessHeaders).length === 0) return fetch(input, init)
+  const headers = new Headers(init?.headers)
+  for (const [k, v] of Object.entries(clientAccessHeaders)) headers.set(k, v)
+  return fetch(input, { ...init, headers })
+}
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  global: { fetch: fetchWithClientAccess },
+})
 
 /**
  * Client anonyme qui envoie un jeton dans l'en-tête `x-validation-token`.

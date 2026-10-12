@@ -3,6 +3,7 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Check, CreditCard, Building, Phone, Shield, Info, MapPin, Calendar, Users, Clock, FileText, ExternalLink } from 'lucide-react'
 import DOMPurify from 'dompurify'
 import { supabase } from '@/lib/supabase'
+import { useClientAccess } from '@/hooks/useClientAccess'
 import { useCompanySettings } from '@/hooks/useSupabase'
 import { formatDate, formatPrice } from '@/lib/utils'
 import { Modal } from '@/components/ui/Modal'
@@ -43,6 +44,7 @@ export function RecapitulatifPage() {
   const navigate = useNavigate()
   const ref = searchParams.get('ref')
   const email = searchParams.get('email')
+  useClientAccess({ reference: ref, email })
   const { data: companySettings } = useCompanySettings()
 
   const [dossier, setDossier] = useState<DossierData | null>(null)

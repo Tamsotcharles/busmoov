@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, CreditCard, Building2, Copy, Check, Lock, Shield, Loader2, ExternalLink } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useClientAccess } from '@/hooks/useClientAccess'
 import { formatPrice, formatDate } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
@@ -26,6 +27,7 @@ export function PaymentPage() {
   const navigate = useNavigate()
   const refParam = searchParams.get('ref')
   const emailParam = searchParams.get('email')
+  useClientAccess({ reference: refParam, email: emailParam })
   const typeParam = searchParams.get('type') // 'solde' ou null (acompte)
 
   const [loading, setLoading] = useState(true)

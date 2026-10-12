@@ -4,6 +4,7 @@ import { Star, Send, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { supabase } from '@/lib/supabase'
+import { useClientAccess } from '@/hooks/useClientAccess'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
@@ -31,6 +32,7 @@ export function ReviewPage() {
   const dateLocale = i18n.language === 'de' ? 'de-DE' : i18n.language === 'es' ? 'es-ES' : i18n.language === 'en' ? 'en-GB' : 'fr-FR'
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
+  useClientAccess({ token })
 
   const [loading, setLoading] = useState(true)
   const [review, setReview] = useState<ReviewData | null>(null)

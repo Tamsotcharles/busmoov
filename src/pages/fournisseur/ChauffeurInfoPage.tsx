@@ -18,6 +18,7 @@ import {
   MessageSquare
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useClientAccess } from '@/hooks/useClientAccess'
 import { useSaveVehiculesEtChauffeurs } from '@/hooks/useSupabase'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import { generateFeuilleRoutePDFBase64 } from '@/lib/pdf'
@@ -100,6 +101,7 @@ export function ChauffeurInfoPage() {
   const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
+  useClientAccess({ token })
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom'
 import { ArrowLeft, Check, Clock, MessageCircle, Phone, Info, Download, Bus, Users, Euro, MapPin, Calendar, FileText, ArrowLeftRight, X, Zap, Hourglass, CheckCircle2, Sparkles, ChevronDown } from 'lucide-react'
 import { useUpdateDossier } from '@/hooks/useSupabase'
 import { supabase } from '@/lib/supabase'
+import { useClientAccess } from '@/hooks/useClientAccess'
 import { Modal } from '@/components/ui/Modal'
 import { ChatWidget } from '@/components/chat/ChatWidget'
 import { formatDate, formatPrice, getVehicleTypeLabel, cn, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, type RouteInfo } from '@/lib/utils'
@@ -78,6 +79,7 @@ export function MesDevisPage() {
   const [searchParams] = useSearchParams()
   const refParam = searchParams.get('ref')
   const emailParam = searchParams.get('email')
+  useClientAccess({ reference: refParam, email: emailParam })
   const signParam = searchParams.get('sign') // Paramètre pour ouvrir automatiquement la modal de signature
   const devisParam = searchParams.get('devis') // ID du devis pré-sélectionné
 
