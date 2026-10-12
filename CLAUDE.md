@@ -624,3 +624,13 @@ Exemple :
 | Espagne (ES) | 10% |
 | Allemagne (DE) | 7% |
 | Royaume-Uni (GB) | 0% |
+
+## Serveur MCP Search Console (`.mcp.json`, serveur `gsc`)
+
+`mcp-server-gsc` (devDependency) lancé avec **`/usr/local/bin/node` = Node 24** :
+sous Node 26 (Homebrew, défaut du shell), l'échange de jeton Google échoue
+(`Premature close`, gaxios/node-fetch). Clé du compte de service
+`gsc-sync@busmoov-seo` dans `~/.config/busmoov/gsc-service-account.json`
+(hors dépôt, chmod 600). Outils : `search_analytics` (croisement
+requête × page, filtres pays/appareil), `index_inspect` (état d'indexation
+d'une URL), `list_sitemaps`, `submit_sitemap`, `detect_quick_wins`.
