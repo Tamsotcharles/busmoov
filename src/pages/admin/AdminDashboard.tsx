@@ -134,6 +134,8 @@ import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
 import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif } from '@/lib/utils'
 import { TransporteurPicker } from '@/components/admin/TransporteurPicker'
+import { UsersPage } from '@/components/admin/UsersPage'
+import { canAccessPage, isFullAdminRole, ROLE_LABELS, type AdminRole } from '@/lib/roles'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFacturePDFBase64, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
 import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
@@ -471,7 +473,9 @@ function OffreFlashModal({
 export function AdminDashboard() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { signOut, user } = useAuth()
+  const { signOut, user, profile, role } = useAuth()
+  // Menu filtré selon le rôle (manager : sans Paramètres, Workflow, Templates, Stats, SEO)
+  const visibleNavigation = useMemo(() => navigation.filter((n) => canAccessPage(role, n.id)), [role])
   const [currentPage, setCurrentPage] = useState<Page>('dossiers')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -660,6 +664,11 @@ export function AdminDashboard() {
       }
     }
   }, [dossiers, selectedDossier])
+
+  // Un manager ne peut pas rester sur une page qui lui est interdite
+  useEffect(() => {
+    if (role && !canAccessPage(role, currentPage)) setCurrentPage('dashboard')
+  }, [role, currentPage])
 
   // Gérer l'ouverture automatique d'un dossier depuis l'URL
   useEffect(() => {
@@ -1004,7 +1013,7 @@ export function AdminDashboard() {
         </div>
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {navigation.map((item) => (
+          {visibleNavigation.map((item) => (
             <button
               key={item.id}
               onClick={() => setCurrentPage(item.id as Page)}
@@ -1033,10 +1042,15 @@ export function AdminDashboard() {
 
         <div className="p-3 border-t border-white/10">
           <div className="flex items-center gap-3 px-3 py-2 text-sm text-white/70">
-            <div className="w-8 h-8 gradient-bg rounded-full flex items-center justify-center text-white font-bold text-xs">
-              {user?.email?.[0].toUpperCase()}
+            <div className="w-8 h-8 gradient-bg rounded-full flex items-center justify-center text-white font-bold text-xs" title={user?.email || ''}>
+              {profile?.initials || user?.email?.[0].toUpperCase()}
             </div>
-            <div className="flex-1 truncate">{user?.email}</div>
+            <div className="flex-1 min-w-0">
+              <div className="truncate text-white/90">{profile?.name || user?.email}</div>
+              <div className="truncate text-xs text-white/50">
+                {role ? ROLE_LABELS[role as AdminRole] || role : ''}{profile?.name ? ` · ${user?.email}` : ''}
+              </div>
+            </div>
           </div>
           <button
             onClick={handleLogout}
@@ -8137,7 +8151,14 @@ L'équipe Busmoov`,
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">{entry.content}</p>
-                      <p className="text-xs text-gray-500">{formatDateTime(entry.created_at)}</p>
+                      <p className="text-xs text-gray-500 flex items-center gap-2">
+                        {formatDateTime(entry.created_at)}
+                        {(entry as any).author_initials && (
+                          <span className="inline-flex items-center justify-center min-w-[1.5rem] px-1 h-5 rounded-full bg-purple text-white text-[10px] font-bold" title="Action réalisée par">
+                            {(entry as any).author_initials}
+                          </span>
+                        )}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -19675,7 +19696,14 @@ function HistorySettingsTab() {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-700">{entry.content}</p>
+                    <p className="text-sm text-gray-700 flex items-start gap-2">
+                      {entry.author_initials && (
+                        <span className="inline-flex items-center justify-center min-w-[1.5rem] px-1 h-5 rounded-full bg-purple text-white text-[10px] font-bold shrink-0" title="Action réalisée par">
+                          {entry.author_initials}
+                        </span>
+                      )}
+                      <span>{entry.content}</span>
+                    </p>
                     {entry.dossier && (
                       <p className="text-xs text-gray-400 mt-1">
                         {entry.dossier.departure} → {entry.dossier.arrival}
@@ -19694,7 +19722,8 @@ function HistorySettingsTab() {
 
 function SettingsPage() {
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<'company' | 'api' | 'workflows' | 'tarifs' | 'automation' | 'payments' | 'countries' | 'cgv' | 'experiments' | 'test-runner' | 'security' | 'history'>('company')
+  const [activeTab, setActiveTab] = useState<'company' | 'api' | 'workflows' | 'tarifs' | 'automation' | 'payments' | 'countries' | 'cgv' | 'experiments' | 'test-runner' | 'security' | 'history' | 'users'>('company')
+  const { role: myRole } = useAuth()
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
 
@@ -20020,7 +20049,23 @@ function SettingsPage() {
           <History size={16} className="inline mr-2" />
           Historique
         </button>
+        {isFullAdminRole(myRole) && (
+          <button
+            onClick={() => setActiveTab('users')}
+            className={cn(
+              'px-4 py-2 rounded-lg font-medium transition-all',
+              activeTab === 'users'
+                ? 'bg-purple text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            )}
+          >
+            <UsersRound size={16} className="inline mr-2" />
+            Utilisateurs
+          </button>
+        )}
       </div>
+
+      {activeTab === 'users' && <UsersPage />}
 
       {/* Company Settings Tab */}
       {activeTab === 'company' && (

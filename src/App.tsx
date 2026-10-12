@@ -106,7 +106,7 @@ function RedirectToLanguage() {
 
 // Protected route wrapper for admin pages
 function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading, isAdmin } = useAuth()
+  const { user, loading, isAdmin, adminChecked, signOut } = useAuth()
 
   // Afficher le chargement pendant la vérification
   if (loading) {
@@ -122,10 +122,21 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/admin/login" replace />
   }
 
-  // Si utilisateur connecté mais pas encore admin vérifié, attendre un peu
-  // (le statut admin est vérifié async après la connexion)
+  // Statut équipe vérifié en asynchrone après la connexion.
   if (!isAdmin) {
-    // On attend 2 secondes max pour le statut admin
+    if (adminChecked) {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <div className="card p-6 max-w-md text-center space-y-3">
+            <p className="font-medium text-gray-900">Compte non autorisé</p>
+            <p className="text-sm text-gray-500">
+              {user.email} n'est pas membre de l'équipe Busmoov, ou le compte a été désactivé.
+            </p>
+            <button className="btn btn-secondary" onClick={() => signOut()}>Se déconnecter</button>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-gray-500">Vérification des droits...</div>

@@ -20,17 +20,39 @@ export const getCurrentSession = async () => {
   return session
 }
 
-// Helper pour vérifier si l'utilisateur est admin
-export const checkIsAdmin = async (): Promise<boolean> => {
+export interface AdminProfile {
+  id: string
+  email: string
+  name: string | null
+  role: string | null
+  initials: string | null
+}
+
+// Profil équipe du compte connecté (null si pas membre actif de admin_users).
+// `select('*')` : les colonnes initials/role peuvent manquer tant que la
+// migration des rôles n'est pas appliquée, on lit ce qui existe.
+export const getAdminProfile = async (): Promise<AdminProfile | null> => {
   const session = await getCurrentSession()
-  if (!session) return false
+  if (!session) return null
 
   const { data } = await supabase
     .from('admin_users')
-    .select('id')
+    .select('*')
     .eq('user_id', session.user.id)
     .eq('is_active', true)
     .single()
+  if (!data) return null
+  const row = data as Record<string, unknown>
+  return {
+    id: String(row.id),
+    email: String(row.email || session.user.email || ''),
+    name: (row.name as string | null) ?? null,
+    role: (row.role as string | null) ?? null,
+    initials: (row.initials as string | null) ?? null,
+  }
+}
 
-  return !!data
+// Helper pour vérifier si l'utilisateur est admin
+export const checkIsAdmin = async (): Promise<boolean> => {
+  return !!(await getAdminProfile())
 }

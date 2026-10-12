@@ -1,11 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase, checkIsAdmin } from '@/lib/supabase'
+import { supabase, getAdminProfile, type AdminProfile } from '@/lib/supabase'
+import { isFullAdminRole } from '@/lib/roles'
 import type { User, Session } from '@supabase/supabase-js'
 
 interface AuthState {
   user: User | null
   session: Session | null
   isAdmin: boolean
+  /** Vrai une fois la vérification admin_users terminée (évite l'attente infinie). */
+  adminChecked: boolean
+  profile: AdminProfile | null
   loading: boolean
 }
 
@@ -14,16 +18,18 @@ export function useAuth() {
     user: null,
     session: null,
     isAdmin: false,
+    adminChecked: false,
+    profile: null,
     loading: true,
   })
 
   const refreshAdminStatus = useCallback(async (session: Session | null) => {
     if (!session) {
-      setState(prev => ({ ...prev, isAdmin: false }))
+      setState(prev => ({ ...prev, isAdmin: false, adminChecked: true, profile: null }))
       return
     }
-    const isAdmin = await checkIsAdmin()
-    setState(prev => ({ ...prev, isAdmin }))
+    const profile = await getAdminProfile()
+    setState(prev => ({ ...prev, isAdmin: !!profile, adminChecked: true, profile }))
   }, [])
 
   useEffect(() => {
@@ -78,6 +84,9 @@ export function useAuth() {
 
   return {
     ...state,
+    role: state.profile?.role ?? null,
+    /** admin ou super_admin : accès à tout, gestion des utilisateurs. */
+    isFullAdmin: isFullAdminRole(state.profile?.role),
     signIn,
     signUp,
     signOut,
