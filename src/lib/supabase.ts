@@ -14,6 +14,17 @@ const supabaseAnonKey = (envKey && envKey.length > 50) ? envKey : DEFAULT_SUPABA
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 
+/**
+ * Client anonyme qui envoie un jeton dans l'en-tête `x-validation-token`.
+ * Les policies RLS des pages fournisseur (validation BPA) lisent ce jeton
+ * via `current_setting('request.headers')` : sans lui, la demande est invisible.
+ */
+export const createTokenClient = (token: string) =>
+  createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { 'x-validation-token': token } },
+  })
+
 // Helper pour obtenir la session actuelle
 export const getCurrentSession = async () => {
   const { data: { session } } = await supabase.auth.getSession()

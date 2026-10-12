@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { CheckCircle, XCircle, Loader2, Calendar, MapPin, Users, Euro, FileText, Route } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { createTokenClient } from '@/lib/supabase'
 import { formatDate, formatPrice } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 
@@ -49,6 +49,9 @@ export function ValidationBpaPage() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') || ''
   const demandeId = searchParams.get('demande') || ''
+  // Jeton transmis en en-tête : les policies RLS n'autorisent la lecture et la
+  // mise à jour de la demande fournisseur que si ce jeton correspond.
+  const supabase = useMemo(() => createTokenClient(token), [token])
 
   const [loading, setLoading] = useState(true)
   const [validating, setValidating] = useState(false)
