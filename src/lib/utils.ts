@@ -1,3 +1,4 @@
+import { pickBestGeocodeFeature } from './geocode'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { format, parseISO } from 'date-fns'
@@ -1827,6 +1828,10 @@ async function getGeoapifyApiKey(): Promise<string> {
   return envKey
 }
 
+interface GeoapifyFeature {
+  properties: { lat: number; lon: number; city?: string; formatted?: string; result_type?: string; country_code?: string }
+}
+
 interface GeocodeResult {
   lat: number
   lon: number
@@ -1849,12 +1854,12 @@ async function geocodeCity(city: string, countryCode: string = 'fr', lang: strin
 
   try {
     const response = await fetch(
-      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=1&bias=countrycode:${countryCode}&apiKey=${apiKey}`
+      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=5&bias=countrycode:${countryCode}&apiKey=${apiKey}`
     )
     const data = await response.json()
 
-    if (data.features && data.features.length > 0) {
-      const feature = data.features[0]
+    const feature = pickBestGeocodeFeature((data.features || []) as GeoapifyFeature[], countryCode)
+    if (feature) {
       return {
         lat: feature.properties.lat,
         lon: feature.properties.lon,
