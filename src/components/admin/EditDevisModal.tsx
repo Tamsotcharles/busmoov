@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { Info, ChevronDown, ChevronUp, MapPin, Luggage, Clock, Calendar, Euro, Percent, Car, Users, Calculator, Sparkles, AlertTriangle, UserCheck } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
-import { TransporteurOptions } from './TransporteurOptions'
+import { TransporteurPicker } from './TransporteurPicker'
 import { supabase } from '@/lib/supabase'
 
 // Helper pour le taux de TVA selon le pays
@@ -884,14 +884,11 @@ export function EditDevisModal({
         {/* Transporteur */}
         <div>
           <label className="label">Transporteur</label>
-          <select
-            className="input"
-            value={formData.transporteur_id || ''}
-            onChange={(e) => handleChange('transporteur_id', e.target.value)}
-          >
-            <option value="">-- Sélectionner --</option>
-            <TransporteurOptions transporteurs={transporteurs} withCity />
-          </select>
+          <TransporteurPicker
+            value={formData.transporteur_id}
+            onChange={(id) => handleChange('transporteur_id', id || null)}
+            transporteurs={transporteurs}
+          />
         </div>
 
         {/* Données du trajet - Modifiables */}

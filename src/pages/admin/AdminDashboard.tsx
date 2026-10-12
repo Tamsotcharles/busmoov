@@ -132,7 +132,7 @@ import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
 import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif } from '@/lib/utils'
-import { TransporteurOptions } from '@/components/admin/TransporteurOptions'
+import { TransporteurPicker } from '@/components/admin/TransporteurPicker'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFacturePDFBase64, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
 import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
@@ -2661,14 +2661,11 @@ function CreateDossierModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label">Transporteur</label>
-              <select
-                className="input"
+              <TransporteurPicker
                 value={formData.transporteur_id}
-                onChange={(e) => setFormData({ ...formData, transporteur_id: e.target.value })}
-              >
-                <option value="">-- Sélectionner --</option>
-                <TransporteurOptions transporteurs={transporteurs} />
-              </select>
+                onChange={(id) => setFormData({ ...formData, transporteur_id: id })}
+                transporteurs={transporteurs}
+              />
             </div>
             <div>
               <label className="label">Prix vente HT</label>
@@ -6961,14 +6958,11 @@ L'équipe Busmoov`,
             <div>
               <label className="label">Transporteur</label>
               {isEditing ? (
-                <select
-                  className="input"
+                <TransporteurPicker
                   value={formData.transporteur_id}
-                  onChange={(e) => setFormData({ ...formData, transporteur_id: e.target.value })}
-                >
-                  <option value="">-- Aucun --</option>
-                  <TransporteurOptions transporteurs={transporteurs} />
-                </select>
+                  onChange={(id) => setFormData({ ...formData, transporteur_id: id })}
+                  transporteurs={transporteurs}
+                />
               ) : (
                 <p className="font-medium">
                   {dossier.transporteur && etatFrs === 'confirme' ? (
@@ -11081,14 +11075,11 @@ function NewDevisModal({
         {/* Transporteur */}
         <div>
           <label className="label">Transporteur *</label>
-          <select
-            className="input"
+          <TransporteurPicker
             value={formData.transporteur_id}
-            onChange={(e) => setFormData({ ...formData, transporteur_id: e.target.value })}
-          >
-            <option value="">-- Sélectionner --</option>
-            <TransporteurOptions transporteurs={transporteurs} withCity />
-          </select>
+            onChange={(id) => setFormData({ ...formData, transporteur_id: id })}
+            transporteurs={transporteurs}
+          />
         </div>
 
         {/* Trajet et Distance */}
