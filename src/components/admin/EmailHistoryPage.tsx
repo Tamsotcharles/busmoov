@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Mail, RefreshCw, CheckCircle, Clock, AlertCircle, Send, Eye, XCircle, X } from 'lucide-react'
+import { Mail, RefreshCw, CheckCircle, Clock, AlertCircle, Send, Eye, XCircle, X, ExternalLink } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
 interface EmailLog {
@@ -288,10 +288,17 @@ export function EmailHistoryPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {email.dossiers?.reference ? (
-                        <span className="text-sm font-medium text-magenta">
+                      {email.dossiers?.reference && email.dossier_id ? (
+                        <a
+                          href={`/admin?dossierId=${email.dossier_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-sm font-medium text-magenta hover:underline"
+                          title="Ouvrir le dossier dans un nouvel onglet"
+                        >
                           {email.dossiers.reference}
-                        </span>
+                          <ExternalLink size={12} />
+                        </a>
                       ) : (
                         <span className="text-sm text-gray-400">-</span>
                       )}
@@ -360,7 +367,16 @@ export function EmailHistoryPage() {
               {previewEmail.dossiers?.reference && (
                 <div>
                   <span className="text-gray-500">Dossier :</span>{' '}
-                  <span className="font-medium text-magenta">{previewEmail.dossiers.reference}</span>
+                  <a
+                    href={`/admin?dossierId=${previewEmail.dossier_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-medium text-magenta hover:underline"
+                    title="Ouvrir le dossier dans un nouvel onglet"
+                  >
+                    {previewEmail.dossiers.reference}
+                    <ExternalLink size={12} />
+                  </a>
                 </div>
               )}
               {previewEmail.template_key && (
