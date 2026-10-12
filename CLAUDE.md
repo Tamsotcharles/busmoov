@@ -269,6 +269,15 @@ ne les recréerait pas. À récupérer via `npx supabase functions download <nom
   uniquement** : les RLS des tables de paramétrage restent ouvertes (chantier séparé).
 - Un compte Supabase Auth qui n'est pas dans `admin_users` (actif) voit « Compte non
   autorisé ». Les comptes se créent depuis l'admin via `manage-users`, jamais à la main.
+- **RLS, état au 12 oct. 2026** (migration `20261012170000`) : tables internes fermées
+  à l'anonyme (grilles tarifaires, paramètres sauf `payment_settings`, templates,
+  workflows, logs, rappels, transporteurs, timeline en lecture, paiements fournisseurs,
+  liens de paiement) ; plus de suppression anonyme des dossiers. **Étape 2 non faite** :
+  `dossiers`, `devis`, `demandes`, `voyage_infos` restent lisibles et modifiables en
+  anonyme (espace client, infos voyage, validation BPA) — à migrer vers des policies
+  par référence+email ou vers `get-client-data`. Les pages fournisseur à jeton
+  (`ValidationBpaPage`) doivent envoyer `x-validation-token` via `createTokenClient()`.
+  Vérifier avec la clé anon : `curl -H "apikey: <anon>" .../rest/v1/transporteurs?select=id`.
 - `timeline.author_id` / `author_initials` sont remplis par le trigger
   `timeline_set_author` à partir de `auth.uid()` : les actions client (anon) et les
   crons (service_role) n'ont pas d'auteur. Ne pas renseigner ces colonnes à la main.
