@@ -63,6 +63,7 @@ import {
   Bell,
   BellRing,
   Lock,
+  Copy,
   Archive,
   ArchiveRestore,
 } from 'lucide-react'
@@ -3860,6 +3861,67 @@ function DossierDetailView({
     } catch (error) {
       console.error('Erreur archivage:', error)
       alert('Erreur lors de l\'archivage du dossier')
+    }
+  }
+
+  // Dupliquer un devis : copie en brouillon (nouvelle référence, même
+  // transporteur, mêmes prix/options), puis ouverture en modification.
+  const handleDuplicateDevis = async (source: any) => {
+    try {
+      const copie = await createDevis.mutateAsync({
+        dossier_id: dossier.id,
+        reference: generateDevisReference(),
+        status: 'draft',
+      client_notes: source.client_notes ?? null,
+      km: source.km ?? null,
+      notes: source.notes ?? null,
+      options: source.options ?? null,
+      price_achat_ht: source.price_achat_ht ?? null,
+      price_achat_ttc: source.price_achat_ttc ?? null,
+      price_ht: source.price_ht ?? null,
+      price_ttc: source.price_ttc ?? null,
+      transporteur_id: source.transporteur_id ?? null,
+      tva_rate: source.tva_rate ?? null,
+      validity_days: source.validity_days ?? null,
+      vehicle_type: source.vehicle_type ?? null,
+      nombre_cars: source.nombre_cars ?? null,
+      nombre_chauffeurs: source.nombre_chauffeurs ?? null,
+      service_type: source.service_type ?? null,
+      duree_jours: source.duree_jours ?? null,
+      amplitude: source.amplitude ?? null,
+      pax_aller: source.pax_aller ?? null,
+      pax_retour: source.pax_retour ?? null,
+      luggage_type: source.luggage_type ?? null,
+      options_details: source.options_details ?? null,
+      etapes: source.etapes ?? null,
+      detail_mad: source.detail_mad ?? null,
+      retour_different: source.retour_different ?? null,
+      retour_departure: source.retour_departure ?? null,
+      retour_arrival: source.retour_arrival ?? null,
+      retour_km: source.retour_km ?? null,
+      remise_percent: source.remise_percent ?? null,
+      remise_montant: source.remise_montant ?? null,
+      majoration_percent: source.majoration_percent ?? null,
+      majoration_montant: source.majoration_montant ?? null,
+      prix_base_ht: source.prix_base_ht ?? null,
+      // Surcharges du trajet (colonnes hors types générés)
+      departure_override: source.departure_override ?? null,
+      arrival_override: source.arrival_override ?? null,
+      departure_date_override: source.departure_date_override ?? null,
+      return_date_override: source.return_date_override ?? null,
+      departure_time_override: source.departure_time_override ?? null,
+      return_time_override: source.return_time_override ?? null,
+      } as any)
+      await addTimelineEntry.mutateAsync({
+        dossier_id: dossier.id,
+        type: 'note',
+        content: `📋 Devis ${copie.reference} créé par duplication de ${source.reference}`,
+      })
+      queryClient.invalidateQueries({ queryKey: ['devis', 'dossier', dossier.id] })
+      onEditDevis({ ...copie, transporteur: source.transporteur })
+    } catch (error) {
+      console.error('Erreur duplication devis:', error)
+      alert('Erreur lors de la duplication du devis')
     }
   }
 
@@ -7815,6 +7877,14 @@ L'équipe Busmoov`,
                           onClick={() => onEditDevis(devis)}
                         >
                           <Pencil size={14} />
+                        </button>
+                        {/* Bouton Dupliquer devis */}
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          title="Dupliquer le devis (copie en brouillon)"
+                          onClick={() => handleDuplicateDevis(devis)}
+                        >
+                          <Copy size={14} />
                         </button>
                         {devis.status === 'scheduled' && (
                           <button
