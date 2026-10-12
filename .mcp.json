@@ -17,7 +17,7 @@
       "command": "npx",
       "args": ["-y", "mcp-server-gsc@0.3.0"],
       "env": {
-        "GOOGLE_APPLICATION_CREDENTIALS": "${GSC_SERVICE_ACCOUNT_FILE}"
+        "GOOGLE_APPLICATION_CREDENTIALS": "${HOME}/.config/busmoov/gsc-service-account.json"
       }
     }
   }
