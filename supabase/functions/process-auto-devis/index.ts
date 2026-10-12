@@ -703,7 +703,9 @@ async function geocodeCity(city: string, countryCode: string = 'fr', lang: strin
 
   try {
     // Construire l'URL avec filtre de pays si spécifié
-    const filterParam = countryCode ? `&filter=countrycode:${countryCode}` : ''
+    // `bias` (préférence) et non `filter` (restriction) : un filtre pays forçait
+    // « Bruges, Belgique » sur Bruges-Capbis-Mifaget (64) → 1 076 km au lieu de 75.
+    const filterParam = countryCode ? `&bias=countrycode:${countryCode}` : ''
     const response = await fetch(
       `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=1${filterParam}&apiKey=${GEOAPIFY_API_KEY}`
     )

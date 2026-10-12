@@ -1849,7 +1849,7 @@ async function geocodeCity(city: string, countryCode: string = 'fr', lang: strin
 
   try {
     const response = await fetch(
-      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=1&filter=countrycode:${countryCode}&apiKey=${apiKey}`
+      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=1&bias=countrycode:${countryCode}&apiKey=${apiKey}`
     )
     const data = await response.json()
 
