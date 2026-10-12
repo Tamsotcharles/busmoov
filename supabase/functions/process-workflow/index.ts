@@ -381,7 +381,7 @@ Deno.serve(async (req) => {
           dossiersQuery = dossiersQuery
             .gte("departure_date", today.toISOString().split("T")[0])
             .lte("departure_date", futureDate.toISOString().split("T")[0])
-            .not("status", "in", '("new","pending-client","pending-devis","completed","cancelled")');
+            .not("status", "in", '("new","pending-client","pending-devis","completed","cancelled","archived")');
           break;
         case "payment_received":
           // Recent payments - would be triggered directly

@@ -307,6 +307,10 @@ export function useDossiers(filters?: {
 
       if (filters?.status) {
         query = query.eq('status', filters.status)
+      } else {
+        // Les dossiers archivés (leads transférés ailleurs) n'apparaissent
+        // que via le filtre explicite « Archivés ».
+        query = query.neq('status', 'archived')
       }
       if (filters?.transporteur_id) {
         query = query.eq('transporteur_id', filters.transporteur_id)
@@ -1455,6 +1459,7 @@ export function useDashboardStats() {
       const { data: dossiers, error: dossiersError } = await supabase
         .from('dossiers')
         .select('status, price_ttc, price_achat')
+        .neq('status', 'archived')
 
       if (dossiersError) throw dossiersError
 

@@ -63,6 +63,8 @@ import {
   Bell,
   BellRing,
   Lock,
+  Archive,
+  ArchiveRestore,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useQueryClient } from '@tanstack/react-query'
@@ -129,7 +131,8 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif } from '@/lib/utils'
+import { TransporteurOptions } from '@/components/admin/TransporteurOptions'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFacturePDFBase64, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
 import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
@@ -1094,6 +1097,7 @@ export function AdminDashboard() {
                     <option value="confirmed">✅ Confirmé</option>
                     <option value="completed">✅ Terminé</option>
                     <option value="cancelled">❌ Abandonné</option>
+                    <option value="archived">📦 Archivés (transférés)</option>
                     <option value="facture-fournisseur-pending">📄 Att. facture fournisseur</option>
                     <option value="signed-only">📝 Signés uniquement</option>
                   </select>
@@ -2663,11 +2667,7 @@ function CreateDossierModal({
                 onChange={(e) => setFormData({ ...formData, transporteur_id: e.target.value })}
               >
                 <option value="">-- Sélectionner --</option>
-                {transporteurs.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.number} - {t.name}
-                  </option>
-                ))}
+                <TransporteurOptions transporteurs={transporteurs} />
               </select>
             </div>
             <div>
@@ -3812,6 +3812,60 @@ function DossierDetailView({
   const createDevis = useCreateDevis()
   const addTimelineEntry = useAddTimelineEntry()
   const { data: dossierDevis = [], isLoading: devisLoading } = useDevisByDossier(dossier.id)
+
+  // Archiver : lead transféré hors Busmoov (ex. Centrale). Coupe la séquence
+  // auto-devis et sort le dossier des listes/compteurs sans le détruire.
+  const handleArchiveDossier = async () => {
+    const motif = prompt('Motif d\'archivage :', 'Transféré chez Centrale Autocar')
+    if (motif === null) return
+    try {
+      const { data: scheduledDevis } = await supabase
+        .from('devis')
+        .select('id')
+        .eq('dossier_id', dossier.id)
+        .eq('status', 'scheduled')
+      for (const d of scheduledDevis || []) {
+        await supabase.from('devis').update({ status: 'cancelled', scheduled_send_at: null }).eq('id', d.id)
+      }
+      await supabase.from('dossiers_auto_devis').update({ is_active: false }).eq('dossier_id', dossier.id)
+
+      await updateDossier.mutateAsync({ id: dossier.id, status: 'archived' })
+      await addTimelineEntry.mutateAsync({
+        dossier_id: dossier.id,
+        type: 'status_change',
+        content: `📦 Dossier archivé (statut précédent : ${dossier.status || 'new'})${motif ? ` - ${motif}` : ''}${(scheduledDevis || []).length > 0 ? ` - ${(scheduledDevis || []).length} devis programmé(s) annulé(s)` : ''}`,
+      })
+      queryClient.invalidateQueries({ queryKey: ['dossiers'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['devis'] })
+      queryClient.invalidateQueries({ queryKey: ['dossiers_auto_devis'] })
+      onClose()
+    } catch (error) {
+      console.error('Erreur archivage:', error)
+      alert('Erreur lors de l\'archivage du dossier')
+    }
+  }
+
+  // Désarchiver : retour en « att. retour client » si des devis ont été
+  // envoyés, sinon en « nouveau ». La séquence auto-devis n'est pas relancée.
+  const handleUnarchiveDossier = async () => {
+    const restored = dossierDevis.some((d: { status?: string | null }) => d.status === 'sent' || d.status === 'accepted')
+      ? 'pending-client'
+      : 'new'
+    try {
+      await updateDossier.mutateAsync({ id: dossier.id, status: restored })
+      await addTimelineEntry.mutateAsync({
+        dossier_id: dossier.id,
+        type: 'status_change',
+        content: `🔄 Dossier désarchivé (remis en ${restored})`,
+      })
+      queryClient.invalidateQueries({ queryKey: ['dossiers'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+    } catch (error) {
+      console.error('Erreur désarchivage:', error)
+      alert('Erreur lors du désarchivage du dossier')
+    }
+  }
   const { data: timelineEntries = [], isLoading: timelineLoading } = useTimeline(dossier.id)
   const { data: voyageInfo } = useVoyageInfo(dossier.id)
   const { data: demandesFournisseurs = [] } = useDemandesFournisseurs(dossier.id)
@@ -5147,6 +5201,7 @@ L'équipe Busmoov`
     { value: 'pending-driver', label: 'Att. chauffeur' },
     { value: 'completed', label: 'Terminé' },
     { value: 'cancelled', label: 'Annulé' },
+    { value: 'archived', label: 'Archivé' },
   ]
 
   return (
@@ -5282,8 +5337,30 @@ L'équipe Busmoov`
                   {autoDevisStatus?.is_active ? 'Auto-devis ON' : 'Auto-devis OFF'}
                 </button>
 
+                {/* Archiver : lead transféré ailleurs (ex. Centrale), plus rien à traiter ici */}
+                {dossier.status !== 'completed' && dossier.status !== 'cancelled' && dossier.status !== 'archived' && (
+                  <button
+                    onClick={handleArchiveDossier}
+                    className="btn bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    title="Archiver (lead transféré, plus à traiter sur Busmoov)"
+                  >
+                    <Archive size={16} />
+                    Archiver
+                  </button>
+                )}
+                {dossier.status === 'archived' && (
+                  <button
+                    onClick={handleUnarchiveDossier}
+                    className="btn bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                    title="Remettre le dossier dans la liste à traiter"
+                  >
+                    <ArchiveRestore size={16} />
+                    Désarchiver
+                  </button>
+                )}
+
                 {/* Bouton abandon (la clôture se fait automatiquement après transfert) */}
-                {dossier.status !== 'completed' && dossier.status !== 'cancelled' && (
+                {dossier.status !== 'completed' && dossier.status !== 'cancelled' && dossier.status !== 'archived' && (
                   <button
                     onClick={async () => {
                       await updateDossier.mutateAsync({ id: dossier.id, status: 'cancelled' })
@@ -6890,9 +6967,7 @@ L'équipe Busmoov`,
                   onChange={(e) => setFormData({ ...formData, transporteur_id: e.target.value })}
                 >
                   <option value="">-- Aucun --</option>
-                  {transporteurs.map((t) => (
-                    <option key={t.id} value={t.id}>{t.number} - {t.name}</option>
-                  ))}
+                  <TransporteurOptions transporteurs={transporteurs} />
                 </select>
               ) : (
                 <p className="font-medium">
@@ -7512,10 +7587,11 @@ L'équipe Busmoov`,
                                       bpa_received_at: new Date().toISOString(),
                                     })
 
-                                    // Mettre à jour le statut du dossier vers pending-info
+                                    // Mettre à jour le statut du dossier vers pending-info et
+                                    // acter le transporteur réel (remplace un éventuel fictif du devis)
                                     await supabase
                                       .from('dossiers')
-                                      .update({ status: 'pending-info' })
+                                      .update({ status: 'pending-info', transporteur_id: demande.transporteur_id })
                                       .eq('id', dossier.id)
 
                                     // Invalider les queries pour rafraîchir
@@ -8831,6 +8907,8 @@ L'équipe Busmoov`,
               {transporteurs
                 .filter((t: any) => {
                   if (t.active === false || t.is_active === false) return false
+                  // Un transporteur fictif n'a ni email ni cars : jamais de demande de prix
+                  if (isTransporteurFictif(t)) return false
                   // Filtre par pays
                   if (countryFilterDF && t.country_code !== countryFilterDF) return false
                   // Filtre par catégorie/tag
@@ -11009,9 +11087,7 @@ function NewDevisModal({
             onChange={(e) => setFormData({ ...formData, transporteur_id: e.target.value })}
           >
             <option value="">-- Sélectionner --</option>
-            {transporteurs.map((t) => (
-              <option key={t.id} value={t.id}>{t.number} - {t.name} {t.city ? `(${t.city})` : ''}</option>
-            ))}
+            <TransporteurOptions transporteurs={transporteurs} withCity />
           </select>
         </div>
 
@@ -14728,11 +14804,12 @@ L'équipe Busmoov`
         bpa_received_at: new Date().toISOString(),
       })
 
-      // Mettre à jour le statut du dossier vers pending-info
+      // Mettre à jour le statut du dossier vers pending-info et acter le
+      // transporteur réel (remplace un éventuel fictif du devis)
       if (demande.dossier_id) {
         await supabase
           .from('dossiers')
-          .update({ status: 'pending-info' })
+          .update({ status: 'pending-info', transporteur_id: demande.transporteur_id })
           .eq('id', demande.dossier_id)
 
         // Invalider les queries pour rafraîchir
