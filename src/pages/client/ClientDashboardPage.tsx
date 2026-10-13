@@ -20,7 +20,7 @@ import {
   Send,
   Loader2
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase, setClientAccess, clearClientAccess } from '@/lib/supabase'
 import { Modal } from '@/components/ui/Modal'
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
@@ -214,8 +214,11 @@ export function ClientDashboardPage() {
     }
 
     const clientSession: ClientSession = JSON.parse(stored)
+    // Identité client pour les policies RLS (référence + email du dossier)
+    setClientAccess({ reference: clientSession.reference, email: clientSession.email })
     setSession(clientSession)
     loadDossier(clientSession.id)
+    return () => clearClientAccess()
   }, [navigate])
 
   const loadDossier = async (dossierId: string) => {

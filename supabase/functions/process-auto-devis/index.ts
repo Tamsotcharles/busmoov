@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { pickBestGeocodeFeature } from '../_shared/geocode.ts'
 import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts'
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
@@ -703,14 +704,17 @@ async function geocodeCity(city: string, countryCode: string = 'fr', lang: strin
 
   try {
     // Construire l'URL avec filtre de pays si spécifié
-    const filterParam = countryCode ? `&filter=countrycode:${countryCode}` : ''
+    // `bias` (préférence) et non `filter` (restriction) : un filtre pays forçait
+    // « Bruges, Belgique » sur Bruges-Capbis-Mifaget (64) → 1 076 km au lieu de 75.
+    const filterParam = countryCode ? `&bias=countrycode:${countryCode}` : ''
     const response = await fetch(
-      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=1${filterParam}&apiKey=${GEOAPIFY_API_KEY}`
+      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=5${filterParam}&apiKey=${GEOAPIFY_API_KEY}`
     )
     const data = await response.json()
 
-    if (data.features && data.features.length > 0) {
-      const coords = data.features[0].geometry.coordinates
+    const feature = pickBestGeocodeFeature(data.features || [], countryCode, city)
+    if (feature) {
+      const coords = feature.geometry.coordinates
       return { lat: coords[1], lon: coords[0] }
     }
     return null
@@ -792,7 +796,8 @@ function calculatePriceFromGrid(
     arMad: TarifARMAD[]
     arSansMad: TarifARSansMAD[]
   },
-  capacites: CapaciteVehicule[]
+  capacites: CapaciteVehicule[],
+  amplitudeHeures: number | null = null
 ): number | null {
   if (km <= 0) return null
 
@@ -800,18 +805,51 @@ function calculatePriceFromGrid(
   const coeff = capacites.find(c => c.code === vehicleType)?.coefficient || 1
 
   let prixBase = 0
+  // Km hors grille : dernière tranche + 3 € × 2 par km au-delà du maximum de
+  // la grille, ajouté AVANT le coefficient véhicule (même règle que le
+  // formulaire admin, pricing-rules.ts). Avant : « Prix non trouvé » au-delà.
+  let supplementHorsGrille = 0
+  const derniereTranche = <T extends { km_max: number }>(list: T[]): T | undefined =>
+    list.reduce<T | undefined>((best, t) => (!best || Number(t.km_max) > Number(best.km_max) ? t : best), undefined)
+  const horsGrille = (maxGrille: number) => {
+    supplementHorsGrille = (km - maxGrille) * TARIFS_HORS_GRILLE.PRIX_KM_SUPPLEMENTAIRE * 2
+  }
 
   if (serviceType === 'aller_simple') {
-    const tarif = tarifs.allerSimple.find(t => km >= t.km_min && km <= t.km_max)
+    let tarif = tarifs.allerSimple.find(t => km >= t.km_min && km <= t.km_max)
+    if (!tarif && km > TARIFS_HORS_GRILLE.GRILLE_ALLER_SIMPLE_MAX) {
+      tarif = derniereTranche(tarifs.allerSimple)
+      horsGrille(TARIFS_HORS_GRILLE.GRILLE_ALLER_SIMPLE_MAX)
+    }
     if (tarif) prixBase = Number(tarif.prix_public)
   } else if (serviceType === 'ar_1j') {
-    const tarif = tarifs.ar1j.find(t => km >= t.km_min && km <= t.km_max)
-    if (tarif) {
-      const amplitudeKey = `prix_${amplitude || '12h'}` as keyof TarifAR1J
-      prixBase = Number(tarif[amplitudeKey]) || Number(tarif.prix_12h) || Number(tarif.prix_8h) || 0
+    if (km <= TARIFS_HORS_GRILLE.PETIT_KM_SEUIL) {
+      // Petits km (≤ 50 km) : forfait, la grille AR 1J commence au-dessus.
+      // Même règle que le front (pricing-rules.ts) : 690 €, ou 790 € / 830 €
+      // si l'amplitude dépasse 5 h selon que la distance est ≤ 20 km ou non.
+      prixBase = TARIFS_HORS_GRILLE.PETIT_KM_BASE
+      if (amplitudeHeures && amplitudeHeures > 5) {
+        prixBase = km <= 20
+          ? TARIFS_HORS_GRILLE.PETIT_KM_AMPLITUDE_5H_PLUS
+          : TARIFS_HORS_GRILLE.PETIT_KM_AMPLITUDE_5H_PLUS_50
+      }
+    } else {
+      let tarif = tarifs.ar1j.find(t => km >= t.km_min && km <= t.km_max)
+      if (!tarif && km > TARIFS_HORS_GRILLE.GRILLE_AR_1J_MAX) {
+        tarif = derniereTranche(tarifs.ar1j)
+        horsGrille(TARIFS_HORS_GRILLE.GRILLE_AR_1J_MAX)
+      }
+      if (tarif) {
+        const amplitudeKey = `prix_${amplitude || '12h'}` as keyof TarifAR1J
+        prixBase = Number(tarif[amplitudeKey]) || Number(tarif.prix_12h) || Number(tarif.prix_8h) || 0
+      }
     }
   } else if (serviceType === 'ar_mad') {
-    const tarif = tarifs.arMad.find(t => km >= t.km_min && km <= t.km_max)
+    let tarif = tarifs.arMad.find(t => km >= t.km_min && km <= t.km_max)
+    if (!tarif && km > TARIFS_HORS_GRILLE.GRILLE_AR_MAD_MAX) {
+      tarif = derniereTranche(tarifs.arMad)
+      horsGrille(TARIFS_HORS_GRILLE.GRILLE_AR_MAD_MAX)
+    }
     if (tarif) {
       const supplementParJour = Number(tarif.supplement_jour) || 800
 
@@ -862,7 +900,11 @@ function calculatePriceFromGrid(
         return null
       }
     } else {
-      const tarif = tarifs.arSansMad.find(t => km >= t.km_min && km <= t.km_max)
+      let tarif = tarifs.arSansMad.find(t => km >= t.km_min && km <= t.km_max)
+      if (!tarif && km > TARIFS_HORS_GRILLE.GRILLE_AR_SANS_MAD_MAX) {
+        tarif = derniereTranche(tarifs.arSansMad)
+        horsGrille(TARIFS_HORS_GRILLE.GRILLE_AR_SANS_MAD_MAX)
+      }
       if (tarif) {
         const supplementParJour = Number(tarif.supplement_jour) || 600
 
@@ -901,8 +943,9 @@ function calculatePriceFromGrid(
 
   if (prixBase <= 0) return null
 
-  // Prix TTC final (grille contient TTC)
-  return Math.round(prixBase * coeff * nombreCars)
+  // Prix TTC final (grille contient TTC) ; le supplément hors grille entre
+  // dans l'assiette du coefficient véhicule, comme dans le formulaire admin.
+  return Math.round((prixBase + supplementHorsGrille) * coeff * nombreCars)
 }
 
 /**
@@ -974,14 +1017,22 @@ function checkRequiresManualReview(dossier: any): string | null {
     }
   }
 
-  // 2. Mots-clés indiquant des rotations ou MAD complexe
-  const keywords = ['rotation', 'navette', 'shuttle', 'mise à disposition', 'mise a disposition',
-                    'mad', 'transfert multiple', 'plusieurs trajets', 'aller-retour multiple',
-                    'circuit', 'tournée', 'plusieurs arrêts', 'etapes', 'étapes']
+  // 2. Mots-clés indiquant des rotations ou MAD complexe.
+  // Le formulaire public préfixe lui-même le texte libre par « Étapes: » et
+  // « Équipements: » : ces libellés sont retirés avant l'analyse, sinon toute
+  // demande avec une précision (« Pause toilette ») partait en cotation
+  // manuelle. Les mots-clés sont comparés sans accents et en mots entiers
+  // (« mad » ne doit pas matcher « Madrid » ni « madame »).
+  const normaliser = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const sansLibellesFormulaire = (s: string) => s.replace(/^\s*(etapes|equipements)\s*:/gm, ' ')
+  const keywords = ['rotation', 'navette', 'shuttle', 'mise a disposition', 'mad',
+                    'transfert multiple', 'plusieurs trajets', 'aller-retour multiple',
+                    'circuit', 'tournee', 'plusieurs arrets', 'etapes']
 
-  const textToCheck = `${specialRequests} ${notes}`
+  const textToCheck = sansLibellesFormulaire(normaliser(`${specialRequests}\n${notes}`))
   for (const keyword of keywords) {
-    if (textToCheck.includes(keyword)) {
+    const motEntier = new RegExp(`(^|[^a-z0-9])${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`)
+    if (motEntier.test(textToCheck)) {
       return `Mots-clés détectés: "${keyword}" - Prestation complexe`
     }
   }
@@ -1145,6 +1196,13 @@ Deno.serve(async (req) => {
               manual_review_reason: 'Villes de départ ou arrivée manquantes',
             })
             .eq('id', dossier.id)
+
+          // Cotation manuelle => plus d'auto-devis (l'un ou l'autre).
+          // L'admin peut réactiver depuis la fiche dossier une fois le point réglé.
+          await supabase
+            .from('dossiers_auto_devis')
+            .update({ is_active: false, updated_at: new Date().toISOString() })
+            .eq('id', autoDevis.id)
         }
 
         results.push({
@@ -1172,6 +1230,13 @@ Deno.serve(async (req) => {
               manual_review_reason: `Distance non calculable: ${departure} → ${arrival}`,
             })
             .eq('id', dossier.id)
+
+          // Cotation manuelle => plus d'auto-devis (l'un ou l'autre).
+          // L'admin peut réactiver depuis la fiche dossier une fois le point réglé.
+          await supabase
+            .from('dossiers_auto_devis')
+            .update({ is_active: false, updated_at: new Date().toISOString() })
+            .eq('id', autoDevis.id)
         }
 
         results.push({
@@ -1261,7 +1326,8 @@ Deno.serve(async (req) => {
         vehicleType,
         nombreCars,
         tarifs,
-        capacites
+        capacites,
+        infosTrajet.amplitudeJournee ?? null
       )
 
       if (!priceResult) {
@@ -1276,6 +1342,13 @@ Deno.serve(async (req) => {
               manual_review_reason: `Prix non trouvé: ${km}km, ${serviceType}, ${dureeJours}j`,
             })
             .eq('id', dossier.id)
+
+          // Cotation manuelle => plus d'auto-devis (l'un ou l'autre).
+          // L'admin peut réactiver depuis la fiche dossier une fois le point réglé.
+          await supabase
+            .from('dossiers_auto_devis')
+            .update({ is_active: false, updated_at: new Date().toISOString() })
+            .eq('id', autoDevis.id)
         }
 
         results.push({
@@ -1495,6 +1568,8 @@ Deno.serve(async (req) => {
         .from('dossiers')
         .update({
           status: 'pending-client',
+          requires_manual_review: false,
+          manual_review_reason: null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', dossier.id)

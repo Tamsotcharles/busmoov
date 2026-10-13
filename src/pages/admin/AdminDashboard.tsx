@@ -63,6 +63,9 @@ import {
   Bell,
   BellRing,
   Lock,
+  Copy,
+  Archive,
+  ArchiveRestore,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useQueryClient } from '@tanstack/react-query'
@@ -129,7 +132,10 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif } from '@/lib/utils'
+import { TransporteurPicker } from '@/components/admin/TransporteurPicker'
+import { UsersPage } from '@/components/admin/UsersPage'
+import { canAccessPage, isFullAdminRole, ROLE_LABELS, type AdminRole } from '@/lib/roles'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFacturePDFBase64, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
 import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
@@ -467,7 +473,9 @@ function OffreFlashModal({
 export function AdminDashboard() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { signOut, user } = useAuth()
+  const { signOut, user, profile, role } = useAuth()
+  // Menu filtré selon le rôle (manager : sans Paramètres, Workflow, Templates, Stats, SEO)
+  const visibleNavigation = useMemo(() => navigation.filter((n) => canAccessPage(role, n.id)), [role])
   const [currentPage, setCurrentPage] = useState<Page>('dossiers')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -511,7 +519,7 @@ export function AdminDashboard() {
   // Les filtres croisés (calculés cote client sur plusieurs dimensions) ne
   // sont pas des statuts Supabase : useDossiers ne doit pas les passer comme
   // status, sinon il ne trouverait rien.
-  const crossFilters = ['x-pending-payment', 'x-pending-solde', 'x-pending-reservation', 'x-pending-info', 'x-infos-to-validate', 'x-pending-driver']
+  const crossFilters = ['x-cotation-manuelle', 'x-pending-payment', 'x-pending-solde', 'x-pending-reservation', 'x-pending-info', 'x-infos-to-validate', 'x-pending-driver']
   const specialFilters = ['flash-active', 'facture-fournisseur-pending', 'signed-only', ...crossFilters]
   const { data: dossiers = [], isLoading: dossiersLoading } = useDossiers({
     status: statusFilter && !specialFilters.includes(statusFilter) ? statusFilter : undefined,
@@ -568,7 +576,13 @@ export function AdminDashboard() {
       const contrat = (d.contrats || [])[0]
       return contrat?.acompte_amount ?? d.acompte_amount ?? Math.round((d.price_ttc || 0) * 0.3)
     }
+    const hasDevisEnvoye = (d: any) =>
+      (d.devis || []).some((v: any) => v.status === 'sent' || v.status === 'accepted')
     return {
+      // Hors règles auto-devis, aucun devis parti, pas signé : à coter à la main.
+      cotationManuelle: (d: any) =>
+        !!d.requires_manual_review && !isSigned(d) && !isClosed(d) &&
+        d.status !== 'archived' && !hasDevisEnvoye(d),
       // Signé, acompte (ou totalité) pas encore reçu.
       pendingPayment: (d: any) => isSigned(d) && !isClosed(d) && montantRecu(d) < acompteRequis(d),
       // Signé, acompte acquis mais le prix total n'est pas encore soldé.
@@ -606,6 +620,7 @@ export function AdminDashboard() {
   // Compteurs des cards, calcules sur TOUS les dossiers (dossiers est filtre
   // par le statut selectionne, il ne convient pas pour les totaux).
   const crossStats = useMemo(() => ({
+    cotationManuelle: allDossiers.filter(cardPredicates.cotationManuelle).length,
     pendingPayment: allDossiers.filter(cardPredicates.pendingPayment).length,
     pendingSolde: allDossiers.filter(cardPredicates.pendingSolde).length,
     pendingReservation: allDossiers.filter(cardPredicates.pendingReservation).length,
@@ -649,6 +664,11 @@ export function AdminDashboard() {
       }
     }
   }, [dossiers, selectedDossier])
+
+  // Un manager ne peut pas rester sur une page qui lui est interdite
+  useEffect(() => {
+    if (role && !canAccessPage(role, currentPage)) setCurrentPage('dashboard')
+  }, [role, currentPage])
 
   // Gérer l'ouverture automatique d'un dossier depuis l'URL
   useEffect(() => {
@@ -901,7 +921,8 @@ export function AdminDashboard() {
 
       // Filtres croisés des cards (conditions multi-dimensions).
       const matchesCross =
-        statusFilter === 'x-pending-payment' ? cardPredicates.pendingPayment(d)
+        statusFilter === 'x-cotation-manuelle' ? cardPredicates.cotationManuelle(d)
+        : statusFilter === 'x-pending-payment' ? cardPredicates.pendingPayment(d)
         : statusFilter === 'x-pending-solde' ? cardPredicates.pendingSolde(d)
         : statusFilter === 'x-pending-reservation' ? cardPredicates.pendingReservation(d)
         : statusFilter === 'x-pending-info' ? cardPredicates.pendingInfo(d)
@@ -968,6 +989,7 @@ export function AdminDashboard() {
   const statsCards = [
     { label: 'Total', value: stats?.total || 0, icon: FolderOpen, color: 'blue', filter: '' },
     { label: 'Nouveaux', value: stats?.new || 0, icon: Plus, color: 'cyan', filter: 'new' },
+    { label: '✋ À coter', value: crossStats.cotationManuelle, icon: Calculator, color: 'amber', filter: 'x-cotation-manuelle' },
     { label: 'Att. client', value: stats?.pendingClient || 0, icon: Clock, color: 'orange', filter: 'pending-client' },
     { label: 'Att. paiement', value: crossStats.pendingPayment, icon: Euro, color: 'amber', filter: 'x-pending-payment' },
     { label: 'Att. solde', value: crossStats.pendingSolde, icon: Euro, color: 'yellow', filter: 'x-pending-solde' },
@@ -991,7 +1013,7 @@ export function AdminDashboard() {
         </div>
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {navigation.map((item) => (
+          {visibleNavigation.map((item) => (
             <button
               key={item.id}
               onClick={() => setCurrentPage(item.id as Page)}
@@ -1020,10 +1042,15 @@ export function AdminDashboard() {
 
         <div className="p-3 border-t border-white/10">
           <div className="flex items-center gap-3 px-3 py-2 text-sm text-white/70">
-            <div className="w-8 h-8 gradient-bg rounded-full flex items-center justify-center text-white font-bold text-xs">
-              {user?.email?.[0].toUpperCase()}
+            <div className="w-8 h-8 gradient-bg rounded-full flex items-center justify-center text-white font-bold text-xs" title={user?.email || ''}>
+              {profile?.initials || user?.email?.[0].toUpperCase()}
             </div>
-            <div className="flex-1 truncate">{user?.email}</div>
+            <div className="flex-1 min-w-0">
+              <div className="truncate text-white/90">{profile?.name || user?.email}</div>
+              <div className="truncate text-xs text-white/50">
+                {role ? ROLE_LABELS[role as AdminRole] || role : ''}{profile?.name ? ` · ${user?.email}` : ''}
+              </div>
+            </div>
           </div>
           <button
             onClick={handleLogout}
@@ -1083,6 +1110,7 @@ export function AdminDashboard() {
                     <option value="">Tous statuts</option>
                     <option value="flash-active">⚡ Offre Flash active</option>
                     <option value="new">📥 Nouveau</option>
+                    <option value="x-cotation-manuelle">✋ À coter manuellement</option>
                     <option value="quotes_sent">📤 Devisé</option>
                     <option value="pending-client">⏳ Att. retour client</option>
                     <option value="x-pending-payment">💳 Att. paiement</option>
@@ -1094,6 +1122,7 @@ export function AdminDashboard() {
                     <option value="confirmed">✅ Confirmé</option>
                     <option value="completed">✅ Terminé</option>
                     <option value="cancelled">❌ Abandonné</option>
+                    <option value="archived">📦 Archivés (transférés)</option>
                     <option value="facture-fournisseur-pending">📄 Att. facture fournisseur</option>
                     <option value="signed-only">📝 Signés uniquement</option>
                   </select>
@@ -1429,6 +1458,8 @@ export function AdminDashboard() {
                             dossier={dossier}
                             statutEffectif={statutDe(dossier)}
                             etatFrs={etatFrsDe(dossier)}
+                            hasAutoDevis={autoDevisMap[dossier.id]}
+                            onCancelAutoDevis={() => handleCancelAutoDevisSequence(dossier.id)}
                             onView={() => {
                               // Ouvrir directement le détail du dossier
                               handleSelectDossier(dossier)
@@ -1472,6 +1503,7 @@ export function AdminDashboard() {
                   >
                     <option value="">Tous statuts</option>
                     <option value="new">Nouveau</option>
+                    <option value="x-cotation-manuelle">✋ À coter manuellement</option>
                     <option value="quotes_sent">Devisé</option>
                     <option value="pending-client">Att. retour client</option>
                     <option value="x-pending-payment">Att. paiement</option>
@@ -1483,6 +1515,7 @@ export function AdminDashboard() {
                     <option value="confirmed">Confirmé</option>
                     <option value="completed">Terminé</option>
                     <option value="cancelled">Abandonné</option>
+                    <option value="archived">📦 Archivés (transférés)</option>
                     <option value="facture-fournisseur-pending">Att. facture fournisseur</option>
                   </select>
                   <select
@@ -2035,7 +2068,7 @@ export function AdminDashboard() {
   )
 }
 
-function DossierRow({ dossier, onView, statutEffectif, etatFrs }: { dossier: DossierWithRelations; onView: () => void; statutEffectif?: string; etatFrs?: string }) {
+function DossierRow({ dossier, onView, statutEffectif, etatFrs, hasAutoDevis, onCancelAutoDevis }: { dossier: DossierWithRelations; onView: () => void; statutEffectif?: string; etatFrs?: string; hasAutoDevis?: boolean; onCancelAutoDevis?: () => void }) {
   const contrat = Array.isArray(dossier.contrats) ? dossier.contrats[0] : dossier.contrats
   const isSigned = contrat?.signed_at
 
@@ -2050,12 +2083,6 @@ function DossierRow({ dossier, onView, statutEffectif, etatFrs }: { dossier: Dos
             {COUNTRY_FLAGS[dossier.country_code || 'FR']}
           </span>
           <span className="font-semibold">#{dossier.reference}</span>
-          {isSigned && (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">
-              <CheckCircle size={10} />
-              Signé
-            </span>
-          )}
         </div>
       </td>
       <td className="px-4 py-3">
@@ -2063,14 +2090,7 @@ function DossierRow({ dossier, onView, statutEffectif, etatFrs }: { dossier: Dos
         <div className="text-xs text-gray-500">{dossier.client_company || dossier.client_email}</div>
       </td>
       <td className="px-4 py-3">
-        <div className="flex items-center gap-1">
-          <StatusBadge status={statutEffectif || dossier.status || 'new'} size="sm" />
-          {dossier.requires_manual_review && (
-            <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
-              ⭐
-            </span>
-          )}
-        </div>
+        <DossierBadges dossier={dossier} statutEffectif={statutEffectif} hasAutoDevis={hasAutoDevis} onCancelAutoDevis={onCancelAutoDevis} />
       </td>
       <td className="px-4 py-3">
         <div>{formatDate(dossier.created_at)}</div>
@@ -2171,50 +2191,7 @@ function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAut
             <span className="font-display font-bold text-purple-dark">
               #{dossier.reference}
             </span>
-            <StatusBadge status={statutEffectif || dossier.status || 'new'} size="sm" />
-            {dossier.requires_manual_review && (
-              <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
-                ⭐
-              </span>
-            )}
-            {isSigned && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                <CheckCircle size={12} />
-                Contrat signé
-              </span>
-            )}
-            {hasAutoDevis && (
-              <button
-                className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full hover:bg-orange-200 transition-colors"
-                title="Cliquer pour annuler la séquence auto-devis"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onCancelAutoDevis?.()
-                }}
-              >
-                <Zap size={12} />
-                Auto
-                <XCircle size={12} className="ml-1" />
-              </button>
-            )}
-            {isPromoActive && flashOriginalPrice && flashCurrentPrice && (
-              <span
-                className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-semibold rounded-full animate-pulse"
-                title={`Offre Flash ACTIVE : ${formatPrice(flashOriginalPrice)} → ${formatPrice(flashCurrentPrice)} (expire ${formatDateTime(flashExpiresAt)})`}
-              >
-                <Zap size={12} />
-                Flash -{formatPrice(flashOriginalPrice - flashCurrentPrice)}
-              </span>
-            )}
-            {shouldShowOriginalPrice && flashOriginalPrice && (
-              <span
-                className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-400 text-white text-xs font-semibold rounded-full"
-                title={`Offre Flash EXPIRÉE le ${formatDateTime(flashExpiresAt)} - Prix revenu à ${formatPrice(flashOriginalPrice)}`}
-              >
-                <Clock size={12} />
-                Flash expirée
-              </span>
-            )}
+            <DossierBadges dossier={dossier} statutEffectif={statutEffectif} hasAutoDevis={hasAutoDevis} onCancelAutoDevis={onCancelAutoDevis} />
           </div>
           <div className="font-medium text-gray-900">{dossier.client_name}</div>
           <div className="text-sm text-gray-500">{dossier.client_email}</div>
@@ -2657,18 +2634,11 @@ function CreateDossierModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label">Transporteur</label>
-              <select
-                className="input"
+              <TransporteurPicker
                 value={formData.transporteur_id}
-                onChange={(e) => setFormData({ ...formData, transporteur_id: e.target.value })}
-              >
-                <option value="">-- Sélectionner --</option>
-                {transporteurs.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.number} - {t.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(id) => setFormData({ ...formData, transporteur_id: id })}
+                transporteurs={transporteurs}
+              />
             </div>
             <div>
               <label className="label">Prix vente HT</label>
@@ -3739,6 +3709,96 @@ L'équipe Busmoov`,
 }
 
 // Dossier Detail View Component
+/**
+ * Dossier hors règles de l'auto-devis (même ville, rotations/MAD, circuit,
+ * distance ou prix introuvable) : aucun devis ne partira tout seul, il faut
+ * une cotation manuelle. Remplace l'ancienne étoile ⭐ peu lisible.
+ */
+function CotationManuelleBadge({ reason }: { reason?: string | null }) {
+  return (
+    <span
+      title={reason || 'Hors règles auto-devis : cotation manuelle à faire'}
+      className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full cursor-help whitespace-nowrap"
+    >
+      ✋ Cotation manuelle
+    </span>
+  )
+}
+
+/**
+ * Badges d'un dossier, identiques dans le tableau du dashboard et les cartes
+ * de la page Dossiers : statut effectif, cotation manuelle, auto-devis (jamais
+ * en même temps que la cotation manuelle), contrat signé, offre flash.
+ */
+function DossierBadges({
+  dossier,
+  statutEffectif,
+  hasAutoDevis,
+  onCancelAutoDevis,
+}: {
+  dossier: DossierWithRelations
+  statutEffectif?: string
+  hasAutoDevis?: boolean
+  onCancelAutoDevis?: () => void
+}) {
+  const contrat = Array.isArray(dossier.contrats) ? dossier.contrats[0] : dossier.contrats
+  const isSigned = !!contrat?.signed_at
+  const devisWithPromo = (dossier.devis || []).find(
+    (d: any) => d.promo_expires_at && d.promo_original_price,
+  ) as any
+  const promoExpiresAt = devisWithPromo?.promo_expires_at as string | undefined
+  const isPromoActive = promoExpiresAt ? new Date(promoExpiresAt) > new Date() : false
+  const isPromoExpired = promoExpiresAt ? new Date(promoExpiresAt) <= new Date() : false
+  const flashOriginalPrice = devisWithPromo?.promo_original_price as number | undefined
+  const flashCurrentPrice = devisWithPromo?.price_ttc as number | undefined
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <StatusBadge status={statutEffectif || dossier.status || 'new'} size="sm" />
+      {dossier.requires_manual_review && <CotationManuelleBadge reason={dossier.manual_review_reason} />}
+      {/* Un dossier à coter à la main n'est jamais aussi en auto-devis */}
+      {hasAutoDevis && !dossier.requires_manual_review && (
+        <button
+          className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full hover:bg-orange-200 transition-colors"
+          title="Auto-devis en cours — cliquer pour annuler la séquence"
+          onClick={(e) => {
+            e.stopPropagation()
+            onCancelAutoDevis?.()
+          }}
+        >
+          <Zap size={12} />
+          Auto
+          <XCircle size={12} className="ml-1" />
+        </button>
+      )}
+      {isSigned && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+          <CheckCircle size={12} />
+          Signé
+        </span>
+      )}
+      {isPromoActive && flashOriginalPrice && flashCurrentPrice && (
+        <span
+          className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-semibold rounded-full animate-pulse"
+          title={`Offre Flash ACTIVE : ${formatPrice(flashOriginalPrice)} → ${formatPrice(flashCurrentPrice)} (expire ${formatDateTime(promoExpiresAt)})`}
+        >
+          <Zap size={12} />
+          Flash -{formatPrice(flashOriginalPrice - flashCurrentPrice)}
+        </span>
+      )}
+      {isPromoExpired && flashOriginalPrice && (
+        <span
+          className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-400 text-white text-xs font-semibold rounded-full"
+          title={`Offre Flash EXPIRÉE le ${formatDateTime(promoExpiresAt)} - Prix revenu à ${formatPrice(flashOriginalPrice)}`}
+        >
+          <Clock size={12} />
+          Flash expirée
+        </span>
+      )}
+    </div>
+  )
+}
+
 function DossierDetailView({
   dossier,
   transporteurs,
@@ -3812,6 +3872,121 @@ function DossierDetailView({
   const createDevis = useCreateDevis()
   const addTimelineEntry = useAddTimelineEntry()
   const { data: dossierDevis = [], isLoading: devisLoading } = useDevisByDossier(dossier.id)
+
+  // Archiver : lead transféré hors Busmoov (ex. Centrale). Coupe la séquence
+  // auto-devis et sort le dossier des listes/compteurs sans le détruire.
+  const handleArchiveDossier = async () => {
+    const motif = prompt('Motif d\'archivage :', 'Transféré chez Centrale Autocar')
+    if (motif === null) return
+    try {
+      const { data: scheduledDevis } = await supabase
+        .from('devis')
+        .select('id')
+        .eq('dossier_id', dossier.id)
+        .eq('status', 'scheduled')
+      for (const d of scheduledDevis || []) {
+        await supabase.from('devis').update({ status: 'cancelled', scheduled_send_at: null }).eq('id', d.id)
+      }
+      await supabase.from('dossiers_auto_devis').update({ is_active: false }).eq('dossier_id', dossier.id)
+
+      await updateDossier.mutateAsync({ id: dossier.id, status: 'archived' })
+      await addTimelineEntry.mutateAsync({
+        dossier_id: dossier.id,
+        type: 'status_change',
+        content: `📦 Dossier archivé (statut précédent : ${dossier.status || 'new'})${motif ? ` - ${motif}` : ''}${(scheduledDevis || []).length > 0 ? ` - ${(scheduledDevis || []).length} devis programmé(s) annulé(s)` : ''}`,
+      })
+      queryClient.invalidateQueries({ queryKey: ['dossiers'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['devis'] })
+      queryClient.invalidateQueries({ queryKey: ['dossiers_auto_devis'] })
+      onClose()
+    } catch (error) {
+      console.error('Erreur archivage:', error)
+      alert('Erreur lors de l\'archivage du dossier')
+    }
+  }
+
+  // Dupliquer un devis : copie en brouillon (nouvelle référence, même
+  // transporteur, mêmes prix/options), puis ouverture en modification.
+  const handleDuplicateDevis = async (source: any) => {
+    try {
+      const copie = await createDevis.mutateAsync({
+        dossier_id: dossier.id,
+        reference: generateDevisReference(),
+        status: 'draft',
+      client_notes: source.client_notes ?? null,
+      km: source.km ?? null,
+      notes: source.notes ?? null,
+      options: source.options ?? null,
+      price_achat_ht: source.price_achat_ht ?? null,
+      price_achat_ttc: source.price_achat_ttc ?? null,
+      price_ht: source.price_ht ?? null,
+      price_ttc: source.price_ttc ?? null,
+      transporteur_id: source.transporteur_id ?? null,
+      tva_rate: source.tva_rate ?? null,
+      validity_days: source.validity_days ?? null,
+      vehicle_type: source.vehicle_type ?? null,
+      nombre_cars: source.nombre_cars ?? null,
+      nombre_chauffeurs: source.nombre_chauffeurs ?? null,
+      service_type: source.service_type ?? null,
+      duree_jours: source.duree_jours ?? null,
+      amplitude: source.amplitude ?? null,
+      pax_aller: source.pax_aller ?? null,
+      pax_retour: source.pax_retour ?? null,
+      luggage_type: source.luggage_type ?? null,
+      options_details: source.options_details ?? null,
+      etapes: source.etapes ?? null,
+      detail_mad: source.detail_mad ?? null,
+      retour_different: source.retour_different ?? null,
+      retour_departure: source.retour_departure ?? null,
+      retour_arrival: source.retour_arrival ?? null,
+      retour_km: source.retour_km ?? null,
+      remise_percent: source.remise_percent ?? null,
+      remise_montant: source.remise_montant ?? null,
+      majoration_percent: source.majoration_percent ?? null,
+      majoration_montant: source.majoration_montant ?? null,
+      prix_base_ht: source.prix_base_ht ?? null,
+      // Surcharges du trajet (colonnes hors types générés)
+      departure_override: source.departure_override ?? null,
+      arrival_override: source.arrival_override ?? null,
+      departure_date_override: source.departure_date_override ?? null,
+      return_date_override: source.return_date_override ?? null,
+      departure_time_override: source.departure_time_override ?? null,
+      return_time_override: source.return_time_override ?? null,
+      } as any)
+      await addTimelineEntry.mutateAsync({
+        dossier_id: dossier.id,
+        type: 'note',
+        content: `📋 Devis ${copie.reference} créé par duplication de ${source.reference}`,
+      })
+      queryClient.invalidateQueries({ queryKey: ['devis', 'dossier', dossier.id] })
+      onEditDevis({ ...copie, transporteur: source.transporteur })
+    } catch (error) {
+      console.error('Erreur duplication devis:', error)
+      alert('Erreur lors de la duplication du devis')
+    }
+  }
+
+  // Désarchiver : retour en « att. retour client » si des devis ont été
+  // envoyés, sinon en « nouveau ». La séquence auto-devis n'est pas relancée.
+  const handleUnarchiveDossier = async () => {
+    const restored = dossierDevis.some((d: { status?: string | null }) => d.status === 'sent' || d.status === 'accepted')
+      ? 'pending-client'
+      : 'new'
+    try {
+      await updateDossier.mutateAsync({ id: dossier.id, status: restored })
+      await addTimelineEntry.mutateAsync({
+        dossier_id: dossier.id,
+        type: 'status_change',
+        content: `🔄 Dossier désarchivé (remis en ${restored})`,
+      })
+      queryClient.invalidateQueries({ queryKey: ['dossiers'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+    } catch (error) {
+      console.error('Erreur désarchivage:', error)
+      alert('Erreur lors du désarchivage du dossier')
+    }
+  }
   const { data: timelineEntries = [], isLoading: timelineLoading } = useTimeline(dossier.id)
   const { data: voyageInfo } = useVoyageInfo(dossier.id)
   const { data: demandesFournisseurs = [] } = useDemandesFournisseurs(dossier.id)
@@ -5147,6 +5322,7 @@ L'équipe Busmoov`
     { value: 'pending-driver', label: 'Att. chauffeur' },
     { value: 'completed', label: 'Terminé' },
     { value: 'cancelled', label: 'Annulé' },
+    { value: 'archived', label: 'Archivé' },
   ]
 
   return (
@@ -5169,11 +5345,7 @@ L'équipe Busmoov`
             </div>
             <div className="flex items-center gap-1">
               <StatusBadge status={statutEffectif || dossier.status || 'new'} />
-              {dossier.requires_manual_review && (
-                <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
-                  ⭐
-                </span>
-              )}
+              {dossier.requires_manual_review && <CotationManuelleBadge reason={dossier.manual_review_reason} />}
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -5206,6 +5378,19 @@ L'équipe Busmoov`
                     <Link2 size={16} />
                     Lien paiement
                   </button>
+                )}
+                {/* Vue client : l'espace client tel que le client le voit (même lien que l'email) */}
+                {dossier.client_email && (
+                  <a
+                    href={generateClientAccessUrl(dossier.reference, dossier.client_email, dossier.country_code)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary"
+                    title="Ouvrir l'espace client dans un nouvel onglet, comme le client le voit"
+                  >
+                    <Eye size={16} />
+                    Vue client
+                  </a>
                 )}
                 {/* Lien infos voyage */}
                 <button
@@ -5282,8 +5467,30 @@ L'équipe Busmoov`
                   {autoDevisStatus?.is_active ? 'Auto-devis ON' : 'Auto-devis OFF'}
                 </button>
 
+                {/* Archiver : lead transféré ailleurs (ex. Centrale), plus rien à traiter ici */}
+                {dossier.status !== 'completed' && dossier.status !== 'cancelled' && dossier.status !== 'archived' && (
+                  <button
+                    onClick={handleArchiveDossier}
+                    className="btn bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    title="Archiver (lead transféré, plus à traiter sur Busmoov)"
+                  >
+                    <Archive size={16} />
+                    Archiver
+                  </button>
+                )}
+                {dossier.status === 'archived' && (
+                  <button
+                    onClick={handleUnarchiveDossier}
+                    className="btn bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                    title="Remettre le dossier dans la liste à traiter"
+                  >
+                    <ArchiveRestore size={16} />
+                    Désarchiver
+                  </button>
+                )}
+
                 {/* Bouton abandon (la clôture se fait automatiquement après transfert) */}
-                {dossier.status !== 'completed' && dossier.status !== 'cancelled' && (
+                {dossier.status !== 'completed' && dossier.status !== 'cancelled' && dossier.status !== 'archived' && (
                   <button
                     onClick={async () => {
                       await updateDossier.mutateAsync({ id: dossier.id, status: 'cancelled' })
@@ -6873,27 +7080,18 @@ L'équipe Busmoov`,
               ) : (
                 <div className="flex items-center gap-1">
                   <StatusBadge status={statutEffectif || dossier.status || 'new'} />
-                  {dossier.requires_manual_review && (
-                    <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
-                      ⭐
-                    </span>
-                  )}
+                  {dossier.requires_manual_review && <CotationManuelleBadge reason={dossier.manual_review_reason} />}
                 </div>
               )}
             </div>
             <div>
               <label className="label">Transporteur</label>
               {isEditing ? (
-                <select
-                  className="input"
+                <TransporteurPicker
                   value={formData.transporteur_id}
-                  onChange={(e) => setFormData({ ...formData, transporteur_id: e.target.value })}
-                >
-                  <option value="">-- Aucun --</option>
-                  {transporteurs.map((t) => (
-                    <option key={t.id} value={t.id}>{t.number} - {t.name}</option>
-                  ))}
-                </select>
+                  onChange={(id) => setFormData({ ...formData, transporteur_id: id })}
+                  transporteurs={transporteurs}
+                />
               ) : (
                 <p className="font-medium">
                   {dossier.transporteur && etatFrs === 'confirme' ? (
@@ -7512,10 +7710,11 @@ L'équipe Busmoov`,
                                       bpa_received_at: new Date().toISOString(),
                                     })
 
-                                    // Mettre à jour le statut du dossier vers pending-info
+                                    // Mettre à jour le statut du dossier vers pending-info et
+                                    // acter le transporteur réel (remplace un éventuel fictif du devis)
                                     await supabase
                                       .from('dossiers')
-                                      .update({ status: 'pending-info' })
+                                      .update({ status: 'pending-info', transporteur_id: demande.transporteur_id })
                                       .eq('id', dossier.id)
 
                                     // Invalider les queries pour rafraîchir
@@ -7733,6 +7932,14 @@ L'équipe Busmoov`,
                           onClick={() => onEditDevis(devis)}
                         >
                           <Pencil size={14} />
+                        </button>
+                        {/* Bouton Dupliquer devis */}
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          title="Dupliquer le devis (copie en brouillon)"
+                          onClick={() => handleDuplicateDevis(devis)}
+                        >
+                          <Copy size={14} />
                         </button>
                         {devis.status === 'scheduled' && (
                           <button
@@ -7972,7 +8179,14 @@ L'équipe Busmoov`,
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">{entry.content}</p>
-                      <p className="text-xs text-gray-500">{formatDateTime(entry.created_at)}</p>
+                      <p className="text-xs text-gray-500 flex items-center gap-2">
+                        {formatDateTime(entry.created_at)}
+                        {(entry as any).author_initials && (
+                          <span className="inline-flex items-center justify-center min-w-[1.5rem] px-1 h-5 rounded-full bg-purple text-white text-[10px] font-bold" title="Action réalisée par">
+                            {(entry as any).author_initials}
+                          </span>
+                        )}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -8831,6 +9045,8 @@ L'équipe Busmoov`,
               {transporteurs
                 .filter((t: any) => {
                   if (t.active === false || t.is_active === false) return false
+                  // Un transporteur fictif n'a ni email ni cars : jamais de demande de prix
+                  if (isTransporteurFictif(t)) return false
                   // Filtre par pays
                   if (countryFilterDF && t.country_code !== countryFilterDF) return false
                   // Filtre par catégorie/tag
@@ -10886,6 +11102,16 @@ function NewDevisModal({
     })
   }
 
+  // Auto-calculate HT depuis le TTC saisi (même taux)
+  const handlePriceTTCChange = (value: number) => {
+    const tvaRate = dossier?.tva_rate || getTvaRateByCountry(dossier?.country_code)
+    setFormData({
+      ...formData,
+      price_ttc: value,
+      price_ht: Math.round((value / (1 + tvaRate / 100)) * 100) / 100,
+    })
+  }
+
   // Auto-calculate Prix achat TTC from HT (using dossier TVA rate)
   const handlePriceAchatHTChange = (value: number) => {
     const tvaRate = dossier?.tva_rate || getTvaRateByCountry(dossier?.country_code)
@@ -11003,16 +11229,11 @@ function NewDevisModal({
         {/* Transporteur */}
         <div>
           <label className="label">Transporteur *</label>
-          <select
-            className="input"
+          <TransporteurPicker
             value={formData.transporteur_id}
-            onChange={(e) => setFormData({ ...formData, transporteur_id: e.target.value })}
-          >
-            <option value="">-- Sélectionner --</option>
-            {transporteurs.map((t) => (
-              <option key={t.id} value={t.id}>{t.number} - {t.name} {t.city ? `(${t.city})` : ''}</option>
-            ))}
-          </select>
+            onChange={(id) => setFormData({ ...formData, transporteur_id: id })}
+            transporteurs={transporteurs}
+          />
         </div>
 
         {/* Trajet et Distance */}
@@ -11407,7 +11628,7 @@ function NewDevisModal({
                 type="number"
                 className="input bg-blue-100"
                 value={formData.price_ttc}
-                onChange={(e) => setFormData({ ...formData, price_ttc: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => handlePriceTTCChange(parseFloat(e.target.value) || 0)}
               />
             </div>
           </div>
@@ -14728,11 +14949,12 @@ L'équipe Busmoov`
         bpa_received_at: new Date().toISOString(),
       })
 
-      // Mettre à jour le statut du dossier vers pending-info
+      // Mettre à jour le statut du dossier vers pending-info et acter le
+      // transporteur réel (remplace un éventuel fictif du devis)
       if (demande.dossier_id) {
         await supabase
           .from('dossiers')
-          .update({ status: 'pending-info' })
+          .update({ status: 'pending-info', transporteur_id: demande.transporteur_id })
           .eq('id', demande.dossier_id)
 
         // Invalider les queries pour rafraîchir
@@ -15037,11 +15259,7 @@ ${dossier.special_requests ? '\n' + dossier.special_requests : ''}`
                     <span className="text-sm text-gray-500">|</span>
                     <div className="flex items-center gap-1">
                       <StatusBadge status={statutDe(dossier)} size="sm" />
-                      {dossier.requires_manual_review && (
-                        <span title={dossier.manual_review_reason || 'Révision manuelle requise'} className="text-amber-500 cursor-help">
-                          ⭐
-                        </span>
-                      )}
+                      {dossier.requires_manual_review && <CotationManuelleBadge reason={dossier.manual_review_reason} />}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -19506,7 +19724,14 @@ function HistorySettingsTab() {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-700">{entry.content}</p>
+                    <p className="text-sm text-gray-700 flex items-start gap-2">
+                      {entry.author_initials && (
+                        <span className="inline-flex items-center justify-center min-w-[1.5rem] px-1 h-5 rounded-full bg-purple text-white text-[10px] font-bold shrink-0" title="Action réalisée par">
+                          {entry.author_initials}
+                        </span>
+                      )}
+                      <span>{entry.content}</span>
+                    </p>
                     {entry.dossier && (
                       <p className="text-xs text-gray-400 mt-1">
                         {entry.dossier.departure} → {entry.dossier.arrival}
@@ -19525,7 +19750,8 @@ function HistorySettingsTab() {
 
 function SettingsPage() {
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<'company' | 'api' | 'workflows' | 'tarifs' | 'automation' | 'payments' | 'countries' | 'cgv' | 'experiments' | 'test-runner' | 'security' | 'history'>('company')
+  const [activeTab, setActiveTab] = useState<'company' | 'api' | 'workflows' | 'tarifs' | 'automation' | 'payments' | 'countries' | 'cgv' | 'experiments' | 'test-runner' | 'security' | 'history' | 'users'>('company')
+  const { role: myRole } = useAuth()
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
 
@@ -19851,7 +20077,23 @@ function SettingsPage() {
           <History size={16} className="inline mr-2" />
           Historique
         </button>
+        {isFullAdminRole(myRole) && (
+          <button
+            onClick={() => setActiveTab('users')}
+            className={cn(
+              'px-4 py-2 rounded-lg font-medium transition-all',
+              activeTab === 'users'
+                ? 'bg-purple text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-50'
+            )}
+          >
+            <UsersRound size={16} className="inline mr-2" />
+            Utilisateurs
+          </button>
+        )}
       </div>
+
+      {activeTab === 'users' && <UsersPage />}
 
       {/* Company Settings Tab */}
       {activeTab === 'company' && (

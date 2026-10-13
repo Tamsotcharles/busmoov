@@ -1,3 +1,4 @@
+import { pickBestGeocodeFeature } from './geocode'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { format, parseISO } from 'date-fns'
@@ -139,6 +140,7 @@ export function getStatusConfig(status: string) {
     confirmed: { label: '✅ Confirmé', color: '#10B981', bg: '#D1FAE5' },
     completed: { label: '✅ Terminé', color: '#10B981', bg: '#D1FAE5' },
     cancelled: { label: '❌ Abandonné', color: '#EF4444', bg: '#FEE2E2' },
+    archived: { label: '📦 Archivé', color: '#6B7280', bg: '#F3F4F6' },
     accepted: { label: '✅ Accepté', color: '#10B981', bg: '#D1FAE5' },
     refused: { label: '❌ Refusé', color: '#EF4444', bg: '#FEE2E2' },
     expired: { label: '⏰ Expiré', color: '#6B7280', bg: '#F3F4F6' },
@@ -230,8 +232,8 @@ export function getStatutEffectif(params: {
     hasBpaConfirme, hasInfosClient, infosValidees, chauffeurRecu,
   } = params
 
-  // Etats terminaux ou annules : intouchables.
-  if (status === 'completed' || status === 'cancelled') return status
+  // Etats terminaux, annules ou archives : intouchables.
+  if (status === 'completed' || status === 'cancelled' || status === 'archived') return status
   // Avant signature : on garde le statut amont tel quel.
   if (!contractSignedAt) return status || 'new'
 
@@ -252,6 +254,17 @@ export function getStatutEffectif(params: {
  *    encore reconfirmé sa disponibilité ;
  *  - 'confirme' : un fournisseur a confirmé son BPA (engagement acté).
  */
+/**
+ * Tag porté par les transporteurs fictifs : ils permettent d'envoyer un devis
+ * au client avant d'avoir trouvé le fournisseur réel (le vrai transporteur
+ * remplace le fictif sur le dossier à la réception du BPA).
+ */
+export const TAG_TRANSPORTEUR_FICTIF = 'fictif'
+
+export function isTransporteurFictif(t: { tags?: string[] | null } | null | undefined): boolean {
+  return !!t?.tags?.includes(TAG_TRANSPORTEUR_FICTIF)
+}
+
 export function etatFournisseur(
   demandes: { status?: string | null; bpa_received_at?: string | null }[],
 ): 'confirme' | 'attente_bpa' | 'attente_validate' {
@@ -1815,6 +1828,10 @@ async function getGeoapifyApiKey(): Promise<string> {
   return envKey
 }
 
+interface GeoapifyFeature {
+  properties: { lat: number; lon: number; city?: string; formatted?: string; result_type?: string; country_code?: string }
+}
+
 interface GeocodeResult {
   lat: number
   lon: number
@@ -1837,12 +1854,12 @@ async function geocodeCity(city: string, countryCode: string = 'fr', lang: strin
 
   try {
     const response = await fetch(
-      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=1&filter=countrycode:${countryCode}&apiKey=${apiKey}`
+      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=5&bias=countrycode:${countryCode}&apiKey=${apiKey}`
     )
     const data = await response.json()
 
-    if (data.features && data.features.length > 0) {
-      const feature = data.features[0]
+    const feature = pickBestGeocodeFeature((data.features || []) as GeoapifyFeature[], countryCode, city)
+    if (feature) {
       return {
         lat: feature.properties.lat,
         lon: feature.properties.lon,

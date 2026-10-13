@@ -15,8 +15,10 @@ export interface Database {
       admin_users: {
         Row: {
           created_at: string | null
+          created_by: string | null
           email: string
           id: string
+          initials: string | null
           is_active: boolean | null
           name: string | null
           role: string | null
@@ -25,8 +27,10 @@ export interface Database {
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           email: string
           id?: string
+          initials?: string | null
           is_active?: boolean | null
           name?: string | null
           role?: string | null
@@ -35,8 +39,10 @@ export interface Database {
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           email?: string
           id?: string
+          initials?: string | null
           is_active?: boolean | null
           name?: string | null
           role?: string | null
@@ -1486,6 +1492,8 @@ export interface Database {
       }
       timeline: {
         Row: {
+          author_id: string | null
+          author_initials: string | null
           content: string
           created_at: string | null
           dossier_id: string | null
@@ -1493,6 +1501,8 @@ export interface Database {
           type: string
         }
         Insert: {
+          author_id?: string | null
+          author_initials?: string | null
           content: string
           created_at?: string | null
           dossier_id?: string | null
@@ -1500,6 +1510,8 @@ export interface Database {
           type: string
         }
         Update: {
+          author_id?: string | null
+          author_initials?: string | null
           content?: string
           created_at?: string | null
           dossier_id?: string | null

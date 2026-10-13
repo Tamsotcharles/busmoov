@@ -41,14 +41,14 @@ export const locationBusTypesNote =
   'Bus, car, autocar : quel que soit le mot, il s\'agit du même service, un véhicule de tourisme avec chauffeur professionnel, dimensionné pour votre groupe. Pour les longs trajets de nuit, pensez à l\'[autocar couchette](/autocar-couchette) ; pour un groupe avec des personnes à mobilité réduite, à l\'[autocar accessible PMR](/autocar-pmr).'
 
 const locationBusTableau: TableauSeo = {
-  caption: 'Prix TTC indicatifs 2026 selon le véhicule et le format du trajet',
+  caption: 'Prix de départ indicatifs 2026, TTC, selon le véhicule et le format du trajet',
   headers: ['Prestation', 'Minibus 8-20 places', 'Bus standard 21-59 places', 'Grand tourisme 60-90 places'],
   rows: [
-    ['Transfert aller simple, moins de 50 km', '360 à 540 €', '400 à 600 €', '460 à 1 000 €'],
-    ['Journée locale, aller-retour (moins de 50 km)', '620 à 750 €', '690 à 830 €', '800 à 1 400 €'],
-    ['Journée régionale, aller-retour (100 à 200 km)', '1 000 à 1 250 €', '1 100 à 1 400 €', '1 250 à 2 400 €'],
-    ['Week-end 2 jours, bus à disposition (moins de 200 km)', '2 000 à 2 250 €', '2 200 à 2 500 €', 'Sur devis'],
-    ['Longue distance (plus de 300 km)', 'Sur devis', 'Sur devis', 'Sur devis'],
+    ['Transfert aller simple local', 'à partir de 350 €', 'à partir de 400 €', 'à partir de 500 €'],
+    ['Journée locale, aller-retour', 'à partir de 600 €', 'à partir de 700 €', 'à partir de 800 €'],
+    ['Journée régionale, aller-retour', 'à partir de 900 €', 'à partir de 1 000 €', 'à partir de 1 200 €'],
+    ['Week-end 2 jours', 'à partir de 1 600 €', 'à partir de 1 800 €', 'Sur devis'],
+    ['Longue distance', 'Sur devis', 'Sur devis', 'Sur devis'],
   ],
 }
 
@@ -59,7 +59,7 @@ export const locationBusPrix = {
   ],
   tableau: locationBusTableau,
   apres: [
-    'Sur un bus de 50 places plein, une journée locale revient à 14 à 17 € par personne : c\'est le transport de groupe le moins cher qui existe, hors transports en commun. Le détail par distance, les exemples chiffrés et les leviers pour payer moins cher sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
+    'Sur un bus de 50 places plein, une journée locale revient à environ 14 € par personne : c\'est le transport de groupe le moins cher qui existe, hors transports en commun. Le détail par distance, les exemples chiffrés et les leviers pour payer moins cher sont dans notre guide du [prix de la location d\'un autocar](/blog/prix-location-autocar).',
   ],
 }
 
@@ -84,7 +84,7 @@ export const locationBusEtapes = {
 export const locationBusFaq: LocationBusFaq[] = [
   {
     q: 'Combien coûte la location d\'un bus avec chauffeur ?',
-    a: 'Une journée en bus standard (jusqu\'à 59 places) démarre à 690 € TTC pour un aller-retour local. Le prix dépend de la distance, de l\'amplitude horaire et de la taille du véhicule : un minibus coûte environ 10 % de moins, un bus grande capacité 15 à 70 % de plus. Demandez un devis gratuit : vous recevez plusieurs propositions sous 24h.',
+    a: 'Une journée en bus standard (jusqu\'à 59 places) démarre à 700 € TTC pour un aller-retour local. Le prix dépend de la distance, de l\'amplitude horaire et de la taille du véhicule : un minibus coûte un peu moins, un bus grande capacité nettement plus. Demandez un devis gratuit : vous recevez plusieurs propositions sous 24h.',
   },
   {
     q: 'Quelle différence entre un bus et un autocar ?',

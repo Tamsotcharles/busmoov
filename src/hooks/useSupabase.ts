@@ -32,17 +32,7 @@ function formatDateForEmail(dateString: string | null | undefined): string {
     return dateString
   }
 }
-import type {
-  Demande,
-  DossierWithRelations,
-  Transporteur,
-  Message,
-  InsertTables,
-  UpdateTables,
-  DevisWithTransporteur,
-  DevisWithRelations,
-  Json
-} from '@/types/database'
+import type { Demande, DossierWithRelations, Transporteur, Message, InsertTables, UpdateTables, DevisWithTransporteur, DevisWithRelations, Json, Tables } from '@/types/database'
 
 // ============ HELPER: VÉRIFICATION AUTO-DEVIS ============
 
@@ -100,150 +90,23 @@ export function useCreateDemande() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (demande: InsertTables<'demandes'>) => {
-      // 1. Créer la demande
-      const { data: demandeData, error: demandeError } = await supabase
-        .from('demandes')
-        .insert(demande)
-        .select()
-        .single()
-      if (demandeError) throw demandeError
-
-      // 2. Créer automatiquement un dossier lié à cette demande
-      const dossierReference = demandeData.reference.replace('DEM-', 'DOS-')
-      const countryCode = (demandeData as any).country_code || 'FR'
-      const { data: dossierData, error: dossierError } = await supabase
-        .from('dossiers')
-        .insert({
-          reference: dossierReference,
-          demande_id: demandeData.id,
-          client_name: demandeData.client_name || 'Client',
-          client_email: demandeData.client_email,
-          client_phone: demandeData.client_phone,
-          client_company: (demandeData as any).client_company || null,
-          departure: demandeData.departure_city || '',
-          arrival: demandeData.arrival_city || '',
-          departure_date: demandeData.departure_date,
-          return_date: demandeData.return_date,
-          departure_time: demandeData.departure_time || null,
-          return_time: demandeData.return_time || null,
-          passengers: parseInt(demandeData.passengers) || 1,
-          trip_mode: demandeData.trip_type === 'one-way' ? 'one-way' : demandeData.trip_type === 'circuit' ? 'circuit' : 'round-trip',
-          voyage_type: demandeData.voyage_type,
-          special_requests: demandeData.special_requests,
-          // Ces champs existaient dans les deux tables mais n'etaient jamais
-          // copies : le client les renseignait, l'admin voyait « - » et les
-          // emails transporteurs partaient sans (ex. « Bagages : » absent).
-          luggage_type: (demandeData as any).luggage_type || null,
-          vehicle_type: (demandeData as any).vehicle_type || null,
-          wifi: (demandeData as any).wifi ?? null,
-          wc: (demandeData as any).wc ?? null,
-          accessibility: (demandeData as any).accessibility ?? null,
-          departure_address: (demandeData as any).departure_address || null,
-          arrival_address: (demandeData as any).arrival_address || null,
-          return_departure_address: (demandeData as any).return_departure_address || null,
-          return_arrival_address: (demandeData as any).return_arrival_address || null,
-          status: 'new',
-          country_code: countryCode,
-          tva_rate: getTvaRateByCountry(countryCode),
-        })
-        .select()
-        .single()
-
-      if (dossierError) {
-        console.error('Erreur création dossier automatique:', dossierError)
-        // On ne bloque pas si le dossier échoue, la demande est créée
-      } else if (dossierData) {
-        // 3. Vérifier si le dossier nécessite une révision manuelle
-        const manualReviewReason = checkRequiresManualReview({
-          departure: dossierData.departure,
-          arrival: dossierData.arrival,
-          special_requests: dossierData.special_requests,
-          notes: (dossierData as any).notes,
-          trip_mode: dossierData.trip_mode,
-        })
-
-        if (manualReviewReason) {
-          // Flagger le dossier pour révision manuelle, ne pas activer l'auto-devis
-          console.log(`Dossier ${dossierData.reference} exclu de l'auto-devis: ${manualReviewReason}`)
-          await supabase
-            .from('dossiers')
-            .update({
-              requires_manual_review: true,
-              manual_review_reason: manualReviewReason,
-            })
-            .eq('id', dossierData.id)
-        } else {
-          // Activer automatiquement l'auto-devis sur le nouveau dossier
-          try {
-            // Récupérer le workflow par défaut
-            const { data: defaultWorkflow } = await supabase
-              .from('workflow_devis_auto')
-              .select('id, steps')
-              .eq('is_default', true)
-              .eq('is_active', true)
-              .single()
-
-            if (defaultWorkflow) {
-              const steps = defaultWorkflow.steps as { delay_hours: number }[]
-              const firstStepDelay = steps?.[0]?.delay_hours || 0
-              const nextDevisAt = new Date(Date.now() + firstStepDelay * 60 * 60 * 1000).toISOString()
-
-              await supabase
-                .from('dossiers_auto_devis')
-                .insert({
-                  dossier_id: dossierData.id,
-                  workflow_id: defaultWorkflow.id,
-                  is_active: true,
-                  current_step: 0,
-                  next_devis_at: nextDevisAt,
-                  devis_generes: [],
-                  started_at: new Date().toISOString(),
-                })
-
-              console.log(`Auto-devis activé automatiquement pour le dossier ${dossierData.reference}`)
-            }
-          } catch (autoDevisError) {
-            console.error('Erreur activation auto-devis:', autoDevisError)
-            // Ne pas bloquer si l'auto-devis échoue
-          }
+      // Création côté serveur (Edge Function create-dossier, service_role) :
+      // demande + dossier + auto-devis + email de confirmation. Les tables ne
+      // sont plus ouvertes en écriture anonyme.
+      const { data, error } = await supabase.functions.invoke('create-dossier', { body: demande })
+      if (error) {
+        let message = error.message
+        try {
+          const ctx = (error as { context?: Response }).context
+          const json = ctx ? await ctx.json() : null
+          if (json?.error) message = json.error
+        } catch {
+          // corps illisible
         }
-
-        // 4. Envoyer l'email de confirmation avec les identifiants (en arrière-plan, sans bloquer)
-        // Déterminer la langue à partir du country_code
-        const language = ((demandeData as any).country_code || 'FR').toLowerCase()
-
-        // Envoyer l'email de manière asynchrone sans attendre le résultat
-        // Cela évite tout blocage en cas d'erreur 401 ou autre
-        supabase.functions.invoke('send-email', {
-          body: {
-            type: 'confirmation_demande',
-            to: demandeData.client_email,
-            data: {
-              client_name: demandeData.client_name,
-              // IMPORTANT: Utiliser la référence dossier (DOS-) au lieu de la demande (DEM-)
-              // Le client doit pouvoir accéder à son espace avec cette référence
-              reference: dossierData.reference,
-              dossier_reference: dossierData.reference,
-              demande_reference: demandeData.reference, // Garder la ref demande en cas de besoin admin
-              departure: demandeData.departure_city,
-              arrival: demandeData.arrival_city,
-              departure_date: formatDateForEmail(demandeData.departure_date),
-              passengers: String(demandeData.passengers),
-              client_email: demandeData.client_email,
-              // Utiliser la référence dossier pour les liens
-              lien_espace_client: generateClientAccessUrl(dossierData.reference, demandeData.client_email, (demandeData as any).country_code),
-              language: language,
-            }
-          }
-        }).then(() => {
-          console.log(`Email de confirmation envoyé à ${demandeData.client_email} (langue: ${language})`)
-        }).catch((emailError) => {
-          console.error('Erreur envoi email confirmation:', emailError)
-          // Ne pas bloquer si l'email échoue
-        })
+        throw new Error(message)
       }
-
-      return demandeData
+      if (data?.error) throw new Error(data.error)
+      return data.demande as Tables<'demandes'>
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['demandes'] })
@@ -307,6 +170,10 @@ export function useDossiers(filters?: {
 
       if (filters?.status) {
         query = query.eq('status', filters.status)
+      } else {
+        // Les dossiers archivés (leads transférés ailleurs) n'apparaissent
+        // que via le filtre explicite « Archivés ».
+        query = query.neq('status', 'archived')
       }
       if (filters?.transporteur_id) {
         query = query.eq('transporteur_id', filters.transporteur_id)
@@ -1455,6 +1322,7 @@ export function useDashboardStats() {
       const { data: dossiers, error: dossiersError } = await supabase
         .from('dossiers')
         .select('status, price_ttc, price_achat')
+        .neq('status', 'archived')
 
       if (dossiersError) throw dossiersError
 

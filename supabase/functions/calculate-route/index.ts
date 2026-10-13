@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { pickBestGeocodeFeature } from '../_shared/geocode.ts'
 
 // Domaines autorisés pour CORS
 const ALLOWED_ORIGINS = [
@@ -29,13 +30,16 @@ async function geocodeCity(city: string, countryCode: string = 'fr', lang: strin
   if (!city) return null
   try {
     // Construire l'URL avec filtre de pays si spécifié
-    const filterParam = countryCode ? `&filter=countrycode:${countryCode}` : ''
+    // `bias` (préférence) et non `filter` (restriction) : un filtre pays forçait
+    // « Bruges, Belgique » sur Bruges-Capbis-Mifaget (64) → 1 076 km au lieu de 75.
+    const filterParam = countryCode ? `&bias=countrycode:${countryCode}` : ''
     const response = await fetch(
-      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=1${filterParam}&apiKey=${GEOAPIFY_API_KEY}`
+      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(city)}&lang=${lang}&limit=5${filterParam}&apiKey=${GEOAPIFY_API_KEY}`
     )
     const data = await response.json()
-    if (data.features && data.features.length > 0) {
-      const coords = data.features[0].geometry.coordinates
+    const feature = pickBestGeocodeFeature(data.features || [], countryCode, city)
+    if (feature) {
+      const coords = feature.geometry.coordinates
       return { lat: coords[1], lon: coords[0] }
     }
     return null

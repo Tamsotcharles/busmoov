@@ -12,6 +12,15 @@
       "env": {
         "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
       }
+    },
+    "gsc": {
+      "command": "/usr/local/bin/node",
+      "args": [
+        "node_modules/mcp-server-gsc/dist/index.js"
+      ],
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "${HOME}/.config/busmoov/gsc-service-account.json"
+      }
     }
   }
 }

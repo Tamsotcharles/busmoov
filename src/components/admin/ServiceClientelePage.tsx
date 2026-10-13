@@ -358,6 +358,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
         .not('contract_signed_at', 'is', null)
         .not('status', 'eq', 'completed')
         .not('status', 'eq', 'cancelled')
+        .not('status', 'eq', 'archived')
         .order('departure_date', { ascending: true })
 
       if (error) throw error

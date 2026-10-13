@@ -125,13 +125,25 @@ Deno.serve(async (req) => {
     const prevEnd = addDays(curStart, -1)
     const prevStart = addDays(prevEnd, -6)
 
-    const { data, error } = await supabase
-      .from('seo_gsc_daily')
-      .select('date,dimension,key,clicks,impressions,position')
-      .gte('date', isoDay(prevStart))
-      .lte('date', isoDay(curEnd))
-    if (error) throw new Error(`Lecture seo_gsc_daily : ${error.message}`)
-    const rows = (data ?? []) as Row[]
+    // PostgREST plafonne chaque réponse à 1 000 lignes, même en service_role :
+    // 14 jours de requêtes + pages approchent ce seuil, lecture par pages.
+    const PAGE = 1000
+    const rows: Row[] = []
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from('seo_gsc_daily')
+        .select('date,dimension,key,clicks,impressions,position')
+        .gte('date', isoDay(prevStart))
+        .lte('date', isoDay(curEnd))
+        .order('date', { ascending: true })
+        .order('dimension', { ascending: true })
+        .order('key', { ascending: true })
+        .range(from, from + PAGE - 1)
+      if (error) throw new Error(`Lecture seo_gsc_daily : ${error.message}`)
+      const batch = (data ?? []) as Row[]
+      rows.push(...batch)
+      if (batch.length < PAGE) break
+    }
     const inWindow = (r: Row, start: Date, end: Date) => r.date >= isoDay(start) && r.date <= isoDay(end)
     const cur = rows.filter((r) => inWindow(r, curStart, curEnd))
     const prev = rows.filter((r) => inWindow(r, prevStart, prevEnd))
