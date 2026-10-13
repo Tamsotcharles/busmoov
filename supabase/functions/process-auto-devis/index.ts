@@ -1017,14 +1017,22 @@ function checkRequiresManualReview(dossier: any): string | null {
     }
   }
 
-  // 2. Mots-clés indiquant des rotations ou MAD complexe
-  const keywords = ['rotation', 'navette', 'shuttle', 'mise à disposition', 'mise a disposition',
-                    'mad', 'transfert multiple', 'plusieurs trajets', 'aller-retour multiple',
-                    'circuit', 'tournée', 'plusieurs arrêts', 'etapes', 'étapes']
+  // 2. Mots-clés indiquant des rotations ou MAD complexe.
+  // Le formulaire public préfixe lui-même le texte libre par « Étapes: » et
+  // « Équipements: » : ces libellés sont retirés avant l'analyse, sinon toute
+  // demande avec une précision (« Pause toilette ») partait en cotation
+  // manuelle. Les mots-clés sont comparés sans accents et en mots entiers
+  // (« mad » ne doit pas matcher « Madrid » ni « madame »).
+  const normaliser = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const sansLibellesFormulaire = (s: string) => s.replace(/^\s*(etapes|equipements)\s*:/gm, ' ')
+  const keywords = ['rotation', 'navette', 'shuttle', 'mise a disposition', 'mad',
+                    'transfert multiple', 'plusieurs trajets', 'aller-retour multiple',
+                    'circuit', 'tournee', 'plusieurs arrets', 'etapes']
 
-  const textToCheck = `${specialRequests} ${notes}`
+  const textToCheck = sansLibellesFormulaire(normaliser(`${specialRequests}\n${notes}`))
   for (const keyword of keywords) {
-    if (textToCheck.includes(keyword)) {
+    const motEntier = new RegExp(`(^|[^a-z0-9])${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`)
+    if (motEntier.test(textToCheck)) {
       return `Mots-clés détectés: "${keyword}" - Prestation complexe`
     }
   }
