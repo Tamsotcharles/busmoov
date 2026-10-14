@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { pickBestGeocodeFeature } from '../_shared/geocode.ts'
+import { checkRequiresManualReview } from '../_shared/manual-review.ts'
 import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts'
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
@@ -994,55 +995,6 @@ function generateDevisReference(): string {
   const month = String(now.getMonth() + 1).padStart(2, '0')
   const random = Math.random().toString(36).substring(2, 8).toUpperCase()
   return `DEV-${year}${month}-${random}`
-}
-
-/**
- * Vérifie si le dossier nécessite une révision manuelle
- * Retourne null si OK, sinon la raison
- */
-function checkRequiresManualReview(dossier: any): string | null {
-  const departure = (dossier.departure || '').toLowerCase()
-  const arrival = (dossier.arrival || '').toLowerCase()
-  const specialRequests = (dossier.special_requests || '').toLowerCase()
-  const notes = (dossier.notes || '').toLowerCase()
-  const tripMode = dossier.trip_mode
-
-  // 1. Même ville de départ et d'arrivée (rotations/navettes intra-ville)
-  if (departure && arrival) {
-    // Extraire le nom de ville (avant la virgule ou le code postal)
-    const depCity = departure.split(',')[0].split('(')[0].trim()
-    const arrCity = arrival.split(',')[0].split('(')[0].trim()
-    if (depCity === arrCity) {
-      return 'Même ville départ/arrivée - Rotations ou navettes intra-ville'
-    }
-  }
-
-  // 2. Mots-clés indiquant des rotations ou MAD complexe.
-  // Le formulaire public préfixe lui-même le texte libre par « Étapes: » et
-  // « Équipements: » : ces libellés sont retirés avant l'analyse, sinon toute
-  // demande avec une précision (« Pause toilette ») partait en cotation
-  // manuelle. Les mots-clés sont comparés sans accents et en mots entiers
-  // (« mad » ne doit pas matcher « Madrid » ni « madame »).
-  const normaliser = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-  const sansLibellesFormulaire = (s: string) => s.replace(/^\s*(etapes|equipements)\s*:/gm, ' ')
-  const keywords = ['rotation', 'navette', 'shuttle', 'mise a disposition', 'mad',
-                    'transfert multiple', 'plusieurs trajets', 'aller-retour multiple',
-                    'circuit', 'tournee', 'plusieurs arrets', 'etapes']
-
-  const textToCheck = sansLibellesFormulaire(normaliser(`${specialRequests}\n${notes}`))
-  for (const keyword of keywords) {
-    const motEntier = new RegExp(`(^|[^a-z0-9])${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`)
-    if (motEntier.test(textToCheck)) {
-      return `Mots-clés détectés: "${keyword}" - Prestation complexe`
-    }
-  }
-
-  // 3. Mode circuit avec plusieurs jours
-  if (tripMode === 'circuit') {
-    return 'Mode circuit - Mise à disposition avec itinéraire personnalisé'
-  }
-
-  return null
 }
 
 // =============================================

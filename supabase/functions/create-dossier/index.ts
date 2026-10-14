@@ -3,6 +3,7 @@
 // confirmation, en service_role. Remplace les insertions anonymes directes
 // (policies RLS « Allow anonymous insert » supprimées le 12 oct. 2026).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { checkRequiresManualReview } from '../_shared/manual-review.ts'
 
 const ALLOWED_ORIGINS = [
   'https://busmoov.com',
@@ -37,28 +38,6 @@ const DEMANDE_FIELDS = [
 const TVA_RATES: Record<string, number> = { FR: 10, ES: 10, DE: 7, GB: 0, EN: 0 }
 const LANG_BY_COUNTRY: Record<string, string> = { FR: 'fr', ES: 'es', DE: 'de', GB: 'en', EN: 'en' }
 
-/** Même règle que process-auto-devis : prestations hors auto-devis. */
-function checkRequiresManualReview(d: {
-  departure?: string | null; arrival?: string | null
-  special_requests?: string | null; notes?: string | null; trip_mode?: string | null
-}): string | null {
-  const departure = (d.departure || '').toLowerCase()
-  const arrival = (d.arrival || '').toLowerCase()
-  if (departure && arrival) {
-    const depCity = departure.split(',')[0].split('(')[0].trim()
-    const arrCity = arrival.split(',')[0].split('(')[0].trim()
-    if (depCity === arrCity) return 'Même ville départ/arrivée - Rotations ou navettes intra-ville'
-  }
-  const keywords = ['rotation', 'navette', 'shuttle', 'mise à disposition', 'mise a disposition',
-    'mad', 'transfert multiple', 'plusieurs trajets', 'aller-retour multiple',
-    'circuit', 'tournée', 'plusieurs arrêts', 'etapes', 'étapes']
-  const text = `${(d.special_requests || '').toLowerCase()} ${(d.notes || '').toLowerCase()}`
-  for (const k of keywords) {
-    if (text.includes(k)) return `Mots-clés détectés: "${k}" - Prestation complexe`
-  }
-  if (d.trip_mode === 'circuit') return 'Mode circuit - Mise à disposition avec itinéraire personnalisé'
-  return null
-}
 
 function formatDateForEmail(value: string | null | undefined): string {
   if (!value) return 'Non définie'

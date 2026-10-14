@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { generateClientAccessUrl } from '@/lib/utils'
+import { checkRequiresManualReview } from '@/lib/manual-review'
 
 // Taux de TVA par pays pour le transport de passagers
 const COUNTRY_TVA_RATES: Record<string, number> = {
@@ -36,53 +37,6 @@ import type { Demande, DossierWithRelations, Transporteur, Message, InsertTables
 
 // ============ HELPER: VÉRIFICATION AUTO-DEVIS ============
 
-/**
- * Vérifie si un dossier nécessite une révision manuelle et ne doit pas être en auto-devis
- * Retourne null si OK pour auto-devis, sinon la raison d'exclusion
- */
-function checkRequiresManualReview(dossier: {
-  departure?: string | null
-  arrival?: string | null
-  special_requests?: string | null
-  notes?: string | null
-  trip_mode?: string | null
-}): string | null {
-  const departure = (dossier.departure || '').toLowerCase()
-  const arrival = (dossier.arrival || '').toLowerCase()
-  const specialRequests = (dossier.special_requests || '').toLowerCase()
-  const notes = (dossier.notes || '').toLowerCase()
-  const tripMode = dossier.trip_mode
-
-  // 1. Même ville de départ et d'arrivée (rotations/navettes intra-ville)
-  if (departure && arrival) {
-    const depCity = departure.split(',')[0].split('(')[0].trim()
-    const arrCity = arrival.split(',')[0].split('(')[0].trim()
-    if (depCity === arrCity) {
-      return 'Même ville départ/arrivée - Rotations ou navettes intra-ville'
-    }
-  }
-
-  // 2. Mots-clés indiquant des rotations ou MAD complexe
-  const keywords = [
-    'rotation', 'navette', 'shuttle', 'mise à disposition', 'mise a disposition',
-    'mad', 'transfert multiple', 'plusieurs trajets', 'aller-retour multiple',
-    'circuit', 'tournée', 'plusieurs arrêts', 'etapes', 'étapes'
-  ]
-
-  const textToCheck = `${specialRequests} ${notes}`
-  for (const keyword of keywords) {
-    if (textToCheck.includes(keyword)) {
-      return `Mots-clés détectés: "${keyword}" - Prestation complexe`
-    }
-  }
-
-  // 3. Mode circuit (mise à disposition avec itinéraire personnalisé)
-  if (tripMode === 'circuit') {
-    return 'Mode circuit - Mise à disposition avec itinéraire personnalisé'
-  }
-
-  return null
-}
 
 // ============ DEMANDES ============
 
