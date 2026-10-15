@@ -448,11 +448,13 @@ function villeClassiqueBody(ville) {
     ville.intro.map(p).join('') +
     h2(ville.sectionLocale.h2) +
     ville.sectionLocale.paragraphes.map(p).join('') +
+    (ville.sections || []).map((sec) => h2(sec.h2) + sec.paragraphes.map(pMd).join('')).join('') +
     h2(ville.h2Destinations) +
     ville.destinations.map((d) => h3(d.nom) + p(d.desc)).join('') +
     h2(ville.h2Trajets) +
     ul(ville.trajets) +
     ville.liensUtiles.map(pMd).join('') +
+    (ville.prix ? h2(ville.prix.h2) + p(ville.prix.intro) + tableau(ville.prix.tableau) + pMd(ville.prix.apres) : '') +
     h2(`Vos questions sur l'autocar à ${ville.nom}`) +
     ville.faq.map((f) => h3(f.q) + p(f.a)).join('') +
     p('Busmoov également disponible à :') + `<p class="mb-3">${autres}</p>`
@@ -463,7 +465,7 @@ function villeClassiqueBody(ville) {
 function villeEnrichieBody(ville) {
   const th = (t) => `<th class="p-2 text-left">${esc(t)}</th>`
   const td = (t) => `<td class="p-2">${esc(t)}</td>`
-  const tableau =
+  const tableauPrix =
     '<table class="w-full text-sm mb-3"><thead><tr>' +
     [`Trajet au départ de ${ville.nom}`, 'Durée', 'Formule', 'Minibus 8 à 20 pl.', "Autocar jusqu'à 59 pl.", 'Par personne (car plein)'].map(th).join('') +
     '</tr></thead><tbody>' +
@@ -479,7 +481,7 @@ function villeEnrichieBody(ville) {
     ville.intro.map(p).join('') +
     h2(ville.prix.h2) +
     pMd(ville.prix.intro) +
-    tableau +
+    tableauPrix +
     p(ville.prix.note) +
     p(ville.prix.variation) +
     h2(ville.grandesVilles.h2) +

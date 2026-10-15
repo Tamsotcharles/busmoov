@@ -9,6 +9,7 @@ import { getVille, villes, type Ville, type VilleClassique, type VilleEnrichie }
 import { getSiteBaseUrl } from '@/lib/utils'
 import { Bus, Clock, Shield, MapPin, CheckCircle, ArrowRight, Info } from 'lucide-react'
 import { TextWithLinks } from '@/components/ui/TextWithLinks'
+import { TableauSeo } from '@/components/ui/TableauSeo'
 
 /**
  * Page ville SEO « Location d'autocar à <Ville> » — contenu français
@@ -146,6 +147,20 @@ function SectionsClassiques({ ville }: { ville: VilleClassique }) {
           </div>
         </section>
 
+        {/* Sections éditoriales propres à la ville */}
+        {ville.sections?.map((sec, i) => (
+          <section key={sec.h2} className={i % 2 === 0 ? 'py-12' : 'py-12 bg-gray-50'}>
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+              <h2 className="text-2xl font-bold text-center mb-6">{sec.h2}</h2>
+              <div className="space-y-4">
+                {sec.paragraphes.map((p, j) => (
+                  <TextWithLinks key={j} text={p} className="text-gray-700 leading-relaxed" />
+                ))}
+              </div>
+            </div>
+          </section>
+        ))}
+
         {/* Destinations */}
         <section className="py-12">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -187,6 +202,18 @@ function SectionsClassiques({ ville }: { ville: VilleClassique }) {
             ))}
           </div>
         </section>
+
+        {/* Prix de départ propres à la ville */}
+        {ville.prix && (
+          <section className="py-12 bg-gray-50">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+              <h2 className="text-2xl font-bold text-center mb-6">{ville.prix.h2}</h2>
+              <p className="text-gray-700 leading-relaxed mb-6">{ville.prix.intro}</p>
+              <TableauSeo {...ville.prix.tableau} />
+              <TextWithLinks text={ville.prix.apres} className="text-gray-700 leading-relaxed mt-6" />
+            </div>
+          </section>
+        )}
 
         {/* FAQ */}
         <section className="py-12 bg-gray-50">
