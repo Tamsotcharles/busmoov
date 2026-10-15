@@ -467,11 +467,13 @@ for (const ville of villes) {
     ville.intro.map(p).join('') +
     h2(ville.sectionLocale.h2) +
     ville.sectionLocale.paragraphes.map(p).join('') +
+    (ville.sections || []).map((sec) => h2(sec.h2) + sec.paragraphes.map(pMd).join('')).join('') +
     h2(ville.h2Destinations) +
     ville.destinations.map((d) => `<h3 class="font-semibold mt-3">${esc(d.nom)}</h3>` + p(d.desc)).join('') +
     h2(ville.h2Trajets) +
     ul(ville.trajets) +
     ville.liensUtiles.map(pMd).join('') +
+    (ville.prix ? h2(ville.prix.h2) + p(ville.prix.intro) + tableau(ville.prix.tableau) + pMd(ville.prix.apres) : '') +
     h2(`Vos questions sur l'autocar à ${ville.nom}`) +
     ville.faq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + p(f.a)).join('') +
     p('Busmoov également disponible à :') + `<p class="mb-3">${autres}</p>`

@@ -3,6 +3,7 @@
  * ces pages ciblent les recherches « location autocar <ville> »).
  * URL : /fr/location-autocar/<slug>
  */
+import type { TableauSeo } from './blog'
 
 export interface VilleFaq {
   q: string
@@ -40,7 +41,18 @@ export interface Ville {
   liensUtiles: string[]
   destinations: VilleDestination[]
   trajets: string[]
+  /** Sections éditoriales supplémentaires (calendrier, conseils) — liens markdown acceptés. */
+  sections?: VilleSection[]
+  /** Bloc prix de départ propre à la ville (majoration régionale intégrée). */
+  prix?: VillePrix
   faq: VilleFaq[]
+}
+
+export interface VillePrix {
+  h2: string
+  intro: string
+  tableau: TableauSeo
+  apres: string
 }
 
 export const villes: Ville[] = [
@@ -1160,6 +1172,37 @@ export const villes: Ville[] = [
       'Transfert gare de Rouen-Rive-Droite ↔ site d\'entreprise, Parc expo ou Zénith',
       'Navette Rouen ↔ Paris ou aéroport Roissy CDG pour un groupe',
     ],
+    sections: [
+      {
+        h2: 'Le calendrier des groupes à Rouen',
+        paragraphes: [
+          'La demande d\'autocars à Rouen suit un calendrier bien marqué. Au printemps, les collèges et lycées de toute la Normandie et de l\'Île-de-France partent vers les plages du Débarquement et le Mémorial de Caen : d\'avril à juin, les cars de 50 à 60 places sont les plus sollicités. L\'été, place aux comités d\'entreprise et aux associations vers Étretat, Honfleur et la côte fleurie, et aux groupes de touristes qui enchaînent Giverny et Rouen en une journée depuis Paris.',
+          'L\'automne est celui de la Foire Saint-Romain, l\'une des plus grandes fêtes foraines de France, qui attire des groupes d\'amis et de comités d\'entreprise en soirée, et des salons au Parc des expositions. Tout au long de la saison, les matchs de hockey à l\'île Lacroix, les concerts du Zénith et les spectacles du Kindarena mobilisent des navettes en soirée, avec retour de nuit. Et tous les quatre à cinq ans, l\'Armada vide les parcs de véhicules de toute la région pendant dix jours : la prochaine est en juin 2027.',
+        ],
+      },
+      {
+        h2: 'Quel véhicule pour votre groupe rouennais ?',
+        paragraphes: [
+          'Pour un transfert vers Paris ou Roissy, un [minibus de 8 à 20 places](/location-minibus-20-places) suffit à une délégation ou à une petite équipe, avec ses bagages. Pour une classe et ses accompagnateurs, un [bus de 50 places](/location-bus-50-places) est le format standard, aux normes transport d\'enfants ; pour deux classes vers les plages du Débarquement, un [autocar grande capacité](/location-autocar-grande-capacite) évite de dédoubler le chauffeur et le prix. Les groupes de seniors vers Giverny demandent souvent un car à plancher surbaissé ou un [autocar accessible PMR](/autocar-pmr) avec élévateur.',
+          'Dites-nous le nombre exact de passagers, accompagnateurs compris, et le volume de bagages : une journée Étretat n\'a pas les mêmes soutes qu\'un week-end à Honfleur. Le transporteur choisit le véhicule, vous recevez un devis par option.',
+        ],
+      },
+    ],
+    prix: {
+      h2: 'Prix de départ d\'un autocar avec chauffeur à Rouen',
+      intro: 'Quatre facteurs font le prix d\'un car au départ de Rouen : la distance, l\'amplitude horaire du chauffeur, la taille du véhicule et la saison. Chauffeur, carburant et péages sont toujours inclus dans nos devis. Voici les ordres de grandeur 2026, hors haute saison.',
+      tableau: {
+        caption: 'Prix de départ indicatifs 2026 au départ de Rouen, TTC, chauffeur, carburant et péages inclus',
+        headers: ['Prestation', 'Minibus 8-20 places', 'Bus standard 21-59 places', 'Grande capacité 60-90 places'],
+        rows: [
+          ['Transfert aller simple local (gare, aéroport, site)', 'à partir de 350 €', 'à partir de 400 €', 'à partir de 500 €'],
+          ['Journée locale, aller-retour', 'à partir de 600 €', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Journée régionale, aller-retour', 'à partir de 900 €', 'à partir de 1 000 €', 'à partir de 1 200 €'],
+          ['Week-end 2 jours', 'à partir de 1 600 €', 'à partir de 1 800 €', 'Sur devis'],
+        ],
+      },
+      apres: 'Le département ne porte pas de majoration régionale : ces prix de départ sont ceux de la grille nationale. Sur un bus de 50 personnes, la journée locale revient à une quinzaine d\'euros par passager. Les samedis de mai à septembre et les vacances scolaires font monter les prix et raréfient les véhicules : demandez vos devis six à huit semaines avant, et comparez, c\'est tout l\'intérêt de recevoir plusieurs propositions.',
+    },
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Rouen ?',
@@ -1216,6 +1259,37 @@ export const villes: Ville[] = [
       'Navette séminaire Tours ↔ domaine viticole ou lieu de réception',
       'Transfert groupe Tours ↔ Paris, Nantes ou Bordeaux',
     ],
+    sections: [
+      {
+        h2: 'L\'année des groupes en Touraine',
+        paragraphes: [
+          'La saison des châteaux ouvre à Pâques et ferme à la Toussaint : entre les deux, les cars tourangeaux enchaînent les groupes du TGV du matin au TGV du soir, avec un pic de mai à juin pour les scolaires et de septembre à octobre pour les seniors et les groupes étrangers. En mai, Vitiloire, la fête des vins de Loire, remplit le centre de Tours ; l\'été, les guinguettes des bords de Loire et le son et lumière d\'Amboise font les soirées de groupe.',
+          'L\'hiver, les châteaux se parent pour Noël : Chenonceau, Amboise et Azay-le-Rideau proposent des visites décorées très demandées par les comités d\'entreprise en décembre. Le reste de l\'année, les congrès du Vinci, les matchs du TVB en volley et les séminaires dans les domaines de Vouvray et Montlouis assurent un flux régulier. Les cars se réservent facilement de novembre à mars, difficilement les samedis de mai.',
+        ],
+      },
+      {
+        h2: 'Le conseil du chauffeur : réussir sa journée châteaux',
+        paragraphes: [
+          'Réservez les billets de groupe avant le départ : à Chenonceau et Chambord, un groupe sans réservation attend parfois une heure en haute saison pendant que le car tourne. Commencez par le château le plus éloigné pour revenir vers Tours l\'après-midi, et comptez deux heures par château, déplacement du parking compris. Un déjeuner réservé dans un restaurant de groupe à Amboise ou Bléré évite de perdre une heure.',
+          'Pour une journée depuis la gare TGV, l\'amplitude du chauffeur commence à la prise en charge et finit à la dépose du soir : un train à 9h et un retour à 19h tiennent dans la grille de base, un retour à 21h passe sur l\'amplitude supérieure. Prévoyez de l\'eau à bord en juillet et des chaussures de marche pour les jardins de Villandry. Pour une classe, notre guide [organiser une sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar) complète ces conseils.',
+        ],
+      },
+    ],
+    prix: {
+      h2: 'Prix de départ d\'un autocar avec chauffeur à Tours',
+      intro: 'Quatre facteurs font le prix d\'un car au départ de Tours : la distance, l\'amplitude horaire du chauffeur, la taille du véhicule et la saison. Chauffeur, carburant et péages sont toujours inclus dans nos devis. Voici les ordres de grandeur 2026, hors haute saison.',
+      tableau: {
+        caption: 'Prix de départ indicatifs 2026 au départ de Tours, TTC, chauffeur, carburant et péages inclus',
+        headers: ['Prestation', 'Minibus 8-20 places', 'Bus standard 21-59 places', 'Grande capacité 60-90 places'],
+        rows: [
+          ['Transfert aller simple local (gare, aéroport, site)', 'à partir de 400 €', 'à partir de 450 €', 'à partir de 550 €'],
+          ['Journée locale, aller-retour', 'à partir de 700 €', 'à partir de 800 €', 'à partir de 900 €'],
+          ['Journée régionale, aller-retour', 'à partir de 1 000 €', 'à partir de 1 100 €', 'à partir de 1 350 €'],
+          ['Week-end 2 jours', 'à partir de 1 800 €', 'à partir de 2 000 €', 'Sur devis'],
+        ],
+      },
+      apres: 'Les transporteurs du département appliquent des frais d\'approche d\'environ 10 % : ces prix de départ en tiennent compte. Sur un bus de 50 personnes, la journée locale revient à une quinzaine d\'euros par passager. Les samedis de mai à septembre et les vacances scolaires font monter les prix et raréfient les véhicules : demandez vos devis six à huit semaines avant, et comparez, c\'est tout l\'intérêt de recevoir plusieurs propositions.',
+    },
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Tours ?',
@@ -1271,6 +1345,37 @@ export const villes: Ville[] = [
       'Transfert gare de Dijon-Ville ↔ Palais des Congrès, Zénith ou Parc des expositions',
       'Voyage de groupe Dijon ↔ Lyon, Genève, Bâle ou Paris',
     ],
+    sections: [
+      {
+        h2: 'L\'année des groupes à Dijon',
+        paragraphes: [
+          'Le calendrier dijonnais tourne autour du vin et de la table. Les vendanges, de mi-septembre à début octobre, attirent les groupes dans les domaines de la Côte de Nuits et de la Côte de Beaune. Début novembre, la Foire internationale et gastronomique remplit le Parc des expositions pendant dix jours, puis le troisième week-end de novembre, la vente des vins des Hospices de Beaune fait venir des groupes du monde entier : les cars de Côte-d\'Or sont tous pris cette semaine-là.',
+          'Le printemps et l\'été sont ceux des séminaires dans les châteaux et les domaines, des sorties nature dans le Morvan et l\'Auxois, et des circuits de touristes étrangers qui font étape à Dijon entre Paris et Lyon. Les congrès au Palais des Congrès et les concerts du Zénith complètent l\'année. Hors Foire et vente des Hospices, les véhicules se trouvent facilement, y compris en semaine à quelques jours.',
+        ],
+      },
+      {
+        h2: 'Séminaire ou soirée dans les vignes : comment ça s\'organise',
+        paragraphes: [
+          'Le format le plus demandé à Dijon est le car à disposition pour une demi-journée ou une soirée : prise en charge au bureau ou à l\'hôtel, dépose au domaine pour la visite et la dégustation, attente du chauffeur, puis retour en ville ou vers le lieu de dîner. Le prix se calcule sur l\'amplitude du chauffeur : une soirée de 17h à 23h entre dans la grille de base, un retour à 1h du matin passe sur une amplitude longue. Comptez deux à trois domaines au maximum dans la même soirée, les dégustations prennent toujours plus de temps que prévu.',
+          'Pour un séminaire de deux jours, le car peut rester avec le groupe, chauffeur logé sur place à votre charge, ou repartir et revenir : la seconde option coûte moins cher dès que le groupe ne bouge pas entre les deux. Notre guide [déplacement d\'entreprise en autocar](/blog/autocar-deplacement-entreprise) détaille les deux montages, et [louer un bus pour une fête privée](/blog/louer-un-bus-pour-un-anniversaire) couvre les sorties entre amis.',
+        ],
+      },
+    ],
+    prix: {
+      h2: 'Prix de départ d\'un autocar avec chauffeur à Dijon',
+      intro: 'Quatre facteurs font le prix d\'un car au départ de Dijon : la distance, l\'amplitude horaire du chauffeur, la taille du véhicule et la saison. Chauffeur, carburant et péages sont toujours inclus dans nos devis. Voici les ordres de grandeur 2026, hors haute saison.',
+      tableau: {
+        caption: 'Prix de départ indicatifs 2026 au départ de Dijon, TTC, chauffeur, carburant et péages inclus',
+        headers: ['Prestation', 'Minibus 8-20 places', 'Bus standard 21-59 places', 'Grande capacité 60-90 places'],
+        rows: [
+          ['Transfert aller simple local (gare, aéroport, site)', 'à partir de 350 €', 'à partir de 400 €', 'à partir de 500 €'],
+          ['Journée locale, aller-retour', 'à partir de 600 €', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Journée régionale, aller-retour', 'à partir de 900 €', 'à partir de 1 000 €', 'à partir de 1 200 €'],
+          ['Week-end 2 jours', 'à partir de 1 600 €', 'à partir de 1 800 €', 'Sur devis'],
+        ],
+      },
+      apres: 'Le département ne porte pas de majoration régionale : ces prix de départ sont ceux de la grille nationale. Sur un bus de 50 personnes, la journée locale revient à une quinzaine d\'euros par passager. Les samedis de mai à septembre et les vacances scolaires font monter les prix et raréfient les véhicules : demandez vos devis six à huit semaines avant, et comparez, c\'est tout l\'intérêt de recevoir plusieurs propositions.',
+    },
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Dijon ?',
@@ -1327,6 +1432,37 @@ export const villes: Ville[] = [
       'Nancy → Strasbourg ou Colmar pour les marchés de Noël',
       'Transfert gare de Nancy ↔ Centre Prouvé, campus ou site d\'entreprise',
     ],
+    sections: [
+      {
+        h2: 'L\'année des groupes à Nancy',
+        paragraphes: [
+          'Nancy vit au rythme de ses fêtes. Début décembre, les fêtes de Saint-Nicolas et leur défilé attirent des groupes de toute la Lorraine, en même temps que les marchés de Noël de la place Charles III et, à une heure et demie, ceux de Strasbourg et de Colmar : décembre est le mois où les cars lorrains manquent. En octobre, Nancy Jazz Pulsations remplit la pépinière et les salles ; en septembre, Le Livre sur la Place occupe la place de la Carrière.',
+          'L\'été, le spectacle son et lumière de la place Stanislas fait les soirées de groupes et les sorties de comités d\'entreprise. Le printemps et l\'automne sont ceux des voyages de mémoire des collèges et lycées vers Verdun et les champs de bataille, et des sorties nature vers les Vosges. Les matchs de l\'ASNL et du SLUC, les concerts du Zénith et les congrès du Centre Prouvé complètent le calendrier.',
+        ],
+      },
+      {
+        h2: 'Voyage de mémoire à Verdun : le déroulé type',
+        paragraphes: [
+          'Depuis Nancy, comptez 1h15 de route jusqu\'à Verdun. Un déroulé qui tient dans la journée scolaire : départ à 8h, Mémorial de Verdun à 9h30 pendant deux heures, déjeuner tiré du sac ou en restaurant de groupe, ossuaire de Douaumont et fort de Douaumont ou de Vaux l\'après-midi, village détruit de Fleury sur le chemin, retour à Nancy vers 17h30. Les sites ont des parkings autocars et des créneaux de groupe à réserver, le Mémorial en particulier.',
+          'Pour deux classes, un [autocar grande capacité](/location-autocar-grande-capacite) ou deux bus standards : le premier coûte moins cher, le second laisse chaque classe avec ses accompagnateurs. Les transporteurs de Meurthe-et-Moselle fournissent les véhicules aux normes transport d\'enfants et les documents demandés par les établissements. Le détail des règles et de la préparation est dans notre guide [organiser une sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar).',
+        ],
+      },
+    ],
+    prix: {
+      h2: 'Prix de départ d\'un autocar avec chauffeur à Nancy',
+      intro: 'Quatre facteurs font le prix d\'un car au départ de Nancy : la distance, l\'amplitude horaire du chauffeur, la taille du véhicule et la saison. Chauffeur, carburant et péages sont toujours inclus dans nos devis. Voici les ordres de grandeur 2026, hors haute saison.',
+      tableau: {
+        caption: 'Prix de départ indicatifs 2026 au départ de Nancy, TTC, chauffeur, carburant et péages inclus',
+        headers: ['Prestation', 'Minibus 8-20 places', 'Bus standard 21-59 places', 'Grande capacité 60-90 places'],
+        rows: [
+          ['Transfert aller simple local (gare, aéroport, site)', 'à partir de 400 €', 'à partir de 450 €', 'à partir de 550 €'],
+          ['Journée locale, aller-retour', 'à partir de 700 €', 'à partir de 800 €', 'à partir de 900 €'],
+          ['Journée régionale, aller-retour', 'à partir de 1 000 €', 'à partir de 1 100 €', 'à partir de 1 350 €'],
+          ['Week-end 2 jours', 'à partir de 1 800 €', 'à partir de 2 000 €', 'Sur devis'],
+        ],
+      },
+      apres: 'Les transporteurs du département appliquent des frais d\'approche d\'environ 10 % : ces prix de départ en tiennent compte. Sur un bus de 50 personnes, la journée locale revient à une quinzaine d\'euros par passager. Les samedis de mai à septembre et les vacances scolaires font monter les prix et raréfient les véhicules : demandez vos devis six à huit semaines avant, et comparez, c\'est tout l\'intérêt de recevoir plusieurs propositions.',
+    },
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Nancy ?',
@@ -1383,6 +1519,37 @@ export const villes: Ville[] = [
       'Journée Sancy ou Le Pal pour un centre de loisirs ou un comité d\'entreprise',
       'Transfert gare de Clermont-Ferrand ou aéroport d\'Aulnat ↔ site d\'entreprise ou lieu de séminaire',
     ],
+    sections: [
+      {
+        h2: 'L\'année des groupes en Auvergne',
+        paragraphes: [
+          'Le calendrier clermontois commence avec le Festival international du court métrage en février, qui attire des groupes d\'étudiants et de cinéphiles de toute la France. De mars à novembre, Vulcania et le puy de Dôme font la saison des scolaires et des centres de loisirs, avec un pic en mai-juin pour les sorties de fin d\'année. L\'été, le Sancy et les lacs d\'Auvergne accueillent les clubs de randonnée, les colonies et les comités d\'entreprise.',
+          'De septembre à juin, les matchs de l\'ASM au stade Marcel-Michelin mobilisent des navettes de supporters depuis tout le département et au-delà, et les déplacements vers les stades adverses se font en car avec deux chauffeurs ou nuit sur place. L\'hiver, les stations du Sancy, Super-Besse et le Mont-Dore, accueillent les classes de neige et les sorties luge des centres de loisirs. Les concerts du Zénith d\'Auvergne et les salons de la Grande Halle complètent l\'année.',
+        ],
+      },
+      {
+        h2: 'Classe de neige et classe verte dans le Sancy',
+        paragraphes: [
+          'Le Sancy est à une heure de Clermont-Ferrand, ce qui en fait la destination la plus simple de France pour une classe de neige ou une classe verte : le car monte le lundi matin avec les enfants et les bagages, redescend, et revient le vendredi. Entre les deux, les déplacements sur place se font à pied ou avec un car local pour une journée ski ou une sortie au lac Pavin. Les transporteurs du Puy-de-Dôme roulent toute l\'année sur ces routes, avec les équipements hiver obligatoires de novembre à mars.',
+          'Précisez le nombre d\'élèves et d\'accompagnateurs, le volume de bagages, souvent une valise et un sac par enfant, et les éventuels skis à transporter : un car avec soutes XXL ou une remorque évite un second véhicule. Pour un établissement, nos transporteurs fournissent les attestations demandées. Nos guides [organiser une sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar) et [partir au ski en autocar avec un groupe](/blog/autocar-station-de-ski-groupe) détaillent la préparation.',
+        ],
+      },
+    ],
+    prix: {
+      h2: 'Prix de départ d\'un autocar avec chauffeur à Clermont-Ferrand',
+      intro: 'Quatre facteurs font le prix d\'un car au départ de Clermont-Ferrand : la distance, l\'amplitude horaire du chauffeur, la taille du véhicule et la saison. Chauffeur, carburant et péages sont toujours inclus dans nos devis. Voici les ordres de grandeur 2026, hors haute saison.',
+      tableau: {
+        caption: 'Prix de départ indicatifs 2026 au départ de Clermont-Ferrand, TTC, chauffeur, carburant et péages inclus',
+        headers: ['Prestation', 'Minibus 8-20 places', 'Bus standard 21-59 places', 'Grande capacité 60-90 places'],
+        rows: [
+          ['Transfert aller simple local (gare, aéroport, site)', 'à partir de 350 €', 'à partir de 400 €', 'à partir de 500 €'],
+          ['Journée locale, aller-retour', 'à partir de 600 €', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Journée régionale, aller-retour', 'à partir de 900 €', 'à partir de 1 000 €', 'à partir de 1 200 €'],
+          ['Week-end 2 jours', 'à partir de 1 600 €', 'à partir de 1 800 €', 'Sur devis'],
+        ],
+      },
+      apres: 'Le département ne porte pas de majoration régionale : ces prix de départ sont ceux de la grille nationale. Sur un bus de 50 personnes, la journée locale revient à une quinzaine d\'euros par passager. Les samedis de mai à septembre et les vacances scolaires font monter les prix et raréfient les véhicules : demandez vos devis six à huit semaines avant, et comparez, c\'est tout l\'intérêt de recevoir plusieurs propositions.',
+    },
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Clermont-Ferrand ?',
