@@ -1123,6 +1123,285 @@ export const villes: Ville[] = [
       },
     ],
   },
+  {
+    slug: 'rouen',
+    nom: 'Rouen',
+    metaTitle: 'Location d\'autocar à Rouen avec chauffeur — Devis 24h | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur à Rouen : Giverny, Étretat, Honfleur, plages du Débarquement, transferts Paris. Transporteurs normands vérifiés, devis gratuit sous 24h.',
+    h1: 'Location d\'autocar avec chauffeur à Rouen',
+    sousTitre: 'Giverny, Étretat, Honfleur, plages du Débarquement : la Normandie à la journée depuis Rouen, avec des transporteurs seinomarins vérifiés et un devis gratuit en 24h.',
+    intro: [
+      'Capitale normande à 1h30 de Paris, Rouen est un carrefour de groupes : scolaires de toute l\'Île-de-France en route vers les plages du Débarquement, comités d\'entreprise vers Honfleur et Étretat, congressistes au Parc des expositions et supporters au Kindarena. Les transporteurs de Seine-Maritime avec lesquels nous travaillons connaissent ces flux par cœur.',
+      'Du minibus pour un transfert gare-entreprise au grand tourisme pour un voyage de classe, nous comparons pour vous plusieurs devis de transporteurs rouennais. Avantage de la Seine-Maritime : pas de majoration régionale sur les tarifs, et des véhicules disponibles toute l\'année hors Armada.',
+    ],
+    sectionLocale: {
+      h2: 'Autocar dans le centre de Rouen : dépose sur les quais, pas dans le vieux Rouen',
+      paragraphes: [
+        'Le centre historique, de la cathédrale à la place du Vieux-Marché, est piéton ou en rues étroites : aucun car n\'y entre. Les groupes sont déposés sur les quais rive droite, à cinq minutes à pied de la cathédrale, ou boulevard des Belges côté musée des Beaux-Arts. Pour un événement au Kindarena ou au Zénith de Rouen, la dépose se fait aux parkings cars des sites, bien dimensionnés.',
+        'Pour l\'Armada, dont la prochaine édition se tient en juin 2027, les quais sont fermés à la circulation : les cars déposent aux parkings relais en périphérie et le groupe rejoint les bateaux en navette ou à pied. Réservez plusieurs mois avant, toute la Normandie manque de véhicules cette semaine-là.',
+      ],
+    },
+    h2Destinations: 'Impressionnistes, falaises et Histoire : les sorties depuis Rouen',
+    h2Trajets: 'Trajets types à Rouen',
+    liensUtiles: [
+      'Pour un groupe venu de la capitale, notre page [autocar au départ de Paris](/location-autocar/paris) couvre le transfert vers Rouen et la Normandie ; pour les établissements scolaires, le guide [préparer une sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar) reprend les règles à respecter. Les prix par distance sont dans notre [guide tarifaire autocar](/blog/prix-location-autocar).',
+    ],
+    destinations: [
+      { nom: 'Giverny', desc: 'La maison et les jardins de Monet à 1h : la sortie impressionniste des scolaires et des seniors, d\'avril à octobre.' },
+      { nom: 'Étretat et Fécamp', desc: 'Les falaises à 1h15, le palais Bénédictine à Fécamp : la journée côte d\'Albâtre.' },
+      { nom: 'Honfleur et Deauville', desc: 'Vieux bassin, planches et plage à 1h15 : le week-end ou la journée des comités d\'entreprise.' },
+      { nom: 'Plages du Débarquement', desc: 'Arromanches, Omaha Beach, le cimetière américain à 2h : le voyage d\'Histoire des collèges et lycées.' },
+      { nom: 'Le Havre', desc: 'Le centre Perret classé à l\'UNESCO et le MuMa à 1h : la sortie architecture et art moderne.' },
+      { nom: 'Lyons-la-Forêt et la vallée de Seine', desc: 'Abbaye de Jumièges, Château-Gaillard, hêtraie de Lyons à 45 minutes : les boucles nature des associations.' },
+    ],
+    trajets: [
+      'Rouen → Giverny ou Étretat à la journée',
+      'Voyage scolaire Rouen → plages du Débarquement, un ou deux jours',
+      'Transfert gare de Rouen-Rive-Droite ↔ site d\'entreprise, Parc expo ou Zénith',
+      'Navette Rouen ↔ Paris ou aéroport Roissy CDG pour un groupe',
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar avec chauffeur à Rouen ?',
+        a: 'Une journée en autocar standard démarre à 700 € TTC au départ de Rouen, chauffeur, carburant et péages inclus. La Seine-Maritime ne porte pas de majoration régionale : les prix y sont parmi les plus bas de l\'Ouest. Une sortie Étretat ou Giverny se chiffre à la journée, les plages du Débarquement plutôt sur une amplitude longue ou deux jours.',
+      },
+      {
+        q: 'Un car peut-il s\'approcher de la cathédrale ou du Gros-Horloge ?',
+        a: 'Non, le centre historique est piéton. Les groupes descendent sur les quais rive droite ou boulevard des Belges, à cinq minutes à pied. Le chauffeur stationne ensuite sur les parkings cars de la ville et revient à l\'heure convenue.',
+      },
+      {
+        q: 'Faites-vous les transferts entre Rouen et Paris ?',
+        a: 'Oui, c\'est l\'un des trajets les plus demandés : 1h30 par l\'A13, vers Paris, Roissy CDG ou Orly, pour un groupe en voyage ou un séminaire. Un aller simple en autocar standard démarre à 400 € TTC pour un trajet local, plus pour Paris selon l\'horaire.',
+      },
+      {
+        q: 'Que se passe-t-il pendant l\'Armada ?',
+        a: 'Les quais sont fermés aux véhicules pendant toute la manifestation. Nos transporteurs déposent aux parkings relais et aux points de navette définis par la ville. Les véhicules se réservent dès l\'automne précédent.',
+      },
+    ],
+  },
+  {
+    slug: 'tours',
+    nom: 'Tours',
+    metaTitle: 'Location d\'autocar à Tours avec chauffeur — Devis 24h | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur à Tours : châteaux de la Loire, Chenonceau, Amboise, Chambord, Beauval, Futuroscope. Transporteurs tourangeaux vérifiés, devis gratuit sous 24h.',
+    h1: 'Location d\'autocar avec chauffeur à Tours',
+    sousTitre: 'Chenonceau, Amboise, Chambord, Beauval : les châteaux de la Loire et le Val de Loire en groupe depuis Tours, avec des transporteurs d\'Indre-et-Loire vérifiés.',
+    intro: [
+      'Tours est la base de départ naturelle des châteaux de la Loire : Villandry à 20 minutes, Amboise et Chenonceau à 30, Azay-le-Rideau à 30, Chambord à une heure. Les groupes arrivent par le TGV à Saint-Pierre-des-Corps, à une heure de Paris, et un autocar local les attend pour la journée. C\'est le cas d\'usage numéro un de nos transporteurs tourangeaux.',
+      'La ville génère aussi ses propres flux : congrès au Vinci, matchs et concerts, séminaires dans les domaines viticoles de Vouvray et Montlouis, voyages scolaires vers le zoo de Beauval et le Futuroscope. Du minibus au grand tourisme, nous comparons pour vous plusieurs devis de transporteurs d\'Indre-et-Loire.',
+    ],
+    sectionLocale: {
+      h2: 'Arriver en TGV, continuer en autocar : la logistique tourangelle',
+      paragraphes: [
+        'La gare TGV est à Saint-Pierre-des-Corps, à dix minutes du centre, avec un parvis où les cars prennent les groupes à la descente du train. La gare de Tours centre, plus belle mais en impasse, se prête moins à la dépose d\'un car de 12 mètres. Pour un séminaire au Vinci, la dépose se fait boulevard Heurteloup ; le centre ancien, autour de la place Plumereau, est piéton.',
+        'Dans les châteaux, les parkings autocars sont la règle, souvent à quelques centaines de mètres de l\'entrée : prévoyez dix minutes de marche à Chenonceau et Chambord, et un billet de groupe réservé à l\'avance, sans quoi le car attend. Le chauffeur connaît les horaires d\'ouverture et les sens de visite qui évitent les files.',
+      ],
+    },
+    h2Destinations: 'Châteaux, zoo et vignobles : les journées de groupe depuis Tours',
+    h2Trajets: 'Trajets types à Tours',
+    liensUtiles: [
+      'Les groupes parisiens combinent souvent TGV et autocar local, un montage détaillé dans notre comparatif [train ou autocar pour un groupe](/blog/autocar-ou-train-groupe). Pour une classe, le guide [organiser un voyage scolaire en car](/blog/organiser-sortie-scolaire-autocar) donne la marche à suivre ; pour le budget, le [guide des prix autocar](/blog/prix-location-autocar) détaille les tarifs par distance. Au nord, nous couvrons aussi la [location d\'autocar au Mans](/location-autocar/le-mans).',
+    ],
+    destinations: [
+      { nom: 'Chenonceau', desc: 'Le château sur le Cher à 30 minutes : le plus visité de la Loire après Versailles, parking cars à 5 minutes de l\'entrée.' },
+      { nom: 'Amboise et le Clos Lucé', desc: 'Château royal et dernière demeure de Léonard de Vinci à 30 minutes : la journée des collèges.' },
+      { nom: 'Chambord et Blois', desc: 'Le géant de François Ier à 1h, souvent couplé avec Blois ou Cheverny pour une journée complète.' },
+      { nom: 'Villandry et Azay-le-Rideau', desc: 'Jardins à la française à 20 minutes, château Renaissance à 30 : le combo d\'une demi-journée.' },
+      { nom: 'ZooParc de Beauval', desc: 'Les pandas à 1h : la sortie de fin d\'année des écoles et des comités d\'entreprise, réservation de groupe obligatoire.' },
+      { nom: 'Vouvray et Montlouis', desc: 'Caves troglodytes et dégustations à 15 minutes : le séminaire ou l\'anniversaire où personne ne conduit.' },
+    ],
+    trajets: [
+      'Gare TGV de Saint-Pierre-des-Corps → châteaux de la Loire, journée avec car à disposition',
+      'Voyage scolaire Tours → Beauval ou Futuroscope',
+      'Navette séminaire Tours ↔ domaine viticole ou lieu de réception',
+      'Transfert groupe Tours ↔ Paris, Nantes ou Bordeaux',
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar avec chauffeur à Tours ?',
+        a: 'Une journée en autocar standard démarre à 700 € TTC, un peu plus en Indre-et-Loire où les transporteurs appliquent des frais d\'approche. Une journée châteaux avec car à disposition se chiffre selon l\'amplitude du chauffeur : partir à 9h et rentrer à 18h tient dans la grille de base.',
+      },
+      {
+        q: 'Combien de châteaux peut-on visiter dans la journée ?',
+        a: 'Deux confortablement, trois au pas de course. Le combo classique est Chenonceau le matin et Amboise l\'après-midi, ou Villandry et Azay-le-Rideau pour une demi-journée. Chambord demande une heure de route dans chaque sens : prévoyez-le seul ou avec Blois.',
+      },
+      {
+        q: 'Le car peut-il récupérer un groupe à la descente du TGV ?',
+        a: 'Oui, c\'est le montage le plus courant pour les groupes parisiens : le chauffeur attend sur le parvis de Saint-Pierre-des-Corps avec le numéro de train, et le groupe part directement vers le premier château. Donnez l\'horaire du train, le car suit le retard éventuel.',
+      },
+      {
+        q: 'Proposez-vous des cars pour Beauval et le Futuroscope ?',
+        a: 'Oui, Beauval est à 1h et le Futuroscope à 1h : les deux ont des parkings autocars et des tarifs de groupe à réserver avant. Pour un établissement scolaire, nos transporteurs fournissent les véhicules aux normes transport d\'enfants.',
+      },
+    ],
+  },
+  {
+    slug: 'dijon',
+    nom: 'Dijon',
+    metaTitle: 'Location d\'autocar à Dijon avec chauffeur — Devis 24h | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur à Dijon : Beaune, route des Grands Crus, Hospices, abbaye de Fontenay, transferts Lyon et Suisse. Transporteurs bourguignons vérifiés, devis gratuit sous 24h.',
+    h1: 'Location d\'autocar avec chauffeur à Dijon',
+    sousTitre: 'Beaune, route des Grands Crus, Fontenay, Vézelay : la Bourgogne en groupe depuis Dijon, avec des transporteurs de Côte-d\'Or vérifiés et un devis gratuit en 24h.',
+    intro: [
+      'Dijon est la ville des séminaires et des sorties œnologiques : la route des Grands Crus commence aux portes de la ville, Beaune et ses Hospices sont à 45 minutes, et personne ne veut conduire après une dégustation. Comités d\'entreprise, clubs, groupes d\'amis et touristes étrangers en circuit forment le gros de la demande de nos transporteurs de Côte-d\'Or.',
+      'La ville génère aussi ses flux propres : Foire gastronomique en novembre, congrès au Palais des Congrès, matchs et concerts au Zénith, et une position de carrefour entre Paris, Lyon et la Suisse qui fait de Dijon une étape des voyages longue distance. Du minibus au grand tourisme, nous comparons plusieurs devis pour vous.',
+    ],
+    sectionLocale: {
+      h2: 'Dijon en autocar : secteur piéton, gare et Cité de la Gastronomie',
+      paragraphes: [
+        'Le cœur de Dijon, du palais des Ducs aux Halles, est piéton : les groupes descendent place Darcy ou sur les boulevards de ceinture, à cinq minutes de la place de la Libération. La Cité internationale de la Gastronomie et du Vin, près de la gare, dispose d\'une dépose pour les cars, comme le Zénith et le Parc des expositions.',
+      ],
+    },
+    h2Destinations: 'Vignobles, abbayes et villages : les escapades des groupes dijonnais',
+    h2Trajets: 'Trajets types à Dijon',
+    liensUtiles: [
+      'Pour un séminaire d\'entreprise avec soirée dans un domaine, notre guide [déplacement d\'entreprise en autocar](/blog/autocar-deplacement-entreprise) détaille les formats ; pour une soirée entre amis ou un anniversaire dans les vignes, voir [louer un bus pour une fête privée](/blog/louer-un-bus-pour-un-anniversaire). Dijon est aussi une étape vers [la Suisse en autocar](/location-autocar-suisse) et vers [Lyon](/location-autocar/lyon). Tarifs : [notre guide des prix](/blog/prix-location-autocar).',
+    ],
+    destinations: [
+      { nom: 'Beaune et les Hospices', desc: 'La capitale des vins à 45 minutes : Hôtel-Dieu, caves et remparts, la journée la plus demandée.' },
+      { nom: 'Route des Grands Crus', desc: 'Gevrey-Chambertin, Vougeot, Nuits-Saint-Georges : dégustations enchaînées, le car attend devant chaque domaine.' },
+      { nom: 'Abbaye de Fontenay', desc: 'L\'abbaye cistercienne classée UNESCO à 1h, souvent couplée avec Flavigny ou Alésia.' },
+      { nom: 'Vézelay', desc: 'La basilique et la colline éternelle à 1h30 : la sortie patrimoine et pèlerinage.' },
+      { nom: 'Châteauneuf-en-Auxois et le canal de Bourgogne', desc: 'Village perché et écluses à 40 minutes : la demi-journée nature des associations.' },
+      { nom: 'Le Creusot et le Morvan', desc: 'Parc naturel, lacs et villages à 1h15 : la journée verte des scolaires et des clubs de marche.' },
+    ],
+    trajets: [
+      'Dijon → Beaune et route des Grands Crus, journée avec car à disposition',
+      'Navette séminaire Dijon ↔ domaine viticole ou château',
+      'Transfert gare de Dijon-Ville ↔ Palais des Congrès, Zénith ou Parc des expositions',
+      'Voyage de groupe Dijon ↔ Lyon, Genève, Bâle ou Paris',
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar avec chauffeur à Dijon ?',
+        a: 'Une journée en autocar standard démarre à 700 € TTC, chauffeur, carburant et péages inclus, sans majoration régionale en Côte-d\'Or. Une journée vignobles avec le car à disposition se chiffre sur l\'amplitude : un départ à 9h et un retour à 18h entrent dans le tarif de base.',
+      },
+      {
+        q: 'Le car peut-il s\'arrêter dans les domaines viticoles ?',
+        a: 'Oui, c\'est le principe de la journée Grands Crus : le chauffeur dépose devant chaque domaine et attend. Prévenez les domaines du nombre de personnes et de l\'heure, et prévoyez de l\'eau et un déjeuner solide à bord.',
+      },
+      {
+        q: 'Organisez-vous des transferts vers la Suisse ?',
+        a: 'Oui, Dijon est à 2h de Bâle et 2h30 de Genève. Nos transporteurs ont les documents pour circuler en Suisse, y compris la vignette autoroutière. Pour un séjour, précisez si le car reste sur place ou revient entre l\'aller et le retour.',
+      },
+      {
+        q: 'Y a-t-il des cars disponibles pendant la Foire gastronomique ?',
+        a: 'Oui, mais la première quinzaine de novembre est chargée à Dijon : les groupes qui réservent en septembre ont le choix des véhicules, ceux qui s\'y prennent la semaine précédente prennent ce qui reste.',
+      },
+    ],
+  },
+  {
+    slug: 'nancy',
+    nom: 'Nancy',
+    metaTitle: 'Location d\'autocar à Nancy avec chauffeur — Devis 24h | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur à Nancy : Metz, Verdun, Strasbourg, Vosges, fêtes de Saint-Nicolas, transferts Lorraine. Transporteurs lorrains vérifiés, devis gratuit sous 24h.',
+    h1: 'Location d\'autocar avec chauffeur à Nancy',
+    sousTitre: 'Metz, Verdun, les Vosges, Strasbourg : la Lorraine et le Grand Est en groupe depuis Nancy, avec des transporteurs de Meurthe-et-Moselle vérifiés.',
+    intro: [
+      'Ville étudiante, ville d\'art nouveau et porte des Vosges, Nancy déplace des groupes toute l\'année : associations étudiantes vers Metz et Strasbourg, collèges vers Verdun et les champs de bataille, clubs vers Gérardmer et les lacs, comités d\'entreprise vers les marchés de Noël alsaciens. Nos transporteurs de Meurthe-et-Moselle couvrent tout le Grand Est.',
+      'La ville elle-même mobilise des cars pour les fêtes de Saint-Nicolas début décembre, les spectacles du Zénith, les congrès du Centre Prouvé et les matchs au stade Marcel-Picot. Du minibus au grand tourisme, nous comparons pour vous plusieurs devis de transporteurs lorrains.',
+    ],
+    sectionLocale: {
+      h2: 'Place Stanislas, gare et Zénith : où le car dépose à Nancy',
+      paragraphes: [
+        'La place Stanislas et la vieille ville sont piétonnes : les groupes sont déposés sur les boulevards qui ceinturent le centre, cours Léopold ou place Carnot, à trois minutes de la place. Le Centre Prouvé, accolé à la gare, a sa propre dépose cars ; le Zénith et le Parc des expositions ont des parkings autocars.',
+        'Pendant les fêtes de Saint-Nicolas, le premier week-end de décembre, le centre est fermé à la circulation pour le défilé : les cars déposent aux parkings relais et le groupe finit en tram. Les transporteurs lorrains connaissent le dispositif, mais le samedi du défilé se réserve en octobre.',
+      ],
+    },
+    h2Destinations: 'Lorraine, Vosges et Alsace : les sorties des groupes nancéiens',
+    h2Trajets: 'Trajets types à Nancy',
+    liensUtiles: [
+      'En décembre, le circuit des marchés de Noël a son mode d\'emploi : [sortie aux marchés de Noël en autocar](/blog/marches-de-noel-en-autocar), avec notre page [autocar à Strasbourg](/location-autocar/strasbourg) pour l\'arrivée. Pour une classe en voyage de mémoire à Verdun, voir [organiser une sortie scolaire](/blog/organiser-sortie-scolaire-autocar) ; pour un séjour dans les Vosges en hiver, [partir au ski en autocar avec un groupe](/blog/autocar-station-de-ski-groupe). Budget : [guide des tarifs autocar](/blog/prix-location-autocar).',
+    ],
+    destinations: [
+      { nom: 'Metz', desc: 'Centre Pompidou-Metz, cathédrale et quartier impérial à 45 minutes : la journée culture, avec dépose au pied du musée.' },
+      { nom: 'Verdun et les champs de bataille', desc: 'Mémorial, ossuaire de Douaumont et forts à 1h15 : le voyage de mémoire des classes de 3e et de 1re.' },
+      { nom: 'Strasbourg et Colmar', desc: 'Marchés de Noël, Parlement européen, route des vins à 1h30 : la grande journée de décembre et de printemps.' },
+      { nom: 'Gérardmer et les Vosges', desc: 'Lac, stations de ski et crêtes à 1h15 : la journée nature l\'été, la journée luge et ski l\'hiver.' },
+      { nom: 'Lunéville et la colline de Sion', desc: 'Château des Lumières et site de Barrès à 30 à 45 minutes : la demi-journée patrimoine des associations.' },
+      { nom: 'Luxembourg et Trèves', desc: 'À 1h30 et 2h : la sortie européenne des étudiants et des comités d\'entreprise.' },
+    ],
+    trajets: [
+      'Nancy → Verdun, voyage de mémoire scolaire à la journée',
+      'Navette Saint-Nicolas, Zénith ou stade Marcel-Picot, retour de nuit compris',
+      'Nancy → Strasbourg ou Colmar pour les marchés de Noël',
+      'Transfert gare de Nancy ↔ Centre Prouvé, campus ou site d\'entreprise',
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar avec chauffeur à Nancy ?',
+        a: 'Une journée en autocar standard démarre à 700 € TTC, un peu plus en Meurthe-et-Moselle où les transporteurs appliquent des frais d\'approche. Comparer plusieurs devis y est d\'autant plus utile : la différence entre deux transporteurs lorrains sur une journée Verdun dépasse souvent 10 %.',
+      },
+      {
+        q: 'Le car peut-il déposer place Stanislas ?',
+        a: 'Non, la place et la vieille ville sont piétonnes. La dépose se fait cours Léopold ou place Carnot, à trois minutes à pied, et le chauffeur revient au même endroit à l\'heure convenue.',
+      },
+      {
+        q: 'Peut-on faire Strasbourg et Colmar dans la même journée ?',
+        a: 'Oui depuis Nancy, à condition de partir tôt : 1h30 jusqu\'à Strasbourg, une heure sur place entre les deux villes, retour à 22h. L\'amplitude du chauffeur reste sous les 12 heures. En décembre, les samedis sont saturés sur l\'A4 : préférez un vendredi ou un dimanche.',
+      },
+      {
+        q: 'Faites-vous les voyages scolaires vers Verdun ?',
+        a: 'C\'est le trajet scolaire le plus demandé en Lorraine. Les sites ont des parkings autocars et des visites de groupe à réserver. Pour deux classes, un autocar grande capacité ou deux cars standards, selon l\'établissement.',
+      },
+    ],
+  },
+  {
+    slug: 'clermont-ferrand',
+    nom: 'Clermont-Ferrand',
+    metaTitle: 'Location d\'autocar à Clermont-Ferrand avec chauffeur — Devis 24h | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur à Clermont-Ferrand : Vulcania, puy de Dôme, Sancy, Le Pal, Vichy, matchs de l\'ASM. Transporteurs auvergnats vérifiés, devis gratuit sous 24h.',
+    h1: 'Location d\'autocar avec chauffeur à Clermont-Ferrand',
+    sousTitre: 'Vulcania, puy de Dôme, Sancy, Le Pal : les volcans et l\'Auvergne en groupe depuis Clermont-Ferrand, avec des transporteurs du Puy-de-Dôme vérifiés.',
+    intro: [
+      'Au pied des volcans, Clermont-Ferrand est la base des sorties nature et sciences : Vulcania à 30 minutes, le puy de Dôme et son train panoramique à 20, le massif du Sancy à une heure. Écoles, centres de loisirs, clubs de randonnée et comités d\'entreprise forment la demande de nos transporteurs du Puy-de-Dôme, avec un pic de mars à octobre.',
+      'La ville a aussi ses grands rendez-vous : les matchs de l\'ASM au stade Marcel-Michelin, les concerts du Zénith d\'Auvergne, les salons de la Grande Halle et les congrès du Polydome, sans oublier les déplacements des équipes de Michelin et des laboratoires. Du minibus au grand tourisme, nous comparons plusieurs devis pour vous.',
+    ],
+    sectionLocale: {
+      h2: 'Volcans, stade et Zénith : la logistique autocar à Clermont',
+      paragraphes: [
+        'Le centre ancien, autour de la cathédrale de lave noire et de la place de Jaude, est en grande partie piéton : les groupes descendent boulevard Desaix ou place Delille, à cinq minutes. Le stade Marcel-Michelin, le Zénith et la Grande Halle d\'Auvergne, en périphérie, ont des parkings autocars et des accès directs à l\'autoroute.',
+        'Pour le puy de Dôme, les cars ne montent pas : dépose au parking du col de Ceyssat ou à la gare du Panoramique des Dômes, le train à crémaillère fait le reste. À Vulcania, un parking autocars jouxte l\'entrée. Dans le Sancy, les routes du Mont-Dore et de Besse sont équipées pour les cars toute l\'année, chaînes à bord l\'hiver.',
+      ],
+    },
+    h2Destinations: 'Volcans, lacs et parcs : les journées de groupe en Auvergne',
+    h2Trajets: 'Trajets types à Clermont-Ferrand',
+    liensUtiles: [
+      'Pour un voyage de classe, notre guide [organiser une sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar) et notre page [autocar accessible PMR](/autocar-pmr) complètent celle-ci ; pour un déplacement de supporters ou d\'une équipe, voir [louer un bus pour un groupe sportif ou festif](/blog/aller-a-un-festival-en-bus). Au sud, nous couvrons aussi la [location d\'autocar à Saint-Étienne](/location-autocar/saint-etienne) et [Lyon](/location-autocar/lyon). Tarifs : [guide des prix de location d\'autocar](/blog/prix-location-autocar).',
+    ],
+    destinations: [
+      { nom: 'Vulcania', desc: 'Le parc des volcans à 30 minutes : la sortie scolaire et familiale de référence, d\'avril à novembre, parking cars devant l\'entrée.' },
+      { nom: 'Puy de Dôme', desc: 'Le train panoramique depuis le col de Ceyssat à 20 minutes : le sommet des classes de CM et des séminaires qui veulent prendre de la hauteur.' },
+      { nom: 'Massif du Sancy', desc: 'Mont-Dore, Besse, lac Pavin à 1h : randonnée l\'été, ski et luge l\'hiver, sur des routes équipées pour les cars.' },
+      { nom: 'Le Pal', desc: 'Parc d\'attractions et zoo à 1h30 : la journée de fin d\'année des écoles et des comités d\'entreprise.' },
+      { nom: 'Vichy', desc: 'La reine des villes d\'eaux à 45 minutes : opéra, parcs et thermes, la sortie des clubs de seniors.' },
+      { nom: 'Saint-Nectaire et les villages de lave', desc: 'Fromage, église romane et Murol à 45 minutes : la demi-journée terroir des associations.' },
+    ],
+    trajets: [
+      'Sortie scolaire Clermont-Ferrand → Vulcania ou puy de Dôme',
+      'Navette match de l\'ASM ou concert au Zénith d\'Auvergne',
+      'Journée Sancy ou Le Pal pour un centre de loisirs ou un comité d\'entreprise',
+      'Transfert gare de Clermont-Ferrand ou aéroport d\'Aulnat ↔ site d\'entreprise ou lieu de séminaire',
+    ],
+    faq: [
+      {
+        q: 'Combien coûte un autocar avec chauffeur à Clermont-Ferrand ?',
+        a: 'Une journée en autocar standard démarre à 700 € TTC, chauffeur, carburant et péages inclus, sans majoration régionale dans le Puy-de-Dôme. Une sortie Vulcania ou puy de Dôme tient dans une journée locale ; le Sancy et Le Pal se chiffrent sur une amplitude plus longue.',
+      },
+      {
+        q: 'Le car peut-il monter au sommet du puy de Dôme ?',
+        a: 'Non, le sommet est fermé aux véhicules. Le car dépose à la gare du Panoramique des Dômes, le train à crémaillère monte en quinze minutes. Les billets de groupe se réservent à l\'avance, surtout en juillet-août.',
+      },
+      {
+        q: 'Proposez-vous des navettes pour les matchs de l\'ASM ?',
+        a: 'Oui, les déplacements de supporters vers Marcel-Michelin et vers les stades adverses sont fréquents. Pour un déplacement à Toulouse, Bordeaux ou Paris, prévoyez un second chauffeur ou un retour le lendemain : l\'amplitude dépasse 12 heures.',
+      },
+      {
+        q: 'Les cars sont-ils équipés pour le Sancy en hiver ?',
+        a: 'Oui, les transporteurs auvergnats roulent toute l\'année vers le Mont-Dore et Super-Besse, avec chaînes ou pneus hiver à bord comme la loi l\'exige en montagne. Pour une classe de neige, demandez un car avec soutes à skis.',
+      },
+    ],
+  },
 ]
 
 export function getVille(slug: string): Ville | undefined {
