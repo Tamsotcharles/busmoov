@@ -395,6 +395,20 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
         </section>
       ))}
 
+      {/* Sections éditoriales propres à la ville (calendrier, conseils) */}
+      {ville.sections?.map((sec, k) => (
+        <section key={sec.h2} className={k % 2 === 0 ? 'py-12' : 'py-12 bg-gray-50'}>
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold text-center mb-6">{sec.h2}</h2>
+            <div className="space-y-4">
+              {sec.paragraphes.map((p, l) => (
+                <TextWithLinks key={l} text={p} className="text-gray-700 leading-relaxed" />
+              ))}
+            </div>
+          </div>
+        </section>
+      ))}
+
       {/* Sorties de groupe */}
       <section className="py-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -498,6 +498,7 @@ function villeEnrichieBody(ville) {
     (ville.commentLouer.chauffeur ? pMd(ville.commentLouer.chauffeur) : '') +
     bloc(ville.vehicules) +
     bloc(ville.minibus) +
+    (ville.sections || []).map((sec) => h2(sec.h2) + sec.paragraphes.map(pMd).join('')).join('') +
     h2(ville.visiter.h2) +
     pMd(ville.visiter.intro) +
     ville.visiter.lieux.map((l) => h3(l.nom) + pMd(`${l.trajet === 'en ville' ? 'En ville' : `À ${l.trajet} de ${ville.nom}`}. ${l.desc}`)).join('') +
@@ -677,6 +678,7 @@ const llmsFull = [
           v.commentLouer.conseil,
           ...(v.commentLouer.chauffeur ? [v.commentLouer.chauffeur] : []),
           ...[v.vehicules, v.minibus].flatMap((b) => [`### ${b.h2}`, b.paragraphes[0], ...(b.liste ? [b.liste.map((i) => `- ${i}`).join('\n')] : []), ...b.paragraphes.slice(1)]),
+          ...(v.sections || []).flatMap((sec) => [`### ${sec.h2}`, ...sec.paragraphes]),
           `### ${v.visiter.h2}`,
           v.visiter.intro,
           v.visiter.lieux.map((l) => `- ${l.nom} (${l.trajet}) : ${l.desc}`).join('\n'),

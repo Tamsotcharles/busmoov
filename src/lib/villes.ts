@@ -30,6 +30,8 @@ interface VilleBase {
   h1: string
   sousTitre: string
   intro: string[]
+  /** Sections éditoriales supplémentaires (calendrier, conseils) — liens markdown acceptés. */
+  sections?: VilleSection[]
   faq: VilleFaq[]
 }
 
@@ -49,8 +51,6 @@ export interface VilleClassique extends VilleBase {
   liensUtiles: string[]
   destinations: VilleDestination[]
   trajets: string[]
-  /** Sections éditoriales supplémentaires (calendrier, conseils) — liens markdown acceptés. */
-  sections?: VilleSection[]
   /** Bloc prix de départ propre à la ville (majoration régionale intégrée). */
   prix?: VillePrix
 }
@@ -169,6 +169,37 @@ export const villes: Ville[] = [
       "Tous nos services parisiens et franciliens en un coup d'œil : la [location de bus à Paris](/location-bus-paris) pour les soirées, tournages et navettes urbaines, les transferts groupes vers [l'aéroport CDG](/navette-aeroport-cdg) et [Orly](/navette-aeroport-orly), l'[autocar pour Disneyland Paris](/autocar-disneyland-paris), la [visite de Versailles en autocar](/location-autocar/versailles), les [événements au Stade de France](/location-autocar/saint-denis) — et la [location d'autocar en Île-de-France](/location-autocar-ile-de-france) pour les départs de petite et grande couronne.",
       "Votre événement se joue hors d'Île-de-France ? Busmoov organise aussi la [location d'autocar à Lille](/location-autocar/lille) pour les groupes du Nord, et les navettes de la semaine de course avec la [location d'autocar au Mans](/location-autocar/le-mans). Avant de valider votre budget, notre guide du [prix de la location d'un autocar](/blog/prix-location-autocar) détaille ce qui fait varier un devis.",
     ],
+    sections: [
+      {
+        h2: 'L\'année des groupes à Paris',
+        paragraphes: [
+          'Paris ne connaît pas de basse saison, mais des pics. De février à mars, le Salon de l\'agriculture et les salons de la Porte de Versailles font venir des groupes de toute la France ; d\'avril à juin, les voyages scolaires de province convergent vers les musées, Versailles et Disneyland, et Roland-Garros déplace des entreprises par cars entiers. Juin et septembre sont les mois des séminaires et des congrès à Villepinte et au Palais des Congrès.',
+          'L\'automne enchaîne les grands salons, la Paris Games Week et les concerts de la Défense Arena et du Stade de France, avec des navettes de soirée depuis toute l\'Île-de-France. Décembre est le mois des arbres de Noël d\'entreprise et des sorties aux vitrines des grands magasins et à Disneyland. Tout au long de l\'année, les matchs du PSG et du Stade Français mobilisent des cars de supporters. Les véhicules franciliens manquent surtout les samedis de mai et de juin et les deux premières semaines de décembre.',
+        ],
+      },
+      {
+        h2: 'Transfert aéroport pour un groupe : CDG et Orly depuis Paris',
+        paragraphes: [
+          'C\'est la demande numéro un à Paris. À Roissy, les cars déposent et reprennent aux zones autocars de chaque terminal, et le chauffeur suit le numéro de vol pour caler l\'attente ; comptez 45 minutes à une heure de route depuis le centre hors pointe, le double un vendredi soir. À Orly, l\'accès est plus court depuis le sud de Paris, avec une zone cars sous les terminaux. Dans les deux cas, précisez le terminal exact et le nombre de bagages : un groupe de 50 personnes avec valises de soute remplit un car standard et sa soute, pas un minibus et demi.',
+          'Un transfert aller simple démarre à 400 € TTC en autocar standard, chauffeur et péages inclus, moins en minibus pour un petit groupe. Nos pages [navette aéroport Roissy CDG](/navette-aeroport-cdg) et [navette aéroport Orly](/navette-aeroport-orly) détaillent terminaux et horaires, et notre guide [organiser un transfert aéroport pour un groupe](/blog/transfert-aeroport-groupe-mode-emploi) donne la checklist à envoyer au transporteur. Pour le reste de la région, voir la [location d\'autocar en Île-de-France](/location-autocar-ile-de-france).',
+        ],
+      },
+    ],
+    prix: {
+      h2: 'Prix de départ d\'un autocar avec chauffeur à Paris',
+      intro: 'Quatre facteurs font le prix d\'un car au départ de Paris : la distance, l\'amplitude horaire du chauffeur, la taille du véhicule et la saison. Chauffeur, carburant et péages sont toujours inclus dans nos devis. Voici les ordres de grandeur 2026, hors haute saison.',
+      tableau: {
+        caption: 'Prix de départ indicatifs 2026 au départ de Paris, TTC, chauffeur, carburant et péages inclus',
+        headers: ['Prestation', 'Minibus 8-20 places', 'Bus standard 21-59 places', 'Grande capacité 60-90 places'],
+        rows: [
+          ['Transfert aller simple local (gare, aéroport, site)', 'à partir de 350 €', 'à partir de 400 €', 'à partir de 500 €'],
+          ['Journée locale, aller-retour', 'à partir de 600 €', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Journée régionale, aller-retour', 'à partir de 900 €', 'à partir de 1 000 €', 'à partir de 1 200 €'],
+          ['Week-end 2 jours', 'à partir de 1 600 €', 'à partir de 1 800 €', 'Sur devis'],
+        ],
+      },
+      apres: 'Le département ne porte pas de majoration régionale : ces prix de départ sont ceux de la grille nationale. Sur un bus de 50 personnes, la journée locale revient à une quinzaine d\'euros par passager. Les samedis de mai à septembre et les vacances scolaires font monter les prix et raréfient les véhicules : demandez vos devis six à huit semaines avant, et comparez, c\'est tout l\'intérêt de recevoir plusieurs propositions.',
+    },
     faq: [
       {
         q: 'Combien coûte la location d\'un autocar avec chauffeur à Paris ?',
@@ -258,6 +289,22 @@ export const villes: Ville[] = [
         "Deux usages reviennent souvent. L'arrivée en TGV à Part-Dieu, puis un transfert direct vers un séminaire à la Cité Internationale (moins de 10 minutes) ou à Eurexpo. Et l'arrivée en avion à Saint-Exupéry, puis la dépose à l'hôtel : notre service de [transfert aéroport](/services/transfert-aeroport) organise aussi le retour.",
       ],
     },
+    sections: [
+      {
+        h2: 'L\'année des groupes à Lyon',
+        paragraphes: [
+          'Le calendrier lyonnais est rythmé par la montagne et par les grands rendez-vous de la ville. De décembre à mars, les transferts vers les stations depuis Saint-Exupéry, Part-Dieu et les entreprises de la région occupent les transporteurs tous les week-ends ; notre guide [partir au ski en autocar avec un groupe](/blog/autocar-station-de-ski-groupe) en détaille la logistique. Autour du 8 décembre, la Fête des Lumières attire des groupes de toute la France, mais la presqu\'île est fermée aux cars : dépose aux parkings relais et fin de trajet en métro.',
+          'Le printemps et l\'été sont ceux des salons à Eurexpo, des Nuits de Fourvière en juin et juillet, de Jazz à Vienne en juillet et des sorties vers Annecy et le Beaujolais. En novembre, le Beaujolais nouveau fait les soirées de comités d\'entreprise dans les caves. Toute la saison, les matchs de l\'OL au Groupama Stadium et du LOU en rugby mobilisent des navettes de supporters, avec dépose aux parkings cars du stade à Décines.',
+        ],
+      },
+      {
+        h2: 'Le conseil du chauffeur : Part-Dieu, Saint-Exupéry, Eurexpo',
+        paragraphes: [
+          'Lyon est une ville où le lieu de dépose fait la différence. À Part-Dieu, les cars prennent les groupes côté Villette, pas côté Vivier-Merle, où l\'arrêt est impossible : donnez le bon côté au groupe. À Saint-Exupéry, la zone autocars se trouve au niveau des arrivées, à quelques minutes des terminaux, et le chauffeur suit le numéro de vol. À Eurexpo, les parkings cars sont vastes mais éloignés des halls : prévoyez dix minutes de marche. Pour un événement dans la presqu\'île ou le Vieux Lyon, la dépose se fait sur les quais, et la zone à faibles émissions impose des véhicules Crit\'Air récents, ce que nos transporteurs garantissent.',
+          'Pour une sortie vers Genève ou la Suisse, le transporteur se charge de la vignette et des documents ; pour un festival ou un concert avec retour de nuit, notre guide [aller à un festival en bus](/blog/aller-a-un-festival-en-bus) explique comment gérer l\'amplitude du chauffeur. Lyon est aussi notre base pour Saint-Étienne et Grenoble.',
+        ],
+      },
+    ],
     visiter: {
       h2: 'Lyon et ses alentours en autocar : que voir en groupe ?',
       intro: "Lyon compte 519 127 habitants ([Insee, population de référence 2023](https://www.insee.fr/fr/statistiques/8643952?geo=COM-69123)), et sa basilique de Fourvière accueille à elle seule plus de 2,5 millions de pèlerins et visiteurs par an, selon le [sanctuaire de Fourvière](https://www.fourviere.org/fr/vie-du-site-notre-dame-de-fourviere/notre-dame-de-fourviere/la-basilique/) (consulté en octobre 2026). De quoi remplir une journée de groupe sans quitter la ville, avant de rayonner vers les Alpes, le Beaujolais ou l'Ain.",
@@ -333,6 +380,37 @@ export const villes: Ville[] = [
       "Le long de l'arc méditerranéen, nous assurons aussi la [location d'autocar à Montpellier](/location-autocar/montpellier) ; vers le nord, la [location d'autocar avec chauffeur à Lyon](/location-autocar/lyon) prend le relais. Pour un groupe qui atterrit à Marignane, tout est détaillé sur notre page de [transfert aéroport en autocar](/services/transfert-aeroport).",
       "Combien prévoir ? Notre guide [combien coûte un autocar avec chauffeur](/blog/prix-location-autocar) détaille les prix par distance et par taille de véhicule, calanques comprises. Puis décrivez votre trajet dans notre [formulaire de devis autocar](/devis-autocar) : jusqu'à 3 offres de transporteurs provençaux sous 24h.",
     ],
+    sections: [
+      {
+        h2: 'L\'année des groupes à Marseille',
+        paragraphes: [
+          'À Marseille, la saison des groupes commence avec les croisières : d\'avril à octobre, les transferts entre l\'aéroport de Marignane, la gare Saint-Charles et les terminaux du port occupent les transporteurs chaque jour d\'escale. L\'été, les calanques et Cassis attirent les comités d\'entreprise et les colonies, avec une contrainte : l\'accès aux massifs est réglementé de juin à septembre les jours de risque d\'incendie, et le chauffeur vérifie la carte la veille. Les [journées à la mer](/blog/journee-mer-autocar) des écoles et des centres de loisirs remplissent mai, juin et septembre.',
+          'Septembre est le mois de la Foire internationale de Marseille au Parc Chanot, octobre celui de la Fiesta des Suds, décembre celui des pastorales, des crèches et des marchés de Noël de Provence, Aubagne et Aix en tête. Toute la saison, les matchs de l\'OM au Vélodrome mobilisent des cars de supporters de toute la région, et les mariages dans les bastides des Alpilles et du Luberon font les samedis de mai à septembre, voir notre guide [autocar pour un mariage](/blog/location-autocar-mariage).',
+        ],
+      },
+      {
+        h2: 'Vélodrome, Vieux-Port, Saint-Charles : où le car dépose à Marseille',
+        paragraphes: [
+          'Le Vieux-Port est en grande partie piéton : les groupes descendent sur le quai de Rive-Neuve ou cours Jean-Ballard et finissent à pied, à deux minutes. La gare Saint-Charles a une dépose cars en contrebas, square Narvik, plus pratique que le parvis. Au Vélodrome, les cars stationnent sur les parkings autocars du boulevard Michelet, et la dépose se fait avant la fermeture des accès, deux heures avant le coup d\'envoi les soirs de grand match. Le Parc Chanot et le Palais du Pharo ont leurs propres zones cars.',
+          'À l\'aéroport de Marignane, la zone autocars se trouve devant les terminaux, à 25 minutes du centre hors pointe, le double un vendredi d\'été sur l\'A7. Pour les calanques, le car ne descend ni à Sormiou ni à Morgiou : il dépose à Cassis, au port ou au parking des Gorguettes, ou à Luminy pour les marcheurs. Pour la Côte d\'Azur et les festivals de l\'été, nous couvrons aussi [Nice](/location-autocar/nice) et [Montpellier](/location-autocar/montpellier).',
+        ],
+      },
+    ],
+    prix: {
+      h2: 'Prix de départ d\'un autocar avec chauffeur à Marseille',
+      intro: 'Quatre facteurs font le prix d\'un car au départ de Marseille : la distance, l\'amplitude horaire du chauffeur, la taille du véhicule et la saison. Chauffeur, carburant et péages sont toujours inclus dans nos devis. Voici les ordres de grandeur 2026, hors haute saison.',
+      tableau: {
+        caption: 'Prix de départ indicatifs 2026 au départ de Marseille, TTC, chauffeur, carburant et péages inclus',
+        headers: ['Prestation', 'Minibus 8-20 places', 'Bus standard 21-59 places', 'Grande capacité 60-90 places'],
+        rows: [
+          ['Transfert aller simple local (gare, aéroport, site)', 'à partir de 350 €', 'à partir de 400 €', 'à partir de 500 €'],
+          ['Journée locale, aller-retour', 'à partir de 600 €', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Journée régionale, aller-retour', 'à partir de 900 €', 'à partir de 1 000 €', 'à partir de 1 200 €'],
+          ['Week-end 2 jours', 'à partir de 1 600 €', 'à partir de 1 800 €', 'Sur devis'],
+        ],
+      },
+      apres: 'Le département ne porte pas de majoration régionale : ces prix de départ sont ceux de la grille nationale. Sur un bus de 50 personnes, la journée locale revient à une quinzaine d\'euros par passager. Les samedis de mai à septembre et les vacances scolaires font monter les prix et raréfient les véhicules : demandez vos devis six à huit semaines avant, et comparez, c\'est tout l\'intérêt de recevoir plusieurs propositions.',
+    },
     faq: [
       {
         q: 'Combien coûte la location d\'un autocar à Marseille ?',
@@ -390,6 +468,37 @@ export const villes: Ville[] = [
       "Dans le grand Sud-Ouest, Busmoov couvre également la [location d'autocar à Bordeaux](/location-autocar/bordeaux) et, sur l'axe méditerranéen, la [location de car à Montpellier](/location-autocar/montpellier). Les établissements scolaires trouveront les règles d'encadrement dans notre guide de la [sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar).",
       "Pour chiffrer une journée vers Carcassonne, Albi ou les Pyrénées, consultez les [prix de location d'un autocar en 2026](/blog/prix-location-autocar) avant de demander votre [devis de bus](/devis-autocar). Le format 50 places, le plus courant pour les groupes toulousains, a sa [page tarifs dédiée](/location-bus-50-places).",
     ],
+    sections: [
+      {
+        h2: 'L\'année des groupes à Toulouse',
+        paragraphes: [
+          'Toute l\'année, Airbus et la Cité de l\'Espace reçoivent des scolaires et des séminaires venus de toute la France, souvent depuis la gare Matabiau ou l\'aéroport de Blagnac. De décembre à mars, les cars toulousains montent vers les stations des Pyrénées, Saint-Lary, Peyragudes, Ax 3 Domaines, et vers Andorre pour le ski et le shopping ; de mars à octobre, ils descendent vers Lourdes avec les pèlerinages diocésains, voir notre guide [pèlerinage à Lourdes en autocar](/blog/pelerinage-lourdes-en-autocar).',
+          'Juin est le mois de Rio Loco sur la Prairie des Filtres et des sorties de fin d\'année vers Carcassonne et la Méditerranée ; septembre celui de Piano aux Jacobins et de la rentrée des congrès au MEETT ; décembre celui du marché de Noël du Capitole. Et de septembre à juin, le Stade Toulousain à Ernest-Wallon et le TFC au Stadium font le plein de navettes de supporters, avec des déplacements à Bordeaux, Montpellier ou Paris pour les grands matchs.',
+        ],
+      },
+      {
+        h2: 'Déplacement de supporters et sortie de club : le format toulousain',
+        paragraphes: [
+          'Un déplacement de supporters ou d\'un club sportif se cale sur l\'heure du match, pas sur l\'horaire du bureau. Vers Bordeaux ou Montpellier, à deux heures et demie, l\'aller-retour tient dans la journée avec un chauffeur, à condition que le match ne finisse pas après 23h. Vers Paris, La Rochelle ou Clermont, la journée dépasse 12 heures d\'amplitude : il faut un second chauffeur, un retour le lendemain ou un [autocar couchette](/autocar-couchette) pour un match en soirée.',
+          'Les stades ont des parkings autocars, souvent à distance de l\'entrée et avec une heure limite d\'accès les soirs de grand match : le chauffeur connaît les dispositifs, donnez-lui l\'heure réelle de fin et un numéro de téléphone du responsable. L\'alcool à bord dépend du transporteur, les débordements sont facturés : notre guide [aller à un festival en bus](/blog/aller-a-un-festival-en-bus) reprend les règles qui valent aussi pour les matchs. Pour le ski avec un club, voir [partir au ski en autocar avec un groupe](/blog/autocar-station-de-ski-groupe).',
+        ],
+      },
+    ],
+    prix: {
+      h2: 'Prix de départ d\'un autocar avec chauffeur à Toulouse',
+      intro: 'Quatre facteurs font le prix d\'un car au départ de Toulouse : la distance, l\'amplitude horaire du chauffeur, la taille du véhicule et la saison. Chauffeur, carburant et péages sont toujours inclus dans nos devis. Voici les ordres de grandeur 2026, hors haute saison.',
+      tableau: {
+        caption: 'Prix de départ indicatifs 2026 au départ de Toulouse, TTC, chauffeur, carburant et péages inclus',
+        headers: ['Prestation', 'Minibus 8-20 places', 'Bus standard 21-59 places', 'Grande capacité 60-90 places'],
+        rows: [
+          ['Transfert aller simple local (gare, aéroport, site)', 'à partir de 350 €', 'à partir de 400 €', 'à partir de 500 €'],
+          ['Journée locale, aller-retour', 'à partir de 600 €', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Journée régionale, aller-retour', 'à partir de 900 €', 'à partir de 1 000 €', 'à partir de 1 200 €'],
+          ['Week-end 2 jours', 'à partir de 1 600 €', 'à partir de 1 800 €', 'Sur devis'],
+        ],
+      },
+      apres: 'Le département ne porte pas de majoration régionale : ces prix de départ sont ceux de la grille nationale. Sur un bus de 50 personnes, la journée locale revient à une quinzaine d\'euros par passager. Les samedis de mai à septembre et les vacances scolaires font monter les prix et raréfient les véhicules : demandez vos devis six à huit semaines avant, et comparez, c\'est tout l\'intérêt de recevoir plusieurs propositions.',
+    },
     faq: [
       {
         q: 'Combien coûte un autocar avec chauffeur à Toulouse ?',
@@ -447,6 +556,37 @@ export const villes: Ville[] = [
       "Pour prolonger vers l'océan, voyez la [location d'autocar à Arcachon](/location-autocar/arcachon) ; plus au sud, la [location d'autocar à Biarritz](/location-autocar/biarritz) couvre tout le Pays basque. Un doute sur le vocabulaire ? Notre article [bus, car ou autocar : quelles différences ?](/blog/difference-bus-autocar-minibus) met tout le monde d'accord.",
       "Journée dans le vignoble, transfert Mérignac ou week-end au Bassin : notre [guide des prix de location d'autocar](/blog/prix-location-autocar) vous donne l'ordre de grandeur de chaque formule. Pour un chiffrage précis au départ de Bordeaux, demandez votre [devis autocar gratuit](/devis-autocar).",
     ],
+    sections: [
+      {
+        h2: 'L\'année des groupes à Bordeaux',
+        paragraphes: [
+          'Le calendrier bordelais suit la vigne. De mai à octobre, les séminaires et les circuits œnologiques dans le Médoc et à Saint-Émilion occupent les transporteurs girondins en semaine ; en juin des années paires, Bordeaux Fête le Vin remplit les quais et les hôtels ; en septembre et octobre, les vendanges font les sorties de comités d\'entreprise et de groupes étrangers. L\'été, le [bassin d\'Arcachon](/location-autocar/arcachon) et la dune du Pilat sont la journée de référence des colonies, des écoles en juin et des associations.',
+          'Toute la saison, l\'UBB à Chaban-Delmas et les Girondins au Matmut Atlantique mobilisent des navettes de supporters ; en novembre, le salon Bordeaux SO Good réunit les gourmands ; en décembre, le marché de Noël des allées de Tourny et les sorties au [Pays basque](/location-autocar/biarritz) font les week-ends. Les samedis de mai à septembre sont ceux des mariages dans les châteaux viticoles, où le car des invités se réserve plusieurs mois à l\'avance.',
+        ],
+      },
+      {
+        h2: 'Séminaire dans les châteaux : le montage type depuis Bordeaux',
+        paragraphes: [
+          'Le format le plus demandé à Bordeaux est la journée ou la soirée avec car à disposition : prise en charge à la gare Saint-Jean ou à l\'hôtel, route des châteaux du Médoc ou de Saint-Émilion, deux ou trois domaines avec visite et dégustation, déjeuner ou dîner au château, retour à Bordeaux. Le prix se calcule sur l\'amplitude du chauffeur : une journée de 9h à 18h entre dans la grille de base, un retour après le dîner à 23h passe sur l\'amplitude supérieure. Saint-Émilion est à 45 minutes, Pauillac à 1h : ne mélangez pas les deux rives dans la même journée.',
+          'Pour deux jours, le car peut rester avec le groupe, chauffeur logé sur place, ou revenir le lendemain : la seconde option coûte moins cher si le groupe dort au château. Notre guide [déplacement d\'entreprise en autocar](/blog/autocar-deplacement-entreprise) compare les deux montages ; pour une sortie entre amis ou un anniversaire dans les vignes, voir [louer un bus pour une fête privée](/blog/louer-un-bus-pour-un-anniversaire). La gare Saint-Jean a une dépose cars côté Belcier, et l\'aéroport de Mérignac une zone autocars devant le hall B.',
+        ],
+      },
+    ],
+    prix: {
+      h2: 'Prix de départ d\'un autocar avec chauffeur à Bordeaux',
+      intro: 'Quatre facteurs font le prix d\'un car au départ de Bordeaux : la distance, l\'amplitude horaire du chauffeur, la taille du véhicule et la saison. Chauffeur, carburant et péages sont toujours inclus dans nos devis. Voici les ordres de grandeur 2026, hors haute saison.',
+      tableau: {
+        caption: 'Prix de départ indicatifs 2026 au départ de Bordeaux, TTC, chauffeur, carburant et péages inclus',
+        headers: ['Prestation', 'Minibus 8-20 places', 'Bus standard 21-59 places', 'Grande capacité 60-90 places'],
+        rows: [
+          ['Transfert aller simple local (gare, aéroport, site)', 'à partir de 350 €', 'à partir de 400 €', 'à partir de 500 €'],
+          ['Journée locale, aller-retour', 'à partir de 600 €', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Journée régionale, aller-retour', 'à partir de 900 €', 'à partir de 1 000 €', 'à partir de 1 200 €'],
+          ['Week-end 2 jours', 'à partir de 1 600 €', 'à partir de 1 800 €', 'Sur devis'],
+        ],
+      },
+      apres: 'Le département ne porte pas de majoration régionale : ces prix de départ sont ceux de la grille nationale. Sur un bus de 50 personnes, la journée locale revient à une quinzaine d\'euros par passager. Les samedis de mai à septembre et les vacances scolaires font monter les prix et raréfient les véhicules : demandez vos devis six à huit semaines avant, et comparez, c\'est tout l\'intérêt de recevoir plusieurs propositions.',
+    },
     faq: [
       {
         q: 'Combien coûte la location d\'un autocar à Bordeaux ?',
