@@ -856,7 +856,7 @@ export const articles: BlogArticle[] = [
     datePublication: '2026-10-16',
     extrait: 'Oui, ils existent et sont autorisés en France, mais restent rares. Avantages, réglementation, cas des enfants, usages en Europe et alternative pour voyager de nuit.',
     blocks: [
-      { type: 'p', text: 'Oui, les autocars avec couchettes existent, et la réglementation française les autorise dans des véhicules spécialement aménagés. Ils restent pourtant rares : on les loue surtout pour des tournées musicales, des équipes sportives ou des groupes d\'adultes sur de très longues distances. Les enfants n\'y voyagent pas allongés, et pour la plupart des trajets de nuit, la solution courante reste l\'autocar grand tourisme avec deux chauffeurs.' },
+      { type: 'p', text: 'Oui, les autocars avec couchettes existent, et la réglementation française les autorise dans des véhicules spécialement aménagés. Ils restent pourtant rares : la [location d\'autocar couchette](/autocar-couchette) concerne surtout des tournées musicales, des équipes sportives ou des groupes d\'adultes sur de très longues distances. Les enfants n\'y voyagent pas allongés, et pour la plupart des trajets de nuit, la solution courante reste l\'autocar grand tourisme avec deux chauffeurs.' },
       { type: 'h2', text: 'Qu\'est-ce qu\'un autocar couchette ?' },
       { type: 'p', text: 'Un autocar couchette, aussi appelé bus-couchette ou sleeper bus, remplace les rangées de sièges par de vraies couchettes, souvent superposées sur deux niveaux et fermées par des rideaux. Selon les modèles, il embarque aussi un petit salon, un coin cuisine et des toilettes. Il loge beaucoup moins de passagers qu\'un autocar standard (environ 50 places assises) : les versions de tournée tournent autour d\'une quinzaine de couchettes, avec un espace de vie à l\'arrière.' },
       { type: 'p', text: 'Un autocar aux sièges très inclinables n\'en est pas un : le passager y reste assis. La couchette est un lit, ce qui change le confort comme le cadre réglementaire.' },
@@ -901,14 +901,14 @@ export const articles: BlogArticle[] = [
         'En Asie, où ils font partie des transports courants : au Vietnam, c\'est l\'un des moyens les plus utilisés pour traverser le pays de nuit.',
         'En Europe, sur des lignes régulières récentes : la start-up suisse Twiliner a lancé fin 2025 des bus de nuit de 21 places dont les sièges se transforment en lits à plat, entre la Suisse, la Belgique, le Luxembourg, les Pays-Bas et l\'Espagne (presse suisse).',
       ] },
-      { type: 'p', text: 'En France, le couchette se loue avec chauffeur auprès de transporteurs spécialisés, pour un groupe et un itinéraire donnés. Nous détaillons ce service sur notre page [location d\'autocar couchette](/autocar-couchette), avec les alternatives quand aucun véhicule n\'est libre.' },
+      { type: 'p', text: 'En France, le couchette se loue avec chauffeur auprès de transporteurs spécialisés, pour un groupe et un itinéraire donnés. Pour [louer un autocar couchette avec chauffeur](/autocar-couchette), nous détaillons le service et les alternatives quand aucun véhicule n\'est libre.' },
       { type: 'h2', text: 'Les règles de conduite d\'un trajet de nuit' },
       { type: 'p', text: 'Couchette ou non, un autocar de nuit reste soumis aux temps de conduite européens : chaque conducteur fait une pause de 45 minutes après 4 h 30 de conduite et ne dépasse pas, en principe, 9 heures de conduite par jour. Avec un seul chauffeur, une longue distance de nuit est donc impossible d\'une traite. Avec un double équipage, les chauffeurs se relaient et le véhicule ne s\'arrête que pour les pauses : c\'est le fonctionnement standard des couchettes comme des nuits en grand tourisme.' },
       { type: 'h2', text: 'FAQ' },
       { type: 'h3', text: 'Quels sont les prix des bus couchettes ?' },
       { type: 'p', text: 'Il n\'existe pas de tarif standard : la location avec chauffeur se fait sur devis, selon l\'itinéraire, le nombre de nuits et les aménagements demandés. Le véhicule emportant moins de passagers qu\'un autocar classique, le prix par personne est plus élevé.' },
       { type: 'h3', text: 'Comment réserver un bus couchette ?' },
-      { type: 'p', text: 'Le plus tôt possible, surtout entre mai et septembre. Préparez vos dates, votre itinéraire, l\'effectif et le volume de bagages ou de matériel, puis demandez des devis à des transporteurs spécialisés, avec une solution de repli en grand tourisme de nuit.' },
+      { type: 'p', text: 'Le plus tôt possible, surtout entre mai et septembre. Préparez vos dates, votre itinéraire, l\'effectif et le volume de bagages ou de matériel, puis faites votre [demande de devis d\'autocar couchette](/autocar-couchette) : nous consultons les transporteurs spécialisés et prévoyons une solution de repli en grand tourisme de nuit.' },
       { type: 'h3', text: 'Comment se passe un voyage en bus couchette ?' },
       { type: 'p', text: 'Le groupe embarque en soirée, range ses bagages en soute et garde l\'essentiel près de sa couchette. Chacun tire son rideau et dort pendant que les chauffeurs se relaient ; les arrêts se limitent aux pauses réglementaires, et l\'arrivée est prévue le matin.' },
     ],
@@ -917,4 +917,38 @@ export const articles: BlogArticle[] = [
 
 export function getArticle(slug: string): BlogArticle | undefined {
   return articles.find((a) => a.slug === slug)
+}
+
+const MOTS_VIDES = new Set([
+  'avec', 'pour', 'dans', 'sans', 'votre', 'vous', 'nous', 'leur', 'leurs', 'quel', 'quelle', 'quels', 'comment', 'combien',
+  'tout', 'tous', 'plus', 'moins', 'entre', 'chez', 'sont', 'faut', 'bien', 'cest', 'quil', 'groupe', 'groupes', 'busmoov',
+  'autocar', 'autocars', 'location', 'louer', 'chauffeur', 'guide', 'conseils', 'prix', 'tarifs', '2026',
+])
+
+function motsCles(a: BlogArticle): Set<string> {
+  const texte = `${a.titre} ${a.metaDescription} ${a.slug.replace(/-/g, ' ')}`
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9 ]/g, ' ')
+  return new Set(texte.split(/\s+/).filter((m) => m.length > 3 && !MOTS_VIDES.has(m)))
+}
+
+/**
+ * Les articles les plus proches d'un article (bloc « À lire aussi ») :
+ * mots communs du titre, de la meta description et du slug, pondérés par
+ * leur rareté sur le blog (un mot présent partout ne rapproche rien), puis
+ * les plus récents à égalité.
+ */
+export function articlesSimilaires(article: BlogArticle, nombre = 3): BlogArticle[] {
+  const frequence = new Map<string, number>()
+  for (const a of articles) for (const m of motsCles(a)) frequence.set(m, (frequence.get(m) ?? 0) + 1)
+  const poids = (m: string) => Math.log(articles.length / (frequence.get(m) ?? 1))
+  const ref = motsCles(article)
+  return articles
+    .filter((a) => a.slug !== article.slug)
+    .map((a) => ({ a, score: [...motsCles(a)].filter((m) => ref.has(m)).reduce((t, m) => t + poids(m), 0) }))
+    .sort((x, y) => y.score - x.score || y.a.datePublication.localeCompare(x.a.datePublication))
+    .slice(0, nombre)
+    .map(({ a }) => a)
 }

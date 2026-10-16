@@ -264,8 +264,8 @@
     "lastmod": "2026-10-15"
   },
   "https://www.busmoov.com/fr/location-autocar/lyon": {
-    "hash": "4ab764f7613d",
-    "lastmod": "2026-10-15"
+    "hash": "cd6545a40052",
+    "lastmod": "2026-10-16"
   },
   "https://www.busmoov.com/fr/location-autocar/marseille": {
     "hash": "6c625e4efe32",
@@ -356,7 +356,11 @@
     "lastmod": "2026-10-15"
   },
   "https://www.busmoov.com/fr/location-autocar/angers": {
-    "hash": "3001f34a3405",
+    "hash": "755262a5e273",
+    "lastmod": "2026-10-16"
+  },
+  "https://www.busmoov.com/fr/location-autocar/annecy": {
+    "hash": "055b522d3021",
     "lastmod": "2026-10-16"
   },
   "https://www.busmoov.com/fr/blog": {
@@ -448,7 +452,7 @@
     "lastmod": "2026-10-15"
   },
   "https://www.busmoov.com/fr/blog/autocar-avec-couchettes": {
-    "hash": "6fed2d038b61",
+    "hash": "d888513261f6",
     "lastmod": "2026-10-16"
   },
   "https://www.busmoov.com/zh": {
