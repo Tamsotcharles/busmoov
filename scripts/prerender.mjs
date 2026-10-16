@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 // on importe les données directement depuis src/.
 import { seoConfig, seoLocalizedPaths, locationBusMeta } from '../src/lib/seo-data.ts'
 import { villes } from '../src/lib/villes.ts'
-import { articles } from '../src/lib/blog.ts'
+import { articles, articlesSimilaires } from '../src/lib/blog.ts'
 import { landings } from '../src/lib/landings.ts'
 import { maillageServices } from '../src/lib/maillage.ts'
 
@@ -592,7 +592,9 @@ for (const article of articles) {
         case 'table': return tableau(b)
         default: return ''
       }
-    }).join('')
+    }).join('') +
+    h2('À lire aussi') +
+    `<ul class="list-disc pl-6 mb-3">${articlesSimilaires(article).map((a) => `<li><a class="text-magenta underline" href="/fr/blog/${a.slug}">${esc(a.titre)}</a></li>`).join('')}</ul>`
   )
   renderPage({
     lang: 'fr',

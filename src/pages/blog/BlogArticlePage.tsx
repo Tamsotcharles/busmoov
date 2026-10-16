@@ -5,7 +5,7 @@ import { Footer } from '@/components/layout/Footer'
 import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
 import { SeoFr } from '@/components/seo/Seo'
 import { useLocalizedPath } from '@/components/i18n'
-import { getArticle, articles, type BlogBlock } from '@/lib/blog'
+import { getArticle, articlesSimilaires, type BlogBlock } from '@/lib/blog'
 import { getSiteBaseUrl } from '@/lib/utils'
 import { ArrowLeft, Calendar, Info } from 'lucide-react'
 import { TextWithLinks } from '@/components/ui/TextWithLinks'
@@ -66,7 +66,7 @@ export function BlogArticlePage() {
     publisher: { '@type': 'Organization', name: 'Busmoov', url: getSiteBaseUrl() },
   }
 
-  const autresArticles = articles.filter((a) => a.slug !== article.slug)
+  const autresArticles = articlesSimilaires(article)
 
   return (
     <div className="min-h-screen bg-gray-50">

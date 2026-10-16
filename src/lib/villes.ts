@@ -344,7 +344,7 @@ export const villes: Ville[] = [
       ],
       note: 'Prix de départ indicatifs, octobre 2026.',
     },
-    proximite: ['grenoble', 'saint-etienne'],
+    proximite: ['grenoble', 'saint-etienne', 'annecy'],
   },
   {
     slug: 'marseille',
@@ -2290,12 +2290,12 @@ export const villes: Ville[] = [
         caption: "Prix de départ 2026 au départ d'Angers, TTC, chauffeur, carburant et péages inclus",
         headers: ['Trajet', 'Durée', 'Minibus 8 à 20 places', 'Autocar 21 à 59 places'],
         rows: [
-          ['Gare Saint-Laud vers Terra Botanica, aller simple', '15 min', 'à partir de 350 €', 'à partir de 400 €'],
-          ['Journée en ville, mise à disposition', 'sur place', 'à partir de 600 €', 'à partir de 700 €'],
-          ['Saumur, aller-retour à la journée', '1 h', 'à partir de 600 €', 'à partir de 700 €'],
-          ['Puy du Fou, aller-retour à la journée', '1 h 15', 'à partir de 600 €', 'à partir de 700 €'],
-          ['Futuroscope, aller-retour à la journée', '2 h 30', 'à partir de 900 €', 'à partir de 1 000 €'],
-          ['Paris, aller-retour sur 2 jours', '3 h 45', 'à partir de 1 600 €', 'à partir de 1 800 €'],
+          ['Gare Saint-Laud vers Terra Botanica, aller simple', '15 min', 'à partir de 400 €', 'à partir de 450 €'],
+          ['Journée en ville, mise à disposition', 'sur place', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Saumur, aller-retour à la journée', '1 h', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Puy du Fou, aller-retour à la journée', '1 h 15', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Futuroscope, aller-retour à la journée', '2 h 30', 'à partir de 1 000 €', 'à partir de 1 100 €'],
+          ['Paris, aller-retour sur 2 jours', '3 h 45', 'à partir de 1 800 €', 'à partir de 2 000 €'],
         ],
       },
       note: "Prix de départ TTC (TVA transport 10 %), octobre 2026. Le prix exact dépend de la date, des horaires et de l'effectif ; parking, hébergement et repas du chauffeur en sus. Durées en autocar, hors pauses.",
@@ -2377,6 +2377,106 @@ export const villes: Ville[] = [
       intro: "Décrivez votre trajet dans le formulaire en haut de page : départ, destination, dates et effectif. Vous recevez plusieurs devis de transporteurs vérifiés sous 24h, gratuitement et sans engagement.",
     },
     proximite: ['nantes', 'le-mans', 'rennes', 'tours'],
+  },
+  {
+    slug: 'annecy',
+    format: 'enrichi',
+    nom: 'Annecy',
+    metaTitle: 'Location autocar et bus à Annecy avec chauffeur | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur à Annecy : aéroport de Genève, tour du lac, stations, Chamonix. Prix de départ et devis gratuit sous 24h.',
+    h1: "Location d'autocar et de bus avec chauffeur à Annecy",
+    sousTitre: "Du minibus 8 places à l'autocar double étage, toujours avec chauffeur : des autocaristes de Haute-Savoie vérifiés et plusieurs devis gratuits sous 24h.",
+    intro: [
+      "Vous cherchez un bus à Annecy ? Transfert depuis l'aéroport de Genève, séminaire au bord du lac, sortie au Semnoz ou week-end au ski : Busmoov compare pour vous les devis d'autocaristes de Haute-Savoie, du minibus 8 places à l'autocar 59 places, chauffeur toujours inclus. Décrivez votre trajet ci-dessous, vous recevez plusieurs propositions sous 24h.",
+    ],
+    prix: {
+      h2: "Prix d'une location de bus avec chauffeur à Annecy",
+      intro: "Les prix de départ des trajets les plus demandés au départ d'Annecy. Notre [guide des prix de location d'autocar](/blog/prix-location-autocar) détaille ce qui fait varier un devis.",
+      tableau: {
+        caption: "Prix de départ 2026 au départ d'Annecy, TTC, chauffeur, carburant et péages inclus",
+        headers: ['Trajet', 'Durée', 'Minibus 8 à 20 places', 'Autocar 21 à 59 places'],
+        rows: [
+          ['Aéroport de Genève vers Annecy, aller simple', '1 h', 'à partir de 350 €', 'à partir de 400 €'],
+          ['Tour du lac ou journée en ville, mise à disposition', 'sur place', 'à partir de 600 €', 'à partir de 700 €'],
+          ['La Clusaz, aller-retour à la journée', '45 min', 'à partir de 600 €', 'à partir de 700 €'],
+          ['Yvoire, aller-retour à la journée', '1 h 15', 'à partir de 600 €', 'à partir de 700 €'],
+          ['Chamonix, aller-retour à la journée', '1 h 30', 'à partir de 600 €', 'à partir de 700 €'],
+          ['Lyon, aller-retour à la journée', '2 h', 'à partir de 900 €', 'à partir de 1 000 €'],
+        ],
+      },
+      note: "Prix de départ TTC (TVA transport 10 %), octobre 2026. Le prix exact dépend de la date, des horaires et de l'effectif ; parking, hébergement et repas du chauffeur en sus. Durées en autocar, hors pauses.",
+    },
+    sections: [
+      {
+        h2: 'Navettes gare d\'Annecy et aéroports de Genève et Lyon',
+        paragraphes: [
+          "La gare d'Annecy, desservie par le TGV, est à deux pas du centre. L'aéroport d'Annecy-Meythet n'accueille plus de ligne régulière : les groupes qui arrivent en avion passent par Genève ou par Lyon-Saint-Exupéry. Les temps de trajet à prévoir en autocar :",
+          "Pour un séminaire ou un groupe d'invités, le chauffeur suit l'horaire du vol ou du train et conduit le groupe directement à l'hôtel. Notre service de [transfert aéroport en autocar](/services/transfert-aeroport) organise aussi le retour.",
+        ],
+        liste: [
+          "Gare d'Annecy vers le centre Bonlieu : environ 5 minutes",
+          'Aéroport de Genève vers Annecy : environ 1 h, passage de la frontière compris',
+          'Aéroport de Lyon-Saint-Exupéry vers Annecy : environ 1 h 30',
+        ],
+      },
+      {
+        h2: 'Visiter Annecy en groupe : dépose et stationnement du car',
+        paragraphes: [
+          "Annecy compte 132 117 habitants ([Insee, population de référence 2023](https://www.insee.fr/fr/statistiques/8643952?geo=COM-74010)), et la vieille ville se visite à pied, au bord du lac. Chaque juin, le Festival international du film d'animation y réunit en plus 18 200 accrédités venus de 118 pays (édition 2025, selon le [Festival d'Annecy](https://www.annecyfestival.com/en/news/2025-full-report)). Pour amener un car au centre, l'office de tourisme indique :",
+          "En pratique, le car dépose le groupe rue Jean Jaurès puis repart stationner : convenez du point et de l'heure de reprise avec le chauffeur avant la visite.",
+        ],
+        liste: [
+          'Dépose et reprise des groupes rue Jean Jaurès, à côté du centre Bonlieu : arrêt rapide uniquement, toilettes dans le centre Bonlieu',
+          "Stationnement avenue de France, le long de l'église Sainte-Bernadette",
+          "Le parking autocars de la Tournette est fermé pour travaux jusqu'au 31 mars 2027",
+        ],
+      },
+      {
+        h2: "Les sorties en car autour d'Annecy",
+        paragraphes: [
+          "Les excursions les plus demandées au départ d'Annecy, avec le temps de trajet en autocar :",
+          "Notre guide pour [partir au ski en autocar avec un groupe](/blog/autocar-station-de-ski-groupe) détaille les équipements et les horaires des transferts en station.",
+        ],
+        liste: [
+          'Les gorges du Fier (15 min) : passerelles accrochées à la paroi, à la sortie de la ville',
+          'Talloires et la rive est du lac (30 min), ou le Semnoz et son panorama sur les Alpes (30 min)',
+          'La Clusaz et Le Grand-Bornand (45 min) : les stations les plus proches, l\'hiver comme l\'été',
+          'Yvoire (1 h 15) : village médiéval au bord du Léman',
+          'Chamonix (1 h 30) : au pied du Mont-Blanc',
+        ],
+      },
+      {
+        h2: 'Quel véhicule pour votre groupe ?',
+        paragraphes: [
+          "Jusqu'à 20 personnes, un [minibus 20 places avec chauffeur](/location-minibus-20-places) passe partout, y compris sur les routes de col. De 21 à 59 personnes, c'est l'autocar standard, celui des [locations de bus 50 places](/location-bus-50-places). Au-delà, la Haute-Savoie fait partie des départements où l'on trouve des autocars à double étage. Pendant le Festival du film d'animation (du 21 au 27 juin en 2026), l'été et les samedis de vacances d'hiver, demandez vos devis six à huit semaines avant.",
+        ],
+      },
+      {
+        h2: 'Minibus à Annecy : avec ou sans chauffeur ?',
+        paragraphes: [
+          "Beaucoup d'offres de « location de minibus à Annecy » sont des véhicules à conduire soi-même. Avec le permis B, on ne conduit qu'un véhicule de 9 places au maximum, conducteur compris ; au-delà, il faut le permis D, donc un chauffeur professionnel. Chez Busmoov, le chauffeur est toujours inclus : il conduit, gère la dépose et les routes de montagne, et respecte des temps de conduite encadrés. Notre article sur la [location de bus sans chauffeur](/blog/location-bus-sans-chauffeur) compare les deux formules.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Comment réserver un minibus avec chauffeur à Annecy ?',
+        a: "Indiquez votre trajet, vos dates et votre effectif dans le formulaire : nous consultons les transporteurs de Haute-Savoie et vous recevez plusieurs devis sous 24h.",
+      },
+      {
+        q: 'Comment se déplacer en transport public à Annecy ?',
+        a: "Le réseau de bus Sibra dessert Annecy et le Grand Annecy : pratique pour quelques personnes, beaucoup moins pour un groupe avec bagages ou un horaire précis. Un car privé vous prend et vous dépose aux adresses de votre choix.",
+      },
+      {
+        q: 'Où se trouvent les agences de location de bus à Annecy ?',
+        a: "Vous n'avez pas besoin de vous déplacer : le car vient vous chercher à l'adresse de votre choix, à Annecy comme autour du lac. Les transporteurs que nous consultons sont basés en Haute-Savoie et dans les départements voisins.",
+      },
+    ],
+    budgets: {
+      h2: 'Votre devis de bus avec chauffeur à Annecy en 24h',
+      intro: "Décrivez votre trajet dans le formulaire en haut de page : départ, destination, dates et effectif. Vous recevez plusieurs devis de transporteurs vérifiés sous 24h, gratuitement et sans engagement.",
+    },
+    proximite: ['lyon', 'grenoble'],
   },
 ]
 
