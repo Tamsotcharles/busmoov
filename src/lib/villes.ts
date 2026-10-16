@@ -1834,6 +1834,112 @@ export const villes: Ville[] = [
       },
     ],
   },
+  {
+    slug: 'angers',
+    format: 'enrichi',
+    nom: 'Angers',
+    metaTitle: 'Location autocar et bus à Angers avec chauffeur | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur à Angers : Puy du Fou, Terra Botanica, Saumur. Devis gratuit sous 24h.',
+    h1: "Location d'autocar et de bus avec chauffeur à Angers",
+    sousTitre: "Du minibus 8 places à l'autocar 59 places, toujours avec chauffeur : des autocaristes de l'Anjou vérifiés et plusieurs devis gratuits sous 24h.",
+    intro: [
+      "Vous cherchez un bus à Angers ? Sortie au Puy du Fou, journée à Saumur, séminaire en centre-ville ou classe au Futuroscope : Busmoov compare pour vous les devis d'autocaristes de Maine-et-Loire, du minibus 8 places à l'autocar 59 places, chauffeur toujours inclus. Décrivez votre trajet ci-dessous, vous recevez plusieurs propositions sous 24h.",
+    ],
+    prix: {
+      h2: "Prix d'une location de bus avec chauffeur à Angers",
+      intro: "Voici les prix de départ pour les trajets les plus demandés au départ d'Angers, de la navette vers Terra Botanica à la journée au Futuroscope. Notre [guide des prix de location d'autocar](/blog/prix-location-autocar) détaille tout ce qui entre dans un devis.",
+      lignes: [
+        { trajet: 'Gare Saint-Laud vers Terra Botanica', duree: '15 min', formule: 'Transfert aller simple', minibus: 'à partir de 350 €', autocar: 'à partir de 400 €', parPersonne: 'environ 8 €' },
+        { trajet: 'Journée dans Angers', duree: 'sur place', formule: 'Mise à disposition locale', minibus: 'à partir de 600 €', autocar: 'à partir de 700 €', parPersonne: 'environ 14 €' },
+        { trajet: 'Angers vers Saumur', duree: '1 h', formule: 'Aller-retour à la journée', minibus: 'à partir de 600 €', autocar: 'à partir de 700 €', parPersonne: 'environ 14 €' },
+        { trajet: 'Angers vers le Puy du Fou', duree: '1 h 15', formule: 'Aller-retour à la journée', minibus: 'à partir de 600 €', autocar: 'à partir de 700 €', parPersonne: 'environ 14 €' },
+        { trajet: 'Angers vers le Futuroscope', duree: '2 h 30', formule: 'Aller-retour à la journée', minibus: 'à partir de 900 €', autocar: 'à partir de 1 000 €', parPersonne: 'environ 20 €' },
+      ],
+      variation: "Trois facteurs font bouger le prix au départ d'Angers. La saison d'abord : du printemps à l'automne, le Puy du Fou, les châteaux de la Loire et les caves de Saumur mobilisent beaucoup de cars le week-end. L'amplitude ensuite : rester au Puy du Fou pour le spectacle du soir allonge la journée du chauffeur. Enfin la distance : au-delà d'environ 9 heures de conduite dans la journée, un second chauffeur devient obligatoire.",
+      note: "Prix de départ TTC (TVA transport 10 %), octobre 2026 ; le prix exact dépend de la date, des horaires et de l'effectif. Péages inclus ; parking, hébergement et repas du chauffeur en sus. Prix par personne calculé pour un car de 50 passagers.",
+    },
+    grandesVilles: {
+      h2: "Prix d'un autocar d'Angers vers les grandes villes",
+      intro: "Sur l'A11 entre Paris et Nantes, Angers est à 1 h 15 de Nantes en autocar et à moins de 4 h de Paris. Voici les prix de départ pour un aller-retour vers les grandes villes ; au-delà de 4 h 30 de conduite, comptez en plus la pause réglementaire de 45 minutes du chauffeur.",
+      lignes: [
+        { destination: 'Angers vers Nantes', distance: '90 km', duree: '1 h 15', formule: 'Aller-retour à la journée', minibus: 'à partir de 600 €', autocar: 'à partir de 700 €', parPersonne: 'environ 14 €' },
+        { destination: 'Angers vers Le Mans', distance: '95 km', duree: '1 h 15', formule: 'Aller-retour à la journée', minibus: 'à partir de 600 €', autocar: 'à partir de 700 €', parPersonne: 'environ 14 €' },
+        { destination: 'Angers vers Rennes', distance: '130 km', duree: '2 h', formule: 'Aller-retour à la journée', minibus: 'à partir de 900 €', autocar: 'à partir de 1 000 €', parPersonne: 'environ 20 €' },
+        { destination: 'Angers vers Tours', distance: '130 km', duree: '1 h 45', formule: 'Aller-retour à la journée', minibus: 'à partir de 900 €', autocar: 'à partir de 1 000 €', parPersonne: 'environ 20 €' },
+        { destination: 'Angers vers La Rochelle', distance: '185 km', duree: '2 h 45', formule: 'Aller-retour à la journée', minibus: 'à partir de 900 €', autocar: 'à partir de 1 000 €', parPersonne: 'environ 20 €' },
+        { destination: 'Angers vers Paris', distance: '300 km', duree: '3 h 45', formule: 'Aller-retour sur 2 jours', minibus: 'à partir de 1 600 €', autocar: 'à partir de 1 800 €', parPersonne: 'environ 36 €' },
+        { destination: 'Angers vers Bordeaux', distance: '395 km', duree: '4 h 45', formule: 'Aller-retour sur 2 jours', minibus: 'à partir de 1 600 €', autocar: 'à partir de 1 800 €', parPersonne: 'environ 36 €' },
+      ],
+      note: "Prix de départ TTC pour un aller-retour, octobre 2026. Distances routières de centre à centre, durées en autocar hors pauses. Péages inclus ; parking, hébergement et repas du chauffeur en sus.",
+    },
+    commentLouer: {
+      h2: 'Comment louer un autocar avec chauffeur à Angers ?',
+      etapes: [
+        'Décrivez votre trajet : départ, destination, dates et nombre de passagers.',
+        "Nous consultons des autocaristes vérifiés de Maine-et-Loire et des départements voisins.",
+        'Vous recevez plusieurs devis sous 24h et choisissez le plus adapté.',
+        'Vous réservez avec un acompte de 30 %, puis transmettez les horaires et adresses exactes.',
+      ],
+      conseil: "Point de prise en charge conseillé : la gare Saint-Laud, ou la dépose autocars de la rue Marceau, à quelques minutes à pied du château.",
+      chauffeur: "Avec un chauffeur, vous n'avez rien d'autre à gérer que votre groupe. C'est lui qui connaît la dépose de la rue Marceau et ses deux seules places, récupère le code du parking autocars du boulevard Olivier Couffon, vous ramène du Puy du Fou après le spectacle du soir et de Saumur après la dégustation. Professionnel titulaire du permis D, il respecte des temps de conduite et de repos encadrés : votre groupe voyage l'esprit tranquille.",
+    },
+    vehicules: {
+      h2: 'Minibus, autocar, double étage : quel véhicule à Angers ?',
+      paragraphes: [
+        'Le bon véhicule dépend de votre effectif, mais aussi de votre destination dans Angers :',
+        "La contrainte angevine : l'office de tourisme ne signale que deux places de dépose autocars rue Marceau, et le parking autocars du boulevard Olivier Couffon est à un quart d'heure à pied du château. Pour un petit comité, un [minibus 20 places avec chauffeur](/location-minibus-20-places) simplifie tout.",
+      ],
+      liste: [
+        "8 à 20 personnes : un minibus, le plus simple à garer en centre-ville.",
+        '21 à 35 personnes : un midibus ou un autocar 35 places, le format des classes et des clubs sportifs.',
+        "36 à 59 personnes : l'autocar standard, celui des [locations de bus 50 places](/location-bus-50-places) pour les comités d'entreprise et les associations.",
+        '60 personnes et plus : un autocar à double étage ou deux cars.',
+      ],
+    },
+    minibus: {
+      h2: 'Minibus avec chauffeur à Angers : navettes gare et aéroport',
+      paragraphes: [
+        "La gare Angers Saint-Laud est desservie par le TGV, et le grand aéroport le plus proche est Nantes-Atlantique, à environ 1 h 30 de route. Le minibus avec chauffeur est le bon format pour accueillir un petit groupe à la descente du train et le conduire au centre de congrès ou à l'hôtel, ou pour aller le chercher à Nantes à l'arrivée de son vol.",
+        "Beaucoup d'annonces de « location de minibus à Angers » concernent des véhicules sans chauffeur, à conduire soi-même. Ici, le chauffeur est toujours inclus : notre article sur la [location de bus sans chauffeur](/blog/location-bus-sans-chauffeur) explique les différences et les règles de permis.",
+      ],
+    },
+    visiter: {
+      h2: "Angers et ses alentours en autocar : que voir en groupe ?",
+      intro: "Angers compte 159 022 habitants ([Insee, population de référence 2023](https://www.insee.fr/fr/statistiques/8643952?geo=COM-49007)), et son château a accueilli 318 000 visiteurs en 2024, ce qui en fait le 3e monument national le plus visité de France hors Paris, selon le [château d'Angers](https://www.chateau-angers.fr/actualites/318-000-visiteurs-une-frequentation-historique-en-2024-pour-le-chateau-d-angers-qui-devient-le-3e-monument-national-visite-de-france-hors-paris). De quoi remplir une journée de groupe en ville, avant de rayonner vers la Loire et la Vendée.",
+      lieux: [
+        { nom: "Le château d'Angers", trajet: 'en ville', desc: "Forteresse médiévale qui abrite la tenture de l'Apocalypse, l'une des plus grandes tapisseries médiévales conservées. Le car dépose le groupe rue Marceau, puis stationne boulevard Olivier Couffon, avec un code d'accès à demander à l'office de tourisme." },
+        { nom: 'Terra Botanica', trajet: '15 min', desc: "Parc à thème consacré au végétal, aux portes d'Angers, que l'office de tourisme range parmi les sites accessibles aux autocars de tourisme. Une sortie à la journée qui convient aussi bien aux familles qu'aux groupes scolaires." },
+        { nom: 'Saumur et ses caves', trajet: '1 h', desc: "En suivant la Loire : le château, le Cadre Noir et les caves creusées dans le tuffeau, où de nombreux domaines reçoivent les groupes pour une dégustation. Avec le car, personne ne prend le volant au retour." },
+        { nom: 'Le Puy du Fou', trajet: '1 h 15', desc: "Le grand parc vendéen, sortie phare des groupes angevins, se joue souvent sur l'amplitude : rester pour la Cinéscénie, le spectacle nocturne, signifie un retour tard dans la nuit. Notre guide pour [aller au Puy du Fou en autocar](/blog/puy-du-fou-en-autocar) détaille l'organisation." },
+        { nom: 'Le Futuroscope', trajet: '2 h 30', desc: "Le parc près de Poitiers reste une valeur sûre des [sorties scolaires en autocar](/services/sorties-scolaires) : départ tôt le matin et retour en début de soirée." },
+      ],
+    },
+    faq: [
+      {
+        q: 'Comment réserver un minibus avec chauffeur à Angers ?',
+        a: "Indiquez votre trajet, vos dates et votre effectif dans le formulaire : nous consultons les transporteurs de Maine-et-Loire et vous recevez plusieurs devis sous 24h. Pour un samedi entre mai et septembre, demandez vos devis six à huit semaines à l'avance.",
+      },
+      {
+        q: 'Comment comparer les offres de location de bus à Angers ?',
+        a: "Comparez à prestation égale : même véhicule, mêmes horaires, mêmes inclusions (péages, parking, repas du chauffeur). C'est l'intérêt de recevoir plusieurs devis pour le même trajet : les écarts viennent souvent de l'amplitude retenue ou d'un second chauffeur.",
+      },
+      {
+        q: 'Où se trouvent les agences de location de bus à Angers ?',
+        a: "Vous n'avez pas besoin de vous déplacer : le car vient vous chercher à l'adresse de votre choix, à Angers comme dans l'agglomération. Les transporteurs que nous consultons sont basés en Maine-et-Loire et dans les départements voisins.",
+      },
+    ],
+    budgets: {
+      h2: 'Votre devis de bus avec chauffeur à Angers en 24h',
+      intro: "Chaque devis est établi pour votre trajet, vos horaires et votre effectif. Pour vous donner un ordre d'idée, voici trois budgets types au départ d'Angers :",
+      exemples: [
+        "Comité d'entreprise de 50 personnes, Angers vers Saumur et ses caves à la journée, autocar 53 places, septembre : à partir de 700 € TTC.",
+        'Classe de 30 élèves, Angers vers le Futuroscope à la journée, autocar 35 places, mai : à partir de 1 000 € TTC.',
+        'Séminaire de 15 personnes, navettes gare Saint-Laud vers le centre de congrès sur la journée, minibus 20 places, mars : à partir de 600 € TTC.',
+      ],
+      note: 'Prix de départ indicatifs, octobre 2026.',
+    },
+    proximite: ['nantes', 'le-mans', 'rennes', 'tours'],
+  },
 ]
 
 export function getVille(slug: string): Ville | undefined {
