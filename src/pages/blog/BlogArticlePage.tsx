@@ -19,6 +19,8 @@ function Block({ block }: { block: BlogBlock }) {
   switch (block.type) {
     case 'h2':
       return <h2 className="text-2xl font-bold mt-10 mb-4">{block.text}</h2>
+    case 'h3':
+      return <h3 className="text-lg font-semibold mt-6 mb-2">{block.text}</h3>
     case 'p':
       return <TextWithLinks text={block.text} className="text-gray-700 leading-relaxed mb-4" />
     case 'ul':

@@ -16,6 +16,7 @@ export interface TableauSeo {
 
 export type BlogBlock =
   | { type: 'h2'; text: string }
+  | { type: 'h3'; text: string }
   | { type: 'p'; text: string }
   | { type: 'ul'; items: string[] }
   | { type: 'callout'; text: string }
@@ -845,6 +846,73 @@ export const articles: BlogArticle[] = [
       { type: 'p', text: 'Une journée dans un vignoble avec dégustation, où personne ne conduit au retour ; une soirée au casino ou dans une boîte à l\'extérieur de la ville, voir notre guide du [bus pour une soirée en discothèque](/blog/bus-discotheque-soiree) ; une [journée à la mer](/blog/journee-mer-autocar) ou un parc d\'attractions pour un anniversaire d\'enfant avec toute la classe ; un week-end dans une maison louée à la campagne, avec le car qui dépose le vendredi et revient le dimanche. Pour un mariage, la logistique des invités a son propre guide : [autocar pour un mariage](/blog/location-autocar-mariage).' },
       { type: 'h2', text: 'Demander un devis' },
       { type: 'p', text: 'Décrivez le programme de la soirée ou du week-end, les lieux, les horaires, dont l\'heure réelle de fin, et le nombre de personnes dans notre formulaire de [devis autocar](/devis-autocar). Vous recevez jusqu\'à 3 propositions sous 24h, et vous payez en ligne par carte, pratique quand la note se partage entre amis. Les minibus de fin de semaine partent vite : réservez trois à quatre semaines avant, deux mois pour un samedi d\'été.' },
+    ],
+  },
+  {
+    slug: 'autocar-avec-couchettes',
+    titre: 'Existe-t-il des autocars avec couchettes ? Règles, usages et alternatives',
+    metaTitle: 'Autocar avec couchettes : ça existe ? Règles et usages | Busmoov',
+    metaDescription: 'Oui, les autocars couchettes existent et sont autorisés en France, mais restent rares. Réglementation, enfants, usages en Europe, alternatives de nuit.',
+    datePublication: '2026-10-16',
+    extrait: 'Oui, ils existent et sont autorisés en France, mais restent rares. Avantages, réglementation, cas des enfants, usages en Europe et alternative pour voyager de nuit.',
+    blocks: [
+      { type: 'p', text: 'Oui, les autocars avec couchettes existent, et la réglementation française les autorise dans des véhicules spécialement aménagés. Ils restent pourtant rares : on les loue surtout pour des tournées musicales, des équipes sportives ou des groupes d\'adultes sur de très longues distances. Les enfants n\'y voyagent pas allongés, et pour la plupart des trajets de nuit, la solution courante reste l\'autocar grand tourisme avec deux chauffeurs.' },
+      { type: 'h2', text: 'Qu\'est-ce qu\'un autocar couchette ?' },
+      { type: 'p', text: 'Un autocar couchette, aussi appelé bus-couchette ou sleeper bus, remplace les rangées de sièges par de vraies couchettes, souvent superposées sur deux niveaux et fermées par des rideaux. Selon les modèles, il embarque aussi un petit salon, un coin cuisine et des toilettes. Il loge beaucoup moins de passagers qu\'un autocar standard (environ 50 places assises) : les versions de tournée tournent autour d\'une quinzaine de couchettes, avec un espace de vie à l\'arrière.' },
+      { type: 'p', text: 'Un autocar aux sièges très inclinables n\'en est pas un : le passager y reste assis. La couchette est un lit, ce qui change le confort comme le cadre réglementaire.' },
+      { type: 'h2', text: 'Les avantages d\'un trajet en couchette' },
+      { type: 'ul', items: [
+        'Dormir allongé pendant que le véhicule roule, au lieu de passer la nuit assis.',
+        'Économiser une nuit d\'hôtel à chaque étape, ce qui compte sur une tournée de plusieurs semaines.',
+        'Arriver le matin, reposé, et enchaîner directement : balances, entraînement, rendez-vous.',
+        'Garder le groupe et son matériel ensemble, sans correspondance ni transfert entre gare et hôtel.',
+      ] },
+      { type: 'h2', text: 'Ce que dit la réglementation française' },
+      { type: 'p', text: 'Tout est fixé par l\'arrêté du 2 juillet 1982 relatif aux transports en commun de personnes, consultable sur Légifrance :' },
+      { type: 'ul', items: [
+        'Article 47 : le transport de passagers couchés est autorisé dans les autocars dont les aménagements sont spécialement conçus à cet effet, même s\'il faut convertir des sièges.',
+        'Annexe 4 : chaque place couchée mesure au moins 174 cm de long sur 43 cm de large, avec un espace libre au-dessus, et la stabilité du passager allongé sur le dos est vérifiée par un essai.',
+        'Article 93 : le nombre de places couchées figure sur l\'attestation d\'aménagement du véhicule. Depuis l\'arrêté du 17 février 2015, cette attestation ne prévoit plus que des adultes couchés.',
+      ] },
+      { type: 'p', text: 'Un transporteur ne peut donc pas improviser un couchette en rabattant des sièges : le véhicule doit être aménagé et déclaré comme tel.' },
+      { type: 'h2', text: 'Et les enfants ?' },
+      { type: 'p', text: 'Ils ne voyagent pas couchés. Dans un transport en commun d\'enfants, c\'est-à-dire organisé principalement pour des moins de 17 ans, l\'article 75 de l\'arrêté impose qu\'ils soient transportés assis. Pour un voyage scolaire ou une colonie vers l\'Espagne ou l\'Italie, on prévoit plutôt un départ tôt le matin, une étape d\'une nuit en route ou un train de nuit sur une partie du trajet.' },
+      { type: 'h2', text: 'Pourquoi en voit-on si peu en France ?' },
+      { type: 'ul', items: [
+        'Un aménagement à part, conforme à l\'annexe 4, difficile à rentabiliser sur d\'autres missions.',
+        'Une capacité réduite, qui renchérit le prix par passager.',
+        'Une clientèle de niche (tournées, équipes, quelques groupes d\'adultes), concentrée sur la saison des festivals.',
+        'Un entretien plus lourd : literie et préparation entre chaque mission.',
+        'Une alternative efficace : l\'autocar grand tourisme récent avec double équipage couvre déjà l\'essentiel des besoins de nuit.',
+      ] },
+      { type: 'h2', text: 'Couchette, siège-lit ou siège inclinable : les différences' },
+      { type: 'table',
+        caption: 'Les trois façons de passer la nuit en autocar',
+        headers: ['', 'Couchette', 'Siège convertible en lit', 'Siège inclinable grand tourisme'],
+        rows: [
+          ['Position pour dormir', 'Allongé, vrai lit', 'Allongé, siège déplié à plat', 'Assis, dossier incliné'],
+          ['Utilisation type', 'Tournées, équipes, groupes d\'adultes', 'Lignes régulières de nuit', 'Groupes de toute taille'],
+          ['Disponibilité en France', 'Rare, à réserver longtemps à l\'avance', 'Quasi inexistante en location de groupe', 'Courante'],
+          ['Enfants en transport collectif', 'Non', 'Non', 'Oui, assis et ceinturés'],
+        ],
+      },
+      { type: 'h2', text: 'Où trouve-t-on des bus couchettes ?' },
+      { type: 'ul', items: [
+        'En Asie, où ils font partie des transports courants : au Vietnam, c\'est l\'un des moyens les plus utilisés pour traverser le pays de nuit.',
+        'En Europe, sur des lignes régulières récentes : la start-up suisse Twiliner a lancé fin 2025 des bus de nuit de 21 places dont les sièges se transforment en lits à plat, entre la Suisse, la Belgique, le Luxembourg, les Pays-Bas et l\'Espagne (presse suisse).',
+      ] },
+      { type: 'p', text: 'En France, le couchette se loue avec chauffeur auprès de transporteurs spécialisés, pour un groupe et un itinéraire donnés. Nous détaillons ce service sur notre page [location d\'autocar couchette](/autocar-couchette), avec les alternatives quand aucun véhicule n\'est libre.' },
+      { type: 'h2', text: 'Les règles de conduite d\'un trajet de nuit' },
+      { type: 'p', text: 'Couchette ou non, un autocar de nuit reste soumis aux temps de conduite européens : chaque conducteur fait une pause de 45 minutes après 4 h 30 de conduite et ne dépasse pas, en principe, 9 heures de conduite par jour. Avec un seul chauffeur, une longue distance de nuit est donc impossible d\'une traite. Avec un double équipage, les chauffeurs se relaient et le véhicule ne s\'arrête que pour les pauses : c\'est le fonctionnement standard des couchettes comme des nuits en grand tourisme.' },
+      { type: 'h2', text: 'En résumé' },
+      { type: 'p', text: 'Si votre groupe est composé d\'adultes et que vous voyagez de nuit sur plusieurs étapes, le couchette vaut la peine d\'être réservé tôt. Pour un groupe avec des enfants, ou si aucun véhicule n\'est disponible à vos dates, partez sur un grand tourisme avec double équipage : même principe de départ le soir et d\'arrivée le matin, assis.' },
+      { type: 'h2', text: 'FAQ' },
+      { type: 'h3', text: 'Quels sont les prix des bus couchettes ?' },
+      { type: 'p', text: 'Il n\'existe pas de tarif standard : la location avec chauffeur se fait sur devis, selon l\'itinéraire, le nombre de nuits et les aménagements demandés. Le véhicule emportant moins de passagers qu\'un autocar classique, le prix par personne est plus élevé.' },
+      { type: 'h3', text: 'Comment réserver un bus couchette ?' },
+      { type: 'p', text: 'Le plus tôt possible, surtout entre mai et septembre. Préparez vos dates, votre itinéraire, l\'effectif et le volume de bagages ou de matériel, puis demandez des devis à des transporteurs spécialisés, avec une solution de repli en grand tourisme de nuit.' },
+      { type: 'h3', text: 'Comment se passe un voyage en bus couchette ?' },
+      { type: 'p', text: 'Le groupe embarque en soirée, range ses bagages en soute et garde l\'essentiel près de sa couchette. Chacun tire son rideau et dort pendant que les chauffeurs se relaient ; les arrêts se limitent aux pauses réglementaires, et l\'arrivée est prévue le matin.' },
     ],
   },
 ]

@@ -583,6 +583,7 @@ for (const article of articles) {
     article.blocks.map((b) => {
       switch (b.type) {
         case 'h2': return h2(b.text)
+        case 'h3': return `<h3 class="font-semibold mt-3">${esc(b.text)}</h3>`
         case 'p': return pMd(b.text)
         case 'callout': return pMd(b.text)
         case 'ul': return ul(b.items)
@@ -643,6 +644,7 @@ writeFileSync(join(DIST, 'llms.txt'), llmsTxt)
 const blockToMd = (b) => {
   switch (b.type) {
     case 'h2': return `### ${b.text}`
+    case 'h3': return `#### ${b.text}`
     case 'p': return b.text
     case 'callout': return `> ${b.text}`
     case 'ul': return b.items.map((i) => `- ${i}`).join('\n')
