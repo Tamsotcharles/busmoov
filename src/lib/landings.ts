@@ -438,7 +438,7 @@ export const landings: Landing[] = [
         h2: 'Pour qui, concrètement ?',
         paragraphes: [
           'Trois profils représentent l\'essentiel des demandes. Les tournées musicales et leurs équipes : enchaîner les dates en dormant entre deux villes, c\'est exactement la raison d\'être du sleeper. Les équipes sportives engagées sur des championnats aux étapes éloignées. Et les groupes d\'adultes qui veulent transformer une très longue liaison, vers l\'Espagne ou l\'Italie par exemple, en nuit de sommeil plutôt qu\'en journée perdue.',
-          'Si vous vous demandez d\'où vient ce véhicule, pourquoi il est si rare en France et où l\'on en trouve en Europe, nous avons rassemblé les réponses dans notre article [existe-t-il des autocars avec couchettes ?](/blog/autocar-avec-couchettes)',
+          'Si vous vous demandez d\'où vient ce véhicule, pourquoi il est si rare en France et où l\'on en trouve en Europe, nous avons rassemblé les réponses dans notre article [autocar avec couchette : ce que c\'est, règles et usages](/blog/autocar-avec-couchettes).',
         ],
       },
       {

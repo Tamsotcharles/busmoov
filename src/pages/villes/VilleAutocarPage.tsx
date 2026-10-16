@@ -5,7 +5,7 @@ import { Footer } from '@/components/layout/Footer'
 import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
 import { SeoFr } from '@/components/seo/Seo'
 import { useLocalizedPath } from '@/components/i18n'
-import { getVille, villes, type Ville, type VilleClassique, type VilleEnrichie } from '@/lib/villes'
+import { getVille, villes, type Ville, type VilleClassique, type VilleEnrichie, type VilleSection } from '@/lib/villes'
 import { getSiteBaseUrl } from '@/lib/utils'
 import { Bus, Clock, Shield, MapPin, CheckCircle, ArrowRight, Info } from 'lucide-react'
 import { TextWithLinks } from '@/components/ui/TextWithLinks'
@@ -274,6 +274,8 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-4">{ville.prix.h2}</h2>
           <TextWithLinks text={ville.prix.intro} className="text-gray-700 leading-relaxed max-w-3xl mx-auto mb-6" />
+          {ville.prix.tableau && <TableauSeo {...ville.prix.tableau} />}
+          {ville.prix.lignes && (
           <div className="overflow-x-auto rounded-xl border border-gray-200">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-left">
@@ -300,8 +302,11 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
               </tbody>
             </table>
           </div>
+          )}
           <p className="text-xs text-gray-500 mt-3">{ville.prix.note}</p>
-          <p className="text-gray-700 leading-relaxed max-w-3xl mx-auto mt-6">{ville.prix.variation}</p>
+          {ville.prix.variation && (
+            <p className="text-gray-700 leading-relaxed max-w-3xl mx-auto mt-6">{ville.prix.variation}</p>
+          )}
           <div className="text-center mt-6">
             <a href="#devis" className="btn btn-primary inline-flex items-center gap-2">
               Obtenir mon prix exact <ArrowRight className="w-4 h-4" />
@@ -311,6 +316,7 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
       </section>
 
       {/* Trajets vers les grandes villes */}
+      {ville.grandesVilles && (
       <section className="py-12 bg-gray-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-4">{ville.grandesVilles.h2}</h2>
@@ -346,8 +352,10 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
           <p className="text-xs text-gray-500 mt-3">{ville.grandesVilles.note}</p>
         </div>
       </section>
+      )}
 
       {/* Comment louer */}
+      {ville.commentLouer && (
       <section className="py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-6">{ville.commentLouer.h2}</h2>
@@ -368,48 +376,17 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
           )}
         </div>
       </section>
+      )}
 
-      {/* Véhicules et minibus */}
-      {[ville.vehicules, ville.minibus].map((bloc, i) => (
-        <section key={bloc.h2} className={`py-12 ${i === 1 ? 'bg-gray-50' : ''}`}>
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold text-center mb-6">{bloc.h2}</h2>
-            <div className="space-y-4">
-              {bloc.paragraphes.map((p, j) => (
-                <div key={j} className="space-y-4">
-                  <TextWithLinks text={p} className="text-gray-700 leading-relaxed" />
-                  {j === 0 && bloc.liste && (
-                    <ul className="space-y-2">
-                      {bloc.liste.map((item) => (
-                        <li key={item} className="flex items-start gap-3">
-                          <CheckCircle className="w-5 h-5 text-magenta flex-none mt-0.5" />
-                          <TextWithLinks as="span" text={item} className="text-gray-700" />
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      ))}
-
-      {/* Sections éditoriales propres à la ville (calendrier, conseils) */}
-      {ville.sections?.map((sec, k) => (
-        <section key={sec.h2} className={k % 2 === 0 ? 'py-12' : 'py-12 bg-gray-50'}>
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold text-center mb-6">{sec.h2}</h2>
-            <div className="space-y-4">
-              {sec.paragraphes.map((p, l) => (
-                <TextWithLinks key={l} text={p} className="text-gray-700 leading-relaxed" />
-              ))}
-            </div>
-          </div>
-        </section>
-      ))}
+      {/* Véhicules, minibus et sections propres à la ville (ordre des données) */}
+      {[ville.vehicules, ville.minibus, ...(ville.sections ?? [])]
+        .filter((bloc): bloc is VilleSection => bloc !== undefined)
+        .map((bloc, i) => (
+          <BlocTexte key={bloc.h2} bloc={bloc} fond={i % 2 === 1} />
+        ))}
 
       {/* Sorties de groupe */}
+      {ville.visiter && (
       <section className="py-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-4">{ville.visiter.h2}</h2>
@@ -428,6 +405,7 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
           </div>
         </div>
       </section>
+      )}
 
       {/* FAQ */}
       <section className="py-12 bg-gray-50">
@@ -477,6 +455,7 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-4">{ville.budgets.h2}</h2>
           <TextWithLinks text={ville.budgets.intro} className="text-gray-700 leading-relaxed mb-4" />
+          {ville.budgets.exemples && (
           <ul className="space-y-3 mb-3">
             {ville.budgets.exemples.map((e) => (
               <li key={e} className="flex items-start gap-3">
@@ -485,9 +464,38 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
               </li>
             ))}
           </ul>
-          <p className="text-xs text-gray-500">{ville.budgets.note}</p>
+          )}
+          {ville.budgets.note && <p className="text-xs text-gray-500">{ville.budgets.note}</p>}
         </div>
       </section>
     </>
+  )
+}
+
+/** H2 + paragraphes, avec une liste à puces facultative après le premier paragraphe. */
+function BlocTexte({ bloc, fond }: { bloc: VilleSection; fond: boolean }) {
+  return (
+    <section className={`py-12 ${fond ? 'bg-gray-50' : ''}`}>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-2xl font-bold text-center mb-6">{bloc.h2}</h2>
+        <div className="space-y-4">
+          {bloc.paragraphes.map((p, j) => (
+            <div key={j} className="space-y-4">
+              <TextWithLinks text={p} className="text-gray-700 leading-relaxed" />
+              {j === 0 && bloc.liste && (
+                <ul className="space-y-2">
+                  {bloc.liste.map((item) => (
+                    <li key={item} className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-magenta flex-none mt-0.5" />
+                      <TextWithLinks as="span" text={item} className="text-gray-700" />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }
