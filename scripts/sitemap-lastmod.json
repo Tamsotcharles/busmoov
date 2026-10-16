@@ -264,7 +264,7 @@
     "lastmod": "2026-10-15"
   },
   "https://www.busmoov.com/fr/location-autocar/lyon": {
-    "hash": "9fde8708c2b4",
+    "hash": "4ab764f7613d",
     "lastmod": "2026-10-15"
   },
   "https://www.busmoov.com/fr/location-autocar/marseille": {
@@ -354,6 +354,10 @@
   "https://www.busmoov.com/fr/location-autocar/clermont-ferrand": {
     "hash": "3712b4fb2c49",
     "lastmod": "2026-10-15"
+  },
+  "https://www.busmoov.com/fr/location-autocar/angers": {
+    "hash": "a6eb1b7a1315",
+    "lastmod": "2026-10-16"
   },
   "https://www.busmoov.com/fr/blog": {
     "hash": "ae91cfb68755",
