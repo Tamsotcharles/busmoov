@@ -465,51 +465,53 @@ function villeClassiqueBody(ville) {
 function villeEnrichieBody(ville) {
   const th = (t) => `<th class="p-2 text-left">${esc(t)}</th>`
   const td = (t) => `<td class="p-2">${esc(t)}</td>`
-  const tableauPrix =
-    '<table class="w-full text-sm mb-3"><thead><tr>' +
-    [`Trajet au départ de ${ville.nom}`, 'Durée', 'Formule', 'Minibus 8 à 20 pl.', "Autocar jusqu'à 59 pl.", 'Par personne (car plein)'].map(th).join('') +
-    '</tr></thead><tbody>' +
-    ville.prix.lignes.map((l) => '<tr>' + [l.trajet, l.duree, l.formule, l.minibus, l.autocar, l.parPersonne].map(td).join('') + '</tr>').join('') +
-    '</tbody></table>'
-  // Liste à puces insérée après le premier paragraphe du bloc
+  const tableauLignes = (headers, lignes) =>
+    '<table class="w-full text-sm mb-3"><thead><tr>' + headers.map(th).join('') + '</tr></thead><tbody>' +
+    lignes.map((cells) => '<tr>' + cells.map(td).join('') + '</tr>').join('') + '</tbody></table>'
+  // H2 + paragraphes, liste à puces insérée après le premier paragraphe
   const bloc = (b) =>
     h2(b.h2) + b.paragraphes.map((t, j) => pMd(t) + (j === 0 && b.liste ? `<ul class="list-disc pl-6 mb-3">${b.liste.map((i) => `<li>${mdInline(i)}</li>`).join('')}</ul>` : '')).join('')
+  const { prix, grandesVilles: gv, commentLouer: cl, visiter } = ville
   const proches = ville.proximite.map((slug) => villes.find((v) => v.slug === slug)).filter(Boolean)
   return (
     h1(ville.h1) +
     p(ville.sousTitre) +
     ville.intro.map(p).join('') +
-    h2(ville.prix.h2) +
-    pMd(ville.prix.intro) +
-    tableauPrix +
-    p(ville.prix.note) +
-    p(ville.prix.variation) +
-    h2(ville.grandesVilles.h2) +
-    p(ville.grandesVilles.intro) +
-    '<table class="w-full text-sm mb-3"><thead><tr>' +
-    ['Trajet', 'Distance', 'Durée en autocar', 'Formule', 'Minibus 8 à 20 pl.', "Autocar jusqu'à 59 pl.", 'Par personne (car plein)'].map(th).join('') +
-    '</tr></thead><tbody>' +
-    ville.grandesVilles.lignes.map((l) => '<tr>' + [l.destination, l.distance, l.duree, l.formule, l.minibus, l.autocar, l.parPersonne].map(td).join('') + '</tr>').join('') +
-    '</tbody></table>' +
-    p(ville.grandesVilles.note) +
-    h2(ville.commentLouer.h2) +
-    `<ol class="list-decimal pl-6 mb-3">${ville.commentLouer.etapes.map((e) => `<li>${esc(e)}</li>`).join('')}</ol>` +
-    p(ville.commentLouer.conseil) +
-    (ville.commentLouer.chauffeur ? pMd(ville.commentLouer.chauffeur) : '') +
-    bloc(ville.vehicules) +
-    bloc(ville.minibus) +
-    (ville.sections || []).map((sec) => h2(sec.h2) + sec.paragraphes.map(pMd).join('')).join('') +
-    h2(ville.visiter.h2) +
-    pMd(ville.visiter.intro) +
-    ville.visiter.lieux.map((l) => h3(l.nom) + pMd(`${l.trajet === 'en ville' ? 'En ville' : `À ${l.trajet} de ${ville.nom}`}. ${l.desc}`)).join('') +
+    h2(prix.h2) +
+    pMd(prix.intro) +
+    (prix.tableau ? tableau(prix.tableau) : '') +
+    (prix.lignes
+      ? tableauLignes(
+          [`Trajet au départ de ${ville.nom}`, 'Durée', 'Formule', 'Minibus 8 à 20 pl.', "Autocar jusqu'à 59 pl.", 'Par personne (car plein)'],
+          prix.lignes.map((l) => [l.trajet, l.duree, l.formule, l.minibus, l.autocar, l.parPersonne]),
+        )
+      : '') +
+    p(prix.note) +
+    (prix.variation ? p(prix.variation) : '') +
+    (gv
+      ? h2(gv.h2) + p(gv.intro) +
+        tableauLignes(
+          ['Trajet', 'Distance', 'Durée en autocar', 'Formule', 'Minibus 8 à 20 pl.', "Autocar jusqu'à 59 pl.", 'Par personne (car plein)'],
+          gv.lignes.map((l) => [l.destination, l.distance, l.duree, l.formule, l.minibus, l.autocar, l.parPersonne]),
+        ) + p(gv.note)
+      : '') +
+    (cl
+      ? h2(cl.h2) + `<ol class="list-decimal pl-6 mb-3">${cl.etapes.map((e) => `<li>${esc(e)}</li>`).join('')}</ol>` +
+        p(cl.conseil) + (cl.chauffeur ? pMd(cl.chauffeur) : '')
+      : '') +
+    [ville.vehicules, ville.minibus, ...(ville.sections || [])].filter(Boolean).map(bloc).join('') +
+    (visiter
+      ? h2(visiter.h2) + pMd(visiter.intro) +
+        visiter.lieux.map((l) => h3(l.nom) + pMd(`${l.trajet === 'en ville' ? 'En ville' : `À ${l.trajet} de ${ville.nom}`}. ${l.desc}`)).join('')
+      : '') +
     h2(`Vos questions sur la location de bus à ${ville.nom}`) +
     ville.faq.map((f) => h3(f.q) + p(f.a)).join('') +
     p(`Prêt à réserver votre bus à ${ville.nom} ? Décrivez votre trajet en 2 minutes, recevez plusieurs devis gratuits sous 24h.`) +
     (proches.length ? `<p class="mb-3">Location d'autocar près de ${esc(ville.nom)} : ${proches.map(aVille).join(' · ')}</p>` : '') +
     h2(ville.budgets.h2) +
     pMd(ville.budgets.intro) +
-    ul(ville.budgets.exemples) +
-    p(ville.budgets.note)
+    (ville.budgets.exemples ? ul(ville.budgets.exemples) : '') +
+    (ville.budgets.note ? p(ville.budgets.note) : '')
   )
 }
 
@@ -666,28 +668,38 @@ const llmsFull = [
       ? [
           `### ${v.prix.h2}`,
           v.prix.intro,
-          `| Trajet | Durée | Formule | Minibus 8 à 20 pl. | Autocar jusqu'à 59 pl. | Par personne |\n|---|---|---|---|---|---|\n` +
-            v.prix.lignes.map((l) => `| ${l.trajet} | ${l.duree} | ${l.formule} | ${l.minibus} | ${l.autocar} | ${l.parPersonne} |`).join('\n'),
+          ...(v.prix.tableau ? [tableauMd(v.prix.tableau)] : []),
+          ...(v.prix.lignes
+            ? [`| Trajet | Durée | Formule | Minibus 8 à 20 pl. | Autocar jusqu'à 59 pl. | Par personne |\n|---|---|---|---|---|---|\n` +
+                v.prix.lignes.map((l) => `| ${l.trajet} | ${l.duree} | ${l.formule} | ${l.minibus} | ${l.autocar} | ${l.parPersonne} |`).join('\n')]
+            : []),
           v.prix.note,
-          v.prix.variation,
-          `### ${v.grandesVilles.h2}`,
-          v.grandesVilles.intro,
-          `| Trajet | Distance | Durée en autocar | Formule | Minibus 8 à 20 pl. | Autocar jusqu'à 59 pl. | Par personne |\n|---|---|---|---|---|---|---|\n` +
-            v.grandesVilles.lignes.map((l) => `| ${l.destination} | ${l.distance} | ${l.duree} | ${l.formule} | ${l.minibus} | ${l.autocar} | ${l.parPersonne} |`).join('\n'),
-          v.grandesVilles.note,
-          `### ${v.commentLouer.h2}`,
-          v.commentLouer.etapes.map((e, i) => `${i + 1}. ${e}`).join('\n'),
-          v.commentLouer.conseil,
-          ...(v.commentLouer.chauffeur ? [v.commentLouer.chauffeur] : []),
-          ...[v.vehicules, v.minibus].flatMap((b) => [`### ${b.h2}`, b.paragraphes[0], ...(b.liste ? [b.liste.map((i) => `- ${i}`).join('\n')] : []), ...b.paragraphes.slice(1)]),
-          ...(v.sections || []).flatMap((sec) => [`### ${sec.h2}`, ...sec.paragraphes]),
-          `### ${v.visiter.h2}`,
-          v.visiter.intro,
-          v.visiter.lieux.map((l) => `- ${l.nom} (${l.trajet}) : ${l.desc}`).join('\n'),
+          ...(v.prix.variation ? [v.prix.variation] : []),
+          ...(v.grandesVilles
+            ? [
+                `### ${v.grandesVilles.h2}`,
+                v.grandesVilles.intro,
+                `| Trajet | Distance | Durée en autocar | Formule | Minibus 8 à 20 pl. | Autocar jusqu'à 59 pl. | Par personne |\n|---|---|---|---|---|---|---|\n` +
+                  v.grandesVilles.lignes.map((l) => `| ${l.destination} | ${l.distance} | ${l.duree} | ${l.formule} | ${l.minibus} | ${l.autocar} | ${l.parPersonne} |`).join('\n'),
+                v.grandesVilles.note,
+              ]
+            : []),
+          ...(v.commentLouer
+            ? [
+                `### ${v.commentLouer.h2}`,
+                v.commentLouer.etapes.map((e, i) => `${i + 1}. ${e}`).join('\n'),
+                v.commentLouer.conseil,
+                ...(v.commentLouer.chauffeur ? [v.commentLouer.chauffeur] : []),
+              ]
+            : []),
+          ...[v.vehicules, v.minibus, ...(v.sections || [])].filter(Boolean).flatMap((b) => [`### ${b.h2}`, b.paragraphes[0], ...(b.liste ? [b.liste.map((i) => `- ${i}`).join('\n')] : []), ...b.paragraphes.slice(1)]),
+          ...(v.visiter
+            ? [`### ${v.visiter.h2}`, v.visiter.intro, v.visiter.lieux.map((l) => `- ${l.nom} (${l.trajet}) : ${l.desc}`).join('\n')]
+            : []),
           `### ${v.budgets.h2}`,
           v.budgets.intro,
-          v.budgets.exemples.map((e) => `- ${e}`).join('\n'),
-          v.budgets.note,
+          ...(v.budgets.exemples ? [v.budgets.exemples.map((e) => `- ${e}`).join('\n')] : []),
+          ...(v.budgets.note ? [v.budgets.note] : []),
         ]
       : [
           `### ${v.sectionLocale.h2}`,
