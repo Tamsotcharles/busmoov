@@ -615,7 +615,7 @@ for (const article of articles) {
         case 'h3': return `<h3 class="font-semibold mt-3">${esc(b.text)}</h3>`
         case 'p': return pMd(b.text)
         case 'callout': return pMd(b.text)
-        case 'ul': return ul(b.items)
+        case 'ul': return ulMd(b.items)
         case 'table': return tableau(b)
         default: return ''
       }
