@@ -42,6 +42,59 @@ const hreflangCode = (lang) => (lang === 'en' ? 'en-GB' : lang)
 
 let count = 0
 
+const locales = Object.fromEntries(
+  LANGUAGES.map((l) => [l, JSON.parse(readFileSync(join(DIST, '..', 'src', 'locales', l, 'common.json'), 'utf8'))])
+)
+
+// Header et footer statiques : mêmes liens que Header.tsx / Footer.tsx, pour
+// que les robots qui n'exécutent pas le JavaScript voient le maillage global.
+// React les remplace au chargement (createRoot, pas d'hydratation).
+const lienLang = (lang, path) => {
+  const localized = translatePath(path, lang)
+  return localized === '/' ? `/${lang}` : `/${lang}${localized}`
+}
+const lienFooter = (href, label) =>
+  `<li><a href="${href}" class="hover:text-magenta transition-colors">${esc(label)}</a></li>`
+
+function staticHeader(lang, alternatePaths) {
+  const langues = LANGUAGES.map((l) => {
+    const href = alternatePaths ? (alternatePaths[l] === '/' ? `/${l}` : `/${l}${alternatePaths[l]}`) : `/${l}`
+    return `<a href="${href}" hreflang="${hreflangCode(l)}" class="text-sm text-gray-600 hover:text-magenta">${esc(locales[lang].language[l])}</a>`
+  }).join(' ')
+  return `<header class="fixed top-0 inset-x-0 z-50 bg-white/95 border-b border-gray-100"><div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4"><a href="/${lang}" class="font-display text-xl font-bold gradient-text">Busmoov</a><nav class="flex items-center gap-3">${langues}</nav></div></header>`
+}
+
+function staticFooter(lang) {
+  const loc = locales[lang]
+  const f = loc.footer
+  const villesFr = lang === 'fr'
+    ? `<div class="border-t border-gray-800 pt-6 mb-6 text-sm text-gray-400">Location d'autocar par ville : ${villes
+        .filter((v) => !v.rattacheeA)
+        .map((v) => `<a href="${lienLang('fr', `/location-autocar/${v.slug}`)}" class="hover:text-magenta">${esc(v.nom)}</a>`)
+        .join(' · ')} · <a href="${lienLang('fr', '/location-bus')}" class="hover:text-magenta">Location de bus</a> · <a href="${lienLang('fr', '/blog')}" class="hover:text-magenta">Blog &amp; conseils</a></div>`
+    : ''
+  return `<footer class="bg-gray-900 text-white pt-16 pb-8"><div class="max-w-7xl mx-auto px-4">` +
+    `<div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">` +
+    `<div><p class="font-display text-xl font-bold mb-4">Busmoov</p><p class="text-gray-400 text-sm">${esc(f.description)}</p></div>` +
+    `<div><p class="font-semibold mb-4">${esc(f.services)}</p><ul class="space-y-3 text-sm text-gray-400">` +
+    lienFooter(lienLang(lang, '/services/location-autocar'), f.busRental) +
+    lienFooter(lienLang(lang, '/services/location-minibus'), f.minibusRental) +
+    lienFooter(lienLang(lang, '/services/transfert-aeroport'), f.airportTransfer) +
+    lienFooter(lienLang(lang, '/services/sorties-scolaires'), f.schoolTrips) +
+    `</ul></div>` +
+    `<div><p class="font-semibold mb-4">${esc(f.company)}</p><ul class="space-y-3 text-sm text-gray-400">` +
+    lienFooter(lienLang(lang, '/a-propos'), f.about) +
+    lienFooter(lienLang(lang, '/devenir-partenaire'), f.becomePartner) +
+    lienFooter(lienLang(lang, '/contact'), loc.nav.contact) +
+    lienFooter(lienLang(lang, '/cgv'), f.termsLink) +
+    `</ul></div></div>` +
+    villesFr +
+    `<div class="border-t border-gray-800 pt-8 flex flex-wrap gap-4 text-sm text-gray-500">` +
+    `<a href="${lienLang(lang, '/mentions-legales')}" class="hover:text-magenta">${esc(f.legalLink)}</a>` +
+    `<a href="${lienLang(lang, '/confidentialite')}" class="hover:text-magenta">${esc(f.privacyLink)}</a>` +
+    `</div></div></footer>`
+}
+
 function renderPage({ lang, path, title, description, alternatePaths = null, jsonLd = [], body = '' }) {
   const canonical = urlFor(lang, path)
   let head = `<link rel="canonical" href="${canonical}"/>\n`
@@ -63,9 +116,10 @@ function renderPage({ lang, path, title, description, alternatePaths = null, jso
     .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`)
     .replace(/(<meta name="description" content=")[^"]*(")/, `$1${esc(description)}$2`)
     .replace('</head>', `${head}</head>`)
-  if (body) {
-    html = html.replace('<div id="root"></div>', `<div id="root">${body}</div>`)
-  }
+  html = html.replace(
+    '<div id="root"></div>',
+    `<div id="root">${staticHeader(lang, alternatePaths)}${body}${staticFooter(lang)}</div>`
+  )
 
   const outPath = path === '/' ? join(DIST, `${lang}.html`) : join(DIST, lang, `${path.slice(1)}.html`)
   mkdirSync(dirname(outPath), { recursive: true })
@@ -128,11 +182,8 @@ const organizationJsonLd = (lang) => ({
   },
 })
 
-// Traductions par langue, pour donner un corps réel aux pages
-// multilingues (les crawlers IA n'exécutent pas de JavaScript).
-const locales = Object.fromEntries(
-  LANGUAGES.map((l) => [l, JSON.parse(readFileSync(join(DIST, '..', 'src', 'locales', l, 'common.json'), 'utf8'))])
-)
+// Accès aux traductions (locales chargées plus haut), pour donner un corps
+// réel aux pages multilingues (les crawlers IA n'exécutent pas de JavaScript).
 const t = (lang, key) => key.split('.').reduce((o, seg) => (o && typeof o === 'object' ? o[seg] : undefined), locales[lang]) ?? ''
 
 // Bloc de maillage interne FR des pages services (même structure que
