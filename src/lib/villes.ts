@@ -1270,6 +1270,7 @@ export const villes: Ville[] = [
       'Navettes marché de Noël pour groupes (zones de dépose réglementées)',
     ],
     liensUtiles: [
+      "En Moselle, à 2 h de route, la [location d'autocar à Metz](/location-autocar/metz) couvre les navettes vers Luxembourg, la Sarre et Verdun.",
       "Depuis l'Alsace, les liaisons longue distance passent souvent par la [location d'autocar à Lyon](/location-autocar/lyon) ou par la capitale — voir la [location d'autocar sur Paris](/location-autocar/paris). Pour budgéter une sortie marché de Noël, notre guide [combien coûte un autocar avec chauffeur ?](/blog/prix-location-autocar) donne les fourchettes réelles.",
     ],
     sections: [
@@ -2587,6 +2588,109 @@ export const villes: Ville[] = [
       intro: "Décrivez votre trajet dans le formulaire en haut de page : départ, destination, dates et effectif. Vous recevez plusieurs devis de transporteurs vérifiés sous 24h, gratuitement et sans engagement.",
     },
     proximite: ['rouen'],
+  },
+  {
+    slug: 'metz',
+    format: 'enrichi',
+    nom: 'Metz',
+    rattacheeA: 'strasbourg',
+    metaTitle: 'Location autocar et bus à Metz avec chauffeur | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur à Metz : Luxembourg, Sarre, Trèves, Verdun, navettes gare et aéroport. Prix de départ et devis gratuit sous 24h.',
+    h1: "Location d'autocar et de bus avec chauffeur à Metz",
+    sousTitre: "Du minibus 8 places à l'autocar 59 places, toujours avec chauffeur : des autocaristes de Moselle vérifiés et plusieurs devis gratuits sous 24h.",
+    intro: [
+      "Vous cherchez un bus à Metz ? Navette vers la gare ou l'aéroport, journée au Luxembourg ou en Sarre, sortie scolaire à Verdun ou séminaire : Busmoov compare pour vous les devis d'autocaristes de Moselle, du minibus 8 places à l'autocar 59 places, chauffeur toujours inclus. Décrivez votre trajet ci-dessous, vous recevez plusieurs propositions sous 24h.",
+    ],
+    prix: {
+      h2: "Prix d'une location de bus avec chauffeur à Metz",
+      intro: "Les prix de départ des trajets les plus demandés au départ de Metz. Notre [guide des prix de location d'autocar](/blog/prix-location-autocar) détaille ce qui fait varier un devis.",
+      tableau: {
+        caption: 'Prix de départ 2026 au départ de Metz, TTC, chauffeur, carburant et péages inclus',
+        headers: ['Trajet', 'Durée', 'Minibus 8 à 20 places', 'Autocar 21 à 59 places'],
+        rows: [
+          ["Gare de Metz vers l'aéroport Metz-Nancy-Lorraine, aller simple", '30 min', 'à partir de 400 €', 'à partir de 450 €'],
+          ['Journée à Metz, mise à disposition', 'sur place', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Luxembourg, aller-retour à la journée', '1 h', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Verdun, aller-retour à la journée', '1 h', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Sarrebruck, aller-retour à la journée', '1 h', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Strasbourg, aller-retour à la journée', '2 h', 'à partir de 1 000 €', 'à partir de 1 100 €'],
+        ],
+      },
+      note: "Prix de départ TTC (TVA transport 10 %), octobre 2026. Le prix exact dépend de la date, des horaires et de l'effectif ; parking, hébergement et repas du chauffeur en sus. Durées en autocar, hors pauses.",
+    },
+    sections: [
+      {
+        h2: 'Navettes gare, TGV et aéroports',
+        paragraphes: [
+          "Metz a deux portes d'entrée ferroviaires : la gare de Metz-Ville, en plein centre, et la gare Lorraine TGV, en rase campagne entre Metz et Nancy. Côté avion, l'aéroport Metz-Nancy-Lorraine est le plus proche, mais beaucoup de groupes passent par celui de Luxembourg. Les temps de trajet à prévoir en autocar :",
+          "Un minibus avec chauffeur attend le groupe à l'arrivée du train ou du vol, même en cas de retard, et le conduit directement à l'hôtel ou au séminaire : pas de correspondance en bus régional avec les bagages.",
+        ],
+        liste: [
+          "Gare de Metz-Ville vers l'aéroport Metz-Nancy-Lorraine : environ 30 minutes",
+          'Gare de Metz-Ville vers la gare Lorraine TGV : environ 30 minutes',
+          "Metz vers l'aéroport de Luxembourg : environ 1 heure",
+        ],
+      },
+      {
+        h2: 'Visiter Metz en groupe',
+        paragraphes: [
+          "Metz compte 122 572 habitants ([Insee, population de référence 2023](https://www.insee.fr/fr/statistiques/8643952?geo=COM-57463)). Son premier site de visite, le Centre Pompidou-Metz, se trouve juste derrière la gare et a accueilli 315 148 visiteurs en 2025, hors groupes scolaires, selon [le musée](https://api.centrepompidou-metz.fr/files/bc856faa/cp_bilan_frequentation_2025_7janv3.pdf).",
+          "La cathédrale Saint-Étienne possède la plus grande surface de vitraux de France, environ 6 500 m², dont des créations de Chagall ([office de tourisme de Metz](https://www.tourisme-metz.com/en/page/838145823-vitraux-de-la-cathedrale-saint-etienne)). Le car dépose le groupe au plus près du centre piéton, repart stationner et revient à l'heure convenue : une demi-journée suffit pour enchaîner le musée et la cathédrale.",
+        ],
+      },
+      {
+        h2: "Sarre, Trèves, Luxembourg : l'étranger à une heure de Metz",
+        paragraphes: [
+          "Metz est l'une des rares villes françaises d'où l'on fait une sortie à l'étranger dans la journée sans long trajet. Les destinations transfrontalières les plus demandées, avec le temps de trajet en autocar :",
+          "Pour un séjour plus loin en Allemagne (Cologne, Munich, Europa-Park) ou pour les règles des zones environnementales, voyez notre page [location d'autocar pour l'Allemagne](/location-autocar-allemagne).",
+        ],
+        liste: [
+          'Sarrebruck (1 h) : la capitale de la Sarre et son marché de Noël',
+          "Völklingen (1 h) : l'ancienne usine sidérurgique, inscrite au patrimoine mondial de l'UNESCO",
+          'Trèves (1 h 30) : la Porta Nigra et la plus ancienne ville romaine d\'Allemagne',
+          'Luxembourg (1 h) : la vieille ville et les quartiers européens',
+          "Schengen (45 min) : le village qui a donné son nom à l'accord, au point de rencontre de trois pays",
+        ],
+      },
+      {
+        h2: 'Les sorties en car autour de Metz',
+        paragraphes: [
+          "Côté français, le pôle de loisirs d'Amnéville (zoo, parc d'attractions) est à 30 minutes, et Verdun, ses champs de bataille et l'ossuaire de Douaumont à une heure : c'est la sortie mémorielle de référence pour les collèges et lycées. Nancy et la place Stanislas sont aussi à une heure, voir notre page [location d'autocar à Nancy](/location-autocar/nancy). Pour l'Alsace et ses marchés de Noël, comptez deux heures jusqu'à Strasbourg, où nous avons une [page de location d'autocar à Strasbourg](/location-autocar/strasbourg).",
+          'Pour une classe, les règles du transport d\'élèves (ceinture, taux d\'encadrement, schéma de conduite) sont rassemblées sur notre page [location de car pour les sorties scolaires](/services/sorties-scolaires).',
+        ],
+      },
+      {
+        h2: 'Quel véhicule pour votre groupe ?',
+        paragraphes: [
+          "Jusqu'à 20 personnes, un [minibus 20 places avec chauffeur](/location-minibus-20-places) suffit pour une navette ou une visite en ville. De 21 à 59 personnes, c'est l'autocar standard, celui des [locations de bus 50 places](/location-bus-50-places). En décembre, les week-ends de marchés de Noël en Lorraine, en Sarre et en Alsace saturent les plannings : réservez dès septembre.",
+        ],
+      },
+      {
+        h2: 'Minibus à Metz : avec ou sans chauffeur ?',
+        paragraphes: [
+          "Une grande partie des offres de « location de minibus à Metz » sont des véhicules sans chauffeur. Or le permis B limite à 9 places, conducteur compris ; au-delà, il faut le permis D et donc un chauffeur professionnel. Chez Busmoov, le chauffeur est toujours inclus : il connaît les accès cars de Luxembourg et des villes allemandes, gère la dépose et respecte des temps de conduite encadrés.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Comment réserver un bus avec chauffeur à Metz ?',
+        a: 'Indiquez votre trajet, vos dates et votre effectif dans le formulaire : nous consultons les transporteurs de Moselle et vous recevez plusieurs devis sous 24h.',
+      },
+      {
+        q: 'Peut-on aller en Allemagne ou au Luxembourg en car depuis Metz ?',
+        a: "Oui. Sarrebruck, Völklingen et Luxembourg sont à environ une heure, Trèves à une heure et demie : une excursion à la journée suffit. Chaque passager doit avoir sa pièce d'identité, et une autorisation de sortie du territoire pour les mineurs en sortie scolaire.",
+      },
+      {
+        q: 'Où trouver une agence de location de bus à Metz ?',
+        a: "Vous n'avez pas besoin de vous déplacer : le car vient vous chercher à l'adresse de votre choix. Les transporteurs que nous consultons sont basés en Moselle et dans les départements voisins.",
+      },
+    ],
+    budgets: {
+      h2: 'Votre devis de bus avec chauffeur à Metz en 24h',
+      intro: 'Décrivez votre trajet dans le formulaire en haut de page : départ, destination, dates et effectif. Vous recevez plusieurs devis de transporteurs vérifiés sous 24h, gratuitement et sans engagement.',
+    },
+    proximite: ['strasbourg', 'nancy'],
   },
 ]
 

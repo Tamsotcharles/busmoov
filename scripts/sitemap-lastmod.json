@@ -324,8 +324,8 @@
     "lastmod": "2026-10-15"
   },
   "https://www.busmoov.com/fr/location-autocar/strasbourg": {
-    "hash": "17d401bc160a",
-    "lastmod": "2026-10-15"
+    "hash": "207ae723a212",
+    "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/fr/location-autocar/grenoble": {
     "hash": "42bfaa69a242",
@@ -381,6 +381,10 @@
   },
   "https://www.busmoov.com/fr/location-autocar/le-havre": {
     "hash": "027a6025e75f",
+    "lastmod": "2026-10-22"
+  },
+  "https://www.busmoov.com/fr/location-autocar/metz": {
+    "hash": "019f8fc89493",
     "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/fr/blog": {
