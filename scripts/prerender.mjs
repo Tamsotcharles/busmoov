@@ -8,6 +8,7 @@ import { villes } from '../src/lib/villes.ts'
 import { articles, articlesSimilaires } from '../src/lib/blog.ts'
 import { landings } from '../src/lib/landings.ts'
 import { maillageServices } from '../src/lib/maillage.ts'
+import { sortiesScolairesFr } from '../src/lib/sorties-scolaires.ts'
 
 /**
  * Prérendu statique des pages publiques, SANS navigateur headless :
@@ -141,6 +142,22 @@ const maillageFr = (lang, page) => {
   return h2(bloc.h2) + bloc.paragraphes.map(pMd).join('') + h2(bloc.villesH2) + `<p class="mb-3">${villes.map(aVille).join(' · ')}</p>`
 }
 
+// Blocs SEO français de la page sorties scolaires (même contenu que
+// SectionsScolairesFr côté React).
+const sectionScolaire = (sec) =>
+  h2(sec.h2) + pMd(sec.intro) +
+  (sec.paragraphes || []).map(pMd).join('') +
+  (sec.liste ? `<ul class="list-disc pl-6 mb-3">${sec.liste.map((i) => `<li>${mdInline(i)}</li>`).join('')}</ul>` : '') +
+  (sec.tableau ? tableau(sec.tableau) : '') +
+  (sec.apres ? pMd(sec.apres) : '')
+const scolaireFr = (lang, partie) => {
+  if (lang !== 'fr') return ''
+  const c = sortiesScolairesFr
+  if (partie === 'prix') return sectionScolaire(c.prix)
+  if (partie === 'regles') return sectionScolaire(c.reglementation) + sectionScolaire(c.encadrement)
+  return h2('Vos questions sur la location de car scolaire') + c.faq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + p(f.a)).join('')
+}
+
 /** Corps statique des pages multilingues, construit depuis les traductions. */
 function multilingualBody(page, lang) {
   switch (page) {
@@ -228,14 +245,17 @@ function multilingualBody(page, lang) {
         [1, 2, 3, 4, 5, 6].map((n) => h3p(k(`trip${n}Title`), `${k(`trip${n}Desc`)} ${k(`trip${n}Examples`)}`)).join('') +
         h2(k('vehiclesTitle')) + p(k('vehiclesSubtitle')) +
         [1, 2, 3].map((n) => h3p(`${k(`vehicle${n}Title`)} (${k(`vehicle${n}Capacity`)})`, `${k(`vehicle${n}Ideal`)} ${k(`vehicle${n}Features`)}`)).join('') +
+        scolaireFr(lang, 'prix') +
         h2(k('safetyTitle')) + p(k('safetySubtitle')) +
         [1, 2, 3, 4].map((n) => h3p(k(`safety${n}Title`), k(`safety${n}Desc`))).join('') +
+        scolaireFr(lang, 'regles') +
         h2(k('docsTitle')) + p(k('docsSubtitle')) +
         [1, 2, 3, 4].map((n) => h3p(k(`doc${n}Title`), k(`doc${n}Desc`))).join('') +
         h2(k('howItWorksTitle')) + p(k('howItWorksSubtitle')) +
         [1, 2, 3, 4].map((n) => h3p(k(`step${n}Title`), k(`step${n}Desc`))).join('') +
         h2(k('includedTitle')) +
         ul([1, 2, 3, 4, 5, 6, 7, 8].map((n) => k(`included${n}`))) +
+        scolaireFr(lang, 'faq') +
         maillageFr(lang, 'sorties-scolaires')
       )
     }
@@ -273,6 +293,13 @@ for (const [page, paths] of Object.entries(seoLocalizedPaths)) {
   for (const lang of LANGUAGES) {
     const meta = seoConfig[page][lang]
     const jsonLd = page === 'home' ? [organizationJsonLd(lang)] : []
+    if (page === 'sorties-scolaires' && lang === 'fr') {
+      jsonLd.push({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: sortiesScolairesFr.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+      })
+    }
     renderPage({
       lang,
       path: paths[lang],

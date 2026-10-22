@@ -187,8 +187,8 @@ export const seoConfig: Record<SeoPageKey, Record<SeoLanguage, SeoPageMeta>> = {
   },
   'sorties-scolaires': {
     fr: {
-      title: 'Transport scolaire en autocar : sorties et voyages | Busmoov',
-      description: 'Autocar avec chauffeur pour sorties scolaires et voyages de classe. Transporteurs agréés, véhicules aux normes, devis gratuit pour écoles et collèges.',
+      title: 'Location de car scolaire pour sorties et voyages | Busmoov',
+      description: 'Location de car scolaire avec chauffeur : prix de départ, règles de sécurité et taux d\'encadrement. Devis gratuit sous 24h pour écoles et collèges.',
     },
     es: {
       title: 'Transporte escolar en autocar: excursiones y viajes | Busmoov',
