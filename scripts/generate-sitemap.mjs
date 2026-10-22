@@ -48,6 +48,7 @@ const PAGE_SOURCES = {
   'cgv': 'src/pages/CGVPage.tsx',
   'mentions-legales': 'src/pages/MentionsLegalesPage.tsx',
   'confidentialite': 'src/pages/ConfidentialitePage.tsx',
+  'chateaux-loire': 'src/lib/chateaux-loire.ts',
 }
 
 const read = (path) => readFileSync(join(ROOT, path), 'utf8')

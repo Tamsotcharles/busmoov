@@ -18,6 +18,7 @@ export type SeoPageKey =
   | 'cgv'
   | 'mentions-legales'
   | 'confidentialite'
+  | 'chateaux-loire'
 
 export interface SeoPageMeta {
   title: string
@@ -39,6 +40,7 @@ export const seoPaths: Record<SeoPageKey, string> = {
   'cgv': '/cgv',
   'mentions-legales': '/mentions-legales',
   'confidentialite': '/confidentialite',
+  'chateaux-loire': '/autocar-chateaux-de-la-loire',
 }
 
 /**
@@ -84,6 +86,12 @@ export const seoLocalizedPaths: Record<SeoPageKey, Record<SeoLanguage, string>> 
   'cgv': { fr: '/cgv', es: '/condiciones-generales', de: '/agb', en: '/terms' },
   'mentions-legales': { fr: '/mentions-legales', es: '/aviso-legal', de: '/impressum', en: '/legal-notice' },
   'confidentialite': { fr: '/confidentialite', es: '/privacidad', de: '/datenschutz', en: '/privacy' },
+  'chateaux-loire': {
+    fr: '/autocar-chateaux-de-la-loire',
+    es: '/autocar-castillos-del-loira',
+    de: '/reisebus-loire-schloesser',
+    en: '/coach-hire-loire-castles',
+  },
 }
 
 /** Traduit un chemin interne (français) vers son slug localisé. Les chemins
@@ -274,6 +282,24 @@ export const seoConfig: Record<SeoPageKey, Record<SeoLanguage, SeoPageMeta>> = {
     es: { title: 'Política de privacidad | Busmoov', description: 'Política de privacidad de Busmoov: recogida, uso y protección de sus datos personales.' },
     de: { title: 'Datenschutzerklärung | Busmoov', description: 'Datenschutzerklärung von Busmoov: Erhebung, Nutzung und Schutz Ihrer personenbezogenen Daten.' },
     en: { title: 'Privacy Policy | Busmoov', description: 'Busmoov privacy policy: collection, use and protection of your personal data.' },
+  },
+  'chateaux-loire': {
+    fr: {
+      title: 'Location autocar pour les châteaux de la Loire | Busmoov',
+      description: "Autocar avec chauffeur pour visiter les châteaux de la Loire : Chambord, Chenonceau, Amboise. Prix de départ, itinéraires et devis gratuit sous 24h.",
+    },
+    es: {
+      title: 'Autocar con conductor para los castillos del Loira | Busmoov',
+      description: 'Autocar con conductor para visitar los castillos del Loira desde París: Chambord, Chenonceau, Amboise. Precios, itinerarios y presupuesto en 24 h.',
+    },
+    de: {
+      title: 'Reisebus mit Fahrer für die Loire-Schlösser | Busmoov',
+      description: 'Reisebus mit Fahrer für die Loire-Schlösser: Chambord, Chenonceau, Amboise. Startpreise, Rundreisen ab Paris oder Deutschland, Angebot in 24 Std.',
+    },
+    en: {
+      title: 'Loire Valley Châteaux Coach Hire with Driver | Busmoov',
+      description: 'Coach hire with driver to visit the Loire Valley châteaux from Paris or the Channel ports: Chambord, Chenonceau, Amboise. Prices and quotes in 24h.',
+    },
   },
 }
 

@@ -354,6 +354,26 @@
       "source": "/blog/:path*",
       "destination": "/fr/blog/:path*",
       "statusCode": 301
+    },
+    {
+      "source": "/es/autocar-chateaux-de-la-loire",
+      "destination": "/es/autocar-castillos-del-loira",
+      "statusCode": 301
+    },
+    {
+      "source": "/de/autocar-chateaux-de-la-loire",
+      "destination": "/de/reisebus-loire-schloesser",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/autocar-chateaux-de-la-loire",
+      "destination": "/en/coach-hire-loire-castles",
+      "statusCode": 301
+    },
+    {
+      "source": "/autocar-chateaux-de-la-loire",
+      "destination": "/fr/autocar-chateaux-de-la-loire",
+      "statusCode": 301
     }
   ],
   "rewrites": [
