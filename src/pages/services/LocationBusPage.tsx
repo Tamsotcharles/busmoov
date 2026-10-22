@@ -6,7 +6,7 @@ import { SeoFr } from '@/components/seo/Seo'
 import { TextWithLinks } from '@/components/ui/TextWithLinks'
 import { TableauSeo } from '@/components/ui/TableauSeo'
 import { useLocalizedPath } from '@/components/i18n'
-import { villes } from '@/lib/villes'
+import { villesMaillees as villes } from '@/lib/villes'
 import { locationBusMeta } from '@/lib/seo-data'
 import {
   locationBusIntro,

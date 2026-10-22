@@ -399,7 +399,7 @@
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-bus</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-10-22</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/navette-aeroport-cdg</loc>
@@ -559,7 +559,7 @@
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/rouen</loc>
-    <lastmod>2026-10-15</lastmod>
+    <lastmod>2026-10-22</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/tours</loc>
@@ -584,6 +584,10 @@
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/annecy</loc>
     <lastmod>2026-10-16</lastmod>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/fr/location-autocar/le-havre</loc>
+    <lastmod>2026-10-22</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/blog</loc>

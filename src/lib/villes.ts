@@ -30,6 +30,17 @@ interface VilleBase {
   h1: string
   sousTitre: string
   intro: string[]
+  /**
+   * Ville rattachée à une ville principale (slug) : exclue des blocs de
+   * maillage automatiques (pied de page, listes « au départ de votre ville »,
+   * « également disponible à », llms.txt). Elle n'est liée que depuis sa ville
+   * principale, et reste dans le sitemap.
+   */
+  rattacheeA?: string
+  /** « au Havre » quand « à + nom » ne convient pas (défaut : `à ${nom}`) */
+  nomA?: string
+  /** « du Havre » quand « de + nom » ne convient pas (défaut : `de ${nom}`) */
+  nomDe?: string
   /** Sections éditoriales supplémentaires (calendrier, conseils) — liens markdown acceptés. */
   sections?: VilleSection[]
   faq: VilleFaq[]
@@ -1859,6 +1870,7 @@ export const villes: Ville[] = [
     h2Destinations: 'Impressionnistes, falaises et Histoire : les sorties depuis Rouen',
     h2Trajets: 'Trajets types à Rouen',
     liensUtiles: [
+      "À l'estuaire de la Seine, à 1 h 15 de route, la [location d'autocar au Havre](/location-autocar/le-havre) couvre les escales de croisière, Étretat et la Côte d'Albâtre.",
       'Pour un groupe venu de la capitale, notre page [autocar au départ de Paris](/location-autocar/paris) couvre le transfert vers Rouen et la Normandie ; pour les établissements scolaires, le guide [préparer une sortie scolaire en autocar](/blog/organiser-sortie-scolaire-autocar) reprend les règles à respecter. Les prix par distance sont dans notre [guide tarifaire autocar](/blog/prix-location-autocar).',
     ],
     destinations: [
@@ -2478,7 +2490,113 @@ export const villes: Ville[] = [
     },
     proximite: ['lyon', 'grenoble'],
   },
+  {
+    slug: 'le-havre',
+    format: 'enrichi',
+    nom: 'Le Havre',
+    nomA: 'au Havre',
+    nomDe: 'du Havre',
+    rattacheeA: 'rouen',
+    metaTitle: 'Location autocar et bus au Havre avec chauffeur | Busmoov',
+    metaDescription: 'Autocar et minibus avec chauffeur au Havre : escales de croisière, Étretat, Honfleur, Mémorial de Caen. Prix de départ et devis gratuit sous 24h.',
+    h1: "Location d'autocar et de bus avec chauffeur au Havre",
+    sousTitre: "Du minibus 8 places à l'autocar 59 places, toujours avec chauffeur : des autocaristes de Seine-Maritime vérifiés et plusieurs devis gratuits sous 24h.",
+    intro: [
+      "Vous cherchez un bus au Havre ? Excursion pour une escale de croisière, journée à Étretat ou Honfleur, séminaire ou sortie scolaire : Busmoov compare pour vous les devis d'autocaristes de Seine-Maritime, du minibus 8 places à l'autocar 59 places, chauffeur toujours inclus. Décrivez votre trajet ci-dessous, vous recevez plusieurs propositions sous 24h.",
+    ],
+    prix: {
+      h2: "Prix d'une location de bus avec chauffeur au Havre",
+      intro: "Les prix de départ des trajets les plus demandés au départ du Havre. Notre [guide des prix de location d'autocar](/blog/prix-location-autocar) détaille ce qui fait varier un devis.",
+      tableau: {
+        caption: "Prix de départ 2026 au départ du Havre, TTC, chauffeur, carburant et péages inclus",
+        headers: ['Trajet', 'Durée', 'Minibus 8 à 20 places', 'Autocar 21 à 59 places'],
+        rows: [
+          ['Gare vers le terminal de croisière, aller simple', '5 à 10 min', 'à partir de 400 €', 'à partir de 450 €'],
+          ['Journée au Havre, mise à disposition', 'sur place', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Honfleur, aller-retour à la journée', '30 min', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Étretat et Fécamp, aller-retour à la journée', '45 min', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Mémorial de Caen, aller-retour à la journée', '1 h 15', 'à partir de 700 €', 'à partir de 800 €'],
+          ['Paris, aller-retour à la journée', '2 h 45', 'à partir de 1 000 €', 'à partir de 1 100 €'],
+        ],
+      },
+      note: "Prix de départ TTC (TVA transport 10 %), octobre 2026. Le prix exact dépend de la date, des horaires et de l'effectif ; parking, hébergement et repas du chauffeur en sus. Durées en autocar, hors pauses.",
+    },
+    sections: [
+      {
+        h2: 'Navettes gare, terminal de croisière et aéroports',
+        paragraphes: [
+          "La gare du Havre est reliée directement à Paris Saint-Lazare, et le terminal de croisière de la Pointe de Floride se trouve à environ 2,5 km de la gare. Il n'y a pas de grand aéroport à proximité : les groupes qui arrivent en avion passent souvent par Paris. Les temps de trajet à prévoir en autocar :",
+          "Le minibus avec chauffeur convient à un petit groupe qui arrive en train ou débarque d'un paquebot : le chauffeur suit l'horaire et conduit le groupe directement à l'hôtel, au séminaire ou en excursion.",
+        ],
+        liste: [
+          'Gare du Havre vers le terminal de croisière : 5 à 10 minutes',
+          'Le Havre vers l\'aéroport de Deauville-Normandie : environ 45 minutes',
+          'Le Havre vers l\'aéroport Paris-Charles-de-Gaulle : environ 3 heures',
+        ],
+      },
+      {
+        h2: 'Escales de croisière : excursions en car depuis le port',
+        paragraphes: [
+          "Le Havre compte 166 687 habitants ([Insee, population de référence 2023](https://www.insee.fr/fr/statistiques/8643952?geo=COM-76351)), et son port a reçu 137 escales de paquebots et plus de 430 000 passagers maritimes en 2025, selon [Le Havre Seine Métropole](https://www.lehavreseinemetropole.fr/croisieres-un-nouvel-horizon). Une escale dure souvent une journée : le car prend le groupe au terminal, enchaîne une ou deux visites et le ramène avant l'appareillage.",
+          "Le centre-ville reconstruit par Auguste Perret, inscrit au patrimoine mondial de l'UNESCO en 2005, se visite à pied à quelques minutes du port. Pour une excursion plus longue, Étretat et Honfleur sont à moins d'une heure ; prévoyez toujours une marge confortable sur l'heure de retour à bord.",
+        ],
+      },
+      {
+        h2: 'Les sorties en car autour du Havre',
+        paragraphes: [
+          'Les excursions les plus demandées au départ du Havre, avec le temps de trajet en autocar :',
+          'Pour une classe, les règles du transport d\'élèves (ceinture, taux d\'encadrement, schéma de conduite) sont rassemblées sur notre page [location de car pour les sorties scolaires](/services/sorties-scolaires).',
+        ],
+        liste: [
+          'Honfleur (30 min) : le vieux bassin et ses maisons à pans de bois, de l\'autre côté du pont de Normandie',
+          'Étretat (45 min) : les falaises et l\'arche de la Côte d\'Albâtre',
+          'Fécamp (45 min) : le port et le Palais Bénédictine',
+          'Deauville (45 min) : les planches et la plage',
+          'Le Mémorial de Caen (1 h 15) : la Seconde Guerre mondiale et le Débarquement',
+        ],
+      },
+      {
+        h2: 'Quel véhicule pour votre groupe ?',
+        paragraphes: [
+          "Jusqu'à 20 personnes, un [minibus 20 places avec chauffeur](/location-minibus-20-places) suffit, y compris pour les petites rues d'Étretat ou de Honfleur. De 21 à 59 personnes, c'est l'autocar standard, celui des [locations de bus 50 places](/location-bus-50-places). Les jours d'escale de plusieurs paquebots et les week-ends d'été, les cars sont très demandés : réservez six à huit semaines à l'avance.",
+        ],
+      },
+      {
+        h2: 'Minibus au Havre : avec ou sans chauffeur ?',
+        paragraphes: [
+          "Beaucoup d'offres de « location de minibus au Havre » sont des véhicules à conduire soi-même. Avec le permis B, on ne conduit qu'un véhicule de 9 places au maximum, conducteur compris ; au-delà, il faut le permis D, donc un chauffeur professionnel. Chez Busmoov, le chauffeur est toujours inclus : il conduit, gère la dépose et respecte des temps de conduite encadrés, ce qui compte pour tenir l'horaire d'un retour à bord.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Comment réserver un minibus avec chauffeur au Havre ?',
+        a: "Indiquez votre trajet, vos dates et votre effectif dans le formulaire : nous consultons les transporteurs de Seine-Maritime et vous recevez plusieurs devis sous 24h.",
+      },
+      {
+        q: 'Quels services de transport touristique au Havre ?',
+        a: "Transferts entre la gare, le terminal de croisière et les hôtels, excursions à la journée sur la Côte d'Albâtre ou à Honfleur, mise à disposition d'un car pour un séminaire ou un événement : le car vous prend et vous dépose aux adresses de votre choix.",
+      },
+      {
+        q: 'Où trouver une agence de location de bus au Havre ?',
+        a: "Vous n'avez pas besoin de vous déplacer : le car vient vous chercher à l'adresse de votre choix. Les transporteurs que nous consultons sont basés en Seine-Maritime et dans les départements voisins.",
+      },
+    ],
+    budgets: {
+      h2: 'Votre devis de bus avec chauffeur au Havre en 24h',
+      intro: "Décrivez votre trajet dans le formulaire en haut de page : départ, destination, dates et effectif. Vous recevez plusieurs devis de transporteurs vérifiés sous 24h, gratuitement et sans engagement.",
+    },
+    proximite: ['rouen'],
+  },
 ]
+
+/** « à Lyon », « au Havre » */
+export const aLaVille = (v: Ville): string => v.nomA ?? `à ${v.nom}`
+/** « de Lyon », « du Havre » */
+export const deLaVille = (v: Ville): string => v.nomDe ?? `de ${v.nom}`
+
+/** Villes listées dans les blocs de maillage automatiques (hors villes rattachées). */
+export const villesMaillees: Ville[] = villes.filter((v) => !v.rattacheeA)
 
 export function getVille(slug: string): Ville | undefined {
   return villes.find((v) => v.slug === slug)

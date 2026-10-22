@@ -5,7 +5,7 @@ import { Footer } from '@/components/layout/Footer'
 import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
 import { SeoFr } from '@/components/seo/Seo'
 import { useLocalizedPath } from '@/components/i18n'
-import { getVille, villes, type Ville, type VilleClassique, type VilleEnrichie, type VilleSection } from '@/lib/villes'
+import { getVille, villes, villesMaillees, aLaVille, deLaVille, type Ville, type VilleClassique, type VilleEnrichie, type VilleSection } from '@/lib/villes'
 import { getSiteBaseUrl } from '@/lib/utils'
 import { Bus, Clock, Shield, MapPin, CheckCircle, ArrowRight, Info } from 'lucide-react'
 import { TextWithLinks } from '@/components/ui/TextWithLinks'
@@ -28,7 +28,7 @@ export function VilleAutocarPage() {
     {
       '@context': 'https://schema.org',
       '@type': 'Service',
-      serviceType: `Location d'autocar avec chauffeur à ${ville.nom}`,
+      serviceType: `Location d'autocar avec chauffeur ${aLaVille(ville)}`,
       description: ville.metaDescription,
       url: `${getSiteBaseUrl()}/fr${path}`,
       areaServed: { '@type': 'City', name: ville.nom },
@@ -56,7 +56,7 @@ export function VilleAutocarPage() {
 
   const atouts = [
     { icon: Clock, title: 'Devis gratuit en 24h', desc: 'Plusieurs propositions de transporteurs comparées pour vous.' },
-    { icon: Shield, title: 'Transporteurs vérifiés', desc: `Des professionnels implantés dans la région de ${ville.nom}, licences et assurances contrôlées.` },
+    { icon: Shield, title: 'Transporteurs vérifiés', desc: `Des professionnels implantés dans la région ${deLaVille(ville)}, licences et assurances contrôlées.` },
     { icon: Bus, title: 'Du minibus au double étage', desc: 'De 8 à 90 places, avec chauffeur professionnel inclus.' },
   ]
 
@@ -97,7 +97,7 @@ export function VilleAutocarPage() {
       <section id="devis" className="py-12 scroll-mt-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-center mb-2">
-            Votre devis autocar à {ville.nom} en 2 minutes
+            Votre devis autocar {aLaVille(ville)} en 2 minutes
           </h2>
           <p className="text-gray-600 text-center mb-8">
             Gratuit et sans engagement. Plusieurs propositions de transporteurs sous 24h.
@@ -218,7 +218,7 @@ function SectionsClassiques({ ville }: { ville: VilleClassique }) {
         {/* FAQ */}
         <section className="py-12 bg-gray-50">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold text-center mb-8">Vos questions sur l'autocar à {ville.nom}</h2>
+            <h2 className="text-2xl font-bold text-center mb-8">Vos questions sur l'autocar {aLaVille(ville)}</h2>
             <div className="space-y-6">
               {ville.faq.map((f) => (
                 <div key={f.q} className="card">
@@ -233,7 +233,7 @@ function SectionsClassiques({ ville }: { ville: VilleClassique }) {
         {/* Autres villes + CTA */}
         <section className="py-12">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-2xl font-bold mb-4">Prêt à réserver votre autocar à {ville.nom} ?</h2>
+            <h2 className="text-2xl font-bold mb-4">Prêt à réserver votre autocar {aLaVille(ville)} ?</h2>
             <p className="text-gray-600 mb-6">
               Décrivez votre trajet en 2 minutes, recevez plusieurs devis gratuits sous 24h.
             </p>
@@ -242,7 +242,7 @@ function SectionsClassiques({ ville }: { ville: VilleClassique }) {
             </a>
             <p className="text-sm text-gray-500 mt-8">
               Busmoov également disponible à{' '}
-              {villes.filter((v) => v.slug !== ville.slug).map((v, i, arr) => (
+              {villesMaillees.filter((v) => v.slug !== ville.slug).map((v, i, arr) => (
                 <span key={v.slug}>
                   <Link to={localizedPath(`/location-autocar/${v.slug}`)} className="text-magenta hover:underline">{v.nom}</Link>
                   {i < arr.length - 1 ? ', ' : ''}
@@ -280,7 +280,7 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-left">
                 <tr>
-                  <th className="p-3 font-semibold">Trajet au départ de {ville.nom}</th>
+                  <th className="p-3 font-semibold">Trajet au départ {deLaVille(ville)}</th>
                   <th className="p-3 font-semibold">Durée</th>
                   <th className="p-3 font-semibold">Formule</th>
                   <th className="p-3 font-semibold">Minibus 8 à 20 pl.</th>
@@ -398,7 +398,7 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
                   <MapPin className="w-4 h-4 text-magenta flex-none" />
                   <h3 className="font-semibold">{l.nom}</h3>
                 </div>
-                <p className="text-xs text-gray-500 mb-2">{l.trajet === 'en ville' ? 'En ville' : `À ${l.trajet} de ${ville.nom}`}</p>
+                <p className="text-xs text-gray-500 mb-2">{l.trajet === 'en ville' ? 'En ville' : `À ${l.trajet} ${deLaVille(ville)}`}</p>
                 <TextWithLinks text={l.desc} className="text-sm text-gray-600 leading-relaxed" />
               </div>
             ))}
@@ -410,7 +410,7 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
       {/* FAQ */}
       <section className="py-12 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-center mb-8">Vos questions sur la location de bus à {ville.nom}</h2>
+          <h2 className="text-2xl font-bold text-center mb-8">Vos questions sur la location de bus {aLaVille(ville)}</h2>
           <div className="space-y-6">
             {ville.faq.map((f) => (
               <div key={f.q} className="card">
@@ -425,7 +425,7 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
       {/* CTA devis */}
       <section className="py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-2xl font-bold mb-4">Prêt à réserver votre bus à {ville.nom} ?</p>
+          <p className="text-2xl font-bold mb-4">Prêt à réserver votre bus {aLaVille(ville)} ?</p>
           <p className="text-gray-600 mb-6">
             Décrivez votre trajet en 2 minutes, recevez plusieurs devis gratuits sous 24h.
           </p>
@@ -439,7 +439,7 @@ function SectionsEnrichies({ ville }: { ville: VilleEnrichie }) {
       {proches.length > 0 && (
         <section className="pb-8">
           <p className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-sm text-gray-500 text-center">
-            <span className="font-semibold text-gray-700">Location d'autocar près de {ville.nom} : </span>
+            <span className="font-semibold text-gray-700">Location d'autocar près {deLaVille(ville)} : </span>
             {proches.map((v, i) => (
               <span key={v.slug}>
                 <Link to={localizedPath(`/location-autocar/${v.slug}`)} className="text-magenta hover:underline">{v.nom}</Link>

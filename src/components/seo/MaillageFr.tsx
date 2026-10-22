@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
 import { TextWithLinks } from '@/components/ui/TextWithLinks'
-import { villes } from '@/lib/villes'
+import { villesMaillees as villes } from '@/lib/villes'
 import type { MaillageBloc } from '@/lib/maillage'
 
 /**
