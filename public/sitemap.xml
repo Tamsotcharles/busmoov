@@ -398,6 +398,42 @@
     <lastmod>2026-10-22</lastmod>
   </url>
   <url>
+    <loc>https://www.busmoov.com/fr/autocar-chateaux-de-la-loire</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/autocar-chateaux-de-la-loire"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/autocar-castillos-del-loira"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/reisebus-loire-schloesser"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/coach-hire-loire-castles"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/autocar-chateaux-de-la-loire"/>
+    <lastmod>2026-10-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/es/autocar-castillos-del-loira</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/autocar-chateaux-de-la-loire"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/autocar-castillos-del-loira"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/reisebus-loire-schloesser"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/coach-hire-loire-castles"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/autocar-chateaux-de-la-loire"/>
+    <lastmod>2026-10-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/de/reisebus-loire-schloesser</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/autocar-chateaux-de-la-loire"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/autocar-castillos-del-loira"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/reisebus-loire-schloesser"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/coach-hire-loire-castles"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/autocar-chateaux-de-la-loire"/>
+    <lastmod>2026-10-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/en/coach-hire-loire-castles</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/autocar-chateaux-de-la-loire"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/autocar-castillos-del-loira"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/reisebus-loire-schloesser"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/coach-hire-loire-castles"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/autocar-chateaux-de-la-loire"/>
+    <lastmod>2026-10-22</lastmod>
+  </url>
+  <url>
     <loc>https://www.busmoov.com/fr/location-bus</loc>
     <lastmod>2026-10-08</lastmod>
   </url>

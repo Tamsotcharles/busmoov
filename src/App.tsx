@@ -35,6 +35,7 @@ const VilleAutocarPage = lazy(() => import('@/pages/villes/VilleAutocarPage').th
 const BlogPage = lazy(() => import('@/pages/blog/BlogPage').then((m) => ({ default: m.BlogPage })))
 const ZhLandingPage = lazy(() => import('@/pages/ZhLandingPage').then((m) => ({ default: m.ZhLandingPage })))
 const LandingSeoPage = lazy(() => import('@/pages/LandingSeoPage').then((m) => ({ default: m.LandingSeoPage })))
+const ChateauxLoirePage = lazy(() => import('@/pages/ChateauxLoirePage').then((m) => ({ default: m.ChateauxLoirePage })))
 const BlogArticlePage = lazy(() => import('@/pages/blog/BlogArticlePage').then((m) => ({ default: m.BlogArticlePage })))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 
@@ -167,6 +168,9 @@ function PublicRoutes() {
       <Route path="/services/transfert-aeroport" element={<TransfertAeroportPage />} />
       <Route path="/services/sorties-scolaires" element={<SortiesScolairesPage />} />
 
+      {/* Châteaux de la Loire (4 langues, slugs localisés ci-dessous) */}
+      <Route path="/autocar-chateaux-de-la-loire" element={<ChateauxLoirePage />} />
+
       {/* Page pilier « location de bus » (français uniquement) */}
       <Route path="/location-bus" element={<LocationBusPage />} />
 
@@ -187,6 +191,7 @@ function PublicRoutes() {
           ['a-propos', <AProposPage />],
           ['contact', <ContactPage />],
           ['devenir-partenaire', <DevenirPartenairePage />],
+          ['chateaux-loire', <ChateauxLoirePage />],
           ['cgv', <CGVPage />],
           ['mentions-legales', <MentionsLegalesPage />],
           ['confidentialite', <ConfidentialitePage />],

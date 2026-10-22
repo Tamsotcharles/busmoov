@@ -3,7 +3,8 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 // Node >= 23.6 exécute le TypeScript nativement (type stripping) :
 // on importe les données directement depuis src/.
-import { seoConfig, seoLocalizedPaths, locationBusMeta } from '../src/lib/seo-data.ts'
+import { seoConfig, seoLocalizedPaths, locationBusMeta, translatePath } from '../src/lib/seo-data.ts'
+import { chateauxLoire } from '../src/lib/chateaux-loire.ts'
 import { villes } from '../src/lib/villes.ts'
 import { articles, articlesSimilaires } from '../src/lib/blog.ts'
 import { landings } from '../src/lib/landings.ts'
@@ -158,6 +159,42 @@ const scolaireFr = (lang, partie) => {
   return h2('Vos questions sur la location de car scolaire') + c.faq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + p(f.a)).join('')
 }
 
+// Destinations de la page sorties scolaires qui ont leur propre page
+// (même table que SortiesScolairesPage).
+const DESTINATIONS_AVEC_PAGE = {
+  'Châteaux de la Loire': '/autocar-chateaux-de-la-loire',
+  'Loire Castles': '/autocar-chateaux-de-la-loire',
+}
+
+// Liens markdown d'une page multilingue : chemin interne français traduit
+// dans la langue de la page (comme useLocalizedPath côté React).
+const mdInlineLang = (lang, t) =>
+  t.split(/(\[[^\]]+\]\([^)]+\))/g)
+    .map((part) => {
+      const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+      if (!m) return esc(part)
+      const href = translatePath(m[2], lang)
+      return `<a class="text-magenta underline" href="/${lang}${href === '/' ? '' : href}">${esc(m[1])}</a>`
+    })
+    .join('')
+const pLang = (lang, t) => `<p class="text-gray-700 mb-3">${mdInlineLang(lang, t)}</p>`
+
+/** Corps statique de la page châteaux de la Loire (même contenu que ChateauxLoirePage). */
+function chateauxLoireBody(lang) {
+  const c = chateauxLoire[lang]
+  return wrap(
+    h1(c.h1) +
+    p(c.intro) +
+    h2(c.prix.h2) + pLang(lang, c.prix.intro) + tableau(c.prix.tableau) + p(c.prix.note) +
+    c.sections.map((s) =>
+      h2(s.h2) +
+      s.paragraphes.map((t, j) => pLang(lang, t) + (j === 0 && s.liste ? `<ul class="list-disc pl-6 mb-3">${s.liste.map((i) => `<li>${mdInlineLang(lang, i)}</li>`).join('')}</ul>` : '')).join('')
+    ).join('') +
+    h2(c.faq.h2) + c.faq.questions.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + p(f.a)).join('') +
+    h2(c.devis.h2) + pLang(lang, c.devis.texte)
+  )
+}
+
 /** Corps statique des pages multilingues, construit depuis les traductions. */
 function multilingualBody(page, lang) {
   switch (page) {
@@ -246,6 +283,12 @@ function multilingualBody(page, lang) {
         h2(k('vehiclesTitle')) + p(k('vehiclesSubtitle')) +
         [1, 2, 3].map((n) => h3p(`${k(`vehicle${n}Title`)} (${k(`vehicle${n}Capacity`)})`, `${k(`vehicle${n}Ideal`)} ${k(`vehicle${n}Features`)}`)).join('') +
         scolaireFr(lang, 'prix') +
+        h2(k('destinationsTitle')) +
+        ['Parks', 'Culture', 'Nature', 'History'].map((cat) =>
+          `<h3 class="font-semibold mt-3">${esc(k(`dest${cat}`))}</h3>` +
+          `<ul class="list-disc pl-6 mb-3">${k(`dest${cat}List`).split(', ').map((d) =>
+            `<li>${DESTINATIONS_AVEC_PAGE[d] ? mdInlineLang(lang, `[${d}](${DESTINATIONS_AVEC_PAGE[d]})`) : esc(d)}</li>`).join('')}</ul>`
+        ).join('') +
         h2(k('safetyTitle')) + p(k('safetySubtitle')) +
         [1, 2, 3, 4].map((n) => h3p(k(`safety${n}Title`), k(`safety${n}Desc`))).join('') +
         scolaireFr(lang, 'regles') +
@@ -259,6 +302,8 @@ function multilingualBody(page, lang) {
         maillageFr(lang, 'sorties-scolaires')
       )
     }
+    case 'chateaux-loire':
+      return chateauxLoireBody(lang)
     case 'contact':
       return wrap(
         h1(t(lang, 'contact.title')) +
@@ -293,6 +338,13 @@ for (const [page, paths] of Object.entries(seoLocalizedPaths)) {
   for (const lang of LANGUAGES) {
     const meta = seoConfig[page][lang]
     const jsonLd = page === 'home' ? [organizationJsonLd(lang)] : []
+    if (page === 'chateaux-loire') {
+      jsonLd.push({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: chateauxLoire[lang].faq.questions.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+      })
+    }
     if (page === 'sorties-scolaires' && lang === 'fr') {
       jsonLd.push({
         '@context': 'https://schema.org',
@@ -655,6 +707,7 @@ Faits clés :
 - [Location de minibus](${BASE_URL}/fr/services/location-minibus) : 8 à 20 places
 - [Transfert aéroport](${BASE_URL}/fr/services/transfert-aeroport) : groupes, tous aéroports
 - [Sorties scolaires](${BASE_URL}/fr/services/sorties-scolaires) : véhicules aux normes transport d'enfants
+- [Châteaux de la Loire en autocar](${BASE_URL}/fr/autocar-chateaux-de-la-loire) : prix de départ, itinéraires, stationnement à Chambord
 ${landings.map((l) => `- [${l.h1}](${BASE_URL}/fr${l.slug})`).join('\n')}
 
 ## Villes desservies
