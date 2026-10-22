@@ -10,6 +10,7 @@ import { articles, articlesSimilaires } from '../src/lib/blog.ts'
 import { landings } from '../src/lib/landings.ts'
 import { maillageServices } from '../src/lib/maillage.ts'
 import { sortiesScolairesFr } from '../src/lib/sorties-scolaires.ts'
+import { homeFr } from '../src/lib/home-fr.ts'
 
 /**
  * Prérendu statique des pages publiques, SANS navigateur headless :
@@ -258,7 +259,10 @@ function multilingualBody(page, lang) {
         p(t(lang, 'hero.subtitle')) +
         h2(t(lang, 'howItWorks.title')) +
         p(t(lang, 'howItWorks.subtitle')) +
-        steps
+        steps +
+        (lang === 'fr'
+          ? homeFr.map((sec) => h2(sec.h2) + sec.paragraphes.map((x, j) => pMd(x) + (j === 0 && sec.liste ? ulMd(sec.liste) : '')).join('')).join('')
+          : '')
       )
     }
     case 'location-autocar': {
