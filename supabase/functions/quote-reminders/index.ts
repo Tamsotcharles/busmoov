@@ -61,6 +61,7 @@ interface Devis {
   transporteur_id: string | null
   transporteur?: {
     name: string
+    number?: string | null
   }
   vehicle_type: string | null
   nombre_cars: number | null
@@ -104,7 +105,9 @@ function generateDevisRecapHtml(devis: Devis[], lang: EmailLang): string {
   const sortedDevis = [...devis].sort((a, b) => (a.price_ttc || 0) - (b.price_ttc || 0))
 
   sortedDevis.forEach((d, index) => {
-    const transporteurName = d.transporteur?.name || L.partnerCarrier
+    // Le client ne voit jamais le nom du transporteur avant le BPA : numéro
+    // anonyme (TR1138), comme dans l'espace client.
+    const transporteurName = d.transporteur?.number || L.partnerCarrier
     const vehicleLabel = getVehicleLabel(d.vehicle_type, d.nombre_cars, lang)
     const prixFormate = formatCurrencyFor(d.price_ttc, lang)
 
@@ -307,7 +310,7 @@ Deno.serve(async (req) => {
           validity_days,
           sent_at,
           status,
-          transporteur:transporteurs(name)
+          transporteur:transporteurs(name, number)
         )
       `)
       // Seulement les dossiers en attente de réponse client

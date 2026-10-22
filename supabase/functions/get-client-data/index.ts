@@ -47,7 +47,9 @@ serve(async (req) => {
       .from('dossiers')
       .select('id')
       .eq('reference', reference.toUpperCase())
-      .eq('client_email', email.toLowerCase())
+      // Comparaison insensible à la casse : des emails ont été saisis avec
+      // des majuscules avant la normalisation à la création.
+      .ilike('client_email', String(email).trim())
       .single()
 
     if (dossierError || !dossier) {

@@ -217,7 +217,7 @@ export function MesDevisPage() {
           .from('demandes')
           .select('*')
           .eq('reference', reference)
-          .eq('client_email', email.toLowerCase())
+          .ilike('client_email', email.trim())
           .single()
 
         if (demandeData) {
