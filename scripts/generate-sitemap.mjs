@@ -37,7 +37,7 @@ const X_DEFAULT_LANG = 'fr'
 
 // Page multilingue → composant React qui porte son contenu
 const PAGE_SOURCES = {
-  'home': ['src/pages/HomePage.tsx', 'src/lib/home-fr.ts'],
+  'home': ['src/pages/HomePage.tsx', 'src/lib/home-seo.ts'],
   'location-autocar': 'src/pages/services/LocationAutocarPage.tsx',
   'location-minibus': 'src/pages/services/LocationMinibusPage.tsx',
   'transfert-aeroport': 'src/pages/services/TransfertAeroportPage.tsx',

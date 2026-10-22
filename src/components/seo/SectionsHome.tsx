@@ -1,20 +1,23 @@
 import { useTranslation } from 'react-i18next'
 import { TextWithLinks } from '@/components/ui/TextWithLinks'
-import { homeFr } from '@/lib/home-fr'
+import { homeSeo } from '@/lib/home-seo'
+import type { SeoLanguage } from '@/lib/seo-data'
 import { CheckCircle } from 'lucide-react'
 
 /**
- * Blocs SEO français de la home (véhicules, clientèles, transferts, prix,
- * Busmoov). Rendu uniquement en français ; même contenu que la version
- * statique de scripts/prerender.mjs.
+ * Blocs SEO de la home (véhicules, clientèles, transferts, prix, Busmoov),
+ * contenu propre à chaque langue ; même contenu que la version statique de
+ * scripts/prerender.mjs.
  */
-export function SectionsHomeFr() {
+export function SectionsHome() {
   const { i18n } = useTranslation()
-  if (!i18n.language.startsWith('fr')) return null
+  const lang = i18n.language.slice(0, 2) as SeoLanguage
+  const sections = homeSeo[lang]
+  if (!sections) return null
 
   return (
     <>
-      {homeFr.map((s, i) => (
+      {sections.map((s, i) => (
         <section key={s.h2} className={`py-16 px-4 ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
           <div className="max-w-3xl mx-auto">
             <h2 className="font-display text-2xl md:text-3xl font-bold text-purple-dark mb-6 text-center">{s.h2}</h2>
