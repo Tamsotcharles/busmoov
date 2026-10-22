@@ -37,7 +37,7 @@ const X_DEFAULT_LANG = 'fr'
 
 // Page multilingue → composant React qui porte son contenu
 const PAGE_SOURCES = {
-  'home': 'src/pages/HomePage.tsx',
+  'home': ['src/pages/HomePage.tsx', 'src/lib/home-fr.ts'],
   'location-autocar': 'src/pages/services/LocationAutocarPage.tsx',
   'location-minibus': 'src/pages/services/LocationMinibusPage.tsx',
   'transfert-aeroport': 'src/pages/services/TransfertAeroportPage.tsx',
@@ -62,7 +62,7 @@ const pages = []
 
 for (const [page, source] of Object.entries(PAGE_SOURCES)) {
   const paths = seoLocalizedPaths[page]
-  const component = read(source)
+  const component = [].concat(source).map(read).join('\n')
   const alternates = [
     ...LANGUAGES.map((l) => ({ hreflang: hreflangCode(l), href: urlFor(l, paths[l]) })),
     { hreflang: 'x-default', href: urlFor(X_DEFAULT_LANG, paths[X_DEFAULT_LANG]) },
