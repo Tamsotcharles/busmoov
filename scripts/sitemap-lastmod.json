@@ -192,8 +192,8 @@
     "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/fr/location-bus": {
-    "hash": "1a6623dd6c39",
-    "lastmod": "2026-10-08"
+    "hash": "1f5d9fca975e",
+    "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/fr/navette-aeroport-cdg": {
     "hash": "6841f4fc141a",
@@ -324,8 +324,8 @@
     "lastmod": "2026-10-15"
   },
   "https://www.busmoov.com/fr/location-autocar/strasbourg": {
-    "hash": "17d401bc160a",
-    "lastmod": "2026-10-15"
+    "hash": "207ae723a212",
+    "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/fr/location-autocar/grenoble": {
     "hash": "42bfaa69a242",
@@ -352,8 +352,8 @@
     "lastmod": "2026-10-15"
   },
   "https://www.busmoov.com/fr/location-autocar/rouen": {
-    "hash": "b0dd58ac0a71",
-    "lastmod": "2026-10-15"
+    "hash": "b106e1f95151",
+    "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/fr/location-autocar/tours": {
     "hash": "b414a315dff5",
@@ -378,6 +378,14 @@
   "https://www.busmoov.com/fr/location-autocar/annecy": {
     "hash": "055b522d3021",
     "lastmod": "2026-10-16"
+  },
+  "https://www.busmoov.com/fr/location-autocar/le-havre": {
+    "hash": "027a6025e75f",
+    "lastmod": "2026-10-22"
+  },
+  "https://www.busmoov.com/fr/location-autocar/metz": {
+    "hash": "019f8fc89493",
+    "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/fr/blog": {
     "hash": "e4297e385eb6",

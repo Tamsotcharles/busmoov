@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 // on importe les données directement depuis src/.
 import { seoConfig, seoLocalizedPaths, locationBusMeta, translatePath } from '../src/lib/seo-data.ts'
 import { chateauxLoire } from '../src/lib/chateaux-loire.ts'
-import { villes } from '../src/lib/villes.ts'
+import { villes, villesMaillees, aLaVille, deLaVille } from '../src/lib/villes.ts'
 import { articles, articlesSimilaires } from '../src/lib/blog.ts'
 import { landings } from '../src/lib/landings.ts'
 import { maillageServices } from '../src/lib/maillage.ts'
@@ -68,8 +68,7 @@ function staticFooter(lang) {
   const loc = locales[lang]
   const f = loc.footer
   const villesFr = lang === 'fr'
-    ? `<div class="border-t border-gray-800 pt-6 mb-6 text-sm text-gray-400">Location d'autocar par ville : ${villes
-        .filter((v) => !v.rattacheeA)
+    ? `<div class="border-t border-gray-800 pt-6 mb-6 text-sm text-gray-400">Location d'autocar par ville : ${villesMaillees
         .map((v) => `<a href="${lienLang('fr', `/location-autocar/${v.slug}`)}" class="hover:text-magenta">${esc(v.nom)}</a>`)
         .join(' · ')} · <a href="${lienLang('fr', '/location-bus')}" class="hover:text-magenta">Location de bus</a> · <a href="${lienLang('fr', '/blog')}" class="hover:text-magenta">Blog &amp; conseils</a></div>`
     : ''
@@ -191,7 +190,7 @@ const t = (lang, key) => key.split('.').reduce((o, seg) => (o && typeof o === 'o
 const maillageFr = (lang, page) => {
   if (lang !== 'fr') return ''
   const bloc = maillageServices[page]
-  return h2(bloc.h2) + bloc.paragraphes.map(pMd).join('') + h2(bloc.villesH2) + `<p class="mb-3">${villes.map(aVille).join(' · ')}</p>`
+  return h2(bloc.h2) + bloc.paragraphes.map(pMd).join('') + h2(bloc.villesH2) + `<p class="mb-3">${villesMaillees.map(aVille).join(' · ')}</p>`
 }
 
 // Blocs SEO français de la page sorties scolaires (même contenu que
@@ -510,7 +509,7 @@ for (const [page, paths] of Object.entries(seoLocalizedPaths)) {
     h2('Questions fréquentes') +
     lb.locationBusFaq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + pMd(f.a)).join('') +
     h2(lb.locationBusVillesH2) +
-    `<p class="mb-3">${villes.map(aVille).join(' · ')}</p>`
+    `<p class="mb-3">${villesMaillees.map(aVille).join(' · ')}</p>`
   )
   renderPage({
     lang: 'fr',
@@ -571,7 +570,7 @@ const h3 = (t) => `<h3 class="font-semibold mt-3">${esc(t)}</h3>`
 
 /** Format historique des pages villes. */
 function villeClassiqueBody(ville) {
-  const autres = villes.filter((v) => v.slug !== ville.slug).map(aVille).join(' · ')
+  const autres = villesMaillees.filter((v) => v.slug !== ville.slug).map(aVille).join(' · ')
   return (
     h1(ville.h1) +
     p(ville.sousTitre) +
@@ -585,7 +584,7 @@ function villeClassiqueBody(ville) {
     ul(ville.trajets) +
     ville.liensUtiles.map(pMd).join('') +
     (ville.prix ? h2(ville.prix.h2) + p(ville.prix.intro) + tableau(ville.prix.tableau) + pMd(ville.prix.apres) : '') +
-    h2(`Vos questions sur l'autocar à ${ville.nom}`) +
+    h2(`Vos questions sur l'autocar ${aLaVille(ville)}`) +
     ville.faq.map((f) => h3(f.q) + p(f.a)).join('') +
     p('Busmoov également disponible à :') + `<p class="mb-3">${autres}</p>`
   )
@@ -612,7 +611,7 @@ function villeEnrichieBody(ville) {
     (prix.tableau ? tableau(prix.tableau) : '') +
     (prix.lignes
       ? tableauLignes(
-          [`Trajet au départ de ${ville.nom}`, 'Durée', 'Formule', 'Minibus 8 à 20 pl.', "Autocar jusqu'à 59 pl.", 'Par personne (car plein)'],
+          [`Trajet au départ ${deLaVille(ville)}`, 'Durée', 'Formule', 'Minibus 8 à 20 pl.', "Autocar jusqu'à 59 pl.", 'Par personne (car plein)'],
           prix.lignes.map((l) => [l.trajet, l.duree, l.formule, l.minibus, l.autocar, l.parPersonne]),
         )
       : '') +
@@ -632,12 +631,12 @@ function villeEnrichieBody(ville) {
     [ville.vehicules, ville.minibus, ...(ville.sections || [])].filter(Boolean).map(bloc).join('') +
     (visiter
       ? h2(visiter.h2) + pMd(visiter.intro) +
-        visiter.lieux.map((l) => h3(l.nom) + pMd(`${l.trajet === 'en ville' ? 'En ville' : `À ${l.trajet} de ${ville.nom}`}. ${l.desc}`)).join('')
+        visiter.lieux.map((l) => h3(l.nom) + pMd(`${l.trajet === 'en ville' ? 'En ville' : `À ${l.trajet} ${deLaVille(ville)}`}. ${l.desc}`)).join('')
       : '') +
-    h2(`Vos questions sur la location de bus à ${ville.nom}`) +
+    h2(`Vos questions sur la location de bus ${aLaVille(ville)}`) +
     ville.faq.map((f) => h3(f.q) + p(f.a)).join('') +
-    p(`Prêt à réserver votre bus à ${ville.nom} ? Décrivez votre trajet en 2 minutes, recevez plusieurs devis gratuits sous 24h.`) +
-    (proches.length ? `<p class="mb-3">Location d'autocar près de ${esc(ville.nom)} : ${proches.map(aVille).join(' · ')}</p>` : '') +
+    p(`Prêt à réserver votre bus ${aLaVille(ville)} ? Décrivez votre trajet en 2 minutes, recevez plusieurs devis gratuits sous 24h.`) +
+    (proches.length ? `<p class="mb-3">Location d'autocar près ${esc(deLaVille(ville))} : ${proches.map(aVille).join(' · ')}</p>` : '') +
     h2(ville.budgets.h2) +
     pMd(ville.budgets.intro) +
     (ville.budgets.exemples ? ul(ville.budgets.exemples) : '') +
@@ -650,7 +649,7 @@ for (const ville of villes) {
     {
       '@context': 'https://schema.org',
       '@type': 'Service',
-      serviceType: `Location d'autocar avec chauffeur à ${ville.nom}`,
+      serviceType: `Location d'autocar avec chauffeur ${aLaVille(ville)}`,
       description: ville.metaDescription,
       url: urlFor('fr', `/location-autocar/${ville.slug}`),
       areaServed: { '@type': 'City', name: ville.nom },
@@ -762,7 +761,7 @@ Faits clés :
 ${landings.map((l) => `- [${l.h1}](${BASE_URL}/fr${l.slug})`).join('\n')}
 
 ## Villes desservies
-${villes.map((v) => `- [Location d'autocar à ${v.nom}](${BASE_URL}/fr/location-autocar/${v.slug})`).join('\n')}
+${villesMaillees.map((v) => `- [Location d'autocar à ${v.nom}](${BASE_URL}/fr/location-autocar/${v.slug})`).join('\n')}
 
 ## Guides
 ${articles.map((a) => `- [${a.titre}](${BASE_URL}/fr/blog/${a.slug}) : ${a.extrait}`).join('\n')}
