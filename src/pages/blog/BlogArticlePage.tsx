@@ -27,7 +27,7 @@ function Block({ block }: { block: BlogBlock }) {
       return (
         <ul className="list-disc pl-6 space-y-2 mb-4 text-gray-700">
           {block.items.map((item) => (
-            <li key={item}>{item}</li>
+            <li key={item}><TextWithLinks as="span" text={item} /></li>
           ))}
         </ul>
       )

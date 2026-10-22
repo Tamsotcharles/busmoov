@@ -11,6 +11,12 @@ import { maillageServices } from '@/lib/maillage'
 import { SectionsScolairesFr } from '@/components/seo/SectionsScolairesFr'
 import { sortiesScolairesFr } from '@/lib/sorties-scolaires'
 
+/** Destinations (libellés traduits) qui ont leur propre page : chemin interne français. */
+const DESTINATIONS_AVEC_PAGE: Record<string, string> = {
+  'Châteaux de la Loire': '/autocar-chateaux-de-la-loire',
+  'Loire Castles': '/autocar-chateaux-de-la-loire',
+}
+
 export function SortiesScolairesPage() {
   const { t, i18n } = useTranslation()
   const localizedPath = useLocalizedPath()
@@ -398,7 +404,9 @@ export function SortiesScolairesPage() {
                   {cat.destinations.map((dest, i) => (
                     <li key={i} className="flex items-center gap-2">
                       <MapPin size={12} />
-                      {dest}
+                      {DESTINATIONS_AVEC_PAGE[dest] ? (
+                        <Link to={localizedPath(DESTINATIONS_AVEC_PAGE[dest])} className="underline hover:text-white">{dest}</Link>
+                      ) : dest}
                     </li>
                   ))}
                 </ul>

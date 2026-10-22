@@ -64,19 +64,19 @@
     "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/fr/services/sorties-scolaires": {
-    "hash": "e923d2d06605",
+    "hash": "7ee9d13175bd",
     "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/es/servicios/transporte-escolar": {
-    "hash": "c6da2744977d",
+    "hash": "c52644b64617",
     "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/de/leistungen/schuelertransport": {
-    "hash": "06e92924a33d",
+    "hash": "cedfa215955c",
     "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/en/services/school-trips": {
-    "hash": "357ef2857bfb",
+    "hash": "8112f0957fd1",
     "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/fr/a-propos": {
@@ -173,6 +173,22 @@
   },
   "https://www.busmoov.com/en/privacy": {
     "hash": "cd174641fd7d",
+    "lastmod": "2026-10-22"
+  },
+  "https://www.busmoov.com/fr/autocar-chateaux-de-la-loire": {
+    "hash": "bb2879599b66",
+    "lastmod": "2026-10-22"
+  },
+  "https://www.busmoov.com/es/autocar-castillos-del-loira": {
+    "hash": "a160c6949cef",
+    "lastmod": "2026-10-22"
+  },
+  "https://www.busmoov.com/de/reisebus-loire-schloesser": {
+    "hash": "043d33c5b768",
+    "lastmod": "2026-10-22"
+  },
+  "https://www.busmoov.com/en/coach-hire-loire-castles": {
+    "hash": "d18384ebe484",
     "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/fr/location-bus": {
@@ -368,8 +384,8 @@
     "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/fr/blog": {
-    "hash": "a19bbab5b490",
-    "lastmod": "2026-10-16"
+    "hash": "e4297e385eb6",
+    "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/fr/blog/prix-location-autocar": {
     "hash": "5297e617ca3e",
@@ -420,8 +436,8 @@
     "lastmod": "2026-10-12"
   },
   "https://www.busmoov.com/fr/blog/puy-du-fou-en-autocar": {
-    "hash": "6889d57f751b",
-    "lastmod": "2026-10-12"
+    "hash": "105e14b84e61",
+    "lastmod": "2026-10-22"
   },
   "https://www.busmoov.com/fr/blog/autocar-long-trajet": {
     "hash": "81266977196a",
