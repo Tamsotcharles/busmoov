@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
-import { SectionsHomeFr } from '@/components/seo/SectionsHomeFr'
+import { SectionsHome } from '@/components/seo/SectionsHome'
 import { Bus, Clock, Wallet, Shield, Star } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -244,8 +244,8 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Blocs SEO (français uniquement) */}
-      <SectionsHomeFr />
+      {/* Blocs SEO, contenu propre à chaque langue */}
+      <SectionsHome />
 
       {/* Testimonials */}
       <section className="py-24 px-4 bg-purple-dark relative overflow-hidden" id="testimonials">
