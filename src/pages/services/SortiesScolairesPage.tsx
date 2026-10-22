@@ -2,15 +2,17 @@ import { Seo } from '@/components/seo/Seo'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { Link } from 'react-router-dom'
-import { GraduationCap, Bus, Shield, Clock, CheckCircle, Star, Phone, ArrowRight, MapPin, Users, FileCheck, Heart } from 'lucide-react'
+import { GraduationCap, Bus, Shield, CheckCircle, Star, Phone, ArrowRight, MapPin, Users, FileCheck, Heart } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
 import { useCurrentCountry } from '@/hooks/useCountrySettings'
 import { MaillageFr } from '@/components/seo/MaillageFr'
 import { maillageServices } from '@/lib/maillage'
+import { SectionsScolairesFr } from '@/components/seo/SectionsScolairesFr'
+import { sortiesScolairesFr } from '@/lib/sorties-scolaires'
 
 export function SortiesScolairesPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const localizedPath = useLocalizedPath()
   const { data: country } = useCurrentCountry()
 
@@ -185,7 +187,15 @@ export function SortiesScolairesPage() {
   return (
     <div className="min-h-screen">
       <Header />
-      <Seo page="sorties-scolaires" jsonLdPreset="service" />
+      <Seo
+        page="sorties-scolaires"
+        jsonLdPreset="service"
+        jsonLd={i18n.language.startsWith('fr') ? {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: sortiesScolairesFr.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+        } : undefined}
+      />
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
@@ -278,6 +288,8 @@ export function SortiesScolairesPage() {
         </div>
       </section>
 
+      <SectionsScolairesFr partie="regles" />
+
       {/* Types de sorties */}
       <section className="py-20 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
@@ -363,6 +375,8 @@ export function SortiesScolairesPage() {
           </div>
         </div>
       </section>
+
+      <SectionsScolairesFr partie="prix" />
 
       {/* Destinations populaires */}
       <section className="py-20 px-4 bg-purple-dark text-white">
@@ -496,6 +510,8 @@ export function SortiesScolairesPage() {
           </div>
         </div>
       </section>
+
+      <SectionsScolairesFr partie="faq" />
 
       {/* CTA */}
       <section className="py-20 px-4 bg-gray-50">
