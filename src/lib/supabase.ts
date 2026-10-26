@@ -32,8 +32,18 @@ export function setClientAccess(access: { reference?: string | null; email?: str
 }
 export const clearClientAccess = () => setClientAccess({})
 
+// Les en-têtes d'accès ne servent qu'aux policies RLS de PostgREST. Les
+// Edge Functions (sign-contract, get-client-data, calculate-price…) ont une
+// liste CORS fermée : leur envoyer x-client-ref/x-client-email fait échouer
+// le preflight du navigateur (« Failed to send a request to the Edge
+// Function ») — plus aucune signature possible du 12 au 26 oct. 2026.
+const isRestRequest = (input: RequestInfo | URL) => {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+  return url.includes('/rest/v1/')
+}
+
 const fetchWithClientAccess: typeof fetch = (input, init) => {
-  if (Object.keys(clientAccessHeaders).length === 0) return fetch(input, init)
+  if (Object.keys(clientAccessHeaders).length === 0 || !isRestRequest(input)) return fetch(input, init)
   const headers = new Headers(init?.headers)
   for (const [k, v] of Object.entries(clientAccessHeaders)) headers.set(k, v)
   return fetch(input, { ...init, headers })
