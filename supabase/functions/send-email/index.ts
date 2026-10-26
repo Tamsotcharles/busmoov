@@ -1107,7 +1107,7 @@ const PUBLIC_EMAIL_TYPES = [
 
 /**
  * Adresses internes Busmoov : boites de l'entreprise, tous pays confondus
- * (infos@busmoov.com, contacto@busmoov.es, kontakt@busmoov.de...).
+ * (infos@busmoov.com pour toutes les langues ; le numéro est le même partout).
  */
 function isInternalAddress(address: string): boolean {
   const domain = String(address).trim().toLowerCase().split('@')[1]
