@@ -133,7 +133,26 @@ export function useDossiers(filters?: {
         query = query.eq('transporteur_id', filters.transporteur_id)
       }
       if (filters?.search) {
-        query = query.or(`client_name.ilike.%${filters.search}%,client_email.ilike.%${filters.search}%,reference.ilike.%${filters.search}%`)
+        // Recherche multi-mots : chaque mot doit matcher au moins un champ
+        // (« Clement Nedellec » trouve « NEDELLEC » + prénom en email, etc.).
+        // Téléphone : on cherche aussi la forme chiffres seuls, les numéros
+        // étant stockés sans espaces (« 06 52 45 84 56 » → « 0652458456 »).
+        // Les caractères réservés de PostgREST (, . ( ) :) sont neutralisés
+        // par les guillemets.
+        const mots = filters.search.trim().split(/\s+/).filter(Boolean).slice(0, 5)
+        const telComplet = filters.search.replace(/\D/g, '')
+        for (const mot of mots) {
+          const v = `"%${mot.replace(/"/g, '')}%"`
+          const clauses = [
+            `client_name.ilike.${v}`,
+            `client_email.ilike.${v}`,
+            `client_company.ilike.${v}`,
+            `client_phone.ilike.${v}`,
+            `reference.ilike.${v}`,
+          ]
+          if (telComplet.length >= 6 && mots.length > 1) clauses.push(`client_phone.ilike."%${telComplet}%"`)
+          query = query.or(clauses.join(','))
+        }
       }
 
       const { data, error } = await query
