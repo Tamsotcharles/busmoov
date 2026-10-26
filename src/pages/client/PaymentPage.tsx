@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, CreditCard, Building2, Copy, Check, Lock, Shield, Loader2, ExternalLink } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase, supabaseUrl, supabaseAnonKey } from '@/lib/supabase'
 import { useClientAccess } from '@/hooks/useClientAccess'
 import { formatPrice, formatDate } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
@@ -126,8 +126,7 @@ export function PaymentPage() {
 
     try {
       // Appeler l'Edge Function pour creer le lien de paiement Mollie
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://rsxfmokwmwujercgpnfu.supabase.co'
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      const supabaseKey = supabaseAnonKey
 
       console.log('Creating payment link...', { supabaseUrl, dossier_id: dossier.id, amount: montantAPayer })
 

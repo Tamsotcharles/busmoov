@@ -9,8 +9,13 @@ const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3Mi
 const envUrl = import.meta.env.VITE_SUPABASE_URL
 const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-const supabaseUrl = (envUrl && envUrl.startsWith('http')) ? envUrl : DEFAULT_SUPABASE_URL
-const supabaseAnonKey = (envKey && envKey.length > 50) ? envKey : DEFAULT_SUPABASE_ANON_KEY
+// Exportés : toute page qui appelle une Edge Function en fetch direct doit
+// passer par ces valeurs assainies, jamais par import.meta.env brut. En prod
+// (Vercel), VITE_SUPABASE_URL contenait « VITE_SUPABASE_URL=https://… » avec
+// un retour à la ligne : la page de paiement construisait une URL relative
+// et recevait un 405 (« Erreur de réponse serveur : réponse vide »).
+export const supabaseUrl = (envUrl && envUrl.trim().startsWith('http')) ? envUrl.trim() : DEFAULT_SUPABASE_URL
+export const supabaseAnonKey = (envKey && envKey.trim().length > 50 && envKey.trim().startsWith('eyJ')) ? envKey.trim() : DEFAULT_SUPABASE_ANON_KEY
 
 /**
  * Accès client / fournisseur sans compte : les pages publiques s'identifient

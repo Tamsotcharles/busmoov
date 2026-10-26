@@ -127,7 +127,7 @@ interface WorkflowDevisAuto {
   created_at: string
   updated_at: string
 }
-import { supabase } from '@/lib/supabase'
+import { supabase, supabaseUrl, supabaseAnonKey } from '@/lib/supabase'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
@@ -19776,8 +19776,8 @@ function SettingsPage() {
   })
 
   const [envVars] = useState({
-    supabase_url: import.meta.env.VITE_SUPABASE_URL || '',
-    supabase_key: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+    supabase_url: supabaseUrl,
+    supabase_key: supabaseAnonKey,
     geoapify_key: import.meta.env.VITE_GEOAPIFY_API_KEY || '',
     // Mollie est configuré dans Supabase Secrets
   })

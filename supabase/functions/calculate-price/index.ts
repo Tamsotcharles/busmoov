@@ -21,7 +21,7 @@ function getCorsHeaders(origin: string | null) {
   return {
     "Access-Control-Allow-Origin": allowedOrigin,
     "Access-Control-Allow-Headers":
-      "authorization, x-client-info, apikey, content-type",
+      "authorization, x-client-info, apikey, content-type, x-client-ref, x-client-email, x-validation-token",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
 }
