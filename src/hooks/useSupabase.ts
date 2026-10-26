@@ -2425,12 +2425,15 @@ export function useSaveVehiculesEtChauffeurs() {
     mutationFn: async ({
       dossierId,
       demandeChauffeurId,
+      typeFeuilleRoute,
       astreinteTel,
       vehiculesAller,
       vehiculesRetour,
     }: {
       dossierId: string
       demandeChauffeurId: string
+      /** aller | retour | aller_retour : conditionne l'affichage de la feuille de route côté client */
+      typeFeuilleRoute?: string | null
       astreinteTel?: string
       vehiculesAller?: Array<{
         immatriculation?: string
@@ -2529,6 +2532,7 @@ export function useSaveVehiculesEtChauffeurs() {
         .update({
           chauffeur_info_recue_at: now,
           feuille_route_generee_at: now,
+          ...(typeFeuilleRoute ? { feuille_route_type: typeFeuilleRoute } : {}),
           astreinte_tel: astreinteTel || null,
           // Copier les infos du chauffeur principal aller
           chauffeur_aller_nom: chauffeurAllerPrincipal?.nom || null,

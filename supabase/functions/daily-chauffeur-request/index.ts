@@ -261,6 +261,16 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        // Type de feuille de route (aller / aller_retour) : l'espace client
+        // n'affiche les coordonnées chauffeur que si ce champ est renseigné.
+        // Même comportement que la création manuelle depuis l'admin.
+        const { error: typeError } = await supabase
+          .from('voyage_infos')
+          .update({ feuille_route_type: type })
+          .eq('dossier_id', dossier.id)
+          .is('feuille_route_type', null);
+        if (typeError) console.error(`feuille_route_type non posé pour ${dossier.reference}:`, typeError.message);
+
         const link = `${baseUrl}/fournisseur/chauffeur?token=${token}`;
 
         // Envoyer l'email au transporteur via send-email

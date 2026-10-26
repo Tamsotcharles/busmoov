@@ -117,6 +117,9 @@ export function MesDevisPage() {
   const [chatOpen, setChatOpen] = useState(false)
   const [chatSupplier, setChatSupplier] = useState<{ devisId: string; supplierNum: number } | null>(null)
   const [voyageInfo, setVoyageInfo] = useState<any>(null)
+  // Même repli que le PDF : les infos chauffeur saisies par le transporteur
+  // n'ont pas toujours de feuille_route_type (page fournisseur avant le 26 oct. 2026).
+  const typeFeuilleRoute = voyageInfo?.feuille_route_type || (data?.dossier?.return_date ? 'aller_retour' : 'aller')
   const [estimatedPrice, setEstimatedPrice] = useState<{ min: number; max: number } | null>(null)
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null)
   const [tripEstimate, setTripEstimate] = useState<{
@@ -1590,7 +1593,7 @@ export function MesDevisPage() {
 
             <div className="grid md:grid-cols-2 gap-6">
               {/* Trajet Aller */}
-              {(voyageInfo.feuille_route_type === 'aller' || voyageInfo.feuille_route_type === 'aller_retour') && voyageInfo.chauffeur_aller_nom && (
+              {(typeFeuilleRoute === 'aller' || typeFeuilleRoute === 'aller_retour') && voyageInfo.chauffeur_aller_nom && (
                 <div className="bg-white/70 rounded-xl p-4 border border-purple-100">
                   <div className="flex items-center gap-2 mb-3 text-purple-700 font-semibold">
                     <Truck size={18} />
@@ -1619,7 +1622,7 @@ export function MesDevisPage() {
               )}
 
               {/* Trajet Retour */}
-              {(voyageInfo.feuille_route_type === 'retour' || voyageInfo.feuille_route_type === 'aller_retour') && voyageInfo.chauffeur_retour_nom && (
+              {(typeFeuilleRoute === 'retour' || typeFeuilleRoute === 'aller_retour') && voyageInfo.chauffeur_retour_nom && (
                 <div className="bg-white/70 rounded-xl p-4 border border-magenta/20">
                   <div className="flex items-center gap-2 mb-3 text-magenta font-semibold">
                     <Truck size={18} />

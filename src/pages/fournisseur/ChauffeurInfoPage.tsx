@@ -366,6 +366,7 @@ export function ChauffeurInfoPage() {
       await saveVehicules.mutateAsync({
         dossierId: demande.dossier.id,
         demandeChauffeurId: demande.id,
+        typeFeuilleRoute: demande.type,
         astreinteTel: astreinteTel || undefined,
         vehiculesAller: hasAller ? vehiculesAller.map(v => ({
           immatriculation: v.immatriculation || undefined,
