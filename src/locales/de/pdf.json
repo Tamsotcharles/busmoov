@@ -97,13 +97,13 @@
     "confirmation": "Buchungsbestätigung"
   },
   "company": {
-    "name": "Busmoov Deutschland",
-    "address": "Transportstraße 123",
-    "city": "10115 Berlin",
-    "country": "Deutschland",
-    "phone": "+49 30 1234 5678",
-    "email": "kontakt@busmoov.de",
-    "siret": "HRB: 12345678",
-    "vat_number": "USt-IdNr.: DE123456789"
+    "name": "Busmoov",
+    "address": "41 Rue Barrault",
+    "city": "75013 Paris",
+    "country": "Frankreich",
+    "phone": "+33 1 76 31 12 83",
+    "email": "infos@busmoov.com",
+    "siret": "SIRET: 853 867 703 00029",
+    "vat_number": "USt-IdNr.: FR58853867703"
   }
 }

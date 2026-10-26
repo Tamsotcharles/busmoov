@@ -98,12 +98,12 @@
   },
   "company": {
     "name": "Busmoov",
-    "address": "123 Avenue des Transports",
-    "city": "75001 Paris",
+    "address": "41 Rue Barrault",
+    "city": "75013 Paris",
     "country": "France",
-    "phone": "+33 1 23 45 67 89",
-    "email": "contact@busmoov.com",
-    "siret": "SIRET: 123 456 789 00012",
-    "vat_number": "VAT: FR12 345678901"
+    "phone": "+33 1 76 31 12 83",
+    "email": "infos@busmoov.com",
+    "siret": "SIRET: 853 867 703 00029",
+    "vat_number": "VAT: FR58853867703"
   }
 }

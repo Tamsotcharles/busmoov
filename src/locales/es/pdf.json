@@ -97,13 +97,13 @@
     "confirmation": "Confirmación de reserva"
   },
   "company": {
-    "name": "Busmoov España",
-    "address": "Calle del Transporte 123",
-    "city": "28001 Madrid",
-    "country": "España",
-    "phone": "+34 91 234 56 78",
-    "email": "contacto@busmoov.es",
-    "siret": "CIF: B12345678",
-    "vat_number": "IVA: ESB12345678"
+    "name": "Busmoov",
+    "address": "41 Rue Barrault",
+    "city": "75013 París",
+    "country": "Francia",
+    "phone": "+33 1 76 31 12 83",
+    "email": "infos@busmoov.com",
+    "siret": "SIRET: 853 867 703 00029",
+    "vat_number": "IVA intracomunitario: FR58853867703"
   }
 }
