@@ -443,6 +443,10 @@ export function EditDevisModal({
   }, [tarifsAllerSimple, tarifsAR1J, tarifsARMAD, tarifsARSansMAD])
 
   // Calculer les infos trajet (chauffeurs, temps conduite, amplitude)
+  // Aller simple : aucune donnée de retour ne doit entrer dans le calcul ni
+  // s'afficher, même si le dossier porte une date de retour.
+  const isAllerSimple = (formData.service_type || 'aller_simple') === 'aller_simple'
+
   const infosTrajet = useMemo(() => {
     const km = parseInt(formData.km?.toString() || '0') || 0
     if (km <= 0) return null
@@ -450,9 +454,9 @@ export function EditDevisModal({
     const serviceType = (formData.service_type || 'aller_simple') as ServiceType
     // Utiliser les valeurs du formulaire en priorité, sinon celles du dossier
     const heureDepart = (formData as any).departure_time_override || dossier?.departure_time || null
-    const heureRetour = (formData as any).return_time_override || dossier?.return_time || null
+    const heureRetour = isAllerSimple ? null : ((formData as any).return_time_override || dossier?.return_time || null)
     const dateDepart = (formData as any).departure_date_override || dossier?.departure_date || null
-    const dateRetour = (formData as any).return_date_override || dossier?.return_date || null
+    const dateRetour = isAllerSimple ? null : ((formData as any).return_date_override || dossier?.return_date || null)
 
     return calculerInfosTrajet(km, heureDepart, heureRetour, dateDepart, dateRetour, serviceType)
   }, [formData.km, formData.service_type, (formData as any).departure_time_override, (formData as any).return_time_override, (formData as any).departure_date_override, (formData as any).return_date_override, dossier])
@@ -497,9 +501,9 @@ export function EditDevisModal({
     // Utiliser le nouveau calcul complet
     // Utiliser les valeurs du formulaire en priorité, sinon celles du dossier
     const heureDepart = (formData as any).departure_time_override || dossier?.departure_time || null
-    const heureRetour = (formData as any).return_time_override || dossier?.return_time || null
+    const heureRetour = isAllerSimple ? null : ((formData as any).return_time_override || dossier?.return_time || null)
     const dateDepart = (formData as any).departure_date_override || dossier?.departure_date || null
-    const dateRetour = (formData as any).return_date_override || dossier?.return_date || null
+    const dateRetour = isAllerSimple ? null : ((formData as any).return_date_override || dossier?.return_date || null)
 
     const result = calculerTarifComplet({
       distanceKm: km,
@@ -730,7 +734,7 @@ export function EditDevisModal({
       duree_jours: formData.duree_jours,
       amplitude: formData.amplitude,
       pax_aller: formData.pax_aller,
-      pax_retour: formData.pax_retour,
+      pax_retour: isAllerSimple ? null : formData.pax_retour,
       luggage_type: formData.luggage_type,
       options_details: formData.options_details,
       detail_mad: formData.detail_mad,
@@ -928,7 +932,7 @@ export function EditDevisModal({
           </div>
 
           {/* Dates et Horaires */}
-          <div className="grid grid-cols-4 gap-4 mb-4">
+          <div className={`grid ${isAllerSimple ? 'grid-cols-2' : 'grid-cols-4'} gap-4 mb-4`}>
             <div>
               <label className="label text-gray-600">Date départ</label>
               <input
@@ -947,28 +951,32 @@ export function EditDevisModal({
                 onChange={(e) => handleChange('departure_time_override' as any, e.target.value)}
               />
             </div>
-            <div>
-              <label className="label text-gray-600">Date retour</label>
-              <input
-                type="date"
-                className="input"
-                value={(formData as any).return_date_override || formatDateForInput(dossier?.return_date)}
-                onChange={(e) => handleChange('return_date_override' as any, e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="label text-gray-600">Heure retour</label>
-              <input
-                type="time"
-                className="input"
-                value={(formData as any).return_time_override || dossier?.return_time || ''}
-                onChange={(e) => handleChange('return_time_override' as any, e.target.value)}
-              />
-            </div>
+            {!isAllerSimple && (
+              <>
+                <div>
+                  <label className="label text-gray-600">Date retour</label>
+                  <input
+                    type="date"
+                    className="input"
+                    value={(formData as any).return_date_override || formatDateForInput(dossier?.return_date)}
+                    onChange={(e) => handleChange('return_date_override' as any, e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="label text-gray-600">Heure retour</label>
+                  <input
+                    type="time"
+                    className="input"
+                    value={(formData as any).return_time_override || dossier?.return_time || ''}
+                    onChange={(e) => handleChange('return_time_override' as any, e.target.value)}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           {/* Distance et Passagers */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className={`grid ${isAllerSimple ? 'grid-cols-2' : 'grid-cols-3'} gap-4`}>
             <div>
               <label className="label flex items-center gap-2 text-gray-600">
                 Distance (km)
@@ -994,19 +1002,21 @@ export function EditDevisModal({
                 min="1"
               />
             </div>
-            <div>
-              <label className="label flex items-center gap-2 text-gray-600">
-                <Users size={16} />
-                Pax Retour
-              </label>
-              <input
-                type="number"
-                className="input"
-                value={formData.pax_retour || paxFromDossier || ''}
-                onChange={(e) => handleChange('pax_retour', parseInt(e.target.value) || 0)}
-                min="1"
-              />
-            </div>
+            {!isAllerSimple && (
+              <div>
+                <label className="label flex items-center gap-2 text-gray-600">
+                  <Users size={16} />
+                  Pax Retour
+                </label>
+                <input
+                  type="number"
+                  className="input"
+                  value={formData.pax_retour || paxFromDossier || ''}
+                  onChange={(e) => handleChange('pax_retour', parseInt(e.target.value) || 0)}
+                  min="1"
+                />
+              </div>
+            )}
           </div>
         </div>
 
