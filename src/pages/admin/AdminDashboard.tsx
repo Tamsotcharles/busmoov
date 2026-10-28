@@ -499,6 +499,12 @@ export function AdminDashboard() {
   // Filtre pour afficher uniquement les dossiers des stats (cliquables)
   const [showOnlyStatsDossiers, setShowOnlyStatsDossiers] = useState(false)
   const [showCreateDossierModal, setShowCreateDossierModal] = useState(false)
+  const [createDossierPrefill, setCreateDossierPrefill] = useState<CreateDossierPrefill | null>(null)
+  const ouvrirNouveauDossierPourClient = (client: CreateDossierPrefill) => {
+    setCreateDossierPrefill(client)
+    setSelectedDossier(null)
+    setShowCreateDossierModal(true)
+  }
   const [selectedDossier, setSelectedDossier] = useState<DossierWithRelations | null>(null)
   const [editingDevis, setEditingDevis] = useState<any | null>(null)
   const [showEditDevisModal, setShowEditDevisModal] = useState(false)
@@ -1674,6 +1680,7 @@ export function AdminDashboard() {
             <DossierDetailView
               dossier={selectedDossier}
               transporteurs={transporteurs}
+              onNewDossierForClient={ouvrirNouveauDossierPourClient}
               statutEffectif={statutDe(selectedDossier)}
               etatFrs={etatFrsDe(selectedDossier)}
               onClose={handleCloseDossierDetail}
@@ -1911,7 +1918,7 @@ export function AdminDashboard() {
 
           {/* Clients View */}
           {currentPage === 'clients' && (
-            <ClientsPage />
+            <ClientsPage onNewDossierForClient={ouvrirNouveauDossierPourClient} />
           )}
 
           {/* Workflow View */}
@@ -2001,8 +2008,9 @@ export function AdminDashboard() {
       {/* Create Dossier Modal */}
       <CreateDossierModal
         isOpen={showCreateDossierModal}
-        onClose={() => setShowCreateDossierModal(false)}
+        onClose={() => { setShowCreateDossierModal(false); setCreateDossierPrefill(null) }}
         transporteurs={transporteurs}
+        prefill={createDossierPrefill}
       />
 
       {/* Edit Devis Modal - Nouveau composant enrichi */}
@@ -2315,35 +2323,61 @@ function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAut
   )
 }
 
+/** Pré-remplissage du formulaire « Nouveau dossier » (client existant qui rappelle). */
+export interface CreateDossierPrefill {
+  client_name?: string
+  client_company?: string
+  client_email?: string
+  client_phone?: string
+  country_code?: string
+}
+
+const CREATE_DOSSIER_EMPTY_FORM = {
+  client_name: '',
+  client_company: '',
+  client_email: '',
+  client_phone: '',
+  country_code: 'FR',
+  departure: '',
+  arrival: '',
+  departure_date: '',
+  departure_time: '',
+  return_date: '',
+  return_time: '',
+  passengers: 1,
+  tva_rate: getTvaRateByCountry('FR'),
+  transporteur_id: '',
+  price_ht: 0,
+  price_achat_ht: 0,
+  price_achat_ttc: 0,
+  notes: '',
+}
+
 function CreateDossierModal({
   isOpen,
   onClose,
   transporteurs,
+  prefill,
 }: {
   isOpen: boolean
   onClose: () => void
   transporteurs: any[]
+  prefill?: CreateDossierPrefill | null
 }) {
-  const [formData, setFormData] = useState({
-    client_name: '',
-    client_company: '',
-    client_email: '',
-    client_phone: '',
-    country_code: 'FR',
-    departure: '',
-    arrival: '',
-    departure_date: '',
-    departure_time: '',
-    return_date: '',
-    return_time: '',
-    passengers: 1,
-    tva_rate: getTvaRateByCountry('FR'),
-    transporteur_id: '',
-    price_ht: 0,
-    price_achat_ht: 0,
-    price_achat_ttc: 0,
-    notes: '',
-  })
+  const [formData, setFormData] = useState({ ...CREATE_DOSSIER_EMPTY_FORM })
+
+  // À chaque ouverture : formulaire vierge, puis coordonnées du client si
+  // on vient de « Nouveau dossier pour ce client » (fiche client ou dossier).
+  useEffect(() => {
+    if (!isOpen) return
+    const country = prefill?.country_code || 'FR'
+    setFormData({
+      ...CREATE_DOSSIER_EMPTY_FORM,
+      ...(prefill || {}),
+      country_code: country,
+      tva_rate: getTvaRateByCountry(country),
+    })
+  }, [isOpen, prefill])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const createDossier = useCreateDossier()
@@ -3809,6 +3843,7 @@ function DossierDetailView({
   onEditDevis,
   statutEffectif,
   etatFrs,
+  onNewDossierForClient,
 }: {
   dossier: DossierWithRelations
   transporteurs: any[]
@@ -3818,6 +3853,7 @@ function DossierDetailView({
   onViewDevis: () => void
   openEmailPreview: (data: EmailData, onSend?: () => void | Promise<void>) => void
   onEditDevis: (devis: any) => void
+  onNewDossierForClient?: (client: CreateDossierPrefill) => void
 }) {
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
@@ -5442,6 +5478,22 @@ L'équipe Busmoov`
                     </span>
                   )}
                 </button>
+                {onNewDossierForClient && (
+                  <button
+                    onClick={() => onNewDossierForClient({
+                      client_name: dossier.client_name || '',
+                      client_company: dossier.client_company || '',
+                      client_email: dossier.client_email || '',
+                      client_phone: dossier.client_phone || '',
+                      country_code: dossier.country_code || 'FR',
+                    })}
+                    className="btn btn-secondary"
+                    title="Créer un nouveau dossier pour ce client (coordonnées pré-remplies)"
+                  >
+                    <Plus size={16} />
+                    Nouveau dossier client
+                  </button>
+                )}
                 <button
                   onClick={() => setIsEditing(true)}
                   className="btn btn-secondary"
@@ -15808,7 +15860,7 @@ L'équipe Busmoov`
 // ============================================
 // CLIENTS PAGE
 // ============================================
-function ClientsPage() {
+function ClientsPage({ onNewDossierForClient }: { onNewDossierForClient?: (client: CreateDossierPrefill) => void }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [clients, setClients] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -15896,6 +15948,7 @@ function ClientsPage() {
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Ville</th>
                 <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">Dossiers</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">1er contact</th>
+                              <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -15919,6 +15972,23 @@ function ClientsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <p className="text-sm text-gray-500">{formatDate(client.firstContact)}</p>
+                  </td>
+                                  <td className="px-4 py-3 text-right">
+                    {onNewDossierForClient && (
+                      <button
+                        onClick={() => onNewDossierForClient({
+                          client_name: client.name || '',
+                          client_company: client.company || '',
+                          client_email: client.email || '',
+                          client_phone: client.phone || '',
+                        })}
+                        className="btn btn-sm btn-primary flex items-center gap-1 ml-auto"
+                        title="Nouveau dossier pour ce client"
+                      >
+                        <Plus size={14} />
+                        Nouveau dossier
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
