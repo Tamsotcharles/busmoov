@@ -4848,7 +4848,6 @@ L'équipe Busmoov`
         id: dossier.id,
         ...formData,
         transporteur_id: formData.transporteur_id || null,
-        departure_date: formData.departure_date || null,
         return_date: formData.return_date || null,
       })
       setIsEditing(false)
