@@ -70,6 +70,7 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import { useQueryClient } from '@tanstack/react-query'
 import { useDossiers, useTransporteurs, useDashboardStats, useAllDevis, useUpdateDossier, useCreateDossier, useCreateDevis, useDevisByDossier, useUpdateDevis, useDeleteDevis, useContrats, useDeleteContrat, useCreatePaiement, useDeletePaiement, useTimeline, useAddTimelineEntry, useVoyageInfo, useCreateOrUpdateVoyageInfo, useDemandesFournisseurs, useAllDemandesFournisseurs, useCreateDemandeFournisseur, useUpdateDemandeFournisseur, useDeleteDemandeFournisseur, useUpdateTransporteur, useCreateTransporteur, useDeleteTransporteur, useWorkflowsDevisAuto, useCreateWorkflow, useUpdateWorkflow, useDeleteWorkflow, useDossierAutoDevis, useActivateAutoDevis, useDeactivateAutoDevis, useDefaultWorkflow, useAllDossiersAutoDevis, useCreateFacture, useDemandesChauffeur, useMarkFeuilleRouteEnvoyee, useContratByDossier, usePaiementsByContrat, useFacturesByDossier, usePaiementsFournisseurs, useCreatePaiementFournisseur, useDeletePaiementFournisseur, useRappels, useCreateRappel, useUpdateRappel, useDeleteRappel, generateChauffeurToken, useUnreadMessagesCount } from '@/hooks/useSupabase'
+import { DemandeInfosForm } from '@/components/admin/DemandeInfosForm'
 import { DemandeContactChauffeurModal } from '@/components/admin/DemandeContactChauffeurModal'
 import { CronSettingsSection } from '@/components/admin/CronSettingsSection'
 import { EditDevisModal } from '@/components/admin/EditDevisModal'
@@ -3866,6 +3867,7 @@ function DossierDetailView({
     notes: dossier.notes || '',
   })
 
+  const [isEditingDemande, setIsEditingDemande] = useState(false)
   const updateDossier = useUpdateDossier()
   const updateDevis = useUpdateDevis()
   const deleteDevis = useDeleteDevis()
@@ -7117,11 +7119,34 @@ L'équipe Busmoov`,
 
         {/* Infos complètes du lead */}
         <div className="card p-6 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
-          <h2 className="font-display text-lg font-semibold text-purple-dark mb-4 flex items-center gap-2">
-            <FileText size={20} className="text-magenta" />
-            Informations complètes de la demande
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display text-lg font-semibold text-purple-dark flex items-center gap-2">
+              <FileText size={20} className="text-magenta" />
+              Informations complètes de la demande
+            </h2>
+            {!isEditingDemande && (
+              <button
+                onClick={() => setIsEditingDemande(true)}
+                className="btn btn-sm btn-secondary flex items-center gap-1"
+              >
+                <Pencil size={14} />
+                Modifier
+              </button>
+            )}
+          </div>
 
+          {isEditingDemande ? (
+            <DemandeInfosForm
+              dossier={dossier}
+              onCancel={() => setIsEditingDemande(false)}
+              onSaved={() => {
+                setIsEditingDemande(false)
+                queryClient.invalidateQueries({ queryKey: ['dossier', dossier.id] })
+                queryClient.invalidateQueries({ queryKey: ['dossiers'] })
+              }}
+            />
+          ) : (
+          <>
           {/* Type de trajet et voyage */}
           <div className="grid md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-lg p-3 border">
@@ -7227,6 +7252,9 @@ L'équipe Busmoov`,
               </h3>
               <p className="text-sm text-gray-700 whitespace-pre-wrap">{dossier.special_requests}</p>
             </div>
+          )}
+
+          </>
           )}
 
           {/* Contact sur place (depuis voyage_info si disponible) */}
