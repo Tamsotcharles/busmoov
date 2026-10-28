@@ -4840,13 +4840,22 @@ L'équipe Busmoov`
 
   const handleSave = async () => {
     try {
+      // Les champs vides du formulaire doivent partir en NULL : PostgREST
+      // refuse '' pour un uuid (transporteur_id) ou un timestamp (return_date
+      // d'un aller simple) → 400 silencieux, et la sauvegarde ne faisait rien
+      // sur tout dossier sans transporteur.
       await updateDossier.mutateAsync({
         id: dossier.id,
         ...formData,
+        transporteur_id: formData.transporteur_id || null,
+        departure_date: formData.departure_date || null,
+        return_date: formData.return_date || null,
       })
       setIsEditing(false)
     } catch (error) {
       console.error('Erreur lors de la mise à jour:', error)
+      const message = error instanceof Error ? error.message : (error as { message?: string })?.message || 'Erreur inconnue'
+      alert(`Impossible d'enregistrer le dossier : ${message}`)
     }
   }
 
