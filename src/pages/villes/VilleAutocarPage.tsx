@@ -11,6 +11,7 @@ import { villesTraduites } from '@/lib/seo-data'
 import { Bus, Clock, Shield, MapPin, CheckCircle, ArrowRight, Info } from 'lucide-react'
 import { TextWithLinks } from '@/components/ui/TextWithLinks'
 import { TableauSeo } from '@/components/ui/TableauSeo'
+import { ImageContenu } from '@/components/ui/ImageContenu'
 
 /**
  * Page ville SEO « Location d'autocar à <Ville> » — contenu français
@@ -124,6 +125,11 @@ function IntroSection({ ville }: { ville: Ville }) {
         {ville.intro.map((p, i) => (
           <p key={i} className="text-gray-700 leading-relaxed">{p}</p>
         ))}
+        {ville.image && (
+          <div className="pt-4">
+            <ImageContenu image={ville.image} />
+          </div>
+        )}
       </div>
     </section>
   )

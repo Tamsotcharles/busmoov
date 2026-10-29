@@ -151,6 +151,7 @@ const mdInline = (t) =>
     })
     .join('')
 const ulMd = (items) => `<ul class="list-disc pl-6 mb-3">${items.map((i) => `<li>${mdInline(i)}</li>`).join('')}</ul>`
+const img = (i) => (i ? `<img src="${i.src}" alt="${esc(i.alt)}" width="${i.width}" height="${i.height}" class="w-full h-auto rounded-2xl my-6"/>` : '')
 const pMd = (t) => `<p class="text-gray-700 mb-3">${mdInline(t)}</p>`
 const h1 = (t) => `<h1 class="text-3xl font-bold mb-4">${esc(t)}</h1>`
 const h2 = (t) => `<h2 class="text-2xl font-bold mt-8 mb-3">${esc(t)}</h2>`
@@ -240,6 +241,7 @@ function destinationBody(c, lang) {
   return wrap(
     h1(c.h1) +
     p(c.intro) +
+    img(c.image) +
     h2(c.prix.h2) + pLang(lang, c.prix.intro) + tableau(c.prix.tableau) + p(c.prix.note) +
     c.sections.map((s) =>
       h2(s.h2) +
@@ -591,6 +593,7 @@ function villeClassiqueBody(ville) {
     h1(ville.h1) +
     p(ville.sousTitre) +
     ville.intro.map(p).join('') +
+    img(ville.image) +
     h2(ville.sectionLocale.h2) +
     ville.sectionLocale.paragraphes.map(p).join('') +
     (ville.sections || []).map((sec) => h2(sec.h2) + sec.paragraphes.map(pMd).join('')).join('') +
@@ -622,6 +625,7 @@ function villeEnrichieBody(ville) {
     h1(ville.h1) +
     p(ville.sousTitre) +
     ville.intro.map(p).join('') +
+    img(ville.image) +
     h2(prix.h2) +
     pMd(prix.intro) +
     (prix.tableau ? tableau(prix.tableau) : '') +

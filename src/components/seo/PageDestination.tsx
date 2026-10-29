@@ -4,6 +4,7 @@ import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
 import { Seo } from '@/components/seo/Seo'
 import { TextWithLinks } from '@/components/ui/TextWithLinks'
 import { TableauSeo } from '@/components/ui/TableauSeo'
+import { ImageContenu } from '@/components/ui/ImageContenu'
 import type { DestinationContenu } from '@/lib/chateaux-loire'
 import type { SeoPageKey } from '@/lib/seo-data'
 import { ArrowRight, CheckCircle } from 'lucide-react'
@@ -35,6 +36,14 @@ export function PageDestination({ page, contenu: c }: { page: SeoPageKey; conten
           </a>
         </div>
       </section>
+
+      {c.image && (
+        <section className="pt-12">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <ImageContenu image={c.image} />
+          </div>
+        </section>
+      )}
 
       {/* Prix */}
       <section className="py-12">

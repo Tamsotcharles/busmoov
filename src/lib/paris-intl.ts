@@ -20,6 +20,7 @@ import type { DestinationContenu } from './chateaux-loire'
 export const parisIntl: Record<'en' | 'de' | 'es', DestinationContenu> = {
   en: {
     h1: 'Coach hire with driver in Paris',
+    image: { src: '/images/location-autocar-paris-busmoov.jpg', alt: 'Busmoov coach with driver by the Seine, with the Eiffel Tower in Paris', width: 1000, height: 656 },
     intro: 'Hiring a coach with a driver is the simplest way to move a group around Paris: airport and station transfers, a full-day city tour, or day trips to Versailles, Disneyland or the Champagne region. A transfer from the airport to central Paris starts from €400 including VAT in a standard coach, and a full day at your disposal from €700. Busmoov compares quotes from verified Paris-region operators, from 8-seat minibuses to 59-seat coaches, driver always included.',
     prix: {
       h2: 'Coach hire prices in Paris',
@@ -110,6 +111,7 @@ export const parisIntl: Record<'en' | 'de' | 'es', DestinationContenu> = {
   },
   de: {
     h1: 'Reisebus mit Fahrer in Paris mieten',
+    image: { src: '/images/location-autocar-paris-busmoov.jpg', alt: 'Busmoov-Reisebus mit Fahrer an der Seine vor dem Eiffelturm in Paris', width: 1000, height: 656 },
     intro: 'Mit einem Reisebus samt Fahrer bewegt sich eine Gruppe in Paris am einfachsten: Transfer vom Flughafen oder Bahnhof, Stadtrundfahrt oder Tagesausflug nach Versailles, ins Disneyland oder in die Champagne. Ein Transfer vom Flughafen in die Pariser Innenstadt kostet ab 400 € inklusive MwSt. im Standardreisebus, ein ganzer Tag zur Verfügung ab 700 €. Busmoov vergleicht Angebote geprüfter Busunternehmen aus der Region Paris, vom Minibus mit 8 Plätzen bis zum Reisebus mit 59 Plätzen, Fahrer immer inklusive.',
     prix: {
       h2: 'Preise für einen Reisebus mit Fahrer in Paris',
@@ -199,6 +201,7 @@ export const parisIntl: Record<'en' | 'de' | 'es', DestinationContenu> = {
   },
   es: {
     h1: 'Alquiler de autocar con conductor en París',
+    image: { src: '/images/location-autocar-paris-busmoov.jpg', alt: 'Autocar Busmoov con conductor junto al Sena y la torre Eiffel en París', width: 1000, height: 656 },
     intro: 'Un autocar con conductor es la forma más sencilla de mover a un grupo por París: traslados desde el aeropuerto o la estación, visita panorámica de la ciudad o excursiones a Versalles, Disneyland o la Champaña. Un traslado del aeropuerto al centro de París cuesta desde 400 € IVA incluido en autocar estándar, y un día completo a disposición desde 700 €. Busmoov compara presupuestos de transportistas verificados de la región de París, del minibús de 8 plazas al autocar de 59, conductor siempre incluido.',
     prix: {
       h2: 'Precios de alquiler de autocar con conductor en París',
