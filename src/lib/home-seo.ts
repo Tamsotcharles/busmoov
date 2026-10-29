@@ -6,10 +6,9 @@ import type { SeoLanguage } from './seo-data'
  * La liste éventuelle s'affiche après le premier paragraphe. Les liens
  * internes utilisent les chemins français, traduits au rendu.
  *
- * EN reprend les prix de départ des trajets en France (le hero EN annonce
- * la France). DE et ES, dont les heroes annoncent l'Allemagne et l'Espagne,
- * n'affichent pas la grille française : le bloc prix y explique ce qui fait
- * varier un devis.
+ * Les versions EN, DE et ES visent surtout des groupes étrangers qui
+ * voyagent en France (réponse de Charles, octobre 2026) : prix de départ
+ * des trajets en France, aéroports français.
  */
 export interface SectionHome {
   h2: string
@@ -113,27 +112,26 @@ const homeDe: SectionHome[] = [
   {
     h2: 'Shuttles zu Flughafen, Bahnhof und Veranstaltungen',
     paragraphes: [
-      'Eine Gruppe, die am Flughafen landet, muss sich nicht auf mehrere Taxis verteilen. Beim [Flughafentransfer mit dem Reisebus](/services/transfert-aeroport) verfolgt der Fahrer die Ankunftszeit des Flugs, wartet bei Verspätung und bringt alle direkt zum Hotel oder zum Veranstaltungsort. Dasselbe gilt für Bahnhöfe, Messen, Hochzeiten und Konzerte. Kommen die Gäste zu unterschiedlichen Zeiten an, fährt der Bus über den Tag mehrere Runden statt einer einzigen Fahrt. Geben Sie Ihre Zeiten einfach in der Angebotsanfrage an.',
+      'Eine Gruppe, die in Paris-Charles de Gaulle, Orly oder Lyon-Saint-Exupéry landet, muss sich nicht auf mehrere Taxis verteilen. Beim [Flughafentransfer mit dem Reisebus](/services/transfert-aeroport) verfolgt der Fahrer die Ankunftszeit des Flugs, wartet bei Verspätung und bringt alle direkt zum Hotel oder zum Veranstaltungsort. Dasselbe gilt für TGV-Bahnhöfe, Messen, Hochzeiten und Konzerte. Kommen die Gäste zu unterschiedlichen Zeiten an, fährt der Bus über den Tag mehrere Runden statt einer einzigen Fahrt. Geben Sie Ihre Zeiten einfach in der Angebotsanfrage an.',
     ],
   },
   {
-    h2: 'Was kostet ein Reisebus mit Fahrer?',
+    h2: 'Was kostet ein Reisebus mit Fahrer in Frankreich?',
     paragraphes: [
-      'Der Preis hängt vor allem von fünf Faktoren ab:',
-      'Fahrer, Kraftstoff und Maut sind in den Angeboten enthalten. Auf unserer Seite zu [Reisebustypen und Ausstattung](/services/location-autocar) finden Sie das passende Modell; den genauen Preis nennen Ihnen die Angebote, die Sie innerhalb von 24 Stunden erhalten.',
+      'Unsere Startpreise 2026 für Fahrten in Frankreich, inklusive MwSt., Fahrer, Kraftstoff und Maut, für einen Minibus und für einen Reisebus:',
+      'Der Endpreis hängt vom Datum, der Strecke, der Wartezeit vor Ort und der Region ab: Ein Samstag im Juni kostet mehr als ein Dienstag im Februar. Auf unserer Seite zu [Reisebustypen und Ausstattung](/services/location-autocar) finden Sie das passende Modell.',
     ],
     liste: [
-      'Fahrzeuggröße: Minibus, Standardreisebus oder Großraumbus',
-      'Strecke und Dauer: einfacher Transfer, Tagesausflug oder mehrtägige Reise',
-      'Wartezeit vor Ort und Länge des Arbeitstags des Fahrers',
-      'Datum: Ein Samstag im Juni oder die Adventszeit sind gefragter als ein Dienstag im Februar',
-      'Mehrtägige Reisen: Unterkunft und Verpflegung des Fahrers',
+      'Einfacher Transfer (Bahnhof, Flughafen): ab 350 € im Minibus, ab 400 € im Reisebus',
+      'Tagesausflug in der Umgebung, hin und zurück: ab 600 € bzw. 700 €',
+      'Regionaler Tagesausflug, hin und zurück: ab 900 € bzw. 1.000 €',
+      'Wochenende mit zwei Tagen: ab 1.600 € bzw. 1.800 €',
     ],
   },
   {
     h2: 'Busmoov: Busbuchung leicht gemacht seit 2019',
     paragraphes: [
-      'Busmoov ist eine Marke der französischen Navelys-Gruppe und wurde 2019 gegründet, um die Buchung eines Gruppenbusses zu vereinfachen. Statt mehrere Busunternehmen anzurufen, beschreiben Sie Ihre Fahrt ein einziges Mal: Wir fragen unser Netz von über 180 geprüften Busunternehmen an, und Sie erhalten innerhalb von 24 Stunden bis zu drei Angebote. Unser Team begleitet Ihre Buchung bis zur Abfahrt, 6 Tage die Woche, und bezahlt wird online. Auch Gruppenreisen nach Frankreich organisieren wir, etwa eine [Busreise zu den Loire-Schlössern](/autocar-chateaux-de-la-loire).',
+      'Busmoov ist eine Marke der französischen Navelys-Gruppe und wurde 2019 gegründet, um die Buchung eines Gruppenbusses zu vereinfachen. Statt mehrere Busunternehmen anzurufen, beschreiben Sie Ihre Fahrt ein einziges Mal: Wir fragen unser Netz von über 180 geprüften Busunternehmen an, und Sie erhalten innerhalb von 24 Stunden bis zu drei Angebote. Unser Team begleitet Ihre Buchung bis zur Abfahrt, 6 Tage die Woche, und bezahlt wird online. Wir sind in ganz Frankreich im Einsatz, von Paris bis in die Regionen, zum Beispiel für eine [Busreise zu den Loire-Schlössern](/autocar-chateaux-de-la-loire).',
     ],
   },
 ]
@@ -154,27 +152,26 @@ const homeEs: SectionHome[] = [
   {
     h2: 'Traslados al aeropuerto, a la estación y a eventos',
     paragraphes: [
-      'Un grupo que aterriza no tiene por qué repartirse en varios taxis. Con un [traslado al aeropuerto en autocar](/services/transfert-aeroport), el conductor sigue la hora de llegada del vuelo, espera en caso de retraso y lleva a todos directamente al hotel o al lugar del evento. Lo mismo vale para estaciones de tren, ferias, bodas y conciertos. Si los invitados llegan a horas distintas, el autocar hace varias rotaciones a lo largo del día en lugar de un solo trayecto. Indique sus horarios en la solicitud de presupuesto.',
+      'Un grupo que aterriza en París-Charles de Gaulle, Orly o Lyon-Saint-Exupéry no tiene por qué repartirse en varios taxis. Con un [traslado al aeropuerto en autocar](/services/transfert-aeroport), el conductor sigue la hora de llegada del vuelo, espera en caso de retraso y lleva a todos directamente al hotel o al lugar del evento. Lo mismo vale para las estaciones de TGV, las ferias, bodas y conciertos. Si los invitados llegan a horas distintas, el autocar hace varias rotaciones a lo largo del día en lugar de un solo trayecto. Indique sus horarios en la solicitud de presupuesto.',
     ],
   },
   {
-    h2: '¿Cuánto cuesta alquilar un autocar con conductor?',
+    h2: '¿Cuánto cuesta alquilar un autocar con conductor en Francia?',
     paragraphes: [
-      'El precio depende sobre todo de cinco factores:',
-      'El conductor, el combustible y los peajes están incluidos en los presupuestos. En nuestra página sobre [tipos de autocar y equipamiento](/services/location-autocar) encontrará el modelo adecuado; el precio exacto figura en los presupuestos que recibe en 24 horas.',
+      'Nuestros precios de salida 2026 para trayectos en Francia, con IVA, conductor, combustible y peajes incluidos, para un minibús y para un autocar:',
+      'El precio final depende de la fecha, la distancia, la espera en el lugar y la región: un sábado de junio cuesta más que un martes de febrero. En nuestra página sobre [tipos de autocar y equipamiento](/services/location-autocar) encontrará el modelo adecuado.',
     ],
     liste: [
-      'Tamaño del vehículo: minibús, autocar estándar o de gran capacidad',
-      'Trayecto y duración: traslado simple, excursión de un día o viaje de varios días',
-      'Tiempo de espera en el lugar y duración de la jornada del conductor',
-      'Fecha: un sábado de junio o las fiestas de Navidad tienen más demanda que un martes de febrero',
-      'Viajes de varios días: alojamiento y comidas del conductor',
+      'Traslado simple (estación, aeropuerto): desde 350 € en minibús, 400 € en autocar',
+      'Excursión local de un día, ida y vuelta: desde 600 € y 700 €',
+      'Excursión regional de un día, ida y vuelta: desde 900 € y 1.000 €',
+      'Fin de semana de dos días: desde 1.600 € y 1.800 €',
     ],
   },
   {
     h2: 'Busmoov: reservar un autocar, más fácil desde 2019',
     paragraphes: [
-      'Busmoov es una marca del grupo francés Navelys, creada en 2019 para simplificar la reserva de un autocar para grupos. En lugar de llamar a varios transportistas, describe su trayecto una sola vez: consultamos nuestra red de más de 180 transportistas verificados y recibe hasta tres presupuestos en 24 horas. Nuestro equipo sigue la reserva hasta la salida, 6 días a la semana, y el pago se hace en línea. También organizamos viajes de grupo a Francia, como un [viaje en autocar a los castillos del Loira](/autocar-chateaux-de-la-loire).',
+      'Busmoov es una marca del grupo francés Navelys, creada en 2019 para simplificar la reserva de un autocar para grupos. En lugar de llamar a varios transportistas, describe su trayecto una sola vez: consultamos nuestra red de más de 180 transportistas verificados y recibe hasta tres presupuestos en 24 horas. Nuestro equipo sigue la reserva hasta la salida, 6 días a la semana, y el pago se hace en línea. Cubrimos toda Francia, de París a las regiones, por ejemplo con un [viaje en autocar a los castillos del Loira](/autocar-chateaux-de-la-loire).',
     ],
   },
 ]
