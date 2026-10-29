@@ -3,7 +3,7 @@
  * ces pages ciblent les recherches « location autocar <ville> »).
  * URL : /fr/location-autocar/<slug>
  */
-import type { TableauSeo } from './blog'
+import type { ImageSeo, TableauSeo } from './blog'
 
 export interface VilleFaq {
   q: string
@@ -30,6 +30,8 @@ interface VilleBase {
   h1: string
   sousTitre: string
   intro: string[]
+  /** Image affichée juste après l'introduction (fichier dans public/images) */
+  image?: ImageSeo
   /**
    * Ville rattachée à une ville principale (slug) : exclue des blocs de
    * maillage automatiques (pied de page, listes « au départ de votre ville »,
@@ -152,6 +154,7 @@ export const villes: Ville[] = [
     metaTitle: 'Location d\'autocar à Paris avec chauffeur — Devis 24h | Busmoov',
     metaDescription: "Autocar et minibus avec chauffeur à Paris et en Île-de-France : transferts CDG-Orly, événements, excursions. Devis gratuit sous 24h.",
     h1: 'Location d\'autocar avec chauffeur à Paris',
+    image: { src: '/images/location-autocar-paris-busmoov.jpg', alt: 'Autocar avec chauffeur Busmoov au bord de la Seine, devant la tour Eiffel à Paris', width: 1000, height: 656 },
     sousTitre: 'Transferts aéroports, événements d\'entreprise, excursions : des transporteurs franciliens vérifiés, un devis gratuit en 24h.',
     intro: [
       'Paris et l\'Île-de-France concentrent la plus forte demande de transport de groupe en France : congrès à la Porte de Versailles, salons à Villepinte, matchs au Stade de France, séminaires à La Défense. Busmoov travaille avec des transporteurs implantés dans toute la région, ce qui évite les frais d\'approche d\'un car venant de loin.',

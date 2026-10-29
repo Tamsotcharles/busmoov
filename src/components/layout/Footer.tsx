@@ -3,6 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
 import { useCurrentCountry } from '@/hooks/useCountrySettings'
 import { villesMaillees as villes } from '@/lib/villes'
+import { villesTraduites } from '@/lib/seo-data'
+
+/** Libellé du bloc « par ville » des langues étrangères (villes traduites). */
+const villesTraduitesLabel: Record<string, string> = {
+  en: 'Coach hire by city:',
+  de: 'Reisebus mieten nach Stadt:',
+  es: 'Alquiler de autocar por ciudad:',
+}
 
 export function Footer() {
   const { t, i18n } = useTranslation()
@@ -74,6 +82,21 @@ export function Footer() {
             <Link to={localizedPath('/location-bus')} className="text-gray-400 hover:text-magenta transition-colors">Location de bus</Link>
             <span className="text-gray-500 mx-3">·</span>
             <Link to={localizedPath('/blog')} className="text-gray-400 hover:text-magenta transition-colors">Blog & conseils</Link>
+          </div>
+        )}
+
+        {/* Villes traduites (es/de/en) */}
+        {!i18n.language?.startsWith('fr') && villesTraduitesLabel[i18n.language?.slice(0, 2)] && (
+          <div className="border-t border-gray-800 pt-6 pb-2 mb-6 text-sm">
+            <span className="text-gray-500 mr-3">{villesTraduitesLabel[i18n.language.slice(0, 2)]}</span>
+            {Object.keys(villesTraduites).map((slug, i, all) => (
+              <span key={slug} className="text-gray-400">
+                <Link to={localizedPath(`/location-autocar/${slug}`)} className="hover:text-magenta transition-colors">
+                  {villes.find((v) => v.slug === slug)?.nom ?? slug}
+                </Link>
+                {i < all.length - 1 ? ' · ' : ''}
+              </span>
+            ))}
           </div>
         )}
 

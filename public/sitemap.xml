@@ -434,6 +434,33 @@
     <lastmod>2026-10-29</lastmod>
   </url>
   <url>
+    <loc>https://www.busmoov.com/es/alquiler-autocar/paris</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/location-autocar/paris"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/alquiler-autocar/paris"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/reisebus-mieten/paris"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/coach-hire/paris"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/location-autocar/paris"/>
+    <lastmod>2026-10-29</lastmod>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/de/reisebus-mieten/paris</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/location-autocar/paris"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/alquiler-autocar/paris"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/reisebus-mieten/paris"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/coach-hire/paris"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/location-autocar/paris"/>
+    <lastmod>2026-10-29</lastmod>
+  </url>
+  <url>
+    <loc>https://www.busmoov.com/en/coach-hire/paris</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/location-autocar/paris"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/alquiler-autocar/paris"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/reisebus-mieten/paris"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/coach-hire/paris"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/location-autocar/paris"/>
+    <lastmod>2026-10-29</lastmod>
+  </url>
+  <url>
     <loc>https://www.busmoov.com/fr/location-bus</loc>
     <lastmod>2026-10-22</lastmod>
   </url>
@@ -519,7 +546,12 @@
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/paris</loc>
-    <lastmod>2026-10-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.busmoov.com/fr/location-autocar/paris"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.busmoov.com/es/alquiler-autocar/paris"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.busmoov.com/de/reisebus-mieten/paris"/>
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://www.busmoov.com/en/coach-hire/paris"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.busmoov.com/fr/location-autocar/paris"/>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://www.busmoov.com/fr/location-autocar/lyon</loc>

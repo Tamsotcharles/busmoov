@@ -11,7 +11,7 @@
  * (fréquentation 2025, parking P1), code de la route (R412-1), durées OSRM
  * + 15 %.
  */
-import type { TableauSeo } from './blog'
+import type { ImageSeo, TableauSeo } from './blog'
 import type { SeoLanguage } from './seo-data'
 
 export interface SectionChateaux {
@@ -24,12 +24,17 @@ export interface SectionChateaux {
 export interface ChateauxContenu {
   h1: string
   intro: string
+  /** Image affichée juste après l'introduction (fichier dans public/images) */
+  image?: ImageSeo
   prix: { h2: string; intro: string; tableau: TableauSeo; note: string }
   sections: SectionChateaux[]
   faq: { h2: string; questions: { q: string; a: string }[] }
   devis: { h2: string; texte: string }
   ui: { cta: string }
 }
+
+/** Même structure pour toutes les pages de destination multilingues. */
+export type DestinationContenu = ChateauxContenu
 
 export const chateauxLoire: Record<SeoLanguage, ChateauxContenu> = {
   fr: {

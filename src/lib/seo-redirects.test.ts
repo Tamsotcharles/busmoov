@@ -30,7 +30,8 @@ describe('pages françaises sans préfixe de langue', () => {
   // /mentions-legales était indexée par Google en doublon de /fr/mentions-legales
   const frOnly = [
     ...Object.entries(seoLocalizedPaths)
-      .filter(([page, paths]) => page !== 'home' && !paths.fr.startsWith('/services/'))
+      // Villes traduites : couvertes par la règle générique /location-autocar/:ville
+      .filter(([page, paths]) => page !== 'home' && !page.startsWith('ville-') && !paths.fr.startsWith('/services/'))
       .map(([, paths]) => paths.fr),
     ...landings.map((l) => l.slug),
   ]

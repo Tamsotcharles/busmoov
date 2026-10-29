@@ -6,6 +6,14 @@
  * majorations régionales) : uniquement des fourchettes indicatives.
  */
 
+/** Image de contenu : chemin public, texte alternatif et dimensions (évite le décalage de mise en page). */
+export interface ImageSeo {
+  src: string
+  alt: string
+  width: number
+  height: number
+}
+
 /** Tableau simple (en-têtes + lignes de texte). Partagé avec les landings. */
 export interface TableauSeo {
   /** Légende affichée au-dessus du tableau (et <caption> en HTML). */

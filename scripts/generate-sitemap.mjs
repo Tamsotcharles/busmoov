@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { seoConfig, seoLocalizedPaths, locationBusMeta, SEO_BASE_URL } from '../src/lib/seo-data.ts'
+import { seoConfig, seoLocalizedPaths, locationBusMeta, SEO_BASE_URL, villesTraduites } from '../src/lib/seo-data.ts'
 import { villes } from '../src/lib/villes.ts'
 import { articles } from '../src/lib/blog.ts'
 import { landings } from '../src/lib/landings.ts'
@@ -49,12 +49,18 @@ const PAGE_SOURCES = {
   'mentions-legales': 'src/pages/MentionsLegalesPage.tsx',
   'confidentialite': 'src/pages/ConfidentialitePage.tsx',
   'chateaux-loire': 'src/lib/chateaux-loire.ts',
+  'ville-paris': 'src/lib/paris-intl.ts',
 }
 
 const read = (path) => readFileSync(join(ROOT, path), 'utf8')
 const hash = (...parts) => createHash('sha1').update(parts.map((p) => (typeof p === 'string' ? p : JSON.stringify(p))).join('\n')).digest('hex').slice(0, 12)
 const urlFor = (lang, path) => (path === '/' ? `${BASE_URL}/${lang}` : `${BASE_URL}/${lang}${path}`)
 const hreflangCode = (lang) => (lang === 'en' ? 'en-GB' : lang)
+
+const alternatesFor = (paths) => [
+  ...LANGUAGES.map((l) => ({ hreflang: hreflangCode(l), href: urlFor(l, paths[l]) })),
+  { hreflang: 'x-default', href: urlFor(X_DEFAULT_LANG, paths[X_DEFAULT_LANG]) },
+]
 
 // ---- Liste des URLs avec l'empreinte de leur contenu -----------------------
 // { loc, hash, alternates?, publishedOn? }
@@ -63,11 +69,10 @@ const pages = []
 for (const [page, source] of Object.entries(PAGE_SOURCES)) {
   const paths = seoLocalizedPaths[page]
   const component = [].concat(source).map(read).join('\n')
-  const alternates = [
-    ...LANGUAGES.map((l) => ({ hreflang: hreflangCode(l), href: urlFor(l, paths[l]) })),
-    { hreflang: 'x-default', href: urlFor(X_DEFAULT_LANG, paths[X_DEFAULT_LANG]) },
-  ]
+  const alternates = alternatesFor(paths)
   for (const lang of LANGUAGES) {
+    // Villes traduites : l'URL française est ajoutée par la boucle des villes.
+    if (page.startsWith('ville-') && lang === 'fr') continue
     pages.push({
       loc: urlFor(lang, paths[lang]),
       hash: hash(component, read(`src/locales/${lang}/common.json`), seoConfig[page][lang]),
@@ -85,7 +90,12 @@ for (const landing of landings) {
   pages.push({ loc: urlFor('fr', landing.slug), hash: hash(landing) })
 }
 for (const ville of villes) {
-  pages.push({ loc: urlFor('fr', `/location-autocar/${ville.slug}`), hash: hash(ville) })
+  const traduite = villesTraduites[ville.slug]
+  pages.push({
+    loc: urlFor('fr', `/location-autocar/${ville.slug}`),
+    hash: hash(ville),
+    ...(traduite ? { alternates: alternatesFor(seoLocalizedPaths[traduite]) } : {}),
+  })
 }
 pages.push({
   loc: urlFor('fr', '/blog'),

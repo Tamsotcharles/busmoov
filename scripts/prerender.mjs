@@ -3,8 +3,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 // Node >= 23.6 exécute le TypeScript nativement (type stripping) :
 // on importe les données directement depuis src/.
-import { seoConfig, seoLocalizedPaths, locationBusMeta, translatePath } from '../src/lib/seo-data.ts'
+import { seoConfig, seoLocalizedPaths, locationBusMeta, translatePath, villesTraduites } from '../src/lib/seo-data.ts'
 import { chateauxLoire } from '../src/lib/chateaux-loire.ts'
+import { parisIntl } from '../src/lib/paris-intl.ts'
 import { villes, villesMaillees, aLaVille, deLaVille } from '../src/lib/villes.ts'
 import { articles, articlesSimilaires } from '../src/lib/blog.ts'
 import { landings } from '../src/lib/landings.ts'
@@ -65,6 +66,8 @@ function staticHeader(lang, alternatePaths) {
   return `<header class="fixed top-0 inset-x-0 z-50 bg-white/95 border-b border-gray-100"><div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4"><a href="/${lang}" class="font-display text-xl font-bold gradient-text">Busmoov</a><nav class="flex items-center gap-3">${langues}</nav></div></header>`
 }
 
+const VILLES_TRADUITES_LABEL = { en: 'Coach hire by city:', de: 'Reisebus mieten nach Stadt:', es: 'Alquiler de autocar por ciudad:' }
+
 function staticFooter(lang) {
   const loc = locales[lang]
   const f = loc.footer
@@ -72,7 +75,9 @@ function staticFooter(lang) {
     ? `<div class="border-t border-gray-800 pt-6 mb-6 text-sm text-gray-400">Location d'autocar par ville : ${villesMaillees
         .map((v) => `<a href="${lienLang('fr', `/location-autocar/${v.slug}`)}" class="hover:text-magenta">${esc(v.nom)}</a>`)
         .join(' · ')} · <a href="${lienLang('fr', '/location-bus')}" class="hover:text-magenta">Location de bus</a> · <a href="${lienLang('fr', '/blog')}" class="hover:text-magenta">Blog &amp; conseils</a></div>`
-    : ''
+    : `<div class="border-t border-gray-800 pt-6 mb-6 text-sm text-gray-400">${esc(VILLES_TRADUITES_LABEL[lang])} ${Object.keys(villesTraduites)
+        .map((slug) => `<a href="${lienLang(lang, `/location-autocar/${slug}`)}" class="hover:text-magenta">${esc(villes.find((v) => v.slug === slug)?.nom ?? slug)}</a>`)
+        .join(' · ')}</div>`
   return `<footer class="bg-gray-900 text-white pt-16 pb-8"><div class="max-w-7xl mx-auto px-4">` +
     `<div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">` +
     `<div><p class="font-display text-xl font-bold mb-4">Busmoov</p><p class="text-gray-400 text-sm">${esc(f.description)}</p></div>` +
@@ -146,6 +151,7 @@ const mdInline = (t) =>
     })
     .join('')
 const ulMd = (items) => `<ul class="list-disc pl-6 mb-3">${items.map((i) => `<li>${mdInline(i)}</li>`).join('')}</ul>`
+const img = (i) => (i ? `<img src="${i.src}" alt="${esc(i.alt)}" width="${i.width}" height="${i.height}" class="w-full h-auto rounded-2xl my-6"/>` : '')
 const pMd = (t) => `<p class="text-gray-700 mb-3">${mdInline(t)}</p>`
 const h1 = (t) => `<h1 class="text-3xl font-bold mb-4">${esc(t)}</h1>`
 const h2 = (t) => `<h2 class="text-2xl font-bold mt-8 mb-3">${esc(t)}</h2>`
@@ -230,12 +236,12 @@ const mdInlineLang = (lang, t) =>
     .join('')
 const pLang = (lang, t) => `<p class="text-gray-700 mb-3">${mdInlineLang(lang, t)}</p>`
 
-/** Corps statique de la page châteaux de la Loire (même contenu que ChateauxLoirePage). */
-function chateauxLoireBody(lang) {
-  const c = chateauxLoire[lang]
+/** Corps statique d'une page de destination multilingue (même contenu que PageDestination). */
+function destinationBody(c, lang) {
   return wrap(
     h1(c.h1) +
     p(c.intro) +
+    img(c.image) +
     h2(c.prix.h2) + pLang(lang, c.prix.intro) + tableau(c.prix.tableau) + p(c.prix.note) +
     c.sections.map((s) =>
       h2(s.h2) +
@@ -360,7 +366,9 @@ function multilingualBody(page, lang) {
       )
     }
     case 'chateaux-loire':
-      return chateauxLoireBody(lang)
+      return destinationBody(chateauxLoire[lang], lang)
+    case 'ville-paris':
+      return destinationBody(parisIntl[lang], lang)
     case 'contact':
       return wrap(
         h1(t(lang, 'contact.title')) +
@@ -395,11 +403,14 @@ for (const [page, paths] of Object.entries(seoLocalizedPaths)) {
   for (const lang of LANGUAGES) {
     const meta = seoConfig[page][lang]
     const jsonLd = page === 'home' ? [organizationJsonLd(lang)] : []
-    if (page === 'chateaux-loire') {
+    // La version française des villes traduites est la page ville (boucle des villes).
+    if (page.startsWith('ville-') && lang === 'fr') continue
+    const destination = page === 'chateaux-loire' ? chateauxLoire[lang] : page === 'ville-paris' ? parisIntl[lang] : null
+    if (destination) {
       jsonLd.push({
         '@context': 'https://schema.org',
         '@type': 'FAQPage',
-        mainEntity: chateauxLoire[lang].faq.questions.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+        mainEntity: destination.faq.questions.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
       })
     }
     if (page === 'sorties-scolaires' && lang === 'fr') {
@@ -582,6 +593,7 @@ function villeClassiqueBody(ville) {
     h1(ville.h1) +
     p(ville.sousTitre) +
     ville.intro.map(p).join('') +
+    img(ville.image) +
     h2(ville.sectionLocale.h2) +
     ville.sectionLocale.paragraphes.map(p).join('') +
     (ville.sections || []).map((sec) => h2(sec.h2) + sec.paragraphes.map(pMd).join('')).join('') +
@@ -613,6 +625,7 @@ function villeEnrichieBody(ville) {
     h1(ville.h1) +
     p(ville.sousTitre) +
     ville.intro.map(p).join('') +
+    img(ville.image) +
     h2(prix.h2) +
     pMd(prix.intro) +
     (prix.tableau ? tableau(prix.tableau) : '') +
@@ -687,6 +700,7 @@ for (const ville of villes) {
     path: `/location-autocar/${ville.slug}`,
     title: ville.metaTitle,
     description: ville.metaDescription,
+    alternatePaths: villesTraduites[ville.slug] ? seoLocalizedPaths[villesTraduites[ville.slug]] : null,
     jsonLd,
     body,
   })
@@ -775,6 +789,7 @@ ${articles.map((a) => `- [${a.titre}](${BASE_URL}/fr/blog/${a.slug}) : ${a.extra
 
 ## Autres langues
 - [Español](${BASE_URL}/es) · [Deutsch](${BASE_URL}/de) · [English](${BASE_URL}/en) · [中文 — 法国大巴租赁](${BASE_URL}/zh)
+- Paris : [Coach hire in Paris](${BASE_URL}/en/coach-hire/paris) · [Reisebus mieten in Paris](${BASE_URL}/de/reisebus-mieten/paris) · [Alquiler de autocar en París](${BASE_URL}/es/alquiler-autocar/paris)
 
 ## Détail complet
 - [llms-full.txt](${BASE_URL}/llms-full.txt) : contenu intégral des guides et pages villes en markdown

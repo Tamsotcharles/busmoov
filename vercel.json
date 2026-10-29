@@ -356,6 +356,21 @@
       "statusCode": 301
     },
     {
+      "source": "/es/location-autocar/paris",
+      "destination": "/es/alquiler-autocar/paris",
+      "statusCode": 301
+    },
+    {
+      "source": "/de/location-autocar/paris",
+      "destination": "/de/reisebus-mieten/paris",
+      "statusCode": 301
+    },
+    {
+      "source": "/en/location-autocar/paris",
+      "destination": "/en/coach-hire/paris",
+      "statusCode": 301
+    },
+    {
       "source": "/es/autocar-chateaux-de-la-loire",
       "destination": "/es/autocar-castillos-del-loira",
       "statusCode": 301
