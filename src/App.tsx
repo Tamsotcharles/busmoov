@@ -36,6 +36,7 @@ const BlogPage = lazy(() => import('@/pages/blog/BlogPage').then((m) => ({ defau
 const ZhLandingPage = lazy(() => import('@/pages/ZhLandingPage').then((m) => ({ default: m.ZhLandingPage })))
 const LandingSeoPage = lazy(() => import('@/pages/LandingSeoPage').then((m) => ({ default: m.LandingSeoPage })))
 const ChateauxLoirePage = lazy(() => import('@/pages/ChateauxLoirePage').then((m) => ({ default: m.ChateauxLoirePage })))
+const ParisIntlPage = lazy(() => import('@/pages/villes/ParisIntlPage').then((m) => ({ default: m.ParisIntlPage })))
 const BlogArticlePage = lazy(() => import('@/pages/blog/BlogArticlePage').then((m) => ({ default: m.BlogArticlePage })))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 
@@ -192,6 +193,7 @@ function PublicRoutes() {
           ['contact', <ContactPage />],
           ['devenir-partenaire', <DevenirPartenairePage />],
           ['chateaux-loire', <ChateauxLoirePage />],
+          ['ville-paris', <ParisIntlPage />],
           ['cgv', <CGVPage />],
           ['mentions-legales', <MentionsLegalesPage />],
           ['confidentialite', <ConfidentialitePage />],

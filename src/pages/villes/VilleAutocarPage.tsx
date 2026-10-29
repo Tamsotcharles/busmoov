@@ -7,6 +7,7 @@ import { SeoFr } from '@/components/seo/Seo'
 import { useLocalizedPath } from '@/components/i18n'
 import { getVille, villes, villesMaillees, aLaVille, deLaVille, type Ville, type VilleClassique, type VilleEnrichie, type VilleSection } from '@/lib/villes'
 import { getSiteBaseUrl } from '@/lib/utils'
+import { villesTraduites } from '@/lib/seo-data'
 import { Bus, Clock, Shield, MapPin, CheckCircle, ArrowRight, Info } from 'lucide-react'
 import { TextWithLinks } from '@/components/ui/TextWithLinks'
 import { TableauSeo } from '@/components/ui/TableauSeo'
@@ -63,7 +64,7 @@ export function VilleAutocarPage() {
   return (
     <div className="min-h-screen">
       <Header />
-      <SeoFr title={ville.metaTitle} description={ville.metaDescription} path={path} jsonLd={jsonLd} />
+      <SeoFr title={ville.metaTitle} description={ville.metaDescription} path={path} jsonLd={jsonLd} hreflangPage={villesTraduites[ville.slug]} />
 
       {/* Hero */}
       <section className="bg-gradient-to-br from-purple-dark to-magenta text-white pt-28 pb-16">

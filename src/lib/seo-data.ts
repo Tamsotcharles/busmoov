@@ -19,6 +19,7 @@ export type SeoPageKey =
   | 'mentions-legales'
   | 'confidentialite'
   | 'chateaux-loire'
+  | 'ville-paris'
 
 export interface SeoPageMeta {
   title: string
@@ -41,6 +42,7 @@ export const seoPaths: Record<SeoPageKey, string> = {
   'mentions-legales': '/mentions-legales',
   'confidentialite': '/confidentialite',
   'chateaux-loire': '/autocar-chateaux-de-la-loire',
+  'ville-paris': '/location-autocar/paris',
 }
 
 /**
@@ -92,6 +94,18 @@ export const seoLocalizedPaths: Record<SeoPageKey, Record<SeoLanguage, string>> 
     de: '/reisebus-loire-schloesser',
     en: '/coach-hire-loire-castles',
   },
+  // Villes traduites : la version française est la page ville existante.
+  'ville-paris': {
+    fr: '/location-autocar/paris',
+    es: '/alquiler-autocar/paris',
+    de: '/reisebus-mieten/paris',
+    en: '/coach-hire/paris',
+  },
+}
+
+/** Pages villes françaises qui ont des versions EN/DE/ES (clé SEO hreflang). */
+export const villesTraduites: Record<string, SeoPageKey> = {
+  paris: 'ville-paris',
 }
 
 /** Traduit un chemin interne (français) vers son slug localisé. Les chemins
@@ -299,6 +313,24 @@ export const seoConfig: Record<SeoPageKey, Record<SeoLanguage, SeoPageMeta>> = {
     en: {
       title: 'Loire Valley Châteaux Coach Hire with Driver | Busmoov',
       description: 'Coach hire with driver to visit the Loire Valley châteaux from Paris or the Channel ports: Chambord, Chenonceau, Amboise. Prices and quotes in 24h.',
+    },
+  },
+  'ville-paris': {
+    fr: {
+      title: "Location d'autocar à Paris avec chauffeur | Busmoov",
+      description: 'Autocar et minibus avec chauffeur à Paris et en Île-de-France : transferts CDG-Orly, événements, excursions. Devis gratuit sous 24h.',
+    },
+    es: {
+      title: 'Alquiler de autocar con conductor en París | Busmoov',
+      description: 'Autocar o minibús con conductor en París: traslados al aeropuerto, Versalles, Disneyland, viajes de estudios. Precios desde y hasta 3 presupuestos en 24h.',
+    },
+    de: {
+      title: 'Reisebus mit Fahrer in Paris mieten: Preise | Busmoov',
+      description: 'Reisebus oder Minibus mit Fahrer in Paris: Flughafentransfer, Versailles, Disneyland, Klassenfahrt. Startpreise und bis zu 3 Angebote in 24h.',
+    },
+    en: {
+      title: 'Coach Hire in Paris with Driver: Prices | Busmoov',
+      description: 'Coach and minibus hire with driver in Paris: airport transfers, Versailles, Disneyland, Champagne. Starting prices and up to 3 quotes within 24h.',
     },
   },
 }

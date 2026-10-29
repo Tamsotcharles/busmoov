@@ -31,6 +31,9 @@ export interface ChateauxContenu {
   ui: { cta: string }
 }
 
+/** Même structure pour toutes les pages de destination multilingues. */
+export type DestinationContenu = ChateauxContenu
+
 export const chateauxLoire: Record<SeoLanguage, ChateauxContenu> = {
   fr: {
     h1: "Location d'autocar pour visiter les châteaux de la Loire",

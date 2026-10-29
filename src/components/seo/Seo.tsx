@@ -134,6 +134,8 @@ interface SeoFrProps {
   /** Chemin sans préfixe de langue, ex. /location-autocar/paris */
   path: string
   jsonLd?: object | object[]
+  /** Clé SEO des versions traduites de la page (balises hreflang). */
+  hreflangPage?: SeoPageKey
 }
 
 /**
@@ -141,8 +143,9 @@ interface SeoFrProps {
  * Canonical sur /fr, pas d'alternates hreflang puisqu'il n'y a pas de
  * version traduite.
  */
-export function SeoFr({ title, description, path, jsonLd }: SeoFrProps) {
+export function SeoFr({ title, description, path, jsonLd, hreflangPage }: SeoFrProps) {
   const canonical = `${getSiteBaseUrl()}/fr${path}`
+  const alternates = hreflangPage ? getHreflangAlternates(hreflangPage) : []
   const ogImage = `${getSiteBaseUrl()}/logo.svg`
 
   useEffect(() => {
@@ -156,6 +159,9 @@ export function SeoFr({ title, description, path, jsonLd }: SeoFrProps) {
       <title>{title}</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={canonical} />
+      {alternates.map(({ hreflang, href }) => (
+        <link key={hreflang} rel="alternate" hrefLang={hreflang} href={href} />
+      ))}
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content="Busmoov" />
       <meta property="og:title" content={title} />
