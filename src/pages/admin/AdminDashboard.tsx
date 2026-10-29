@@ -10727,6 +10727,9 @@ function NewDevisModal({
     departure_time_override: '',
     return_time_override: '',
   })
+  // Aller simple : aucune donnée de retour affichée, calculée ni enregistrée.
+  const isAllerSimple = formData.service_type === 'aller_simple'
+
   const [showOptions, setShowOptions] = useState(false)
   const [options, setOptions] = useState({
     peages: { status: 'inclus', montant: 0 },
@@ -10993,9 +10996,9 @@ function NewDevisModal({
     if (km <= 0) return null
     const serviceType = formData.service_type as PricingServiceType
     const heureDepart = formData.departure_time_override || dossier?.departure_time || null
-    const heureRetour = formData.return_time_override || dossier?.return_time || null
+    const heureRetour = isAllerSimple ? null : (formData.return_time_override || dossier?.return_time || null)
     const dateDepart = formData.departure_date_override || dossier?.departure_date || null
-    const dateRetour = formData.return_date_override || dossier?.return_date || null
+    const dateRetour = isAllerSimple ? null : (formData.return_date_override || dossier?.return_date || null)
     return calculerInfosTrajet(km, heureDepart, heureRetour, dateDepart, dateRetour, serviceType)
   }, [formData.km, formData.service_type, formData.departure_time_override, formData.return_time_override, formData.departure_date_override, formData.return_date_override, dossier])
 
@@ -11062,9 +11065,9 @@ function NewDevisModal({
       majorationRushManuelle: (majorationRegion?.percent || 0) / 100,
       kmSupplementairesMAD: 0,
       heureDepart: formData.departure_time_override || dossier?.departure_time || null,
-      heureRetour: formData.return_time_override || dossier?.return_time || null,
+      heureRetour: isAllerSimple ? null : (formData.return_time_override || dossier?.return_time || null),
       dateDepart: formData.departure_date_override || dossier?.departure_date || null,
-      dateRetour: formData.return_date_override || dossier?.return_date || null,
+      dateRetour: isAllerSimple ? null : (formData.return_date_override || dossier?.return_date || null),
       grilles,
     })
 
@@ -11135,7 +11138,7 @@ function NewDevisModal({
         vehicle_type: formData.vehicle_type,
         km: formData.km || null,
         pax_aller: formData.pax_aller || dossier.passengers,
-        pax_retour: formData.pax_retour || dossier.passengers,
+        pax_retour: isAllerSimple ? null : (formData.pax_retour || dossier.passengers),
         detail_mad: formData.detail_mad || null,
         options_details: options,
         duree_jours: dureeJours,
@@ -11143,9 +11146,9 @@ function NewDevisModal({
         departure_override: formData.departure_override || null,
         arrival_override: formData.arrival_override || null,
         departure_date_override: formData.departure_date_override || null,
-        return_date_override: formData.return_date_override || null,
+        return_date_override: isAllerSimple ? null : (formData.return_date_override || null),
         departure_time_override: formData.departure_time_override || null,
-        return_time_override: formData.return_time_override || null,
+        return_time_override: isAllerSimple ? null : (formData.return_time_override || null),
       } as any)
       onClose()
       // Reset form
@@ -11362,7 +11365,7 @@ function NewDevisModal({
           </div>
 
           {/* Dates et Horaires */}
-          <div className="grid grid-cols-4 gap-4 mb-4">
+          <div className={`grid ${isAllerSimple ? 'grid-cols-2' : 'grid-cols-4'} gap-4 mb-4`}>
             <div>
               <label className="label text-blue-700">Date départ</label>
               <input
@@ -11381,28 +11384,32 @@ function NewDevisModal({
                 onChange={(e) => setFormData({ ...formData, departure_time_override: e.target.value })}
               />
             </div>
-            <div>
-              <label className="label text-blue-700">Date retour</label>
-              <input
-                type="date"
-                className="input"
-                value={formData.return_date_override || formatDateForInput(dossier?.return_date)}
-                onChange={(e) => setFormData({ ...formData, return_date_override: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="label text-blue-700">Heure retour</label>
-              <input
-                type="time"
-                className="input"
-                value={formData.return_time_override || dossier?.return_time || ''}
-                onChange={(e) => setFormData({ ...formData, return_time_override: e.target.value })}
-              />
-            </div>
+            {!isAllerSimple && (
+              <>
+                <div>
+                  <label className="label text-blue-700">Date retour</label>
+                  <input
+                    type="date"
+                    className="input"
+                    value={formData.return_date_override || formatDateForInput(dossier?.return_date)}
+                    onChange={(e) => setFormData({ ...formData, return_date_override: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="label text-blue-700">Heure retour</label>
+                  <input
+                    type="time"
+                    className="input"
+                    value={formData.return_time_override || dossier?.return_time || ''}
+                    onChange={(e) => setFormData({ ...formData, return_time_override: e.target.value })}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           {/* Distance et Passagers */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className={`grid ${isAllerSimple ? 'grid-cols-2' : 'grid-cols-3'} gap-4`}>
             <div>
               <label className="label flex items-center gap-2 text-blue-700">
                 <MapPin size={16} />
@@ -11450,6 +11457,7 @@ function NewDevisModal({
                 placeholder="Nb passagers"
               />
             </div>
+            {!isAllerSimple && (
             <div>
               <label className="label flex items-center gap-2 text-blue-700">
                 <Users size={16} />
@@ -11478,6 +11486,7 @@ function NewDevisModal({
                 placeholder="Nb passagers"
               />
             </div>
+            )}
           </div>
         </div>
 
