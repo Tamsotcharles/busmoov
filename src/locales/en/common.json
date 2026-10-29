@@ -617,7 +617,8 @@
       "waiting": "Pending",
       "chooseQuote": "Choose this quote",
       "seeDetails": "See details",
-      "chatWithSupplier": "Chat with this carrier"
+      "chatWithSupplier": "Chat with this carrier",
+      "serviceLabel": "Service"
     },
     "contactBox": {
       "title": "Have a question?",

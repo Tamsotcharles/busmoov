@@ -71,6 +71,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useQueryClient } from '@tanstack/react-query'
 import { useDossiers, useTransporteurs, useDashboardStats, useAllDevis, useUpdateDossier, useCreateDossier, useCreateDevis, useDevisByDossier, useUpdateDevis, useDeleteDevis, useContrats, useDeleteContrat, useCreatePaiement, useDeletePaiement, useTimeline, useAddTimelineEntry, useVoyageInfo, useCreateOrUpdateVoyageInfo, useDemandesFournisseurs, useAllDemandesFournisseurs, useCreateDemandeFournisseur, useUpdateDemandeFournisseur, useDeleteDemandeFournisseur, useUpdateTransporteur, useCreateTransporteur, useDeleteTransporteur, useWorkflowsDevisAuto, useCreateWorkflow, useUpdateWorkflow, useDeleteWorkflow, useDossierAutoDevis, useActivateAutoDevis, useDeactivateAutoDevis, useDefaultWorkflow, useAllDossiersAutoDevis, useCreateFacture, useDemandesChauffeur, useMarkFeuilleRouteEnvoyee, useContratByDossier, usePaiementsByContrat, useFacturesByDossier, usePaiementsFournisseurs, useCreatePaiementFournisseur, useDeletePaiementFournisseur, useRappels, useCreateRappel, useUpdateRappel, useDeleteRappel, generateChauffeurToken, useUnreadMessagesCount } from '@/hooks/useSupabase'
 import { DemandeInfosForm } from '@/components/admin/DemandeInfosForm'
+import { getServiceTypeLabel, devisTrajet } from '@/lib/service-type'
 import { DemandeContactChauffeurModal } from '@/components/admin/DemandeContactChauffeurModal'
 import { CronSettingsSection } from '@/components/admin/CronSettingsSection'
 import { EditDevisModal } from '@/components/admin/EditDevisModal'
@@ -1813,6 +1814,9 @@ export function AdminDashboard() {
                               <span className="font-semibold text-purple-dark">
                                 {devis.reference}
                               </span>
+                              {devis.service_type && (
+                                <div className="text-xs text-blue-700 mt-0.5">{getServiceTypeLabel(devis.service_type)}</div>
+                              )}
                             </td>
                             <td className="px-4 py-3">
                               {devis.dossier ? (
@@ -7952,10 +7956,26 @@ L'équipe Busmoov`,
                           </span>
                         )}
                         <DevisStatusBadge status={devis.status || 'draft'} scheduledAt={scheduledAt} />
+                        {devis.service_type && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                            {getServiceTypeLabel(devis.service_type)}
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-gray-500">
                         {devis.transporteur?.name || 'Transporteur'} ({devis.transporteur?.number})
                       </p>
+                      {(() => {
+                        const tr = devisTrajet(devis, dossier)
+                        if (!tr.dateDepart) return null
+                        return (
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {formatDate(tr.dateDepart)}{tr.heureDepart ? ` ${tr.heureDepart}` : ''}
+                            {tr.dateRetour ? ` → ${formatDate(tr.dateRetour)}${tr.heureRetour ? ` ${tr.heureRetour}` : ''}` : ' (aller simple)'}
+                            {(tr.depart !== (dossier.departure || '') || tr.arrivee !== (dossier.arrival || '')) ? ` · ${tr.depart} → ${tr.arrivee}` : ''}
+                          </p>
+                        )
+                      })()}
                       {isAuto && scheduledAt && devis.status === 'scheduled' && (
                         <p className="text-xs text-orange-600 mt-1">
                           Envoi prévu : {formatDateTime(scheduledAt)}

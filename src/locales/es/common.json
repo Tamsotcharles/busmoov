@@ -617,7 +617,8 @@
       "waiting": "Pendiente",
       "chooseQuote": "Elegir este presupuesto",
       "seeDetails": "Ver detalle",
-      "chatWithSupplier": "Chatear con este transportista"
+      "chatWithSupplier": "Chatear con este transportista",
+      "serviceLabel": "Servicio"
     },
     "contactBox": {
       "title": "¿Una pregunta?",

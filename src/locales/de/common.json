@@ -617,7 +617,8 @@
       "waiting": "Ausstehend",
       "chooseQuote": "Dieses Angebot wählen",
       "seeDetails": "Details ansehen",
-      "chatWithSupplier": "Mit diesem Transportunternehmen chatten"
+      "chatWithSupplier": "Mit diesem Transportunternehmen chatten",
+      "serviceLabel": "Leistung"
     },
     "contactBox": {
       "title": "Eine Frage?",

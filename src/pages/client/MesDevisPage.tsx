@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/Modal'
 import { ChatWidget } from '@/components/chat/ChatWidget'
 import { formatDate, formatPrice, getVehicleTypeLabel, cn, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, type RouteInfo } from '@/lib/utils'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFeuilleRoutePDF } from '@/lib/pdf'
+import { getServiceTypeLabel, devisTrajet } from '@/lib/service-type'
 import { Truck, Navigation } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
@@ -1902,6 +1903,28 @@ export function MesDevisPage() {
 
                       {/* Colonne centrale - Détails inclus */}
                       <div className="lg:w-2/4 flex-1">
+                        {/* Prestation couverte par CE devis (un dossier peut en avoir plusieurs) */}
+                        {(() => {
+                          const tr = devisTrajet(devis, data?.dossier)
+                          const label = getServiceTypeLabel(devis.service_type, i18n.language)
+                          if (!label && !tr.depart) return null
+                          return (
+                            <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-4">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Navigation size={16} className="text-purple" />
+                                <span className="text-xs text-gray-500 uppercase tracking-wide">{t('mesDevis.quote.serviceLabel')}</span>
+                              </div>
+                              {label && <div className="font-semibold text-purple-dark">{label}</div>}
+                              <div className="text-sm text-gray-700 mt-1">
+                                {tr.depart} → {tr.arrivee}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {tr.dateDepart && formatDate(tr.dateDepart)}{tr.heureDepart && ` ${tr.heureDepart}`}
+                                {tr.dateRetour && ` → ${formatDate(tr.dateRetour)}${tr.heureRetour ? ` ${tr.heureRetour}` : ''}`}
+                              </div>
+                            </div>
+                          )
+                        })()}
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           {/* Véhicule */}
                           <div className="bg-gray-50 rounded-xl p-4">
@@ -2324,6 +2347,20 @@ export function MesDevisPage() {
               </div>
               <div className="text-gray-500">TTC</div>
               <div className="text-sm text-gray-400">({formatPrice(selectedDevis.devis.price_ht)} HT)</div>
+              {(() => {
+                const tr = devisTrajet(selectedDevis.devis, data?.dossier)
+                const label = getServiceTypeLabel(selectedDevis.devis.service_type, i18n.language)
+                return (
+                  <div className="mt-3 text-sm text-gray-700">
+                    {label && <div className="font-semibold text-purple-dark">{label}</div>}
+                    <div>{tr.depart} → {tr.arrivee}</div>
+                    <div className="text-gray-500">
+                      {tr.dateDepart && formatDate(tr.dateDepart)}{tr.heureDepart && ` ${tr.heureDepart}`}
+                      {tr.dateRetour && ` → ${formatDate(tr.dateRetour)}${tr.heureRetour ? ` ${tr.heureRetour}` : ''}`}
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
 
             {/* Détails tarification */}

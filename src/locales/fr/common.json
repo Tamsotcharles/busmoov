@@ -617,7 +617,8 @@
       "waiting": "En attente",
       "chooseQuote": "Choisir ce devis",
       "seeDetails": "Voir le détail",
-      "chatWithSupplier": "Chatter avec ce transporteur"
+      "chatWithSupplier": "Chatter avec ce transporteur",
+      "serviceLabel": "Prestation"
     },
     "contactBox": {
       "title": "Une question ?",

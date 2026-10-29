@@ -59,6 +59,7 @@ interface Devis {
   reference: string
   price_ttc: number
   transporteur_id: string | null
+  service_type?: string | null
   transporteur?: {
     name: string
     number?: string | null
@@ -96,6 +97,7 @@ function generateDevisRecapHtml(devis: Devis[], lang: EmailLang): string {
   html += `
     <tr style="background: #f5f5f5;">
       <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">${L.carrier}</th>
+      <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">${L.service}</th>
       <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">${L.vehicle}</th>
       <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">${L.priceIncl}</th>
     </tr>
@@ -109,6 +111,8 @@ function generateDevisRecapHtml(devis: Devis[], lang: EmailLang): string {
     // anonyme (TR1138), comme dans l'espace client.
     const transporteurName = d.transporteur?.number || L.partnerCarrier
     const vehicleLabel = getVehicleLabel(d.vehicle_type, d.nombre_cars, lang)
+    const serviceKey = `st_${d.service_type || ''}` as keyof typeof L
+    const serviceLabel = (d.service_type && (L as Record<string, string>)[serviceKey]) || '-'
     const prixFormate = formatCurrencyFor(d.price_ttc, lang)
 
     // Le moins cher en vert
@@ -118,6 +122,7 @@ function generateDevisRecapHtml(devis: Devis[], lang: EmailLang): string {
     html += `
       <tr style="${rowStyle}">
         <td style="padding: 10px; border-bottom: 1px solid #eee;">${transporteurName}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #eee;">${serviceLabel}</td>
         <td style="padding: 10px; border-bottom: 1px solid #eee;">${vehicleLabel}</td>
         <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee; ${priceStyle}">${prixFormate}</td>
       </tr>
@@ -310,6 +315,7 @@ Deno.serve(async (req) => {
           validity_days,
           sent_at,
           status,
+          service_type,
           transporteur:transporteurs(name, number)
         )
       `)
