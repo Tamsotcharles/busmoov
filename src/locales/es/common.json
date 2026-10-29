@@ -21,8 +21,8 @@
   "hero": {
     "title1": "Alquiler de autobús",
     "title2": "con conductor",
-    "title3": "en España",
-    "subtitle": "Describa su trayecto en 2 minutos y reciba hasta 3 presupuestos personalizados en 24h — reserva 100 % online al mejor precio.",
+    "title3": "en Francia",
+    "subtitle": "Describa su trayecto en 2 minutos y reciba hasta 3 presupuestos personalizados en 24h. Reserva 100 % online, al mejor precio.",
     "cta": "Solicitar presupuesto gratis"
   },
   "stats": {
@@ -35,7 +35,7 @@
     "subtitle": "La solución más sencilla y fiable para sus desplazamientos en grupo",
     "partners": {
       "title": "+180 Transportistas",
-      "description": "Una red de socios certificados en toda España para responder a todas sus solicitudes."
+      "description": "Una red de socios certificados en toda Francia para responder a todas sus solicitudes."
     },
     "response": {
       "title": "Respuesta en 24h",
@@ -68,7 +68,7 @@
   },
   "testimonials": {
     "title": "Confían en nosotros",
-    "subtitle": "Miles de clientes satisfechos en toda España"
+    "subtitle": "Miles de clientes satisfechos en toda Francia"
   },
   "cta": {
     "title": "¿Listo para viajar?",
@@ -83,9 +83,9 @@
     "step2": "Información adicional",
     "step3": "Datos de contacto",
     "departure": "Ciudad de salida",
-    "departurePlaceholder": "Ej: Madrid, Barcelona, Valencia...",
+    "departurePlaceholder": "Ej: París, Niza, aeropuerto de Lyon...",
     "arrival": "Ciudad de llegada",
-    "arrivalPlaceholder": "Ej: Sevilla, Bilbao, Málaga...",
+    "arrivalPlaceholder": "Ej: Versalles, Lourdes, Burdeos...",
     "departureDate": "Fecha de salida",
     "returnDate": "Fecha de regreso",
     "departureTime": "Hora de salida",
@@ -167,7 +167,7 @@
     "returnAfterDeparture": "El regreso debe ser después de la salida"
   },
   "footer": {
-    "description": "La plataforma de referencia para el alquiler de autobús con conductor en España. Compare, reserve y viaje con tranquilidad.",
+    "description": "La plataforma de referencia para el alquiler de autocar con conductor en Francia. Compare, reserve y viaje con tranquilidad.",
     "navigation": "Navegación",
     "services": "Servicios",
     "company": "Empresa",

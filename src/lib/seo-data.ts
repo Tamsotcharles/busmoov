@@ -127,16 +127,16 @@ export const seoConfig: Record<SeoPageKey, Record<SeoLanguage, SeoPageMeta>> = {
       description: 'Louez un bus, autocar ou minibus avec chauffeur partout en France. Jusqu\'à 3 devis gratuits de transporteurs vérifiés en 24h, prix ferme, sans engagement.',
     },
     es: {
-      title: 'Alquiler de autocar con conductor — Presupuesto gratis | Busmoov',
-      description: 'Alquile un autocar o minibús con conductor en toda España. Compare presupuestos de transportistas verificados en 24h y reserve al mejor precio.',
+      title: 'Alquiler de autocar con conductor en Francia | Busmoov',
+      description: 'Alquile un autocar o minibús con conductor en toda Francia. Hasta 3 presupuestos de transportistas verificados en 24h para su viaje en grupo.',
     },
     de: {
-      title: 'Busvermietung mit Fahrer — Kostenloses Angebot | Busmoov',
-      description: 'Reisebus oder Minibus mit Fahrer in ganz Deutschland mieten. Geprüfte Angebote in 24h vergleichen und online zum besten Preis buchen.',
+      title: 'Reisebus mit Fahrer in Frankreich mieten | Busmoov',
+      description: 'Reisebus oder Minibus mit Fahrer in ganz Frankreich mieten. Bis zu 3 Angebote geprüfter Busunternehmen in 24h für Ihre Gruppenreise.',
     },
     en: {
-      title: 'Coach Hire with Driver — Free Quote | Busmoov',
-      description: 'Hire a coach or minibus with driver across the UK. Compare quotes from verified operators within 24h and book online at the best price.',
+      title: 'Coach Hire with Driver in France: 3 Quotes in 24h | Busmoov',
+      description: 'Hire a coach or minibus with driver anywhere in France. Up to 3 quotes from verified operators within 24h for your group trip. Book online.',
     },
   },
   'location-autocar': {

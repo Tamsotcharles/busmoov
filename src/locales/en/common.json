@@ -22,7 +22,7 @@
     "title1": "Coach hire",
     "title2": "with driver",
     "title3": "in France",
-    "subtitle": "Describe your trip in 2 minutes and receive up to 3 personalised quotes within 24h — 100% online booking at the best price.",
+    "subtitle": "Describe your trip in 2 minutes and receive up to 3 personalised quotes within 24h. 100% online booking, at the best price.",
     "cta": "Get a free quote"
   },
   "stats": {
@@ -83,9 +83,9 @@
     "step2": "Additional information",
     "step3": "Contact details and account",
     "departure": "Departure city",
-    "departurePlaceholder": "E.g.: London, Manchester, Birmingham...",
+    "departurePlaceholder": "E.g.: Paris, Nice, Lyon airport...",
     "arrival": "Arrival city",
-    "arrivalPlaceholder": "E.g.: Paris, Nice, Barcelona...",
+    "arrivalPlaceholder": "E.g.: Versailles, Mont-Saint-Michel, Bordeaux...",
     "departureDate": "Departure date",
     "returnDate": "Return date",
     "departureTime": "Departure time",

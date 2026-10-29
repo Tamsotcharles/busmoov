@@ -21,8 +21,8 @@
   "hero": {
     "title1": "Busmiete",
     "title2": "mit Fahrer",
-    "title3": "in Deutschland",
-    "subtitle": "Beschreiben Sie Ihre Fahrt in 2 Minuten und erhalten Sie bis zu 3 individuelle Angebote innerhalb von 24h — Buchung 100 % online zum besten Preis.",
+    "title3": "in Frankreich",
+    "subtitle": "Beschreiben Sie Ihre Fahrt in 2 Minuten und erhalten Sie bis zu 3 individuelle Angebote innerhalb von 24h. Buchung 100 % online, zum besten Preis.",
     "cta": "Kostenloses Angebot anfordern"
   },
   "stats": {
@@ -35,7 +35,7 @@
     "subtitle": "Die einfachste und zuverlässigste Lösung für Ihre Gruppenreisen",
     "partners": {
       "title": "+180 Transportunternehmen",
-      "description": "Ein Netzwerk zertifizierter Partner in ganz Deutschland für alle Ihre Anfragen."
+      "description": "Ein Netzwerk zertifizierter Partner in ganz Frankreich für alle Ihre Anfragen."
     },
     "response": {
       "title": "Antwort in 24h",
@@ -68,7 +68,7 @@
   },
   "testimonials": {
     "title": "Sie vertrauen uns",
-    "subtitle": "Tausende zufriedene Kunden in ganz Deutschland"
+    "subtitle": "Tausende zufriedene Kunden in ganz Frankreich"
   },
   "cta": {
     "title": "Bereit zur Abfahrt?",
@@ -83,9 +83,9 @@
     "step2": "Zusätzliche Informationen",
     "step3": "Kontaktdaten",
     "departure": "Abfahrtsort",
-    "departurePlaceholder": "z.B.: Berlin, München, Hamburg...",
+    "departurePlaceholder": "z.B.: Paris, Nizza, Flughafen Lyon...",
     "arrival": "Ankunftsort",
-    "arrivalPlaceholder": "z.B.: Köln, Frankfurt, Dresden...",
+    "arrivalPlaceholder": "z.B.: Versailles, Mont-Saint-Michel, Straßburg...",
     "departureDate": "Abfahrtsdatum",
     "returnDate": "Rückfahrtsdatum",
     "departureTime": "Abfahrtszeit",
@@ -167,7 +167,7 @@
     "returnAfterDeparture": "Die Rückfahrt muss nach der Hinfahrt sein"
   },
   "footer": {
-    "description": "Die führende Plattform für Busmiete mit Fahrer in Deutschland. Vergleichen, buchen und entspannt reisen.",
+    "description": "Die führende Plattform für Busmiete mit Fahrer in Frankreich. Vergleichen, buchen und entspannt reisen.",
     "navigation": "Navigation",
     "services": "Dienstleistungen",
     "company": "Unternehmen",
