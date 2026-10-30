@@ -411,6 +411,21 @@ export function ClientDashboardPage() {
         throw emailError
       }
 
+      // Enregistrer aussi dans le chat général (devis_id null) pour que la demande
+      // apparaisse en entier dans l'admin > Messages, distincte des chats fournisseur
+      const { error: chatError } = await supabase.from('messages').insert({
+        dossier_id: dossier.id,
+        devis_id: null,
+        sender: 'client',
+        content: `[${subjectLabels[supportSubject]}] ${supportMessage}`,
+        read_by_admin: false,
+        read_by_client: true,
+      })
+      if (chatError) {
+        // L'email est déjà parti : ne pas bloquer le client pour autant
+        console.error('Erreur enregistrement message chat:', chatError)
+      }
+
       // Insérer dans la timeline
       await supabase.from('timeline').insert({
         dossier_id: dossier.id,
