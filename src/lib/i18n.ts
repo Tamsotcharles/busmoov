@@ -22,6 +22,9 @@ import enCommon from '@/locales/en/common.json'
 import enPdf from '@/locales/en/pdf.json'
 import enForms from '@/locales/en/forms.json'
 
+// Landing /zh : traduction partielle (en-tête, pied de page), le reste en anglais.
+import zhCommon from '@/locales/zh/common.json'
+
 // Configuration des pays avec TVA
 export const countries = {
   fr: {
@@ -102,6 +105,9 @@ const resources = {
     pdf: enPdf,
     forms: enForms,
   },
+  zh: {
+    common: zhCommon,
+  },
 }
 
 // Détection de la langue depuis l'URL (path)
@@ -117,7 +123,8 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: defaultLanguage,
+    // Sur /zh, ce qui n'est pas traduit s'affiche en anglais, la langue de suivi des clients sinophones.
+    fallbackLng: { zh: ['en'], default: [defaultLanguage] },
     defaultNS: 'common',
     ns: ['common', 'pdf', 'forms'],
 

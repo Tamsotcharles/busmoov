@@ -1,23 +1,23 @@
 /**
- * Landing page chinoise (/zh) — cible les organisateurs d'événementiel
+ * Landing page chinoise (/zh) : cible les organisateurs d'événementiel
  * sinophones en France (mariages, entreprises, congrès, circuits) qui
  * cherchent en mandarin sur Google : 法国大巴租赁, 巴黎包车, 婚礼用车…
  *
  * Fichier de données pur (aucun import) : partagé entre la page React
- * et le script de prérendu. Une seule page, pas une 5e langue du site —
+ * et le script de prérendu. Une seule page, pas une 5e langue du site ;
  * le suivi client se fait en anglais ou en français (précisé sur la page).
  */
 
 export const zhMeta = {
   path: '/zh',
-  title: '法国大巴租赁（含司机）— 婚礼、企业活动、旅游包车 | Busmoov',
+  title: '法国大巴租赁（含司机）：婚礼、企业活动、旅游包车 | Busmoov',
   description: '在法国租用带司机的大巴、中巴：巴黎接机、婚礼用车、企业活动、展会接送、旅游包车。24小时内免费获取多家法国正规车行的报价。',
   h1: '法国大巴与中巴租赁（含专业司机）',
-  sousTitre: '婚礼、企业活动、会议接送、旅游包车 — 我们为您比较多家法国正规车行的报价，24小时内回复，价格固定透明。',
+  sousTitre: '婚礼、企业活动、会议接送、旅游包车：我们为您比较多家法国正规车行的报价，24小时内回复，价格固定透明。',
 }
 
 export const zhIntro = [
-  'Busmoov 是法国本土的巴士租赁平台，与遍布全法的持牌车行合作。无论是巴黎的婚礼车队、企业年会与团建、展会与会议接送，还是巴黎—凡尔赛—卢瓦尔河谷—普罗旺斯的旅游包车，您只需提交一次需求，即可在24小时内收到多家车行的报价，选择最合适的一家在线确认。',
+  'Busmoov 是法国本土的巴士租赁平台，与遍布全法的持牌车行合作。无论是巴黎的婚礼车队、企业年会与团建、展会与会议接送，还是巴黎、凡尔赛、卢瓦尔河谷、普罗旺斯的旅游包车，您只需提交一次需求，即可在24小时内收到多家车行的报价，选择最合适的一家在线确认。',
   '所有车辆均配备法国职业司机（法国法规规定，9座以上车辆必须由持D照的职业司机驾驶），报价包含司机、燃油和高速过路费，无隐藏费用。',
 ]
 
@@ -39,7 +39,7 @@ export const zhVehicules = [
 export const zhFaq = [
   {
     q: '在法国租一辆大巴多少钱？',
-    a: '标准大巴（59座以内）本地一日行程含税690欧元起，价格取决于行程距离、用车时长和车型。中巴约便宜10%，大容量车型贵15%到70%。报价为固定总价，包含司机、燃油和过路费。',
+    a: '标准大巴（59座以内）本地一日行程含税700欧元起，中巴600欧元起，单程机场接送大巴400欧元起。价格取决于行程距离、用车时长和车型。报价为固定总价，包含司机、燃油和过路费。',
   },
   {
     q: '司机会说中文吗？',
@@ -66,6 +66,6 @@ export const zhTexte = {
     '在线确认并支付定金，出发前收到司机姓名与联系电话',
   ],
   ctaTitre: '获取免费报价',
-  ctaTexte: '两分钟提交需求，24小时内回复 — 也可直接发邮件至 infos@busmoov.com（英文）。',
+  ctaTexte: '两分钟提交需求，24小时内回复。也可直接发邮件至 infos@busmoov.com（英文）。',
   noteLangue: '提示：以下表单为法语/英语界面，后续沟通以英语或法语进行。',
 }

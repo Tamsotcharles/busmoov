@@ -33,7 +33,10 @@ export function LanguageRouter() {
  */
 export function useLocalizedPath() {
   const { i18n } = useTranslation()
-  const lang = i18n.language as SupportedLanguage
+  // Sur la landing /zh (langue sans pages propres), les liens mènent au site anglais.
+  const lang: SupportedLanguage = supportedLanguages.includes(i18n.language as SupportedLanguage)
+    ? (i18n.language as SupportedLanguage)
+    : 'en'
 
   return (path: string) => {
     // Nettoyer le path puis traduire le slug dans la langue courante

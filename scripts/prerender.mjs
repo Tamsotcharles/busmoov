@@ -47,11 +47,22 @@ let count = 0
 const locales = Object.fromEntries(
   LANGUAGES.map((l) => [l, JSON.parse(readFileSync(join(DIST, '..', 'src', 'locales', l, 'common.json'), 'utf8'))])
 )
+// Landing /zh : traduction partielle, complétée par l'anglais (comme fallbackLng côté React).
+const fusion = (base, over) =>
+  Object.fromEntries(
+    [...new Set([...Object.keys(base), ...Object.keys(over)])].map((k) => [
+      k,
+      base[k] && over[k] && typeof base[k] === 'object' && typeof over[k] === 'object' ? fusion(base[k], over[k]) : over[k] ?? base[k],
+    ])
+  )
+locales.zh = fusion(locales.en, JSON.parse(readFileSync(join(DIST, '..', 'src', 'locales', 'zh', 'common.json'), 'utf8')))
 
 // Header et footer statiques : mêmes liens que Header.tsx / Footer.tsx, pour
 // que les robots qui n'exécutent pas le JavaScript voient le maillage global.
 // React les remplace au chargement (createRoot, pas d'hydratation).
-const lienLang = (lang, path) => {
+const lienLang = (langPage, path) => {
+  // La landing /zh n'a pas de pages propres : ses liens mènent au site anglais.
+  const lang = langPage === 'zh' ? 'en' : langPage
   const localized = translatePath(path, lang)
   return localized === '/' ? `/${lang}` : `/${lang}${localized}`
 }
@@ -75,6 +86,8 @@ function staticFooter(lang) {
     ? `<div class="border-t border-gray-800 pt-6 mb-6 text-sm text-gray-400">Location d'autocar par ville : ${villesMaillees
         .map((v) => `<a href="${lienLang('fr', `/location-autocar/${v.slug}`)}" class="hover:text-magenta">${esc(v.nom)}</a>`)
         .join(' · ')} · <a href="${lienLang('fr', '/location-bus')}" class="hover:text-magenta">Location de bus</a> · <a href="${lienLang('fr', '/blog')}" class="hover:text-magenta">Blog &amp; conseils</a></div>`
+    : !VILLES_TRADUITES_LABEL[lang]
+    ? ''
     : `<div class="border-t border-gray-800 pt-6 mb-6 text-sm text-gray-400">${esc(VILLES_TRADUITES_LABEL[lang])} ${Object.keys(villesTraduites)
         .map((slug) => `<a href="${lienLang(lang, `/location-autocar/${slug}`)}" class="hover:text-magenta">${esc(villes.find((v) => v.slug === slug)?.nom ?? slug)}</a>`)
         .join(' · ')}</div>`
@@ -481,7 +494,7 @@ for (const [page, paths] of Object.entries(seoLocalizedPaths)) {
     .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(zh.zhMeta.title)}</title>`)
     .replace(/(<meta name="description" content=")[^"]*(")/, `$1${esc(zh.zhMeta.description)}$2`)
     .replace('</head>', `${head}</head>`)
-    .replace('<div id="root"></div>', `<div id="root">${body}</div>`)
+    .replace('<div id="root"></div>', `<div id="root">${staticHeader('zh', null)}${body}${staticFooter('zh')}</div>`)
   writeFileSync(join(DIST, 'zh.html'), html)
   count++
 }

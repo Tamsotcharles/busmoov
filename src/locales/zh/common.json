@@ -1,0 +1,30 @@
+{
+  "nav": {
+    "contact": "联系我们",
+    "myAccount": "客户中心",
+    "howItWorks": "如何预订",
+    "services": "我们的服务",
+    "reviews": "客户评价"
+  },
+  "hero": {
+    "cta": "获取免费报价"
+  },
+  "footer": {
+    "description": "法国带司机大巴与中巴租赁平台：比较多家正规车行的报价，在线预订，安心出行。",
+    "services": "服务",
+    "company": "公司",
+    "contact": "联系方式",
+    "copyright": "© {{year}} Busmoov，所属集团：",
+    "allRightsReserved": "保留所有权利。",
+    "termsLink": "销售条款",
+    "privacyLink": "隐私政策",
+    "legalLink": "法律声明",
+    "busRental": "大巴租赁",
+    "minibusRental": "中巴租赁",
+    "airportTransfer": "机场接送",
+    "schoolTrips": "学校出游",
+    "about": "关于我们",
+    "becomePartner": "成为合作伙伴",
+    "hours": "周一至周六 9:00 - 19:00（法国时间）"
+  }
+}
