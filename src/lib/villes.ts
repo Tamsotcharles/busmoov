@@ -1786,7 +1786,7 @@ export const villes: Ville[] = [
     h2Destinations: 'Caves, vignoble et sacres : les sorties des groupes rémois',
     h2Trajets: 'Trajets types à Reims',
     liensUtiles: [
-      'Les séminaires parisiens combinent souvent Reims avec notre [location d\'autocar sur Paris](/location-autocar/paris) — 1h30 de route ; côté est, la [location d\'autocar à Strasbourg](/location-autocar/strasbourg) couvre la route des vins d\'Alsace. Pour une soirée qui se prolonge dans le vignoble, un [minibus avec chauffeur](/services/location-minibus) gère les retours tardifs.',
+      'Les séminaires parisiens combinent souvent Reims avec notre [location d\'autocar sur Paris](/location-autocar/paris) — 1h30 de route ; côté est, la [location d\'autocar à Strasbourg](/location-autocar/strasbourg) couvre la route des vins d\'Alsace. Pour une soirée qui se prolonge dans le vignoble, un [minibus avec chauffeur](/services/location-minibus) gère les retours tardifs. En décembre, Reims est à la fois une destination et une ville de départ vers l\'Alsace : notre guide de la [journée aux marchés de Noël en autocar](/blog/marches-de-noel-en-autocar) donne le timing et les prix.',
       "Journée dans le vignoble champenois ou transfert vers Paris, le tarif dépend de la distance et de l'amplitude : repérez votre formule dans le guide des [prix de location d'autocar 2026](/blog/prix-location-autocar), puis demandez jusqu'à 3 [devis d'autocar](/devis-autocar) à nos transporteurs marnais.",
     ],
     destinations: [
@@ -2048,7 +2048,7 @@ export const villes: Ville[] = [
     h2Destinations: 'Vignobles, abbayes et villages : les escapades des groupes dijonnais',
     h2Trajets: 'Trajets types à Dijon',
     liensUtiles: [
-      'Pour un séminaire d\'entreprise avec soirée dans un domaine, notre guide [déplacement d\'entreprise en autocar](/blog/autocar-deplacement-entreprise) détaille les formats ; pour une soirée entre amis ou un anniversaire dans les vignes, voir [louer un bus pour une fête privée](/blog/louer-un-bus-pour-un-anniversaire). Dijon est aussi une étape vers [la Suisse en autocar](/location-autocar-suisse) et vers [Lyon](/location-autocar/lyon). Tarifs : [notre guide des prix](/blog/prix-location-autocar).',
+      'Pour un séminaire d\'entreprise avec soirée dans un domaine, notre guide [déplacement d\'entreprise en autocar](/blog/autocar-deplacement-entreprise) détaille les formats ; pour une soirée entre amis ou un anniversaire dans les vignes, voir [louer un bus pour une fête privée](/blog/louer-un-bus-pour-un-anniversaire). En décembre, Strasbourg et Montbéliard sont à portée de journée : voir comment [organiser une sortie aux marchés de Noël en autocar](/blog/marches-de-noel-en-autocar). Dijon est aussi une étape vers [la Suisse en autocar](/location-autocar-suisse) et vers [Lyon](/location-autocar/lyon). Tarifs : [notre guide des prix](/blog/prix-location-autocar).',
     ],
     destinations: [
       { nom: 'Beaune et les Hospices', desc: 'La capitale des vins à 45 minutes : Hôtel-Dieu, caves et remparts, la journée la plus demandée.' },

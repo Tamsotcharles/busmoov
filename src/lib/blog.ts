@@ -44,7 +44,7 @@ export const articles: BlogArticle[] = [
   {
     slug: 'prix-location-autocar',
     titre: 'Combien coûte la location d\'un autocar avec chauffeur ? Tarifs 2026',
-    metaTitle: 'Prix location autocar avec chauffeur 2026 : tarifs | Busmoov',
+    metaTitle: 'Prix location bus et autocar avec chauffeur 2026 | Busmoov',
     metaDescription: 'Combien coûte un autocar avec chauffeur ? Tarifs 2026 par distance et taille de bus : journée dès 700 € TTC, transfert, séjour. Tableaux et exemples.',
     datePublication: '2026-09-04',
     extrait: 'Journée dès 700 € TTC, transferts, séjours : les vraies fourchettes de prix d\'un autocar avec chauffeur, ce qui les fait varier et comment payer moins cher.',

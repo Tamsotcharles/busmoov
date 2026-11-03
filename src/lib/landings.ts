@@ -191,7 +191,7 @@ export const landings: Landing[] = [
   },
   {
     slug: '/location-bus-50-places',
-    metaTitle: 'Bus 50 places avec chauffeur : tarifs 2026, devis | Busmoov',
+    metaTitle: 'Tarif location bus 50 places avec chauffeur 2026 | Busmoov',
     metaDescription: 'Tarif d\'un bus 50 places avec chauffeur 2026 : journée dès 700 € TTC, transfert, week-end. Le format le plus économique par personne. Devis gratuit en 24h.',
     h1: 'Location de bus 50 places avec chauffeur',
     sousTitre: 'Le format le plus demandé de France : un autocar de tourisme de 49 à 59 places, chauffeur professionnel inclus, au meilleur prix par personne.',
