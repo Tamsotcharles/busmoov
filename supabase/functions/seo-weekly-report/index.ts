@@ -35,9 +35,14 @@ const KEY_PAGES: { label: string; path: string }[] = [
   { label: 'Lyon', path: '/fr/location-autocar/lyon' },
 ]
 const BASE_URL = 'https://www.busmoov.com'
+// Propriété GA4 Busmoov. Le compte de service GSC_SERVICE_ACCOUNT_KEY doit être
+// Lecteur sur la propriété, sinon la section conversions est omise (message dans l'email).
+const GA4_PROPERTY = '552782015'
 
 interface Row { date: string; dimension: 'page' | 'query'; key: string; clicks: number; impressions: number; position: number }
 interface Agg { clicks: number; impressions: number; position: number | null }
+interface Ga4Channel { channel: string; sessions: number; keyEvents: number; prevSessions: number; prevKeyEvents: number }
+interface Ga4Summary { channels: Ga4Channel[]; topPages: { page: string; keyEvents: number }[] }
 
 /**
  * Appelant autorisé : la clé service_role (appel interne), un JWT
@@ -89,6 +94,88 @@ function deltaPos(cur: number | null, prev: number | null): string {
   if (diff === 0) return ''
   const color = diff > 0 ? '#27ae60' : '#c0392b'
   return ` <span style="color:${color}">(${diff > 0 ? '+' : ''}${diff.toFixed(1).replace('.', ',')})</span>`
+}
+
+function base64url(data: Uint8Array): string {
+  let s = ''
+  for (const b of data) s += String.fromCharCode(b)
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+/** Access token Google (même compte de service que gsc-sync, scope Analytics). */
+async function getGoogleAccessToken(serviceAccount: { client_email: string; private_key: string }, scope: string): Promise<string> {
+  const now = Math.floor(Date.now() / 1000)
+  const header = base64url(new TextEncoder().encode(JSON.stringify({ alg: 'RS256', typ: 'JWT' })))
+  const claims = base64url(new TextEncoder().encode(JSON.stringify({
+    iss: serviceAccount.client_email,
+    scope,
+    aud: 'https://oauth2.googleapis.com/token',
+    iat: now,
+    exp: now + 3600,
+  })))
+  const signingInput = `${header}.${claims}`
+  const pem = serviceAccount.private_key.replace(/-----[A-Z ]+-----/g, '').replace(/\s/g, '')
+  const keyData = Uint8Array.from(atob(pem), (c) => c.charCodeAt(0))
+  const key = await crypto.subtle.importKey('pkcs8', keyData, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign'])
+  const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(signingInput))
+  const jwt = `${signingInput}.${base64url(new Uint8Array(signature))}`
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: jwt }),
+  })
+  if (!res.ok) throw new Error(`Échange de token Google refusé (${res.status}) : ${await res.text()}`)
+  return (await res.json()).access_token
+}
+
+/** Sessions + événements clés GA4 par canal (semaine vs précédente) et pages qui convertissent. */
+async function fetchGa4Summary(curStart: string, curEnd: string, prevStart: string, prevEnd: string): Promise<Ga4Summary> {
+  const rawKey = Deno.env.get('GSC_SERVICE_ACCOUNT_KEY')
+  if (!rawKey) throw new Error('Secret GSC_SERVICE_ACCOUNT_KEY absent')
+  const token = await getGoogleAccessToken(JSON.parse(rawKey), 'https://www.googleapis.com/auth/analytics.readonly')
+  const run = async (body: unknown) => {
+    const res = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${GA4_PROPERTY}:runReport`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) throw new Error(`GA4 runReport ${res.status} : ${await res.text()}`)
+    return res.json()
+  }
+
+  // Canaux : deux plages de dates dans la même requête (date_range_0 = semaine courante).
+  const byChannel = await run({
+    dateRanges: [
+      { startDate: curStart, endDate: curEnd },
+      { startDate: prevStart, endDate: prevEnd },
+    ],
+    dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+    metrics: [{ name: 'sessions' }, { name: 'keyEvents' }],
+    limit: 20,
+  })
+  const channels = new Map<string, Ga4Channel>()
+  for (const row of byChannel.rows ?? []) {
+    const [channel, range] = row.dimensionValues.map((v: { value: string }) => v.value)
+    const entry = channels.get(channel) ?? { channel, sessions: 0, keyEvents: 0, prevSessions: 0, prevKeyEvents: 0 }
+    const sessions = Number(row.metricValues[0].value)
+    const keyEvents = Number(row.metricValues[1].value)
+    if (range === 'date_range_0' || range === undefined) { entry.sessions = sessions; entry.keyEvents = keyEvents }
+    else { entry.prevSessions = sessions; entry.prevKeyEvents = keyEvents }
+    channels.set(channel, entry)
+  }
+
+  const byPage = await run({
+    dateRanges: [{ startDate: curStart, endDate: curEnd }],
+    dimensions: [{ name: 'landingPage' }],
+    metrics: [{ name: 'keyEvents' }],
+    orderBys: [{ metric: { metricName: 'keyEvents' }, desc: true }],
+    limit: 8,
+  })
+  const topPages = (byPage.rows ?? [])
+    .map((row: { dimensionValues: { value: string }[]; metricValues: { value: string }[] }) => ({ page: row.dimensionValues[0].value, keyEvents: Number(row.metricValues[0].value) }))
+    .filter((p: { keyEvents: number }) => p.keyEvents > 0)
+
+  return { channels: [...channels.values()].sort((a, b) => b.sessions - a.sessions), topPages }
 }
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -148,6 +235,16 @@ Deno.serve(async (req) => {
     const cur = rows.filter((r) => inWindow(r, curStart, curEnd))
     const prev = rows.filter((r) => inWindow(r, prevStart, prevEnd))
 
+    // 2 bis. Conversions GA4 (même fenêtre). Section omise si l'accès manque.
+    let ga4: Ga4Summary | null = null
+    let ga4Error = ''
+    try {
+      ga4 = await fetchGa4Summary(isoDay(curStart), isoDay(curEnd), isoDay(prevStart), isoDay(prevEnd))
+    } catch (e) {
+      ga4Error = e instanceof Error ? e.message : String(e)
+      console.error('seo-weekly-report GA4:', ga4Error)
+    }
+
     // 3. Global (dimension page : chaque impression comptée une fois).
     const gCur = aggregate(cur.filter((r) => r.dimension === 'page'))
     const gPrev = aggregate(prev.filter((r) => r.dimension === 'page'))
@@ -178,7 +275,36 @@ Deno.serve(async (req) => {
 
     const periode = `${fmtDateFr(isoDay(curStart))} au ${fmtDateFr(isoDay(curEnd))}`
     const plural = (n: number, mot: string) => `${fmtInt(n)} ${mot}${n > 1 ? 's' : ''}`
-    const subject = `SEO Busmoov, semaine du ${periode} : ${plural(gCur.clicks, 'clic')}, ${plural(gCur.impressions, 'impression')}, position ${fmtPos(gCur.position)}`
+    const totalLeads = ga4 ? ga4.channels.reduce((s, c) => s + c.keyEvents, 0) : null
+    const prevLeads = ga4 ? ga4.channels.reduce((s, c) => s + c.prevKeyEvents, 0) : 0
+    const subject = `SEO Busmoov, semaine du ${periode} : ${plural(gCur.clicks, 'clic')}, ${plural(gCur.impressions, 'impression')}`
+      + (totalLeads !== null ? `, ${plural(totalLeads, 'lead')}` : `, position ${fmtPos(gCur.position)}`)
+
+    // Section conversions (GA4) : leads par canal + pages qui convertissent.
+    let ga4Html = ''
+    if (ga4) {
+      const channelRows = ga4.channels
+        .filter((c) => c.sessions > 0 || c.prevSessions > 0)
+        .map((c) => `<tr>${td(esc(c.channel))}${td(fmtInt(c.sessions), 'right')}${td(delta(c.sessions, c.prevSessions), 'right')}${td(fmtInt(c.keyEvents), 'right')}${td(delta(c.keyEvents, c.prevKeyEvents), 'right')}</tr>`)
+        .join('')
+      const pageRows = ga4.topPages.length
+        ? ga4.topPages.map((p) => `<tr>${td(`<a href="${BASE_URL}${esc(p.page)}" style="color:#7b2cbf">${esc(p.page)}</a>`)}${td(fmtInt(p.keyEvents), 'right')}</tr>`).join('')
+        : `<tr>${td('Aucun lead attribué à une page cette semaine.')}</tr>`
+      ga4Html = `
+  <h3 style="color:#7b2cbf">Conversions (GA4) : ${plural(totalLeads ?? 0, 'lead')} ${delta(totalLeads ?? 0, prevLeads)}</h3>
+  <table style="border-collapse:collapse;width:100%">
+    <tr>${th('Canal')}${th('Sessions', 'right')}${th('Évol.', 'right')}${th('Leads', 'right')}${th('Évol.', 'right')}</tr>
+    ${channelRows}
+  </table>
+  <h3 style="color:#7b2cbf">Pages qui convertissent</h3>
+  <table style="border-collapse:collapse;width:100%">
+    <tr>${th('Page d’arrivée')}${th('Leads', 'right')}</tr>
+    ${pageRows}
+  </table>`
+    } else {
+      ga4Html = `
+  <p style="color:#c0392b;font-size:13px">Section conversions indisponible : ${esc(ga4Error)}. Ajouter ${esc('gsc-sync@busmoov-seo.iam.gserviceaccount.com')} en Lecteur sur la propriété GA4 Busmoov (Admin &gt; Gestion des accès à la propriété).</p>`
+    }
 
     const html = `
 <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;max-width:760px">
@@ -191,6 +317,7 @@ Deno.serve(async (req) => {
     <tr>${td('Impressions')}${td(fmtInt(gCur.impressions), 'right')}${td(delta(gCur.impressions, gPrev.impressions), 'right')}</tr>
     <tr>${td('Position moyenne')}${td(fmtPos(gCur.position), 'right')}${td(deltaPos(gCur.position, gPrev.position) || '=', 'right')}</tr>
   </table>
+  ${ga4Html}
 
   <h3 style="color:#7b2cbf">Pages clés</h3>
   <table style="border-collapse:collapse;width:100%">
@@ -222,7 +349,7 @@ Deno.serve(async (req) => {
     // 7. Envoi via send-email (service_role, type custom).
     const to = Deno.env.get('SEO_REPORT_TO') || 'infos@busmoov.com'
     if (dryRun) {
-      return new Response(JSON.stringify({ status: 'dry_run', to, subject, periode, clicks: gCur.clicks, impressions: gCur.impressions, position: gCur.position, sync: syncInfo?.status ?? sync.status, sync_error: syncInfo?.error ?? null }), {
+      return new Response(JSON.stringify({ status: 'dry_run', to, subject, periode, clicks: gCur.clicks, impressions: gCur.impressions, position: gCur.position, leads: totalLeads, ga4_error: ga4Error || null, sync: syncInfo?.status ?? sync.status, sync_error: syncInfo?.error ?? null }), {
         headers: { 'Content-Type': 'application/json' },
       })
     }
