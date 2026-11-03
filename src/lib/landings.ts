@@ -230,7 +230,7 @@ export const landings: Landing[] = [
       {
         h2: 'Et si nous sommes 45, 55 ou 62 ?',
         paragraphes: [
-          'En dessous de 45 personnes, le même autocar standard reste souvent la bonne réponse (le prix ne baisse pas beaucoup avec un véhicule plus petit, sauf à passer au [minibus](/services/location-minibus) sous 20 personnes). Au-delà de 59, deux options : un [autocar grande capacité](/location-autocar-grande-capacite) (60 à 90 places, y compris double étage) ou deux véhicules coordonnés — le devis compare les deux. Le tour complet des tailles est sur notre page [location de bus](/location-bus).',
+          'En dessous de 45 personnes, le même autocar standard reste souvent la bonne réponse (le prix ne baisse pas beaucoup avec un véhicule plus petit — autour de 30 personnes, comparez avec un [bus 30 places](/location-bus-30-places) ; sous 20 personnes, passez au [minibus](/services/location-minibus)). Au-delà de 59, deux options : un [autocar grande capacité](/location-autocar-grande-capacite) (60 à 90 places, y compris double étage) ou deux véhicules coordonnés — le devis compare les deux. Le tour complet des tailles est sur notre page [location de bus](/location-bus).',
         ],
       },
     ],
@@ -1268,6 +1268,58 @@ export const landings: Landing[] = [
       },
     ],
     serviceType: 'Location d\'autocar avec chauffeur à Bruxelles et en Belgique',
+  },
+  {
+    slug: '/location-bus-30-places',
+    metaTitle: 'Location bus 30 places avec chauffeur : tarifs 2026 | Busmoov',
+    metaDescription: 'Bus ou midibus de 25 à 40 places avec chauffeur : journée dès 700 € TTC, transfert dès 400 €. Le bon format entre minibus et grand autocar. Devis gratuit en 24h.',
+    h1: 'Location de bus 30 places avec chauffeur',
+    sousTitre: 'Entre le minibus et le grand autocar : les véhicules de 25 à 40 places, parfaits pour une classe réduite, un service d\'entreprise ou un club.',
+    intro: [
+      '« Un bus de 30 places » désigne dans la pratique les véhicules de 25 à 40 sièges : midibus compacts de 30 à 38 places, ou petits autocars de tourisme. C\'est le format d\'une classe de collège avec ses accompagnateurs, d\'un service d\'entreprise, d\'une équipe de sport avec son staff ou d\'un groupe d\'amis trop nombreux pour un minibus.',
+      'Selon les flottes, votre groupe de 30 voyagera dans un midibus taillé au plus juste ou dans un autocar standard légèrement surdimensionné — à prix souvent identique, car le standard est le véhicule le plus répandu. Nous comparons les deux options dans les devis : décrivez simplement votre effectif exact et votre trajet.',
+    ],
+    sections: [
+      {
+        h2: 'Combien coûte un bus 30 places avec chauffeur ?',
+        paragraphes: [
+          'Un bus de 25 à 40 places avec chauffeur coûte à partir de 700 € TTC la journée en aller-retour local et à partir de 400 € TTC le transfert (gare, aéroport, événement) — chauffeur, carburant et péages inclus. Sur un groupe de 30 personnes, la journée revient à environ 23 € par personne. Le midibus n\'est pas forcément moins cher que l\'autocar standard : le prix dépend surtout de la distance, de l\'amplitude horaire du chauffeur et de la saison — le détail est dans notre [guide des prix](/blog/prix-location-autocar).',
+        ],
+      },
+      {
+        h2: 'Midibus ou autocar standard : lequel pour votre groupe ?',
+        liste: [
+          'Le midibus (30 à 38 places) : plus court, il passe dans les rues étroites, les cours d\'école et les villages — idéal pour les circuits avec étapes en centre-ville',
+          'L\'autocar standard (jusqu\'à 59 places) : plus de soutes pour les bagages, et souvent le même prix — le bon choix pour un transfert aéroport chargé en valises',
+          'En dessous de 20 personnes, le [minibus avec chauffeur](/location-minibus-20-places) reste la solution la plus économique',
+          'Au-delà de 40, passez directement à la page [bus 50 places](/location-bus-50-places) — c\'est le format le plus répandu et le moins cher par personne',
+        ],
+      },
+      {
+        h2: 'Les usages types du 30 places',
+        liste: [
+          'Classe unique en sortie scolaire : effectif réel d\'une classe + accompagnateurs, aux normes transport d\'enfants',
+          'Navette d\'entreprise ou de séminaire pour un service (voir notre page [navette d\'entreprise](/navette-entreprise))',
+          'Club de sport : une équipe, son staff et le matériel dans les soutes',
+          'Mariage et fête de famille : navette des invités entre les lieux, rotations possibles en soirée',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Existe-t-il vraiment des bus de 30 places exactement ?',
+        a: 'Oui : les midibus comptent en général 30 à 38 sièges. Mais selon les disponibilités, le transporteur peut proposer un autocar standard de 49 à 59 places au même prix — votre groupe voyage alors plus au large, sans supplément.',
+      },
+      {
+        q: 'Un bus 30 places est-il moins cher qu\'un 50 places ?',
+        a: 'Pas systématiquement : le prix d\'un car dépend davantage de la distance et du temps de travail du chauffeur que de la taille du véhicule. L\'écart entre un midibus et un autocar standard est souvent faible — c\'est en comparant les devis qu\'on le voit, et c\'est gratuit.',
+      },
+      {
+        q: 'Peut-on louer un bus 30 places sans chauffeur ?',
+        a: 'Non : au-delà de 9 places, la conduite exige le permis D et une qualification professionnelle. Le chauffeur est toujours inclus — notre article [louer un bus sans chauffeur](/blog/location-bus-sans-chauffeur) explique pourquoi.',
+      },
+    ],
+    serviceType: 'Location de bus 30 places avec chauffeur',
   },
 ]
 

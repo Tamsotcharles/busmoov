@@ -745,6 +745,19 @@ for (const article of articles) {
     author: { '@type': 'Organization', name: 'Busmoov', url: BASE_URL },
     publisher: { '@type': 'Organization', name: 'Busmoov', url: BASE_URL },
   }]
+  // FAQPage : chaque H2 formulé en question suivi d'un paragraphe (blocs
+  // « réponse directe ») devient une entrée — lisible par Google et les IA.
+  const faqEntries = article.blocks
+    .map((b, i) => ({ b, next: article.blocks[i + 1] }))
+    .filter(({ b, next }) => b.type === 'h2' && b.text.trim().endsWith('?') && next?.type === 'p')
+    .map(({ b, next }) => ({
+      '@type': 'Question',
+      name: b.text,
+      acceptedAnswer: { '@type': 'Answer', text: next.text.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1') },
+    }))
+  if (faqEntries.length > 0) {
+    jsonLd.push({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqEntries })
+  }
   const body = wrap(
     h1(article.titre) +
     article.blocks.map((b) => {

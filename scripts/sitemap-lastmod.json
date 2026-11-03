@@ -220,7 +220,7 @@
     "lastmod": "2026-10-12"
   },
   "https://www.busmoov.com/fr/location-bus-50-places": {
-    "hash": "4796a42e4152",
+    "hash": "e93e352ac03b",
     "lastmod": "2026-11-03"
   },
   "https://www.busmoov.com/fr/devis-autocar": {
@@ -289,6 +289,10 @@
   },
   "https://www.busmoov.com/fr/location-autocar-bruxelles": {
     "hash": "9c779d1472ea",
+    "lastmod": "2026-11-03"
+  },
+  "https://www.busmoov.com/fr/location-bus-30-places": {
+    "hash": "ea322a0536e7",
     "lastmod": "2026-11-03"
   },
   "https://www.busmoov.com/fr/location-autocar/paris": {

@@ -1,29 +1,50 @@
 import i18n from 'i18next'
+import type { BackendModule, ReadCallback } from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 
-// Traductions françaises
+// Seul le français (langue par défaut, ~95 % du trafic) est embarqué dans le
+// bundle d'entrée. Les autres langues sont des chunks séparés chargés à la
+// demande par le backend ci-dessous (~68 Ko gzip économisés par visiteur FR).
 import frCommon from '@/locales/fr/common.json'
 import frPdf from '@/locales/fr/pdf.json'
 import frForms from '@/locales/fr/forms.json'
 
-// Traductions espagnoles
-import esCommon from '@/locales/es/common.json'
-import esPdf from '@/locales/es/pdf.json'
-import esForms from '@/locales/es/forms.json'
+const lazyLocales: Record<string, Record<string, () => Promise<{ default: object }>>> = {
+  es: {
+    common: () => import('@/locales/es/common.json'),
+    pdf: () => import('@/locales/es/pdf.json'),
+    forms: () => import('@/locales/es/forms.json'),
+  },
+  de: {
+    common: () => import('@/locales/de/common.json'),
+    pdf: () => import('@/locales/de/pdf.json'),
+    forms: () => import('@/locales/de/forms.json'),
+  },
+  en: {
+    common: () => import('@/locales/en/common.json'),
+    pdf: () => import('@/locales/en/pdf.json'),
+    forms: () => import('@/locales/en/forms.json'),
+  },
+  // Landing /zh : traduction partielle (en-tête, pied de page), le reste en anglais.
+  zh: {
+    common: () => import('@/locales/zh/common.json'),
+  },
+}
 
-// Traductions allemandes
-import deCommon from '@/locales/de/common.json'
-import dePdf from '@/locales/de/pdf.json'
-import deForms from '@/locales/de/forms.json'
-
-// Traductions anglaises
-import enCommon from '@/locales/en/common.json'
-import enPdf from '@/locales/en/pdf.json'
-import enForms from '@/locales/en/forms.json'
-
-// Landing /zh : traduction partielle (en-tête, pied de page), le reste en anglais.
-import zhCommon from '@/locales/zh/common.json'
+const lazyBackend: BackendModule = {
+  type: 'backend',
+  init() {},
+  read(lng: string, ns: string, callback: ReadCallback) {
+    const loader = lazyLocales[lng]?.[ns]
+    if (!loader) {
+      // Langue ou namespace non fourni (ex. zh/pdf) : bundle vide, le fallback prend le relais.
+      callback(null, {})
+      return
+    }
+    loader().then((m) => callback(null, m.default)).catch((e) => callback(e as Error, false))
+  },
+}
 
 // Configuration des pays avec TVA
 export const countries = {
@@ -83,30 +104,12 @@ export type SupportedLanguage = typeof supportedLanguages[number]
 // Langue par défaut
 export const defaultLanguage: SupportedLanguage = 'fr'
 
-// Ressources de traduction
+// Ressources embarquées : français uniquement (voir lazyLocales plus haut).
 const resources = {
   fr: {
     common: frCommon,
     pdf: frPdf,
     forms: frForms,
-  },
-  es: {
-    common: esCommon,
-    pdf: esPdf,
-    forms: esForms,
-  },
-  de: {
-    common: deCommon,
-    pdf: dePdf,
-    forms: deForms,
-  },
-  en: {
-    common: enCommon,
-    pdf: enPdf,
-    forms: enForms,
-  },
-  zh: {
-    common: zhCommon,
   },
 }
 
@@ -119,10 +122,13 @@ const getLanguageFromPath = (): string | null => {
 
 // Initialisation i18n
 i18n
+  .use(lazyBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
+    // Le fr est embarqué, les autres langues passent par le backend.
+    partialBundledLanguages: true,
     // Sur /zh, ce qui n'est pas traduit s'affiche en anglais, la langue de suivi des clients sinophones.
     fallbackLng: { zh: ['en'], default: [defaultLanguage] },
     defaultNS: 'common',
