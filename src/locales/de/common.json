@@ -1564,5 +1564,10 @@
     "stat3l": "bis zu Ihren Angeboten",
     "stat4v": "4",
     "stat4l": "Länder in Europa"
+  },
+  "heroTrust": {
+    "free": "Kostenlos und unverbindlich",
+    "quotes24h": "Bis zu 3 Angebote in 24h",
+    "verified": "180+ geprüfte Busunternehmen"
   }
 }

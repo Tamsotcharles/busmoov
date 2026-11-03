@@ -1564,5 +1564,10 @@
     "stat3l": "para recibir sus presupuestos",
     "stat4v": "4",
     "stat4l": "países cubiertos en Europa"
+  },
+  "heroTrust": {
+    "free": "Gratis y sin compromiso",
+    "quotes24h": "Hasta 3 presupuestos en 24h",
+    "verified": "Más de 180 transportistas verificados"
   }
 }

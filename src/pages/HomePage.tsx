@@ -154,8 +154,8 @@ export function HomePage() {
               {t('hero.subtitle')}
             </p>
 
-            {/* Stats */}
-            <div className="flex flex-wrap gap-6 sm:gap-8 lg:gap-12 mt-10">
+            {/* Stats — masquées sur mobile pour garder le formulaire au-dessus de la ligne de flottaison */}
+            <div className="hidden lg:flex flex-wrap gap-6 sm:gap-8 lg:gap-12 mt-10">
               <div className="min-w-[80px]">
                 <div className="font-display text-3xl sm:text-4xl font-bold text-purple">180+</div>
                 <div className="text-gray-500 text-xs sm:text-sm">{t('stats.partners')}</div>
@@ -174,6 +174,13 @@ export function HomePage() {
           {/* Quote Form */}
           <div className="bg-white rounded-3xl p-4 sm:p-8 shadow-2xl shadow-purple/10 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
             <MultiStepQuoteForm />
+            <p className="mt-4 pt-4 border-t border-gray-100 text-xs sm:text-sm text-gray-500 text-center">
+              <span className="whitespace-nowrap">✓ {t('heroTrust.free')}</span>
+              <span className="mx-2 text-gray-300">·</span>
+              <span className="whitespace-nowrap">✓ {t('heroTrust.quotes24h')}</span>
+              <span className="mx-2 text-gray-300">·</span>
+              <span className="whitespace-nowrap">✓ {t('heroTrust.verified')}</span>
+            </p>
           </div>
         </div>
       </section>

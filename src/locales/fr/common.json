@@ -1564,5 +1564,10 @@
     "stat3l": "pour recevoir vos devis",
     "stat4v": "4",
     "stat4l": "pays couverts en Europe"
+  },
+  "heroTrust": {
+    "free": "Gratuit et sans engagement",
+    "quotes24h": "Jusqu'à 3 devis sous 24h",
+    "verified": "180+ transporteurs vérifiés"
   }
 }

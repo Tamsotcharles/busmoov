@@ -603,6 +603,7 @@ export const landings: Landing[] = [
           'Reims → Bruxelles : 2h30 par l\'A34 — sortie CE classique du Grand Est',
           'Bruges, Gand, Anvers : combinables à deux villes dans une journée depuis le nord de la France',
           'Marchés de Noël (Bruxelles, Bruges) : très demandés fin novembre-décembre, réserver tôt',
+          'Vous partez de Belgique plutôt que de France ? Voir notre page [location d\'autocar à Bruxelles et en Belgique](/location-autocar-bruxelles)',
         ],
       },
       {
@@ -1207,6 +1208,56 @@ export const landings: Landing[] = [
       },
     ],
     serviceType: 'Location d\'autocar grande capacité 60 à 90 places',
+  },
+  {
+    slug: '/location-autocar-bruxelles',
+    metaTitle: 'Location d\'autocar à Bruxelles et en Belgique | Busmoov',
+    metaDescription: 'Autocar, bus ou minibus avec chauffeur au départ de Bruxelles et de Wallonie : excursions, écoles, entreprises, mariages. Jusqu\'à 3 devis gratuits sous 24h.',
+    h1: 'Location d\'autocar à Bruxelles et en Belgique',
+    sousTitre: 'Autocars de 8 à 90 places avec chauffeur au départ de Bruxelles, Liège, Namur, Charleroi ou Mons — pour vos excursions en Belgique, en France et partout en Europe.',
+    intro: [
+      'Busmoov organise les déplacements de groupes au départ de la Belgique francophone : sortie d\'école vers la mer du Nord, excursion d\'un club de seniors, navettes de mariage dans le Brabant, séminaire d\'entreprise à Bruxelles ou week-end à Paris. Vous décrivez votre trajet une seule fois, nous interrogeons des transporteurs vérifiés actifs sur la Belgique — autocaristes belges et frontaliers — et vous recevez jusqu\'à trois devis comparables sous 24 heures.',
+      'Le réflexe belge a du bon : nos transporteurs connaissent les LEZ de Bruxelles, Anvers et Gand (enregistrement obligatoire des véhicules, verbalisation par caméra), les zones de dépose des centres-villes et les règles du transport scolaire. Le devis est ferme et tout compris : chauffeur, carburant, péages éventuels.',
+    ],
+    sections: [
+      {
+        h2: 'Les trajets les plus demandés au départ de la Belgique',
+        liste: [
+          'Bruxelles → Paris : 3h15 — la journée ou le week-end classique des CE, écoles et associations (voir notre page [location d\'autocar à Paris](/location-autocar/paris))',
+          'Liège ou Namur → Lille et les Hauts-de-France : 1h30 à 2h — shopping, marché de Noël, match (voir [location d\'autocar à Lille](/location-autocar/lille))',
+          'Excursions en Belgique : côte belge (Ostende, Knokke), Ardennes, Pairi Daiza, Bruges et Gand à la journée',
+          'Disneyland Paris depuis Bruxelles ou Charleroi : 3h30, dépose au parking autocars du parc (voir [Disneyland en autocar](/autocar-disneyland-paris))',
+          'Longue distance : Londres, Amsterdam, la Rhénanie ou le sud de la France, en autocar grand tourisme',
+        ],
+      },
+      {
+        h2: 'Quel véhicule pour votre groupe ?',
+        paragraphes: [
+          'Les mêmes formats qu\'en France : [minibus avec chauffeur](/services/location-minibus) de 8 à 20 places pour un comité de direction ou une famille, [bus de 50 places](/location-bus-50-places) pour une classe ou une association, [autocar grande capacité](/location-autocar-grande-capacite) jusqu\'à 90 places pour les grands groupes. Tous avec chauffeur professionnel — la conduite d\'un véhicule de plus de 9 places exige un permis D et une qualification, en Belgique comme en France.',
+        ],
+      },
+      {
+        h2: 'Combien coûte un autocar en Belgique ?',
+        paragraphes: [
+          'Les prix de départ sont du même ordre qu\'en France : transfert local à partir de 400 €, journée en autocar standard à partir de 700 €, journée régionale à partir de 1 000 € — chauffeur et carburant inclus. Le devis exact dépend de la distance, de l\'amplitude horaire du chauffeur et de la saison : notre [guide des prix](/blog/prix-location-autocar) détaille les facteurs, et le [formulaire de devis](/devis-autocar) vous donne des chiffres fermes sous 24h, gratuitement.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Busmoov opère-t-il vraiment en Belgique ?',
+        a: 'Oui : nous travaillons avec des autocaristes belges et des transporteurs frontaliers français qui couvrent Bruxelles, la Wallonie et la Flandre chaque semaine. La demande se fait en français, les devis sont en euros, et le contrat est identique à une réservation française.',
+      },
+      {
+        q: 'Les LEZ de Bruxelles, Anvers et Gand posent-elles un problème ?',
+        a: 'Non si le transporteur a enregistré son véhicule — c\'est gratuit mais obligatoire, y compris pour les cars conformes, sous peine d\'amende automatique. Nos partenaires actifs en Belgique le font d\'office ; vous n\'avez rien à gérer.',
+      },
+      {
+        q: 'Peut-on partir de Liège, Namur, Charleroi ou Mons ?',
+        a: 'Oui, toute la Belgique francophone est couverte, ainsi que Bruxelles et les grandes villes flamandes. Indiquez simplement votre point de départ exact dans la demande : le devis intègre l\'approche du véhicule.',
+      },
+    ],
+    serviceType: 'Location d\'autocar avec chauffeur à Bruxelles et en Belgique',
   },
 ]
 

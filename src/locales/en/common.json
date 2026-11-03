@@ -1564,5 +1564,10 @@
     "stat3l": "to receive your quotes",
     "stat4v": "4",
     "stat4l": "countries covered in Europe"
+  },
+  "heroTrust": {
+    "free": "Free, no commitment",
+    "quotes24h": "Up to 3 quotes within 24h",
+    "verified": "180+ vetted operators"
   }
 }
