@@ -9,6 +9,9 @@ import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
 
+// Lien public « Rédiger un avis » de la fiche Google Business Busmoov
+const GOOGLE_REVIEW_URL = 'https://search.google.com/local/writereview?placeid=ChIJQ1DUOMk-H2MRlwz1Et0iiFQ'
+
 interface ReviewData {
   id: string
   token: string
@@ -229,7 +232,21 @@ export function ReviewPage() {
                 </div>
               )}
 
-              <Link to={localizedPath('/')} className="btn btn-primary">
+              <div className="bg-purple-50 border border-purple-100 rounded-xl p-6 mb-6">
+                <p className="font-semibold text-purple-dark mb-1">{t('review.shareOnGoogleTitle')}</p>
+                <p className="text-sm text-gray-600 mb-4">{t('review.shareOnGoogleText')}</p>
+                <a
+                  href={GOOGLE_REVIEW_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary inline-flex items-center gap-2"
+                >
+                  <Star size={18} />
+                  {t('review.shareOnGoogleButton')}
+                </a>
+              </div>
+
+              <Link to={localizedPath('/')} className="btn btn-secondary">
                 {t('review.backToHome')}
               </Link>
             </div>

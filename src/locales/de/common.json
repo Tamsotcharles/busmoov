@@ -827,7 +827,10 @@
     "yourNamePlaceholder": "Ihr Name",
     "anonymousNote": "Leer lassen für Anonymität",
     "sending": "Wird gesendet...",
-    "sendReview": "Meine Bewertung senden"
+    "sendReview": "Meine Bewertung senden",
+    "shareOnGoogleTitle": "Teilen Sie Ihre Bewertung auch auf Google",
+    "shareOnGoogleText": "Ihre Bewertung hilft anderen Gruppen, uns zu finden. Vielen Dank!",
+    "shareOnGoogleButton": "Google-Bewertung abgeben"
   },
   "services": {
     "busRental": {

@@ -827,7 +827,10 @@
     "yourNamePlaceholder": "Su nombre",
     "anonymousNote": "Deje vacío para permanecer anónimo",
     "sending": "Enviando...",
-    "sendReview": "Enviar mi opinión"
+    "sendReview": "Enviar mi opinión",
+    "shareOnGoogleTitle": "Comparta también su opinión en Google",
+    "shareOnGoogleText": "Su opinión ayuda a otros organizadores de grupos a encontrarnos. ¡Gracias!",
+    "shareOnGoogleButton": "Dejar una reseña en Google"
   },
   "services": {
     "busRental": {

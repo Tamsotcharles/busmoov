@@ -1231,7 +1231,10 @@
     "yourNamePlaceholder": "Your name",
     "anonymousNote": "Leave blank to remain anonymous",
     "sending": "Sending...",
-    "sendReview": "Send my review"
+    "sendReview": "Send my review",
+    "shareOnGoogleTitle": "Also share your review on Google",
+    "shareOnGoogleText": "Your review helps other group organisers find us. Thank you!",
+    "shareOnGoogleButton": "Leave a Google review"
   },
   "recapitulatif": {
     "loading": "Loading...",
