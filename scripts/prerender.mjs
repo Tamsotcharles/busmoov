@@ -199,6 +199,8 @@ const organizationJsonLd = (lang) => ({
     contactType: 'customer service',
     availableLanguage: ['fr', 'es', 'de', 'en'],
   },
+  // Fiche Google Business Profile (CID 6091156828919762071)
+  sameAs: ['https://maps.google.com/?cid=6091156828919762071'],
 })
 
 // Accès aux traductions (locales chargées plus haut), pour donner un corps
