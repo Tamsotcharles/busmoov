@@ -319,6 +319,10 @@ export const landings: Landing[] = [
     ],
     faq: [
       {
+        q: 'Quel est le prix d\'une location d\'autocar pour une association ?',
+        a: 'Le même barème que pour tout groupe, sans majoration : transfert local à partir de 400 € TTC, journée en autocar standard à partir de 700 € TTC, minibus dès 600 € TTC la journée — chauffeur, carburant et péages inclus. Pour tenir un budget associatif serré, deux leviers : partir un autre jour qu\'un samedi de haute saison, et comparer les devis — c\'est exactement ce que fait ce formulaire, gratuitement. La facture est établie au nom de l\'association, réglable par virement.',
+      },
+      {
         q: 'Le devis autocar est-il vraiment gratuit et sans engagement ?',
         a: 'Oui. Demander un devis ne vous engage à rien : vous recevez les propositions, vous les comparez, et vous ne payez que si vous réservez. Aucun frais de dossier, aucune relance commerciale insistante.',
       },
@@ -962,6 +966,12 @@ export const landings: Landing[] = [
       'Le format est rodé : prise en charge du groupe le matin, dépose à la gare routière de Marne-la-Vallée, le car stationne sur place toute la journée, et le retour se cale sur la fermeture ou le spectacle nocturne. Nos transporteurs franciliens y déposent des groupes toutes les semaines.',
     ],
     sections: [
+      {
+        h2: 'Combien coûte un autocar pour Disneyland Paris ?',
+        paragraphes: [
+          'Depuis Paris ou l\'Île-de-France, la journée aller-retour à Disneyland Paris coûte à partir de 700 € TTC en autocar standard (jusqu\'à 59 places), à partir de 600 € TTC en minibus (8 à 20 places) et à partir de 800 € TTC en grande capacité (60 à 90 places) — chauffeur, carburant et péages inclus. Le prix s\'entend par véhicule : sur un bus de 50 places plein, la journée revient à environ 14 € par personne. Depuis une autre région, le devis se calcule selon la distance ; demandez votre [devis gratuit](/devis-autocar), réponse sous 24h.',
+        ],
+      },
       {
         h2: 'La journée type en autocar',
         liste: [

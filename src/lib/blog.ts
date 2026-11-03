@@ -131,6 +131,8 @@ export const articles: BlogArticle[] = [
     extrait: 'Réglementation, accompagnateurs, délais, budget : le guide pratique de l\'enseignant ou du parent d\'élève qui organise une sortie scolaire en autocar.',
     blocks: [
       { type: 'p', text: 'Musée, théâtre, classe verte, voyage de fin d\'année : la sortie scolaire commence toujours par la même question logistique — le transport. Voici ce qu\'il faut savoir pour organiser le trajet en autocar dans les règles, sans stress et sans mauvaise surprise budgétaire.' },
+      { type: 'h2', text: 'Combien coûte un autocar pour une sortie scolaire ?' },
+      { type: 'p', text: 'Une sortie scolaire à la journée en autocar standard — une classe et ses accompagnateurs, jusqu\'à 59 places — coûte à partir de 700 € TTC au départ d\'une grande agglomération, chauffeur, carburant et péages inclus ; un transfert local (musée, théâtre, piscine) démarre à 400 € TTC. Ramené à un car plein, la journée revient à environ 14 € par élève. Les établissements règlent par virement ou mandat administratif, avec une facture au nom de l\'école ou de la coopérative ; le détail des prix par distance est dans notre [guide des tarifs](/blog/prix-location-autocar).' },
       { type: 'h2', text: 'La réglementation du transport d\'enfants' },
       { type: 'ul', items: [
         'Le véhicule doit être un autocar de transport en commun aux normes, équipé de ceintures de sécurité — obligatoires et à boucler pour tous les passagers',
@@ -609,6 +611,8 @@ export const articles: BlogArticle[] = [
     extrait: 'Dimensionner le véhicule, caler le timing sur le vol, fixer le point de rendez-vous, gérer le retour : la méthode pour un transfert aéroport de groupe sans stress.',
     blocks: [
       { type: 'p', text: 'Un transfert aéroport de groupe est un trajet simple qui peut très mal se passer : un terminal confondu, une marge trop courte, un chauffeur qui attend au mauvais niveau, et 45 personnes ratent leur vol. La bonne nouvelle, c\'est que tout se prévoit. Voici la méthode que suivent les organisateurs expérimentés, en quatre étapes, avec les prix à prévoir.' },
+      { type: 'h2', text: 'Combien coûte un transfert aéroport pour un groupe ?' },
+      { type: 'p', text: 'Un transfert aéroport local pour un groupe coûte à partir de 350 € TTC en minibus avec chauffeur (8 à 20 personnes) et à partir de 400 € TTC en autocar standard (jusqu\'à 59 personnes), chauffeur, carburant et péages inclus. Le prix s\'entend par véhicule, pas par passager : sur un autocar de 50 personnes, le transfert revient à environ 8 € par personne — moins qu\'une navette publique, sans rupture de charge et avec les bagages dans la soute. Le tarif exact dépend de la distance et de l\'horaire (un départ à 4h du matin se chiffre comme une course de nuit).' },
       { type: 'h2', text: 'Étape 1 : dimensionner le véhicule, bagages compris' },
       { type: 'p', text: 'Pour un transfert aéroport, les bagages comptent autant que les passagers. Une valise en soute par personne plus un bagage cabine, c\'est la règle, et c\'est ce qui disqualifie le minibus au-delà de 15 à 18 personnes. Jusqu\'à 18 voyageurs, un [minibus 20 places](/location-minibus-20-places) à grande soute fait l\'affaire ; de 20 à 55, un autocar standard ; au-delà, un [autocar grande capacité](/location-autocar-grande-capacite) ou deux véhicules. Indiquez le nombre exact de valises dans votre demande.' },
       { type: 'h2', text: 'Étape 2 : caler le timing sur le vol, pas sur le trajet' },
