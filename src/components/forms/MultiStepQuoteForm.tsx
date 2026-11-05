@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isMicrositeHost, MAIN_SITE_URL } from '@/lib/microsite'
 import { useTranslation } from 'react-i18next'
+import { supportedLanguages, defaultLanguage, type SupportedLanguage } from '@/lib/i18n'
 import { ArrowRight, ArrowLeft, Check, Shield, MapPin, Calendar, Users, Info, User, Briefcase } from 'lucide-react'
 import { useCreateDemande } from '@/hooks/useSupabase'
 import { useCurrentCountry } from '@/hooks/useCountrySettings'
@@ -30,6 +31,12 @@ export function MultiStepQuoteForm() {
     if (isMicrositeHost()) window.location.assign(`${MAIN_SITE_URL}${path}`)
     else routerNavigate(path)
   }
+  // Langue du site, jamais celle du navigateur : hors préfixe d'URL (microsite),
+  // i18next détecte « fr-FR » et un lien /fr-FR/mes-devis tombe en 404.
+  const lang: SupportedLanguage = (() => {
+    const base = (i18n.language || '').split('-')[0] as SupportedLanguage
+    return supportedLanguages.includes(base) ? base : defaultLanguage
+  })()
   const createDemande = useCreateDemande()
   const { data: country } = useCurrentCountry()
   const formRef = useRef<HTMLDivElement>(null)
@@ -181,7 +188,7 @@ export function MultiStepQuoteForm() {
 
       // Déterminer le country_code à partir de la langue
       const langToCountry: Record<string, string> = { fr: 'FR', es: 'ES', de: 'DE', en: 'GB' }
-      const countryCode = langToCountry[i18n.language] || 'FR'
+      const countryCode = langToCountry[lang] || 'FR'
 
       // Anti-doublon : la même demande (email + trajet + date) renvoyée dans
       // les 30 minutes (double clic, retour arrière, « je l'ai bien envoyée ? »)
@@ -192,7 +199,7 @@ export function MultiStepQuoteForm() {
       const recent = lireDerniereDemande()
       if (recent && recent.signature === signature && Date.now() - recent.at < 30 * 60 * 1000) {
         trackEvent('duplicate_lead_prevented', { reference: recent.reference })
-        navigate(`/${i18n.language || 'fr'}/mes-devis?ref=${recent.reference}&email=${encodeURIComponent(recent.email)}`)
+        navigate(`/${lang}/mes-devis?ref=${recent.reference}&email=${encodeURIComponent(recent.email)}`)
         return
       }
 
@@ -227,8 +234,7 @@ export function MultiStepQuoteForm() {
       })
 
       // Redirection directe vers l'espace client avec le préfixe de langue
-      const langPrefix = i18n.language || 'fr'
-      navigate(`/${langPrefix}/mes-devis?ref=${result.reference}&email=${encodeURIComponent(result.client_email)}`)
+      navigate(`/${lang}/mes-devis?ref=${result.reference}&email=${encodeURIComponent(result.client_email)}`)
     } catch (err) {
       setError(t('common.error'))
       console.error(err)
@@ -278,7 +284,7 @@ export function MultiStepQuoteForm() {
           {t('quoteForm.success.reference')} : <strong className="text-purple">{success.reference}</strong>
         </p>
         <button
-          onClick={() => navigate(`/${i18n.language || 'fr'}/mes-devis?ref=${success.reference}&email=${encodeURIComponent(success.email)}`)}
+          onClick={() => navigate(`/${lang}/mes-devis?ref=${success.reference}&email=${encodeURIComponent(success.email)}`)}
           className="btn btn-primary"
         >
           {t('quoteForm.success.trackRequest')}
