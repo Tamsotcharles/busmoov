@@ -62,7 +62,9 @@ export function getLeadSource(): string {
     const raw = sessionStorage.getItem(KEY)
     if (!raw) return 'inconnu'
     const a = JSON.parse(raw) as Attribution
-    return `${a.canal} | landing:${a.landing} | ref:${a.referrer || '-'}`
+    const host = typeof window !== 'undefined' ? window.location.hostname : ''
+    const site = host && !host.endsWith('busmoov.com') ? `site:${host} | ` : ''
+    return `${site}${a.canal} | landing:${a.landing} | ref:${a.referrer || '-'}`
   } catch {
     return 'inconnu'
   }

@@ -1,3 +1,4 @@
+import { detectMicrosite } from '@/lib/microsite'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useEffect, lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -38,6 +39,7 @@ const LandingSeoPage = lazy(() => import('@/pages/LandingSeoPage').then((m) => (
 const ChateauxLoirePage = lazy(() => import('@/pages/ChateauxLoirePage').then((m) => ({ default: m.ChateauxLoirePage })))
 const ParisIntlPage = lazy(() => import('@/pages/villes/ParisIntlPage').then((m) => ({ default: m.ParisIntlPage })))
 const BlogArticlePage = lazy(() => import('@/pages/blog/BlogArticlePage').then((m) => ({ default: m.BlogArticlePage })))
+const LyonSitePage = lazy(() => import('@/pages/sites/LyonSitePage').then((m) => ({ default: m.LyonSitePage })))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 
 const MesDevisPage = lazy(() => import('@/pages/client/MesDevisPage').then((m) => ({ default: m.MesDevisPage })))
@@ -237,6 +239,18 @@ function PublicRoutes() {
 }
 
 export default function App() {
+  // Microsite par domaine (busmoovlyon.fr) : une seule page, quel que soit
+  // le chemin ; le HTML prérendu est servi par un rewrite Vercel sur l'hôte.
+  const microsite = detectMicrosite()
+  if (microsite === 'lyon') {
+    return (
+      <BrowserRouter>
+        <Suspense fallback={<RouteFallback />}>
+          <LyonSitePage />
+        </Suspense>
+      </BrowserRouter>
+    )
+  }
   return (
     <BrowserRouter>
       <ScrollToTop />

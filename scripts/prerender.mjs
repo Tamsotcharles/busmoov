@@ -8,6 +8,7 @@ import { chateauxLoire } from '../src/lib/chateaux-loire.ts'
 import { parisIntl } from '../src/lib/paris-intl.ts'
 import { villes, villesMaillees, aLaVille, deLaVille } from '../src/lib/villes.ts'
 import { articles, articlesSimilaires } from '../src/lib/blog.ts'
+import { lyonSite } from '../src/lib/sites/lyon.ts'
 import { landings } from '../src/lib/landings.ts'
 import { maillageServices } from '../src/lib/maillage.ts'
 import { sortiesScolairesFr } from '../src/lib/sorties-scolaires.ts'
@@ -822,6 +823,50 @@ ${articles.map((a) => `- [${a.titre}](${BASE_URL}/fr/blog/${a.slug}) : ${a.extra
 ## Détail complet
 - [llms-full.txt](${BASE_URL}/llms-full.txt) : contenu intégral des guides et pages villes en markdown
 `
+// ---- Microsite busmoovlyon.fr : une page, servie par rewrite Vercel sur l'hôte.
+{
+  const L = lyonSite
+  const head =
+    `<link rel="canonical" href="${L.url}"/>\n` +
+    `<meta property="og:title" content="${esc(L.titre)}"/>\n` +
+    `<meta property="og:description" content="${esc(L.description)}"/>\n` +
+    `<meta property="og:url" content="${L.url}"/>\n` +
+    `<script type="application/ld+json">${JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: 'Location d\'autocar avec chauffeur à Lyon',
+      serviceType: 'Location d\'autocar avec chauffeur',
+      provider: { '@type': 'Organization', name: 'Busmoov', url: BASE_URL, telephone: '+33176311283' },
+      areaServed: { '@type': 'City', name: 'Lyon' },
+      url: L.url,
+    })}</script>\n` +
+    `<script type="application/ld+json">${JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: L.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+    })}</script>\n`
+  const body = wrap(
+    h1(L.h1) + p(L.sousTitre) + L.intro.map(p).join('') +
+    h2(L.prestations.h2) + L.prestations.items.map((i) => `<h3 class="font-semibold mt-3">${esc(i.titre)}</h3>` + p(i.desc)).join('') +
+    h2(L.prix.h2) + p(L.prix.intro) + tableau(L.prix.tableau) + p(L.prix.apres) +
+    h2(L.zones.h2) + p(L.zones.intro) + ul(L.zones.villes) +
+    h2(L.etapes.h2) + ul(L.etapes.liste) +
+    h2('Questions fréquentes') + L.faq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + p(f.a)).join('') +
+    `<p class="mb-3">Busmoov Lyon est le service lyonnais de <a class="text-magenta underline" href="${BASE_URL}/fr">Busmoov</a>, réseau national de transporteurs vérifiés.</p>`
+  )
+  let html = template
+    .replace(/<html lang="[^"]*"/, '<html lang="fr"')
+    .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(L.titre)}</title>`)
+    .replace(/(<meta name="description" content=")[^"]*(")/, `$1${esc(L.description)}$2`)
+    .replace('</head>', `${head}</head>`)
+    .replace('<div id="root"></div>', `<div id="root">${body}</div>`)
+  mkdirSync(join(DIST, 'sites'), { recursive: true })
+  writeFileSync(join(DIST, 'sites', 'lyon.html'), html)
+  writeFileSync(join(DIST, 'sites', 'lyon-robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${L.url}sitemap.xml\n`)
+  writeFileSync(join(DIST, 'sites', 'lyon-sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${L.url}</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>\n</urlset>\n`)
+  count++
+}
+
 writeFileSync(join(DIST, 'llms.txt'), llmsTxt)
 
 // llms-full.txt : contenu intégral en markdown pour ingestion directe.

@@ -7,6 +7,28 @@
       "has": [
         {
           "type": "host",
+          "value": "www.busmoovlyon.fr"
+        }
+      ],
+      "destination": "https://busmoovlyon.fr/:path*",
+      "statusCode": 301
+    },
+    {
+      "source": "/sites/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.busmoov.com"
+        }
+      ],
+      "destination": "https://busmoovlyon.fr/",
+      "statusCode": 301
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
           "value": "busmoov.com"
         }
       ],
@@ -389,9 +411,49 @@
       "source": "/autocar-chateaux-de-la-loire",
       "destination": "/fr/autocar-chateaux-de-la-loire",
       "statusCode": 301
+    },
+    {
+      "source": "/location-autocar-bruxelles",
+      "destination": "/fr/location-autocar-bruxelles",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-bus-30-places",
+      "destination": "/fr/location-bus-30-places",
+      "statusCode": 301
     }
   ],
   "rewrites": [
+    {
+      "source": "/robots.txt",
+      "has": [
+        {
+          "type": "host",
+          "value": "busmoovlyon.fr"
+        }
+      ],
+      "destination": "/sites/lyon-robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "has": [
+        {
+          "type": "host",
+          "value": "busmoovlyon.fr"
+        }
+      ],
+      "destination": "/sites/lyon-sitemap.xml"
+    },
+    {
+      "source": "/((?!assets/|api/|sites/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "busmoovlyon.fr"
+        }
+      ],
+      "destination": "/sites/lyon"
+    },
     {
       "source": "/((?!api/).*)",
       "destination": "/"

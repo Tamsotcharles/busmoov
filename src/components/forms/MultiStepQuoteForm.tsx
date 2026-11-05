@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { isMicrositeHost, MAIN_SITE_URL } from '@/lib/microsite'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, ArrowLeft, Check, Shield, MapPin, Calendar, Users, Info, User, Briefcase } from 'lucide-react'
 import { useCreateDemande } from '@/hooks/useSupabase'
@@ -22,7 +23,13 @@ type TripType = 'round-trip' | 'one-way' | 'circuit'
 
 export function MultiStepQuoteForm() {
   const { t, i18n } = useTranslation()
-  const navigate = useNavigate()
+  const routerNavigate = useNavigate()
+  // Sur un microsite (busmoovlyon.fr), l'espace client est sur le site
+  // principal : navigation absolue au lieu d'une route interne inexistante.
+  const navigate = (path: string) => {
+    if (isMicrositeHost()) window.location.assign(`${MAIN_SITE_URL}${path}`)
+    else routerNavigate(path)
+  }
   const createDemande = useCreateDemande()
   const { data: country } = useCurrentCountry()
   const formRef = useRef<HTMLDivElement>(null)
