@@ -3,6 +3,28 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/robots.txt",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.busmoovlyon.fr"
+        }
+      ],
+      "destination": "/sites/lyon-robots.txt",
+      "statusCode": 308
+    },
+    {
+      "source": "/sitemap.xml",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.busmoovlyon.fr"
+        }
+      ],
+      "destination": "/sites/lyon-sitemap.xml",
+      "statusCode": 308
+    },
+    {
       "source": "/:path*",
       "has": [
         {
@@ -47,7 +69,13 @@
         }
       ],
       "destination": "/es",
-      "statusCode": 302
+      "statusCode": 302,
+      "missing": [
+        {
+          "type": "host",
+          "value": "www.busmoovlyon.fr"
+        }
+      ]
     },
     {
       "source": "/",
@@ -61,7 +89,13 @@
         }
       ],
       "destination": "/de",
-      "statusCode": 302
+      "statusCode": 302,
+      "missing": [
+        {
+          "type": "host",
+          "value": "www.busmoovlyon.fr"
+        }
+      ]
     },
     {
       "source": "/",
@@ -75,12 +109,24 @@
         }
       ],
       "destination": "/en",
-      "statusCode": 302
+      "statusCode": 302,
+      "missing": [
+        {
+          "type": "host",
+          "value": "www.busmoovlyon.fr"
+        }
+      ]
     },
     {
       "source": "/",
       "destination": "/fr",
-      "statusCode": 301
+      "statusCode": 301,
+      "missing": [
+        {
+          "type": "host",
+          "value": "www.busmoovlyon.fr"
+        }
+      ]
     },
     {
       "source": "/es/services/location-autocar",
@@ -424,26 +470,6 @@
     }
   ],
   "rewrites": [
-    {
-      "source": "/robots.txt",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.busmoovlyon.fr"
-        }
-      ],
-      "destination": "/sites/lyon-robots.txt"
-    },
-    {
-      "source": "/sitemap.xml",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.busmoovlyon.fr"
-        }
-      ],
-      "destination": "/sites/lyon-sitemap.xml"
-    },
     {
       "source": "/((?!assets/|api/|sites/).*)",
       "has": [
