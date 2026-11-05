@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { pickBestGeocodeFeature } from '../_shared/geocode.ts'
 import { checkRequiresManualReview } from '../_shared/manual-review.ts'
+import { countryToLang, labelsFor, formatCurrencyFor } from '../_shared/lang.ts'
 import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts'
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
@@ -997,6 +998,63 @@ function generateDevisReference(): string {
   return `DEV-${year}${month}-${random}`
 }
 
+/**
+ * Email « un nouveau devis a été ajouté » (étapes 2+ du workflow) : récapitulatif
+ * de tous les devis envoyés, numéro de transporteur anonyme, prestation,
+ * véhicule, prix. HTML complet (type custom : pas de gabarit côté send-email),
+ * bouton avec couleur unie de repli pour Outlook.
+ */
+function buildQuoteAddedEmail(
+  dossier: any,
+  devis: Array<{ reference: string; price_ttc: number | null; service_type: string | null; vehicle_type: string | null; nombre_cars: number | null; transporteur: { number: string | null } | null }>,
+  clientUrl: string,
+  lang: string,
+) {
+  const L = labelsFor(lang)
+  const esc = (v: unknown) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const vehicleLabels: Record<string, string> = { minibus: L.minibus, standard: L.standard, '60-63': L.c60, '70': L.c70, '83-90': L.c83, autocar: L.coach }
+  const vehicleLabel = (d: { vehicle_type: string | null; nombre_cars: number | null }) => {
+    const base = vehicleLabels[d.vehicle_type || 'autocar'] || L.coach
+    return d.nombre_cars && d.nombre_cars > 1 ? `${d.nombre_cars} × ${base}` : base
+  }
+  const rows = devis.map((d, i) => `
+    <tr style="${i === 0 ? 'background:#e8f5e9;' : ''}">
+      <td style="padding:10px;border-bottom:1px solid #eee;">${esc(d.transporteur?.number || L.partnerCarrier)}</td>
+      <td style="padding:10px;border-bottom:1px solid #eee;">${esc(L[`st_${d.service_type || ''}`] || '-')}</td>
+      <td style="padding:10px;border-bottom:1px solid #eee;">${esc(vehicleLabel(d))}</td>
+      <td style="padding:10px;border-bottom:1px solid #eee;text-align:right;font-weight:bold;${i === 0 ? 'color:#2e7d32;' : ''}">${esc(formatCurrencyFor(d.price_ttc || 0, lang))}</td>
+    </tr>`).join('')
+  const intro = L.newQuoteIntro.replace('{ref}', esc(dossier.reference)).replace('{n}', String(devis.length))
+  const html = `<!DOCTYPE html><html lang="${lang}"><body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;color:#333;">
+  <div style="max-width:600px;margin:0 auto;background:#ffffff;padding:24px;">
+    <h2 style="color:#4A1A6B;margin:0 0 16px;">${esc(L.newQuoteTitle)}</h2>
+    <p>${esc(L.hello)} <strong>${esc(dossier.client_name || '')}</strong>,</p>
+    <p>${intro}</p>
+    <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;">
+      <tr style="background:#f5f5f5;">
+        <th style="padding:10px;text-align:left;border-bottom:2px solid #ddd;">${esc(L.carrier)}</th>
+        <th style="padding:10px;text-align:left;border-bottom:2px solid #ddd;">${esc(L.service)}</th>
+        <th style="padding:10px;text-align:left;border-bottom:2px solid #ddd;">${esc(L.vehicle)}</th>
+        <th style="padding:10px;text-align:right;border-bottom:2px solid #ddd;">${esc(L.priceIncl)}</th>
+      </tr>${rows}
+    </table>
+    <p style="text-align:center;margin:28px 0;">
+      <a href="${clientUrl}" style="display:inline-block;background-color:#E91E63;background:linear-gradient(135deg,#E91E63 0%,#9C27B0 100%);color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;">${esc(L.newQuoteCta)}</a>
+    </p>
+    <p style="font-size:12px;color:#666;">${esc(L.newQuoteAccess)}<br><a href="${clientUrl}" style="color:#9C27B0;word-break:break-all;">${clientUrl}</a></p>
+    <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+    <p style="font-size:13px;color:#666;">${esc(L.needHelp)}<br>{{phone_display}} | <a href="mailto:{{email}}" style="color:#9C27B0;">{{email}}</a></p>
+    <p style="font-size:13px;color:#666;">${esc(L.regards)}<br><strong>${esc(L.team)}</strong></p>
+  </div></body></html>`
+  return {
+    type: 'custom',
+    to: dossier.client_email,
+    subject: L.newQuoteSubject.replace('{ref}', dossier.reference),
+    html_content: html,
+    data: { dossier_id: dossier.id, template_key: 'quote_added', language: lang },
+  }
+}
+
 // =============================================
 // HANDLER PRINCIPAL
 // =============================================
@@ -1439,21 +1497,48 @@ Deno.serve(async (req) => {
       if (step.notify_client && dossier.client_email && !dryRun) {
         try {
           const countryCode = (dossier.country_code || 'FR').toUpperCase()
-          const emailLanguage = countryCode.toLowerCase()
-          const langPrefix = countryCode === 'ES' ? 'es' : countryCode === 'DE' ? 'de' : countryCode === 'GB' ? 'en' : 'fr'
-          const baseUrl = 'https://busmoov.com'
-          const clientUrl = `${baseUrl}/${langPrefix}/mes-devis?ref=${encodeURIComponent(dossier.reference)}&email=${encodeURIComponent(dossier.client_email)}`
+          // countryToLang : GB → en (l'ancien toLowerCase() donnait « gb », donc
+          // repli sur le template français pour les clients britanniques).
+          const emailLanguage = countryToLang(countryCode)
+          const baseUrl = 'https://www.busmoov.com'
+          const clientUrl = `${baseUrl}/${emailLanguage}/mes-devis?ref=${encodeURIComponent(dossier.reference)}&email=${encodeURIComponent(dossier.client_email)}`
 
-          // Compter les devis envoyés pour ce dossier
-          const { count: sentDevisCount } = await supabase
+          // Devis envoyés pour ce dossier (le nouveau compris), du moins cher au plus cher
+          const { data: sentDevisList } = await supabase
             .from('devis')
-            .select('id', { count: 'exact', head: true })
+            .select('reference, price_ttc, service_type, vehicle_type, nombre_cars, transporteur:transporteurs(number)')
             .eq('dossier_id', dossier.id)
             .eq('status', 'sent')
+            .order('price_ttc', { ascending: true })
+          const sentDevis = (sentDevisList || []) as Array<{ reference: string; price_ttc: number | null; service_type: string | null; vehicle_type: string | null; nombre_cars: number | null; transporteur: { number: string | null } | null }>
+          const sentDevisCount = sentDevis.length || 1
 
           const departureDateFormatted = dossier.departure_date
             ? new Date(dossier.departure_date).toLocaleDateString('fr-FR')
             : 'N/A'
+
+          // Première étape : « Vos devis sont prêts » (template). Étapes
+          // suivantes : « Un nouveau devis a été ajouté », avec le récapitulatif
+          // de tous les devis, plutôt que de répéter le même email.
+          const isFirstNotification = currentStep === 0 || sentDevisCount <= 1
+          const payload = isFirstNotification
+            ? {
+                type: 'quote_sent',
+                to: dossier.client_email,
+                data: {
+                  client_name: dossier.client_name || 'Client',
+                  reference: dossier.reference,
+                  departure: dossier.departure || 'N/A',
+                  arrival: dossier.arrival || 'N/A',
+                  departure_date: departureDateFormatted,
+                  passengers: String(dossier.passengers || 0),
+                  nb_devis: String(sentDevisCount),
+                  lien_espace_client: clientUrl,
+                  dossier_id: dossier.id,
+                  language: emailLanguage,
+                },
+              }
+            : buildQuoteAddedEmail(dossier, sentDevis, clientUrl, emailLanguage)
 
           // fetch direct plutot que supabase.functions.invoke : l'invoke
           // edge->edge echouait silencieusement (quote_sent n'est plus parti
@@ -1465,29 +1550,14 @@ Deno.serve(async (req) => {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${supabaseServiceKey}`,
             },
-            body: JSON.stringify({
-              type: 'quote_sent',
-              to: dossier.client_email,
-              data: {
-                client_name: dossier.client_name || 'Client',
-                reference: dossier.reference,
-                departure: dossier.departure || 'N/A',
-                arrival: dossier.arrival || 'N/A',
-                departure_date: departureDateFormatted,
-                passengers: String(dossier.passengers || 0),
-                nb_devis: String(sentDevisCount || 1),
-                lien_espace_client: clientUrl,
-                dossier_id: dossier.id,
-                language: emailLanguage,
-              },
-            }),
+            body: JSON.stringify(payload),
           })
           const emailError = emailResp.ok ? null : await emailResp.text()
 
           if (emailError) {
             console.error(`Erreur envoi email notification pour ${dossier.reference}:`, emailError)
           } else {
-            console.log(`Email notification envoyé au client pour ${dossier.reference} (étape ${currentStep + 1})`)
+            console.log(`Email ${isFirstNotification ? 'quote_sent' : 'quote_added'} envoyé au client pour ${dossier.reference} (étape ${currentStep + 1})`)
           }
         } catch (emailErr) {
           console.error(`Exception envoi email pour ${dossier.reference}:`, emailErr)

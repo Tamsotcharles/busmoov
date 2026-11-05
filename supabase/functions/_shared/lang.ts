@@ -48,24 +48,28 @@ export function formatCurrencyFor(amount: number, lang: string, minimumFractionD
 /** Libellés utilisés dans les fragments HTML générés par les fonctions. */
 export const EMAIL_LABELS: Record<EmailLang, Record<string, string>> = {
   fr: {
+    hello: 'Bonjour', newQuoteSubject: 'Un nouveau devis a été ajouté à votre dossier {ref}', newQuoteTitle: 'Un nouveau devis vient d\'être ajouté', newQuoteIntro: 'Nous avons ajouté une nouvelle proposition à votre dossier <strong>{ref}</strong>. Vous disposez maintenant de <strong>{n} devis</strong> à comparer :', newQuoteCta: 'Comparer mes devis', newQuoteAccess: 'Si le bouton ne s\'affiche pas, copiez ce lien dans votre navigateur :', needHelp: 'Besoin d\'aide ?', regards: 'Cordialement,', team: 'L\'équipe Busmoov',
     service: 'Prestation', st_aller_simple: 'Aller simple', st_ar_1j: 'Aller-retour dans la journée', st_ar_mad: 'Aller-retour avec car sur place', st_ar_sans_mad: 'Aller-retour sur plusieurs jours',
     carrier: 'Transporteur', vehicle: 'Véhicule', priceIncl: 'Prix TTC', partnerCarrier: 'Transporteur partenaire',
     noQuote: 'Aucun devis disponible', bestPrice: 'Meilleur prix !', save: 'Économisez', vsHighest: 'par rapport à l\'offre la plus élevée.',
     minibus: 'Minibus', standard: 'Autocar standard', c60: 'Autocar 60-63 places', c70: 'Grand autocar 70 places', c83: 'Autocar grande capacité', coach: 'Autocar',
   },
   es: {
+    hello: 'Hola', newQuoteSubject: 'Se ha añadido un nuevo presupuesto a su expediente {ref}', newQuoteTitle: 'Se acaba de añadir un nuevo presupuesto', newQuoteIntro: 'Hemos añadido una nueva propuesta a su expediente <strong>{ref}</strong>. Ahora dispone de <strong>{n} presupuestos</strong> para comparar:', newQuoteCta: 'Comparar mis presupuestos', newQuoteAccess: 'Si el botón no se muestra, copie este enlace en su navegador:', needHelp: '¿Necesita ayuda?', regards: 'Atentamente,', team: 'El equipo Busmoov',
     service: 'Servicio', st_aller_simple: 'Solo ida', st_ar_1j: 'Ida y vuelta en el día', st_ar_mad: 'Ida y vuelta con autocar a disposición', st_ar_sans_mad: 'Ida y vuelta en varios días',
     carrier: 'Transportista', vehicle: 'Vehículo', priceIncl: 'Precio IVA incl.', partnerCarrier: 'Transportista asociado',
     noQuote: 'Ningún presupuesto disponible', bestPrice: '¡Mejor precio!', save: 'Ahorre', vsHighest: 'respecto a la oferta más alta.',
     minibus: 'Minibús', standard: 'Autocar estándar', c60: 'Autocar 60-63 plazas', c70: 'Gran autocar 70 plazas', c83: 'Autocar gran capacidad', coach: 'Autocar',
   },
   de: {
+    hello: 'Guten Tag', newQuoteSubject: 'Ein neues Angebot wurde zu Ihrer Anfrage {ref} hinzugefügt', newQuoteTitle: 'Ein neues Angebot wurde hinzugefügt', newQuoteIntro: 'Wir haben Ihrer Anfrage <strong>{ref}</strong> ein weiteres Angebot hinzugefügt. Sie können jetzt <strong>{n} Angebote</strong> vergleichen:', newQuoteCta: 'Meine Angebote vergleichen', newQuoteAccess: 'Falls die Schaltfläche nicht angezeigt wird, kopieren Sie diesen Link in Ihren Browser:', needHelp: 'Brauchen Sie Hilfe?', regards: 'Mit freundlichen Grüßen,', team: 'Ihr Busmoov-Team',
     service: 'Leistung', st_aller_simple: 'Einfache Fahrt', st_ar_1j: 'Hin- und Rückfahrt am selben Tag', st_ar_mad: 'Hin- und Rückfahrt mit Bus vor Ort', st_ar_sans_mad: 'Hin- und Rückfahrt über mehrere Tage',
     carrier: 'Busunternehmen', vehicle: 'Fahrzeug', priceIncl: 'Preis inkl. MwSt.', partnerCarrier: 'Partnerunternehmen',
     noQuote: 'Kein Angebot verfügbar', bestPrice: 'Bester Preis!', save: 'Sparen Sie', vsHighest: 'gegenüber dem höchsten Angebot.',
     minibus: 'Kleinbus', standard: 'Standard-Reisebus', c60: 'Reisebus 60-63 Plätze', c70: 'Großer Reisebus 70 Plätze', c83: 'Reisebus mit großer Kapazität', coach: 'Reisebus',
   },
   en: {
+    hello: 'Hello', newQuoteSubject: 'A new quote has been added to your request {ref}', newQuoteTitle: 'A new quote has just been added', newQuoteIntro: 'We have added a new proposal to your request <strong>{ref}</strong>. You now have <strong>{n} quotes</strong> to compare:', newQuoteCta: 'Compare my quotes', newQuoteAccess: 'If the button does not display, copy this link into your browser:', needHelp: 'Need help?', regards: 'Kind regards,', team: 'The Busmoov team',
     service: 'Service', st_aller_simple: 'One way', st_ar_1j: 'Same-day return', st_ar_mad: 'Return trip with coach on site', st_ar_sans_mad: 'Return trip over several days',
     carrier: 'Operator', vehicle: 'Vehicle', priceIncl: 'Price incl. VAT', partnerCarrier: 'Partner operator',
     noQuote: 'No quote available', bestPrice: 'Best price!', save: 'Save', vsHighest: 'compared with the highest offer.',
