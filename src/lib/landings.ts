@@ -1321,6 +1321,100 @@ export const landings: Landing[] = [
     ],
     serviceType: 'Location de bus 30 places avec chauffeur',
   },
+  {
+    slug: '/location-autocar-bde',
+    metaTitle: 'Location d\'autocar pour BDE : WEI, soirées, gala, ski | Busmoov',
+    metaDescription: 'Bus et autocars avec chauffeur pour les BDE et associations étudiantes : week-end d\'intégration, navettes de soirée et de gala, séjour au ski. Facture au nom de l\'association, jusqu\'à 3 devis gratuits sous 24h.',
+    h1: 'Location d\'autocar pour BDE et associations étudiantes',
+    sousTitre: 'Week-end d\'intégration, soirées, gala, séjour au ski : des transporteurs habitués aux étudiants, un contrat au nom de l\'association et plusieurs devis à comparer sous 24h.',
+    intro: [
+      'Busmoov est une plateforme de réservation d\'autocars avec chauffeur qui travaille chaque année avec des bureaux des étudiants, des associations sportives et des listes BDE partout en France. Vous décrivez l\'événement une fois : effectif, dates, destination, heure de retour. Sous 24h, vous recevez jusqu\'à trois devis de transporteurs vérifiés, comparables ligne à ligne, avec le contrat et la facture au nom de votre association.',
+      'Le transport est le poste le plus sensible d\'un événement étudiant : des centaines de personnes à faire partir à l\'heure, souvent de nuit, avec un budget associatif et des règles de sécurité strictes. Cette page explique ce que nous organisons, ce que les transporteurs demandent à un BDE et ce que coûtent les formats les plus courants.',
+    ],
+    sections: [
+      {
+        h2: 'Ce que nous organisons pour les BDE',
+        liste: [
+          'Week-end d\'intégration (WEI) : départ du campus le vendredi, retour le dimanche, de deux à dix autocars coordonnés, car sur place ou simple dépose-reprise selon le programme',
+          'Navettes de soirée et de gala : aller vers 21h, retour entre 3h et 5h, en un seul convoi ou en rotations entre le campus et la salle',
+          'Séjour au ski : transfert aller-retour vers les stations des Alpes ou des Pyrénées, soutes à skis, départ le samedi et retour le samedi suivant, détaillé dans notre guide de l\'[autocar pour une station de ski](/blog/autocar-station-de-ski-groupe)',
+          'Journées de cohésion, tournois inter-écoles, [festivals](/blog/aller-a-un-festival-en-bus) et déplacements de supporters étudiants',
+          'Voyages de promotion et week-ends à l\'étranger : Barcelone, Amsterdam, Bruxelles, Prague, en [autocar couchette](/autocar-couchette) pour les longs trajets de nuit',
+        ],
+      },
+      {
+        h2: 'Combien coûte un autocar pour un événement étudiant ?',
+        paragraphes: [
+          'Les prix ci-dessous sont des prix de départ TTC par véhicule, chauffeur, carburant et péages inclus. Ils varient avec la distance, l\'amplitude horaire du chauffeur, la saison et le nombre de cars. Un autocar de 50 places plein ramène une navette de soirée à une quinzaine d\'euros par étudiant et un week-end d\'intégration à environ 35 €.',
+        ],
+        tableau: {
+          caption: 'Prix de départ indicatifs 2026 pour un événement étudiant, TTC, chauffeur, carburant et péages inclus, par véhicule',
+          headers: ['Format', 'Minibus 8-20 places', 'Autocar 21-59 places', 'Grande capacité 60-90 places'],
+          rows: [
+            ['Navette de soirée ou de gala, aller-retour local', 'à partir de 600 €', 'à partir de 700 €', 'à partir de 800 €'],
+            ['Journée de cohésion ou tournoi, aller-retour régional', 'à partir de 900 €', 'à partir de 1 000 €', 'à partir de 1 200 €'],
+            ['Week-end d\'intégration 2 jours', 'à partir de 1 600 €', 'à partir de 1 800 €', 'Sur devis'],
+            ['Séjour au ski, aller et retour à une semaine d\'écart', 'à partir de 1 200 €', 'à partir de 1 800 €', 'Sur devis'],
+          ],
+        },
+      },
+      {
+        h2: 'Ce que les transporteurs demandent à un BDE',
+        liste: [
+          'Un contrat et une facture au nom de l\'association, signés par le président ou le trésorier, avec le numéro RNA ou SIRET',
+          'Un acompte à la réservation, le solde avant le départ, par carte ou virement ; une subvention d\'école versée après l\'événement se négocie au devis, pas la veille',
+          'Une clause de dégradation ou une caution, inscrite au contrat : nettoyage, siège taché ou vitre cassée sont facturés',
+          'Un responsable majeur et joignable par car, qui compte les passagers à chaque départ et reste en lien avec le chauffeur',
+          'La liste des arrêts et des horaires une semaine avant l\'événement',
+        ],
+      },
+      {
+        h2: 'Les règles à bord',
+        paragraphes: [
+          'La consommation d\'alcool dans un autocar est interdite par la loi, et le chauffeur peut refuser un passager manifestement ivre ou s\'arrêter si la sécurité l\'exige. Musique, oui ; debout dans l\'allée, non ; ceintures attachées et pas de verre. Les transporteurs qui travaillent avec les BDE l\'annoncent avant le départ, et un bureau qui respecte ces règles retrouve le même transporteur l\'année suivante à de meilleures conditions. Pour l\'organisation complète d\'une soirée ou d\'un WEI, lisez notre [guide du BDE](/blog/bus-soiree-etudiante-bde).',
+        ],
+      },
+      {
+        h2: 'Comment faire partir 300 étudiants le même soir',
+        liste: [
+          'Un seul interlocuteur pour tous les cars : nous faisons chiffrer l\'ensemble par le même transporteur ou par deux transporteurs coordonnés, avec un prix groupé',
+          'Des [autocars de 50 places](/location-bus-50-places) en nombre plutôt qu\'un double étage unique : plus de disponibilités, départ échelonné possible',
+          'Un point de rassemblement accessible aux cars : parking du campus ou grande avenue, pas une place piétonne du centre',
+          'Une heure de retour réaliste, pour que l\'amplitude du chauffeur soit respectée ; au-delà de 12 heures de service, un second chauffeur est prévu au devis',
+          'Réserver tôt : les cars partent vite de mi-septembre à mi-octobre pour les WEI et pendant les vacances de février pour le ski ; un BDE qui réserve en juin a le choix',
+        ],
+      },
+      {
+        h2: 'Dans votre ville',
+        paragraphes: [
+          'Nos transporteurs partenaires sont présents dans toutes les villes universitaires : [Paris](/location-bus-paris) et l\'Île-de-France, Lyon, Lille, Toulouse, Bordeaux, Nantes, Rennes, Grenoble, Montpellier, Strasbourg. À Lyon, notre service local Busmoov Lyon publie un guide détaillé pour les [BDE lyonnais](https://www.busmoovlyon.fr/guides/bus-bde-lyon-wei-soiree-ski), des campus de la Doua et d\'Écully aux stations de ski.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'La facture peut-elle être au nom de l\'association ?',
+        a: 'Oui. Le contrat et la facture sont établis au nom de l\'association loi 1901, avec son numéro RNA ou SIRET, et signés par le président ou le trésorier. C\'est le document que demandent les écoles et les banques pour débloquer une subvention.',
+      },
+      {
+        q: 'Combien de temps à l\'avance faut-il réserver un WEI ?',
+        a: 'Les WEI se concentrent sur quatre week-ends de septembre et d\'octobre : les autocaristes sont complets des semaines à l\'avance. Réservez entre mai et juin pour avoir le choix des véhicules et des prix ; en août, il reste des cars, mais plus loin et plus chers.',
+      },
+      {
+        q: 'Que se passe-t-il si un car est rendu sale ou abîmé ?',
+        a: 'Le contrat prévoit une clause de dégradation ou une caution : le nettoyage ou la réparation sont facturés à l\'association sur justificatif. Un responsable par car qui fait respecter les règles à bord évite ce poste.',
+      },
+      {
+        q: 'Peut-on payer après l\'événement, quand la subvention arrive ?',
+        a: 'L\'acompte est dû à la réservation et le solde avant le départ. Si une subvention arrive après l\'événement, dites-le dès la demande de devis : certains transporteurs acceptent un échéancier avec une caution, à condition d\'en avoir discuté avant de signer.',
+      },
+      {
+        q: 'Faut-il un second chauffeur pour un retour de soirée à 5h du matin ?',
+        a: 'Une navette qui part à 21h et rentre à 5h représente huit heures de service : un seul chauffeur suffit s\'il n\'a pas travaillé dans la journée. Le transporteur prévoit donc un chauffeur de nuit dédié. Au-delà de 12 heures d\'amplitude, par exemple un WEI avec excursion le samedi, un second chauffeur est ajouté au devis.',
+      },
+    ],
+    serviceType: 'Location d\'autocar pour BDE et associations étudiantes',
+  },
 ]
 
 export function getLanding(slug: string): Landing | undefined {

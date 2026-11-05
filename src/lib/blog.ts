@@ -256,7 +256,7 @@ export const articles: BlogArticle[] = [
       { type: 'p', text: 'Un aller-retour de soirée local démarre autour de 700 € TTC en autocar standard — soit environ 14 € par participant sur un car plein, souvent répercutés sur le billet. Point important : l\'état du véhicule au retour engage l\'association. Un car rendu dégradé (sièges, vomi…) entraîne des frais de nettoyage ou de remise en état facturés. Briefez les participants : c\'est le budget de l\'asso qui trinque.' },
       { type: 'callout', text: 'Argument sécurité imparable auprès de l\'administration et des parents : avec un car, zéro voiture d\'étudiant sur la route de nuit. C\'est aussi ce qui rend la soirée assurable.' },
       { type: 'h2', text: 'Demander un devis pour votre événement' },
-      { type: 'p', text: 'Indiquez le trajet, la date, l\'horaire de retour souhaité et l\'effectif : vous recevez plusieurs devis gratuits sous 24h. Association loi 1901 : la facture est établie au nom du BDE, paiement par virement possible.' },
+      { type: 'p', text: 'Indiquez le trajet, la date, l\'horaire de retour souhaité et l\'effectif : vous recevez plusieurs devis gratuits sous 24h. Association loi 1901 : la facture est établie au nom du BDE, paiement par virement possible. Prix de départ, règles à bord et exigences des transporteurs sont détaillés sur notre page [location d\'autocar pour BDE](/location-autocar-bde).' },
     ],
   },
   {

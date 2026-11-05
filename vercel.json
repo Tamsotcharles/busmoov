@@ -445,6 +445,11 @@
       "source": "/location-bus-30-places",
       "destination": "/fr/location-bus-30-places",
       "statusCode": 301
+    },
+    {
+      "source": "/location-autocar-bde",
+      "destination": "/fr/location-autocar-bde",
+      "statusCode": 301
     }
   ],
   "rewrites": [
