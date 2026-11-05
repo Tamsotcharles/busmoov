@@ -866,6 +866,8 @@ ${articles.map((a) => `- [${a.titre}](${BASE_URL}/fr/blog/${a.slug}) : ${a.extra
     h2(L.zones.h2) + p(L.zones.intro) + ul(L.zones.villes) +
     h2(L.etapes.h2) + ul(L.etapes.liste) +
     h2('Questions fréquentes') + L.faq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + p(f.a)).join('') +
+    h2('Nos guides pour organiser votre transport à Lyon') +
+    `<ul class="list-disc pl-6 mb-3">${lyonGuides.map((g) => `<li><a class="text-magenta underline" href="/guides/${g.slug}">${esc(g.titre)}</a> : ${esc(g.extrait)}</li>`).join('')}</ul>` +
     `<p class="mb-3">Busmoov Lyon est le service lyonnais de <a class="text-magenta underline" href="${BASE_URL}/fr">Busmoov</a>, réseau national de transporteurs vérifiés.</p>`
   )
   let html = template
