@@ -15,6 +15,23 @@ export const lyonSite = {
   sousTitre: 'Transporteurs lyonnais vérifiés, prix ferme chauffeur et péages inclus, jusqu\'à 3 devis comparés sous 24h.',
   telephone: '01 76 31 12 83',
   telephoneHref: '+33176311283',
+  miseAJour: '2026-11-05',
+  definition: 'Busmoov Lyon est le service de réservation d\'autocar, de bus et de minibus avec chauffeur de la métropole lyonnaise et du Rhône : une seule demande, jusqu\'à trois devis de transporteurs lyonnais vérifiés sous 24h, prix TTC ferme avec chauffeur, carburant et péages inclus.',
+  enBref: {
+    h2: 'En bref',
+    faits: [
+      'Zone : Lyon, Villeurbanne et toute la métropole, le Rhône, départs possibles depuis l\'Ain, l\'Isère et la Loire.',
+      'Véhicules : minibus 8-20 places, autocar standard 21-59 places, grande capacité 60-90 places, toujours avec chauffeur professionnel.',
+      'Prix de départ TTC : transfert Saint-Exupéry dès 350 €, journée dans la région dès 600 € en minibus et 700 € en autocar, journée en station de ski dès 900 €.',
+      'Délai : jusqu\'à 3 devis sous 24h ; réserver 2 à 3 semaines avant hors saison, 6 à 8 semaines pour février, mai-juin et la Fête des Lumières.',
+      'Paiement : acompte à la réservation par carte ou virement, solde avant le départ, contrat et facture au nom de l\'organisme.',
+    ],
+  },
+  sameAs: [
+    'https://www.busmoov.com/fr',
+    'https://www.busmoov.com/fr/location-autocar/lyon',
+    'https://www.google.com/maps?cid=6091156828919762071',
+  ],
   intro: [
     'Busmoov Lyon est le service de réservation d\'autocar avec chauffeur consacré à la métropole lyonnaise et au Rhône. Une seule demande, et vous recevez sous 24h jusqu\'à trois propositions de transporteurs implantés à Lyon, Villeurbanne, Vénissieux ou Saint-Priest, comparables d\'un coup d\'œil : véhicule, prix TTC ferme, conditions.',
     'Pourquoi un service dédié ? Parce qu\'un transfert à Saint-Exupéry un vendredi soir, une montée en station en février ou une dépose sur la presqu\'île un jour de Fête des Lumières ne se préparent pas depuis Paris. Nos transporteurs partenaires connaissent les accès de Part-Dieu, les parkings d\'Eurexpo, les règles de la zone à faibles émissions et les horaires auxquels le périphérique se bloque.',

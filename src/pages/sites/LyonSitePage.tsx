@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Phone, CheckCircle, MapPin, Bus } from 'lucide-react'
 import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
 import { TableauSeo } from '@/components/ui/TableauSeo'
+import { formatDate } from '@/lib/utils'
 import { lyonSite as s } from '@/lib/sites/lyon'
 import { MAIN_SITE_URL } from '@/lib/microsite'
 import { lyonGuides } from '@/lib/sites/lyon-guides'
@@ -42,7 +43,7 @@ export function LyonSitePage() {
         <div className="max-w-6xl mx-auto px-4 py-14 grid lg:grid-cols-2 gap-10 items-start">
           <div>
             <h1 className="font-display text-3xl md:text-4xl font-bold mb-4">{s.h1}</h1>
-            <p className="text-lg opacity-90 mb-6">{s.sousTitre}</p>
+            <p className="text-lg opacity-90 mb-6">{s.definition}</p>
             <ul className="space-y-2 text-sm">
               {['Transporteurs lyonnais vérifiés', 'Prix ferme : chauffeur, carburant et péages inclus', 'Jusqu\'à 3 devis comparés sous 24h, gratuits et sans engagement'].map((t) => (
                 <li key={t} className="flex items-center gap-2"><CheckCircle size={16} /> {t}</li>
@@ -56,6 +57,14 @@ export function LyonSitePage() {
       </section>
 
       <main className="max-w-4xl mx-auto px-4 py-12 space-y-14">
+        <section className="bg-purple-50 border border-purple-200 rounded-2xl p-6">
+          <h2 className="font-display text-xl font-bold text-purple-dark mb-3">{s.enBref.h2}</h2>
+          <ul className="space-y-2 text-gray-700">
+            {s.enBref.faits.map((t) => <li key={t} className="flex gap-2"><CheckCircle size={18} className="text-magenta shrink-0 mt-0.5" /><span>{t}</span></li>)}
+          </ul>
+          <p className="text-xs text-gray-500 mt-3">Informations mises à jour le {formatDate(s.miseAJour)}.</p>
+        </section>
+
         <section className="space-y-4">
           {s.intro.map((t) => <p key={t} className="text-gray-700 leading-relaxed">{t}</p>)}
         </section>

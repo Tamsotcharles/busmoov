@@ -837,6 +837,7 @@ ${articles.map((a) => `- [${a.titre}](${BASE_URL}/fr/blog/${a.slug}) : ${a.extra
 ## Détail complet
 - [llms-full.txt](${BASE_URL}/llms-full.txt) : contenu intégral des guides et pages villes en markdown
 `
+const fmtDateFr = (iso) => new Date(`${iso}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 // ---- Microsite busmoovlyon.fr : une page, servie par rewrite Vercel sur l'hôte.
 {
   const L = lyonSite
@@ -850,7 +851,7 @@ ${articles.map((a) => `- [${a.titre}](${BASE_URL}/fr/blog/${a.slug}) : ${a.extra
       '@type': 'Service',
       name: 'Location d\'autocar avec chauffeur à Lyon',
       serviceType: 'Location d\'autocar avec chauffeur',
-      provider: { '@type': 'Organization', name: 'Busmoov', url: BASE_URL, telephone: '+33176311283' },
+      provider: { '@type': 'Organization', name: 'Busmoov', url: BASE_URL, telephone: '+33176311283', sameAs: L.sameAs },
       areaServed: { '@type': 'City', name: 'Lyon' },
       url: L.url,
     })}</script>\n` +
@@ -860,7 +861,9 @@ ${articles.map((a) => `- [${a.titre}](${BASE_URL}/fr/blog/${a.slug}) : ${a.extra
       mainEntity: L.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
     })}</script>\n`
   const body = wrap(
-    h1(L.h1) + p(L.sousTitre) + L.intro.map(p).join('') +
+    h1(L.h1) + p(L.definition) +
+    h2(L.enBref.h2) + ul(L.enBref.faits) + p(`Informations mises à jour le ${fmtDateFr(L.miseAJour)}.`) +
+    L.intro.map(p).join('') +
     h2(L.prestations.h2) + L.prestations.items.map((i) => `<h3 class="font-semibold mt-3">${esc(i.titre)}</h3>` + p(i.desc)).join('') +
     h2(L.prix.h2) + p(L.prix.intro) + tableau(L.prix.tableau) + p(L.prix.apres) +
     h2(L.zones.h2) + p(L.zones.intro) + ul(L.zones.villes) +
@@ -888,9 +891,10 @@ ${articles.map((a) => `- [${a.titre}](${BASE_URL}/fr/blog/${a.slug}) : ${a.extra
       `<meta property="og:title" content="${esc(g.metaTitle)}"/>\n` +
       `<meta property="og:description" content="${esc(g.metaDescription)}"/>\n` +
       `<meta property="og:url" content="${gUrl}"/>\n` +
-      `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'Article', headline: g.titre, description: g.metaDescription, datePublished: g.datePublication, author: { '@type': 'Organization', name: 'Busmoov Lyon' }, publisher: { '@type': 'Organization', name: 'Busmoov', url: BASE_URL }, mainEntityOfPage: gUrl })}</script>\n`
+      `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'Article', headline: g.titre, description: g.metaDescription, datePublished: g.datePublication, dateModified: g.dateMiseAJour ?? g.datePublication, author: { '@type': 'Organization', name: 'Busmoov Lyon' }, publisher: { '@type': 'Organization', name: 'Busmoov', url: BASE_URL }, mainEntityOfPage: gUrl })}</script>\n`
     const gBody = wrap(
       h1(g.titre) +
+      `<p class="text-sm text-gray-500 mb-3">Publié le ${fmtDateFr(g.datePublication)} par l'équipe Busmoov Lyon · Mis à jour le ${fmtDateFr(g.dateMiseAJour ?? g.datePublication)}</p>` +
       g.blocks.map((b) => {
         switch (b.type) {
           case 'h2': return h2(b.text)
@@ -917,6 +921,36 @@ ${articles.map((a) => `- [${a.titre}](${BASE_URL}/fr/blog/${a.slug}) : ${a.extra
   }
   const urls = [`  <url><loc>${L.url}</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>`]
     .concat(lyonGuides.map((g) => `  <url><loc>${L.url}guides/${g.slug}</loc><lastmod>${g.datePublication}</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>`))
+  const lyonLlms = `# Busmoov Lyon
+
+> ${L.definition}
+
+En bref :
+${L.enBref.faits.map((f) => `- ${f}`).join('\n')}
+- Téléphone : +33 1 76 31 12 83 · Devis en ligne : ${L.url}
+- Busmoov Lyon est le service lyonnais de Busmoov (${BASE_URL}/fr), réseau national de transporteurs vérifiés
+- Dernière mise à jour : ${L.miseAJour}
+
+## Prestations au départ de Lyon
+${L.prestations.items.map((i) => `- ${i.titre} : ${i.desc}`).join('\n')}
+
+## Prix de départ (TTC, chauffeur, carburant et péages inclus)
+| ${L.prix.tableau.headers.join(' | ')} |
+| ${L.prix.tableau.headers.map(() => '---').join(' | ')} |
+${L.prix.tableau.rows.map((r) => `| ${r.join(' | ')} |`).join('\n')}
+
+${L.prix.apres}
+
+## Zones desservies
+${L.zones.intro} ${L.zones.villes.join(', ')}.
+
+## Questions fréquentes
+${L.faq.map((f) => `- ${f.q} ${f.a}`).join('\n')}
+
+## Guides
+${lyonGuides.map((g) => `- [${g.titre}](${L.url}guides/${g.slug}) : ${g.extrait}`).join('\n')}
+`
+  writeFileSync(join(DIST, 'sites', 'lyon-llms.txt'), lyonLlms)
   writeFileSync(join(DIST, 'sites', 'lyon-sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`)
   count++
 }

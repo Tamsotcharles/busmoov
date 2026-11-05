@@ -12,6 +12,8 @@ export interface LyonGuide {
   metaTitle: string
   metaDescription: string
   datePublication: string
+  /** Date de dernière mise à jour affichée et envoyée dans le schéma Article (défaut : datePublication). */
+  dateMiseAJour?: string
   extrait: string
   blocks: BlogBlock[]
 }

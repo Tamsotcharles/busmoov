@@ -8,7 +8,7 @@ import { MICROSITES } from './src/lib/microsite'
  * gagnaient sur www.busmoovlyon.fr. Ici, l'hôte décide.
  */
 export const config = {
-  matcher: ['/', '/robots.txt', '/sitemap.xml', '/guides/:slug*'],
+  matcher: ['/', '/robots.txt', '/sitemap.xml', '/llms.txt', '/guides/:slug*'],
 }
 
 export default function middleware(request: Request) {
@@ -18,6 +18,7 @@ export default function middleware(request: Request) {
   const { pathname } = new URL(request.url)
   if (pathname === '/robots.txt') return rewrite(new URL(`/sites/${site}-robots.txt`, request.url))
   if (pathname === '/sitemap.xml') return rewrite(new URL(`/sites/${site}-sitemap.xml`, request.url))
+  if (pathname === '/llms.txt') return rewrite(new URL(`/sites/${site}-llms.txt`, request.url))
   if (pathname.startsWith('/guides/')) return rewrite(new URL(`/sites/${site}${pathname}`, request.url))
   return rewrite(new URL(`/sites/${site}`, request.url))
 }

@@ -57,7 +57,7 @@ export function LyonGuidePage() {
       <main className="max-w-3xl mx-auto px-4 py-10">
         <Link to="/" className="text-sm text-gray-500 hover:text-magenta flex items-center gap-1 mb-6"><ArrowLeft size={14} /> Busmoov Lyon</Link>
         <h1 className="font-display text-3xl md:text-4xl font-bold text-purple-dark mb-3">{guide.titre}</h1>
-        <p className="text-sm text-gray-500 mb-8">Publié le {formatDate(guide.datePublication)} par l'équipe Busmoov Lyon</p>
+        <p className="text-sm text-gray-500 mb-8">Publié le {formatDate(guide.datePublication)} par l'équipe Busmoov Lyon · Mis à jour le {formatDate(guide.dateMiseAJour ?? guide.datePublication)}</p>
         <article>{guide.blocks.map((b, i) => <Bloc key={i} b={b} />)}</article>
         <section className="mt-12 bg-gradient-to-br from-purple-dark to-magenta text-white rounded-2xl p-8 text-center">
           <h2 className="font-display text-2xl font-bold mb-2">Votre devis autocar à Lyon en 2 minutes</h2>
