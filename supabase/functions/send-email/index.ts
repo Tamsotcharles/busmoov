@@ -1191,6 +1191,23 @@ async function checkCustomRecipients(
   return { ok: true }
 }
 
+/**
+ * Rend le HTML robuste aux clients mail qui ignorent les dégradés CSS
+ * (Outlook bureau surtout) : un bouton « background: linear-gradient(...) ;
+ * color: white » y devient du texte blanc sur fond blanc, invisible. On
+ * insère une couleur unie en repli (première couleur du dégradé) devant
+ * chaque dégradé. Appliqué à tous les emails, templates compris, sans
+ * toucher aux templates eux-mêmes.
+ */
+function hardenEmailHtml(html: string): string {
+  const withFallback = html.replace(
+    /(background:\s*linear-gradient\(\s*\d+deg\s*,\s*(#[0-9A-Fa-f]{3,6}))/g,
+    'background-color: $2; $1',
+  )
+  // Si le template avait déjà la couleur de repli, ne pas la doubler.
+  return withFallback.replace(/(background-color:\s*#[0-9A-Fa-f]{3,6};\s*)(background-color:\s*#[0-9A-Fa-f]{3,6};\s*)(?=background:\s*linear-gradient)/g, '$2')
+}
+
 serve(async (req: Request) => {
   const origin = req.headers.get('origin')
   const corsHeaders = getCorsHeaders(origin)
@@ -1298,12 +1315,13 @@ serve(async (req: Request) => {
     // traductions cote front.
     if (data?.preview === true || data?.preview === 'true') {
       return new Response(
-        JSON.stringify({ success: true, preview: { subject: finalSubject, html: finalBody } }),
+        JSON.stringify({ success: true, preview: { subject: finalSubject, html: hardenEmailHtml(finalBody) } }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
     }
 
     // Envoyer l'email via Resend
+    finalBody = hardenEmailHtml(finalBody)
     const result = await sendEmailViaResend(to, finalSubject, finalBody, attachments)
 
     console.log(`Email sent successfully to ${to} via Resend (id: ${result.id})`)
