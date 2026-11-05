@@ -64,7 +64,7 @@ export function getLeadSource(): string {
     const a = JSON.parse(raw) as Attribution
     const host = typeof window !== 'undefined' ? window.location.hostname : ''
     const site = host && !host.endsWith('busmoov.com') ? `site:${host} | ` : ''
-    return `${site}${a.canal} | landing:${a.landing} | ref:${a.referrer || '-'}`
+    return `${site}${a.canal} | landing:${a.landing} | ref:${a.referrer || '-'}`.slice(0, 300)
   } catch {
     return 'inconnu'
   }

@@ -69,6 +69,8 @@ Deno.serve(async (req) => {
     const email = String(demande.client_email || '').trim().toLowerCase()
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return reply(400, { error: 'Email invalide' })
     demande.client_email = email
+    // Origine du lead : texte libre, borné pour rester lisible dans l'admin.
+    if (typeof demande.source === 'string') demande.source = demande.source.slice(0, 300)
     if (!demande.departure_city || !demande.arrival_city) return reply(400, { error: 'Villes de départ et d\'arrivée requises' })
     if (!demande.departure_date) return reply(400, { error: 'Date de départ requise' })
     if (typeof demande.special_requests === 'string' && demande.special_requests.length > 5000) {
