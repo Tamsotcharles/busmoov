@@ -430,6 +430,25 @@ npm run preview  # Prévisualisation du build
 - Les anciens chemins français sous préfixe es/de/en (`/de/services/sorties-scolaires`) et les pages sans préfixe de langue (`/mentions-legales`) sont redirigés en 301 dans `vercel.json`. Si un slug de `seoLocalizedPaths` ou de `landings.ts` change, ajouter la redirection : `src/lib/seo-redirects.test.ts` le vérifie.
 - Une URL inconnue affiche `NotFoundPage` (noindex) au lieu de rediriger vers l'accueil.
 
+## Microsites par ville (busmoovlyon.fr)
+
+Un microsite = un domaine dédié servi par **le même projet Vercel**, une seule
+page au contenu propre (`src/lib/sites/<ville>.ts`, page `src/pages/sites/`),
+formulaire de devis identique (création via `create-dossier`, origine
+`site:<domaine>` dans `demandes.source`), espace client sur le site principal.
+
+- Détection par hôte dans `src/App.tsx` (`detectMicrosite`, `src/lib/microsite.ts`) :
+  quel que soit le chemin, le microsite rend sa page unique.
+- Vercel (`vercel.json`) : rewrites conditionnés à l'hôte vers `/sites/<ville>`
+  (HTML prérendu par `scripts/prerender.mjs` dans `dist/sites/`, avec
+  `<ville>-robots.txt` et `<ville>-sitemap.xml`) ; `www.` redirigé vers l'apex ;
+  `/sites/*` sur le site principal redirigé vers le microsite.
+- Mise en service d'un domaine : l'ajouter au projet Vercel (apex + www), DNS
+  chez le registrar (A 76.76.21.21 ou CNAME selon Vercel), propriété Search
+  Console, domaine ajouté au linker GA4 dans `index.html`.
+- Pas de header/footer du site national sur un microsite (doorway pages) : trois
+  liens légaux et une phrase « service lyonnais de Busmoov » seulement.
+
 ## Internationalisation (i18n)
 
 ### Langues supportées
