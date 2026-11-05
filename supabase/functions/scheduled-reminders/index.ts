@@ -7,6 +7,8 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 const ALLOWED_ORIGINS = [
   'https://busmoov.com',
   'https://www.busmoov.com',
+  'https://www.busmoovlyon.fr', // microsite Lyon (formulaire de devis)
+  'https://busmoovlyon.fr',
   'http://localhost:5173',
   'http://localhost:3000',
 ]

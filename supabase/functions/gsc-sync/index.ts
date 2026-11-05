@@ -21,6 +21,8 @@ const GSC_ENDPOINT = `https://www.googleapis.com/webmasters/v3/sites/${encodeURI
 const ALLOWED_ORIGINS = [
   'https://busmoov.com',
   'https://www.busmoov.com',
+  'https://www.busmoovlyon.fr', // microsite Lyon (formulaire de devis)
+  'https://busmoovlyon.fr',
   'https://busmoov.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',

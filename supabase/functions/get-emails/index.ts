@@ -5,6 +5,8 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 const ALLOWED_ORIGINS = [
   'https://busmoov.com',
   'https://www.busmoov.com',
+  'https://www.busmoovlyon.fr', // microsite Lyon (formulaire de devis)
+  'https://busmoovlyon.fr',
   'https://busmoov.fr',
   'https://www.busmoov.fr',
   'http://localhost:5173',
