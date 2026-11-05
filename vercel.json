@@ -3,28 +3,6 @@
   "trailingSlash": false,
   "redirects": [
     {
-      "source": "/robots.txt",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.busmoovlyon.fr"
-        }
-      ],
-      "destination": "/sites/lyon-robots.txt",
-      "statusCode": 308
-    },
-    {
-      "source": "/sitemap.xml",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.busmoovlyon.fr"
-        }
-      ],
-      "destination": "/sites/lyon-sitemap.xml",
-      "statusCode": 308
-    },
-    {
       "source": "/:path*",
       "has": [
         {
