@@ -337,8 +337,14 @@ REVOKE EXECUTE ON FUNCTION public.ma_fonction() FROM anon;
 ### Déploiement Edge Functions
 ```bash
 npx supabase login   # requis : les déploiements ne sont pas anonymes
-npx supabase functions deploy <nom> --project-ref rsxfmokwmwujercgpnfu
+npx supabase functions deploy <nom> --project-ref rsxfmokwmwujercgpnfu --yes
 ```
+
+Depuis le CLI de novembre 2026, toute action sur le projet distant demande une
+confirmation : `--yes` pour déployer ou écrire (`db query --yes`), `--read-only`
+pour une lecture (`db query --read-only "select …"`). Sans ces flags, la commande
+échoue avec `HostedMutationConsentRequiredError` sans rien faire. Ne pas oublier
+`--no-verify-jwt` pour les fonctions appelées par pg_cron ou par jeton (voir plus haut).
 
 **Ordres de déploiement à respecter** — certains changements créent une
 dépendance entre le front et les fonctions, ou entre fonctions :
