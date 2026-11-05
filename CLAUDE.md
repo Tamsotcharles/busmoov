@@ -439,6 +439,7 @@ formulaire de devis identique (création via `create-dossier`, origine
 
 - Détection par hôte dans `src/App.tsx` (`detectMicrosite`, `src/lib/microsite.ts`) :
   quel que soit le chemin, le microsite rend sa page unique.
+- `middleware.ts` (Edge Middleware, `@vercel/edge`) réécrit par hôte `/`, `/robots.txt` et `/sitemap.xml` vers `dist/sites/` **avant** le système de fichiers (les rewrites de vercel.json passent après les fichiers statiques : `/` servait l'index national).
 - Vercel (`vercel.json`) : rewrites conditionnés à l'hôte vers `/sites/<ville>`
   (HTML prérendu par `scripts/prerender.mjs` dans `dist/sites/`, avec
   `<ville>-robots.txt` et `<ville>-sitemap.xml`) ; hôte canonique `www.` (l'apex redirige vers www, comme busmoov.com) ;
