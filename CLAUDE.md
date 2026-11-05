@@ -441,7 +441,7 @@ formulaire de devis identique (création via `create-dossier`, origine
   quel que soit le chemin, le microsite rend sa page unique.
 - Vercel (`vercel.json`) : rewrites conditionnés à l'hôte vers `/sites/<ville>`
   (HTML prérendu par `scripts/prerender.mjs` dans `dist/sites/`, avec
-  `<ville>-robots.txt` et `<ville>-sitemap.xml`) ; `www.` redirigé vers l'apex ;
+  `<ville>-robots.txt` et `<ville>-sitemap.xml`) ; hôte canonique `www.` (l'apex redirige vers www, comme busmoov.com) ;
   `/sites/*` sur le site principal redirigé vers le microsite.
 - Mise en service d'un domaine : l'ajouter au projet Vercel (apex + www), DNS
   chez le registrar (A 76.76.21.21 ou CNAME selon Vercel), propriété Search

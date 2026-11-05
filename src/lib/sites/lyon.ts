@@ -8,7 +8,7 @@ import type { TableauSeo } from '../blog'
 
 export const lyonSite = {
   domaine: 'busmoovlyon.fr',
-  url: 'https://busmoovlyon.fr/',
+  url: 'https://www.busmoovlyon.fr/',
   titre: 'Location d\'autocar avec chauffeur à Lyon : devis en 24h | Busmoov Lyon',
   description: 'Autocar, bus et minibus avec chauffeur à Lyon et dans le Rhône : transferts Saint-Exupéry et Part-Dieu, stations de ski, séminaires, sorties scolaires. Transporteurs lyonnais vérifiés, jusqu\'à 3 devis gratuits sous 24h.',
   h1: 'Location d\'autocar avec chauffeur à Lyon',

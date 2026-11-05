@@ -7,10 +7,10 @@
       "has": [
         {
           "type": "host",
-          "value": "www.busmoovlyon.fr"
+          "value": "busmoovlyon.fr"
         }
       ],
-      "destination": "https://busmoovlyon.fr/:path*",
+      "destination": "https://www.busmoovlyon.fr/:path*",
       "statusCode": 301
     },
     {
@@ -21,7 +21,7 @@
           "value": "www.busmoov.com"
         }
       ],
-      "destination": "https://busmoovlyon.fr/",
+      "destination": "https://www.busmoovlyon.fr/",
       "statusCode": 301
     },
     {
@@ -429,7 +429,7 @@
       "has": [
         {
           "type": "host",
-          "value": "busmoovlyon.fr"
+          "value": "www.busmoovlyon.fr"
         }
       ],
       "destination": "/sites/lyon-robots.txt"
@@ -439,7 +439,7 @@
       "has": [
         {
           "type": "host",
-          "value": "busmoovlyon.fr"
+          "value": "www.busmoovlyon.fr"
         }
       ],
       "destination": "/sites/lyon-sitemap.xml"
@@ -449,7 +449,7 @@
       "has": [
         {
           "type": "host",
-          "value": "busmoovlyon.fr"
+          "value": "www.busmoovlyon.fr"
         }
       ],
       "destination": "/sites/lyon"
