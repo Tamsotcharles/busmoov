@@ -9,6 +9,7 @@ import { parisIntl } from '../src/lib/paris-intl.ts'
 import { villes, villesMaillees, aLaVille, deLaVille } from '../src/lib/villes.ts'
 import { articles, articlesSimilaires } from '../src/lib/blog.ts'
 import { lyonSite } from '../src/lib/sites/lyon.ts'
+import { lyonGuides } from '../src/lib/sites/lyon-guides.ts'
 import { landings } from '../src/lib/landings.ts'
 import { maillageServices } from '../src/lib/maillage.ts'
 import { sortiesScolairesFr } from '../src/lib/sorties-scolaires.ts'
@@ -165,6 +166,19 @@ const mdInline = (t) =>
     })
     .join('')
 const ulMd = (items) => `<ul class="list-disc pl-6 mb-3">${items.map((i) => `<li>${mdInline(i)}</li>`).join('')}</ul>`
+// Variante sans préfixe /fr : microsites (une seule langue, chemins tels quels).
+const mdInlineRaw = (t) =>
+  t.split(/(\[[^\]]+\]\([^)]+\))/g)
+    .map((part) => {
+      const m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+      if (!m) return esc(part)
+      return /^https?:\/\//.test(m[2])
+        ? `<a class="text-magenta underline" href="${esc(m[2])}" target="_blank" rel="noopener">${esc(m[1])}</a>`
+        : `<a class="text-magenta underline" href="${esc(m[2])}">${esc(m[1])}</a>`
+    })
+    .join('')
+const pMdRaw = (t) => `<p class="text-gray-700 mb-3">${mdInlineRaw(t)}</p>`
+const ulMdRaw = (items) => `<ul class="list-disc pl-6 mb-3">${items.map((i) => `<li>${mdInlineRaw(i)}</li>`).join('')}</ul>`
 const img = (i) => (i ? `<img src="${i.src}" alt="${esc(i.alt)}" width="${i.width}" height="${i.height}" class="w-full h-auto rounded-2xl my-6"/>` : '')
 const pMd = (t) => `<p class="text-gray-700 mb-3">${mdInline(t)}</p>`
 const h1 = (t) => `<h1 class="text-3xl font-bold mb-4">${esc(t)}</h1>`
@@ -863,7 +877,45 @@ ${articles.map((a) => `- [${a.titre}](${BASE_URL}/fr/blog/${a.slug}) : ${a.extra
   mkdirSync(join(DIST, 'sites'), { recursive: true })
   writeFileSync(join(DIST, 'sites', 'lyon.html'), html)
   writeFileSync(join(DIST, 'sites', 'lyon-robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${L.url}sitemap.xml\n`)
-  writeFileSync(join(DIST, 'sites', 'lyon-sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${L.url}</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>\n</urlset>\n`)
+  // Guides du microsite (/guides/<slug>)
+  mkdirSync(join(DIST, 'sites', 'lyon', 'guides'), { recursive: true })
+  for (const g of lyonGuides) {
+    const gUrl = `${L.url}guides/${g.slug}`
+    const gHead =
+      `<link rel="canonical" href="${gUrl}"/>\n` +
+      `<meta property="og:title" content="${esc(g.metaTitle)}"/>\n` +
+      `<meta property="og:description" content="${esc(g.metaDescription)}"/>\n` +
+      `<meta property="og:url" content="${gUrl}"/>\n` +
+      `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'Article', headline: g.titre, description: g.metaDescription, datePublished: g.datePublication, author: { '@type': 'Organization', name: 'Busmoov Lyon' }, publisher: { '@type': 'Organization', name: 'Busmoov', url: BASE_URL }, mainEntityOfPage: gUrl })}</script>\n`
+    const gBody = wrap(
+      h1(g.titre) +
+      g.blocks.map((b) => {
+        switch (b.type) {
+          case 'h2': return h2(b.text)
+          case 'h3': return `<h3 class="font-semibold mt-3">${esc(b.text)}</h3>`
+          case 'p': return pMdRaw(b.text)
+          case 'callout': return pMdRaw(b.text)
+          case 'ul': return ulMdRaw(b.items)
+          case 'table': return tableau(b)
+          default: return ''
+        }
+      }).join('') +
+      h2('À lire aussi') +
+      `<ul class="list-disc pl-6 mb-3">${lyonGuides.filter((o) => o.slug !== g.slug).map((o) => `<li><a class="text-magenta underline" href="/guides/${o.slug}">${esc(o.titre)}</a></li>`).join('')}</ul>` +
+      `<p class="mb-3"><a class="text-magenta underline" href="/">Demander un devis autocar à Lyon</a></p>`
+    )
+    const gHtml = template
+      .replace(/<html lang="[^"]*"/, '<html lang="fr"')
+      .replace(/<title>[\s\S]*?<\/title>/, `<title>${esc(g.metaTitle)}</title>`)
+      .replace(/(<meta name="description" content=")[^"]*(")/, `$1${esc(g.metaDescription)}$2`)
+      .replace('</head>', `${gHead}</head>`)
+      .replace('<div id="root"></div>', `<div id="root">${gBody}</div>`)
+    writeFileSync(join(DIST, 'sites', 'lyon', 'guides', `${g.slug}.html`), gHtml)
+    count++
+  }
+  const urls = [`  <url><loc>${L.url}</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>`]
+    .concat(lyonGuides.map((g) => `  <url><loc>${L.url}guides/${g.slug}</loc><lastmod>${g.datePublication}</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>`))
+  writeFileSync(join(DIST, 'sites', 'lyon-sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`)
   count++
 }
 

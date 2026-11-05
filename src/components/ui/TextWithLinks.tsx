@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useLocalizedPath } from '@/components/i18n'
+import { isMicrositeHost } from '@/lib/microsite'
 
 /**
  * Rend un texte contenant des liens en syntaxe markdown [ancre](/chemin).
@@ -25,7 +26,7 @@ export function TextWithLinks({ text, className, as: Tag = 'p' }: { text: string
         }
         if (m) {
           return (
-            <Link key={i} to={localizedPath(m[2])} className="text-magenta hover:underline">
+            <Link key={i} to={isMicrositeHost() ? m[2] : localizedPath(m[2])} className="text-magenta hover:underline">
               {m[1]}
             </Link>
           )

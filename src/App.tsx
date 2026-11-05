@@ -39,6 +39,7 @@ const LandingSeoPage = lazy(() => import('@/pages/LandingSeoPage').then((m) => (
 const ChateauxLoirePage = lazy(() => import('@/pages/ChateauxLoirePage').then((m) => ({ default: m.ChateauxLoirePage })))
 const ParisIntlPage = lazy(() => import('@/pages/villes/ParisIntlPage').then((m) => ({ default: m.ParisIntlPage })))
 const BlogArticlePage = lazy(() => import('@/pages/blog/BlogArticlePage').then((m) => ({ default: m.BlogArticlePage })))
+const LyonGuidePage = lazy(() => import('@/pages/sites/LyonGuidePage').then((m) => ({ default: m.LyonGuidePage })))
 const LyonSitePage = lazy(() => import('@/pages/sites/LyonSitePage').then((m) => ({ default: m.LyonSitePage })))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 
@@ -245,8 +246,12 @@ export default function App() {
   if (microsite === 'lyon') {
     return (
       <BrowserRouter>
+        <ScrollToTop />
         <Suspense fallback={<RouteFallback />}>
-          <LyonSitePage />
+          <Routes>
+            <Route path="/guides/:slug" element={<LyonGuidePage />} />
+            <Route path="*" element={<LyonSitePage />} />
+          </Routes>
         </Suspense>
       </BrowserRouter>
     )

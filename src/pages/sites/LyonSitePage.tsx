@@ -4,6 +4,8 @@ import { MultiStepQuoteForm } from '@/components/forms/MultiStepQuoteForm'
 import { TableauSeo } from '@/components/ui/TableauSeo'
 import { lyonSite as s } from '@/lib/sites/lyon'
 import { MAIN_SITE_URL } from '@/lib/microsite'
+import { lyonGuides } from '@/lib/sites/lyon-guides'
+import { Link } from 'react-router-dom'
 
 /**
  * Page unique du microsite busmoovlyon.fr. Pas de Header/Footer du site
@@ -102,6 +104,18 @@ export function LyonSitePage() {
                 <h3 className="font-semibold mb-1">{f.q}</h3>
                 <p className="text-sm text-gray-600">{f.a}</p>
               </div>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="font-display text-2xl font-bold text-purple-dark mb-4">Nos guides pour organiser votre transport à Lyon</h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {lyonGuides.map((g) => (
+              <Link key={g.slug} to={`/guides/${g.slug}`} className="card hover:border-magenta transition-colors">
+                <h3 className="font-semibold text-purple-dark mb-1">{g.titre}</h3>
+                <p className="text-sm text-gray-600">{g.extrait}</p>
+              </Link>
             ))}
           </div>
         </section>
