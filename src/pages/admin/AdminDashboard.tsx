@@ -149,6 +149,7 @@ import { ExperimentsPage } from '@/components/admin/ExperimentsPage'
 import { TestRunnerPage } from '@/components/admin/TestRunnerPage'
 import { ReviewsPage } from '@/components/admin/ReviewsPage'
 import { FlaskConical, TestTube2, Star, Globe, FileCode } from 'lucide-react'
+import { LeadSourceBadge } from '@/components/admin/LeadSourceBadge'
 import type { DossierWithRelations } from '@/types/database'
 
 type Page = 'dashboard' | 'dossiers' | 'devis' | 'exploitation' | 'factures' | 'transporteurs' | 'clients' | 'workflow' | 'templates' | 'email-history' | 'messages' | 'service-client' | 'reviews' | 'stats' | 'seo' | 'calendrier' | 'departs' | 'settings'
@@ -2101,6 +2102,7 @@ function DossierRow({ dossier, onView, statutEffectif, etatFrs, hasAutoDevis, on
       <td className="px-4 py-3">
         <div className="font-medium">{dossier.client_name}</div>
         <div className="text-xs text-gray-500">{dossier.client_company || dossier.client_email}</div>
+        <LeadSourceBadge source={dossier.demande?.source} compact className="mt-1" />
       </td>
       <td className="px-4 py-3">
         <DossierBadges dossier={dossier} statutEffectif={statutEffectif} hasAutoDevis={hasAutoDevis} onCancelAutoDevis={onCancelAutoDevis} />
@@ -2208,6 +2210,7 @@ function DossierCard({ dossier, onSelect, onViewDevis, hasAutoDevis, onCancelAut
           </div>
           <div className="font-medium text-gray-900">{dossier.client_name}</div>
           <div className="text-sm text-gray-500">{dossier.client_email}</div>
+          <LeadSourceBadge source={dossier.demande?.source} compact className="mt-1" />
           {dossier.created_at && (
             <div className="text-xs text-gray-400 mt-1">
               Reçue le {formatDate(dossier.created_at)}
@@ -5808,6 +5811,10 @@ L'équipe Busmoov`
                   )}
                 </div>
               )}
+            </div>
+            <div>
+              <label className="label">Origine du lead</label>
+              <LeadSourceBadge source={dossier.demande?.source} />
             </div>
           </div>
         </div>

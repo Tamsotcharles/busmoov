@@ -118,7 +118,8 @@ export function useDossiers(filters?: {
           transporteur:transporteurs(*),
           contrats(*),
           paiements:paiements(*),
-          devis(*)
+          devis(*),
+          demande:demandes(source)
         `)
         .order('departure_date', { ascending: true })
 
@@ -179,7 +180,8 @@ export function useDossier(id: string) {
           voyage_info:voyage_infos(*),
           devis(*),
           contrats(*),
-          messages(*)
+          messages(*),
+          demande:demandes(source)
         `)
         .eq('id', id)
         .single()

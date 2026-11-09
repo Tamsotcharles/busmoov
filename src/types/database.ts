@@ -2098,6 +2098,8 @@ export type DossierWithRelations = Dossier & {
   messages?: Message[]
   voyage_info?: VoyageInfo | null
   demandes_fournisseurs?: DemandeFournisseurWithTransporteur[]
+  /** Origine du lead (`demandes.source`), jointe par useDossiers / useDossier. */
+  demande?: { source: string | null } | null
 }
 
 export type DevisWithRelations = Devis & {
