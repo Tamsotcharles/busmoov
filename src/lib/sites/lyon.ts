@@ -9,13 +9,13 @@ import type { TableauSeo } from '../blog'
 export const lyonSite = {
   domaine: 'busmoovlyon.fr',
   url: 'https://www.busmoovlyon.fr/',
-  titre: 'Location d\'autocar avec chauffeur à Lyon : devis en 24h | Busmoov Lyon',
-  description: 'Autocar, bus et minibus avec chauffeur à Lyon et dans le Rhône : transferts Saint-Exupéry et Part-Dieu, stations de ski, séminaires, sorties scolaires. Transporteurs lyonnais vérifiés, jusqu\'à 3 devis gratuits sous 24h.',
+  titre: 'Location d\'autocar à Lyon avec chauffeur | Busmoov Lyon',
+  description: 'Autocar et minibus avec chauffeur à Lyon et dans le Rhône : aéroport, ski, séminaires, sorties scolaires. Jusqu\'à 3 devis de transporteurs lyonnais sous 24h.',
   h1: 'Location d\'autocar avec chauffeur à Lyon',
   sousTitre: 'Transporteurs lyonnais vérifiés, prix ferme chauffeur et péages inclus, jusqu\'à 3 devis comparés sous 24h.',
   telephone: '01 76 31 12 83',
   telephoneHref: '+33176311283',
-  miseAJour: '2026-11-05',
+  miseAJour: '2026-11-11',
   definition: 'Busmoov Lyon est le service de réservation d\'autocar, de bus et de minibus avec chauffeur de la métropole lyonnaise et du Rhône : une seule demande, jusqu\'à trois devis de transporteurs lyonnais vérifiés sous 24h, prix TTC ferme avec chauffeur, carburant et péages inclus.',
   enBref: {
     h2: 'En bref',
@@ -29,7 +29,6 @@ export const lyonSite = {
   },
   sameAs: [
     'https://www.busmoov.com/fr',
-    'https://www.busmoov.com/fr/location-autocar/lyon',
     'https://www.google.com/maps?cid=6091156828919762071',
   ],
   intro: [
@@ -77,10 +76,10 @@ export const lyonSite = {
   },
   faq: [
     { q: 'Vos transporteurs sont-ils basés à Lyon ?', a: 'Oui. Pour un départ de la métropole, nous ne sollicitons que des transporteurs du Rhône et des départements limitrophes, ce qui évite les frais d\'approche d\'un car venant de loin et garantit un chauffeur qui connaît la ville.' },
-    { q: 'Un autocar peut-il entrer dans la presqu\'île et le Vieux Lyon ?', a: 'Les cars déposent sur les quais et aux abords, pas dans les rues piétonnes. Le jour de la Fête des Lumières, la presqu\'île est fermée aux véhicules : dépose aux parkings relais et fin de trajet en métro. Le chauffeur connaît les dispositifs.' },
-    { q: 'La zone à faibles émissions de Lyon s\'applique-t-elle aux autocars ?', a: 'Oui, la ZFE de la métropole impose une vignette Crit\'Air récente aux véhicules lourds. Nos transporteurs partenaires y roulent tous les jours avec des véhicules conformes ; vous n\'avez rien à gérer.' },
+    { q: 'Un autocar peut-il entrer dans la presqu\'île et le Vieux Lyon ?', a: 'Les cars déposent sur les quais et aux abords, pas dans les rues piétonnes. Pendant les soirées de la Fête des Lumières, le centre est largement réservé aux piétons : dépose en périphérie et fin de trajet en métro ou à pied, selon le dispositif publié chaque année par la Ville. Le chauffeur connaît ces points de dépose.' },
+    { q: 'La zone à faibles émissions de Lyon s\'applique-t-elle aux autocars ?', a: 'Oui : la zone à faibles émissions de la Métropole de Lyon restreint la circulation des véhicules selon leur vignette Crit\'Air, poids lourds et autocars compris. Les règles en vigueur sont publiées sur le site zfe.grandlyon.com. Nos transporteurs partenaires y circulent avec des véhicules conformes ; vous n\'avez rien à gérer.' },
     { q: 'Combien coûte un transfert entre Saint-Exupéry et le centre de Lyon pour un groupe ?', a: 'Un aller simple démarre à 350 € TTC en minibus et à 400 € TTC en autocar standard, chauffeur et péages inclus, selon l\'horaire et le point de dépose. Donnez le numéro de vol : le chauffeur attend en zone autocars et suit un retard éventuel.' },
-    { q: 'Faut-il deux chauffeurs pour aller en station de ski ?', a: 'Pas depuis Lyon pour une journée ou un transfert : Val d\'Isère, Les Arcs ou l\'Alpe d\'Huez sont à moins de trois heures. Un second chauffeur ne s\'impose que si la journée dépasse 12 heures d\'amplitude, par exemple un aller-retour dans la journée avec attente sur place très longue.' },
+    { q: 'Faut-il deux chauffeurs pour aller en station de ski ?', a: 'Pour un transfert simple, non : un chauffeur suffit. Pour une journée aller-retour, tout dépend de la station. Comptez en car environ 2 h 15 jusqu\'à Chamrousse, 2 h 45 jusqu\'à l\'Alpe d\'Huez, 3 h 15 jusqu\'aux Arcs et 3 h 45 jusqu\'à Val d\'Isère. Or le code des transports limite la journée du chauffeur à 14 heures pour un service occasionnel, et la conduite à 9 heures par jour : une journée à Val d\'Isère ou à Tignes atteint ces limites, et le transporteur prévoit alors un second chauffeur ou un horaire resserré.' },
     { q: 'Quel délai pour réserver ?', a: 'Deux à trois semaines suffisent hors saison. Pour un samedi de mai ou juin, les vacances de février ou le week-end de la Fête des Lumières, visez six à huit semaines : les cars lyonnais partent vite.' },
   ],
 }

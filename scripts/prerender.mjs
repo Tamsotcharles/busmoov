@@ -920,7 +920,7 @@ const fmtDateFr = (iso) => new Date(`${iso}T12:00:00Z`).toLocaleDateString('fr-F
     count++
   }
   const urls = [`  <url><loc>${L.url}</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>`]
-    .concat(lyonGuides.map((g) => `  <url><loc>${L.url}guides/${g.slug}</loc><lastmod>${g.datePublication}</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>`))
+    .concat(lyonGuides.map((g) => `  <url><loc>${L.url}guides/${g.slug}</loc><lastmod>${g.dateMiseAJour ?? g.datePublication}</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>`))
   const lyonLlms = `# Busmoov Lyon
 
 > ${L.definition}
