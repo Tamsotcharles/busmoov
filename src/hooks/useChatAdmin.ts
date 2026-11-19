@@ -292,7 +292,8 @@ export function useLatestUnreadClientMessage() {
         .order('created_at', { ascending: false })
         .limit(1)
       if (error) throw error
-      const row = data?.[0] as
+      // La relation messages → dossiers n'est pas dans les types générés : passage par unknown
+      const row = data?.[0] as unknown as
         | { id: string; content: string; created_at: string | null; dossier_id: string | null; devis_id: string | null; dossier: { reference: string; client_name: string } | { reference: string; client_name: string }[] | null }
         | undefined
       if (!row || !row.dossier_id) return null
