@@ -1415,6 +1415,122 @@ export const landings: Landing[] = [
     ],
     serviceType: 'Location d\'autocar pour BDE et associations étudiantes',
   },
+  {
+    slug: '/location-autocar-mariage',
+    metaTitle: 'Location autocar mariage : navettes invités et prix | Busmoov',
+    metaDescription: 'Autocar ou minibus avec chauffeur pour votre mariage : navettes entre cérémonie, réception et hôtels, retours de nuit. Dès 600 €, devis gratuit sous 24h.',
+    h1: 'Location d\'autocar pour un mariage : la navette des invités avec chauffeur',
+    sousTitre: 'Navettes entre la mairie, la cérémonie, la salle de réception et les hôtels, départs de fin de soirée compris : des transporteurs vérifiés et jusqu\'à 3 devis gratuits sous 24h.',
+    intro: [
+      'La location d\'un autocar avec chauffeur pour un mariage coûte à partir de 600 € TTC en minibus et 700 € TTC en autocar pour une navette locale aller-retour, chauffeur, carburant et péages inclus. Le car assure l\'accueil et le transport des invités entre la mairie, l\'église, la salle de réception et les hôtels, attend sur place et ramène tout le monde en fin de soirée : personne ne conduit après la fête. Busmoov compare pour vous les devis gratuits de transporteurs vérifiés, du minibus 8 places à l\'autocar grand tourisme de 90 places.',
+      'En France, 251 000 mariages ont été célébrés en 2025 selon l\'[Insee](https://www.insee.fr/fr/statistiques/8719824). Pour beaucoup, il faut faire venir puis repartir des dizaines d\'invités d\'un domaine mal desservi par les transports en commun, souvent tard le soir : c\'est le rôle d\'une navette de mariage.',
+    ],
+    sections: [
+      {
+        h2: 'Pourquoi organiser une navette pour les invités',
+        paragraphes: [
+          'D\'abord pour la sécurité : en 2024, l\'alcool est présent dans 48 % des accidents mortels de nuit, et dans 62 % les nuits de week-end. Or 82 % des mariages sont célébrés un samedi, selon l\'Insee.',
+        ],
+        liste: [
+          'Personne ne prend le volant après le champagne, ni les invités, ni les mariés.',
+          'Le parking du domaine reste dégagé : un autocar remplace une vingtaine de voitures.',
+          'Un mariage en autocar, c\'est la ponctualité : les invités arrivent ensemble et à l\'heure.',
+          'Les invités venus en train ou par l\'aéroport profitent d\'un transfert organisé, sans louer de voiture.',
+        ],
+      },
+      {
+        h2: 'Prix et tarif d\'un autocar pour un mariage',
+        paragraphes: [
+          'Le tarif dépend de la distance entre les lieux, de l\'amplitude horaire du conducteur (de sa prise de service à la dernière navette) et du nombre de véhicules.',
+          'Ramené aux invités, le coût pèse peu dans le budget du mariage : un autocar de 50 places à 700 € revient à 14 € par personne transportée. Notre [guide des prix de location d\'autocar](/blog/prix-location-autocar) détaille ce qui fait varier un devis.',
+        ],
+        tableau: {
+          caption: 'Prix de départ indicatifs 2026 pour un mariage, TTC, chauffeur, carburant et péages inclus, par véhicule',
+          headers: ['Formule', 'Minibus 8-20 places', 'Autocar 21-59 places', 'Grande capacité 60-90 places'],
+          rows: [
+            ['Transfert simple (gare, hôtel ou mairie vers le domaine)', 'à partir de 350 €', 'à partir de 400 €', 'à partir de 500 €'],
+            ['Navette aller-retour locale, cérémonie et soirée', 'à partir de 600 €', 'à partir de 700 €', 'à partir de 800 €'],
+            ['Journée avec trajets régionaux (lieux éloignés de plus d\'une heure)', 'à partir de 900 €', 'à partir de 1 000 €', 'à partir de 1 200 €'],
+            ['Mariage sur deux jours (navettes du samedi et brunch du dimanche)', 'à partir de 1 600 €', 'à partir de 1 800 €', 'sur devis'],
+          ],
+        },
+      },
+      {
+        h2: 'Location autocar mariage : ce qui est inclus',
+        paragraphes: [
+          'Le devis comprend le véhicule, le chauffeur professionnel, le carburant, les péages et l\'assurance. Le jour du mariage, le conducteur suit l\'itinéraire et le programme prévus, attend entre les étapes et assure les rotations à l\'horaire convenu. Restent à prévoir le stationnement payant éventuel et, sur deux jours, le repas et l\'hébergement du conducteur.',
+          'Côté confort des invités, les autocars récents ont la climatisation, des sièges spacieux et inclinables, une soute pour les bagages et, selon le modèle, des prises USB ou le Wi-Fi. Pour plus de confort et un voyage haut de gamme, demandez un autocar grand tourisme. La décoration de l\'autocar (rubans, fleurs) est généralement acceptée si elle ne gêne ni la visibilité ni les portes : signalez-la dans la demande. Notre équipe vérifie que le type de véhicule est adapté au domaine, et un wedding planner chargé de la coordination de l\'événement peut faire la réservation à votre place.',
+        ],
+      },
+      {
+        h2: 'Les formules de navette mariage les plus demandées',
+        liste: [
+          'L\'aller groupé : transfert depuis un ou deux points (hôtel, gare, centre-ville) vers la cérémonie puis la salle de réception.',
+          'La mise à disposition sur la journée : mairie, église ou cérémonie laïque, vin d\'honneur, domaine, avec un car qui attend entre chaque étape.',
+          'Les rotations de fin de soirée : deux ou trois départs échelonnés vers les hôtels, pour que chacun parte à son rythme.',
+          'Le duo autocar et minibus : l\'autocar pour le gros des invités, un minibus pour les derniers départs ou pour les mariés.',
+          'Le week-end complet : navettes du samedi et déplacement du dimanche pour le brunch.',
+        ],
+      },
+      {
+        h2: 'Les départs de fin de soirée et le temps de travail du chauffeur',
+        paragraphes: [
+          'C\'est le point qui fait le prix. En plus des temps de conduite, le code des transports limite la journée d\'un conducteur d\'autocar à 14 heures, de sa prise à sa fin de service, pour un service occasionnel. Un chauffeur qui prend les invités à 14 h doit donc avoir terminé sa dernière rotation vers 4 h du matin, trajet jusqu\'au dépôt compris.',
+          'Si la fête se prolonge, il faut un second conducteur, un second véhicule réservé aux départs tardifs, ou une dernière navette fixée à un horaire précis. Cet horaire conditionne toute l\'organisation : indiquez-le dans votre demande, il est chiffré dès le devis, sans supplément le jour J.',
+        ],
+      },
+      {
+        h2: 'Quel véhicule selon le nombre d\'invités',
+        paragraphes: [
+          'Tous les invités ne prennent pas la navette : comptez les personnes réellement transportées, pas la liste d\'invités.',
+          'Au-delà de 9 places, conducteur compris, le permis B ne suffit pas : louer un bus de 20 places exige un conducteur titulaire du permis D. C\'est pourquoi nous ne proposons que des bus avec chauffeur.',
+        ],
+        tableau: {
+          caption: 'Choisir le véhicule selon le nombre de passagers',
+          headers: ['Passagers', 'Véhicule conseillé'],
+          rows: [
+            ['Jusqu\'à 19', 'Minibus 20 places avec chauffeur'],
+            ['20 à 59', 'Autocar standard ou grand tourisme'],
+            ['60 à 90', 'Autocar grande capacité ou deux véhicules coordonnés'],
+            ['Plus de 90', 'Plusieurs autocars, avec des rotations décalées'],
+          ],
+        },
+      },
+      {
+        h2: 'Quand réserver et quoi vérifier sur le lieu',
+        paragraphes: [
+          '59 % des mariages sont célébrés entre juin et septembre, et 82 % un samedi, selon l\'Insee : les samedis d\'été, les transporteurs sont pris d\'assaut. Demandez vos devis dès que la date et les lieux sont fixés, au plus tard six mois avant pour un samedi d\'été.',
+        ],
+        liste: [
+          'L\'accès : une allée étroite, un portail bas ou un chemin en terre peuvent interdire l\'autocar. Envoyez l\'adresse exacte, le transporteur vérifie et propose un [minibus 20 places](/location-minibus-20-places) si besoin.',
+          'Le stationnement : le car doit pouvoir attendre sur place ou à proximité pendant la soirée.',
+          'Les rendez-vous : une adresse précise pour chaque prise en charge et un invité référent joignable par le conducteur.',
+        ],
+      },
+      {
+        h2: 'Transport mariage : nos navettes dans votre région',
+        paragraphes: [
+          'Nos transporteurs partenaires assurent le transport de groupe et la location de bus pour les mariages partout en France, notamment autour de [Paris](/location-autocar/paris) et de l\'Île-de-France, de [Bordeaux](/location-autocar/bordeaux) et ses vignobles, [Toulouse](/location-autocar/toulouse), [Montpellier](/location-autocar/montpellier), [Marseille](/location-autocar/marseille) et la Provence, [Lyon](/location-autocar/lyon) et le Beaujolais, et [Nantes](/location-autocar/nantes). Pour les plus grands mariages, voyez aussi l\'[autocar grande capacité](/location-autocar-grande-capacite).',
+        ],
+      },
+      {
+        h2: 'Votre devis gratuit de bus pour mariage en 24h',
+        paragraphes: [
+          'Pour louer un autocar pour votre mariage, décrivez le déroulé du jour de votre mariage dans le formulaire : lieux, horaires, nombre d\'invités transportés, heure de la dernière navette, décoration éventuelle. Vous recevez jusqu\'à trois devis de transporteurs vérifiés sous 24h, gratuits et sans engagement.',
+        ],
+      },
+      {
+        h2: 'Sources',
+        liste: [
+          'Insee, Bilan démographique 2025, janvier 2026 : nombre de mariages célébrés en 2025.',
+          'Insee Focus n° 225, « Se marier en été est une habitude récente », février 2021 : saisonnalité et jour des mariages (données 2019).',
+          'Observatoire national interministériel de la sécurité routière (ONISR), « Alcool - stupéfiants », bilan 2024 : part de l\'alcool dans les accidents mortels de nuit.',
+        ],
+      },
+    ],
+    faq: [],
+    serviceType: 'Location d\'autocar avec chauffeur pour mariage',
+  },
 ]
 
 export function getLanding(slug: string): Landing | undefined {

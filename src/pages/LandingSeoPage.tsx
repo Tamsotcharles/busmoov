@@ -23,15 +23,17 @@ export function LandingSeoPage({ landing }: { landing: Landing }) {
       url: `${getSiteBaseUrl()}/fr${landing.slug}`,
       provider: { '@type': 'Organization', name: 'Busmoov', url: getSiteBaseUrl() },
     },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: landing.faq.map((f) => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
+    ...(landing.faq.length
+      ? [{
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: landing.faq.map((f) => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+          })),
+        }]
+      : []),
   ]
 
   const atouts = [
@@ -112,20 +114,22 @@ export function LandingSeoPage({ landing }: { landing: Landing }) {
         </section>
       ))}
 
-      {/* FAQ */}
-      <section className={`py-12 ${landing.sections.length % 2 === 1 ? 'bg-gray-50' : ''}`}>
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-center mb-8">Questions fréquentes</h2>
-          <div className="space-y-6">
-            {landing.faq.map((f) => (
-              <div key={f.q} className="card">
-                <h3 className="font-semibold mb-2">{f.q}</h3>
-                <TextWithLinks text={f.a} className="text-sm text-gray-600 leading-relaxed" />
-              </div>
-            ))}
+      {/* FAQ (facultative) */}
+      {landing.faq.length > 0 && (
+        <section className={`py-12 ${landing.sections.length % 2 === 1 ? 'bg-gray-50' : ''}`}>
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold text-center mb-8">Questions fréquentes</h2>
+            <div className="space-y-6">
+              {landing.faq.map((f) => (
+                <div key={f.q} className="card">
+                  <h3 className="font-semibold mb-2">{f.q}</h3>
+                  <TextWithLinks text={f.a} className="text-sm text-gray-600 leading-relaxed" />
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* CTA final */}
       <section className="py-12 bg-gray-50">

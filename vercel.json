@@ -397,6 +397,16 @@
       "statusCode": 301
     },
     {
+      "source": "/fr/blog/location-autocar-mariage",
+      "destination": "/fr/location-autocar-mariage",
+      "statusCode": 301
+    },
+    {
+      "source": "/blog/location-autocar-mariage",
+      "destination": "/fr/location-autocar-mariage",
+      "statusCode": 301
+    },
+    {
       "source": "/blog/:path*",
       "destination": "/fr/blog/:path*",
       "statusCode": 301
@@ -444,6 +454,11 @@
     {
       "source": "/location-bus-30-places",
       "destination": "/fr/location-bus-30-places",
+      "statusCode": 301
+    },
+    {
+      "source": "/location-autocar-mariage",
+      "destination": "/fr/location-autocar-mariage",
       "statusCode": 301
     },
     {
