@@ -548,7 +548,7 @@ export function useMessages(dossierId: string, devisId?: string) {
 export function useSendMessage() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (message: InsertTables<'messages'>) => {
+    mutationFn: async ({ supplierNum, ...message }: InsertTables<'messages'> & { supplierNum?: number | null }) => {
       const { data, error } = await supabase
         .from('messages')
         .insert(message)
@@ -556,14 +556,18 @@ export function useSendMessage() {
         .single()
       if (error) throw error
 
-      // Ajouter une entrée dans la timeline pour le message
+      // Tracer l'échange dans l'historique du dossier (destinataire explicite :
+      // Busmoov = chat général, Fournisseur n°X = transporteur simulé)
       if (data.dossier_id) {
-        const senderLabel = data.sender === 'client' ? 'Client' : data.sender === 'admin' ? 'Admin' : 'Fournisseur'
-        const devisInfo = data.devis_id ? ` (Fournisseur)` : ''
+        const recipient = data.devis_id ? `Fournisseur n°${supplierNum ?? '?'}` : 'Busmoov'
+        const excerpt = data.content.length > 160 ? `${data.content.substring(0, 160)}…` : data.content
+        const label = data.sender === 'client'
+          ? `💬 Chat · message du client à ${recipient} : « ${excerpt} »`
+          : `💬 Chat · réponse au client en tant que ${recipient} : « ${excerpt} »`
         await supabase.from('timeline').insert({
           dossier_id: data.dossier_id,
           type: 'message',
-          content: `💬 ${senderLabel}${devisInfo}: "${data.content.substring(0, 100)}${data.content.length > 100 ? '...' : ''}"`,
+          content: label,
         })
 
         // Créer une notification CRM si c'est un message du client

@@ -90,7 +90,19 @@ La page `ServiceClientelePage.tsx` permet de :
 - Envoyer des relances email individuelles ou en masse
 - Demander les infos chauffeur aux transporteurs
 
-### 3. Demande chauffeur
+### 3. Chat client (page Messages + bloc « Échanges chat » du dossier)
+- Table `messages` : `devis_id` null = le client écrit à **Busmoov** (chat général) ;
+  `devis_id` renseigné = il écrit au **Fournisseur n°X** simulé (l'équipe répond sous ce nom).
+  Le n°X = rang du devis par `created_at` croissant (ordre renvoyé par `get-client-data`).
+- **« À traiter » = message client avec `read_by_admin = false`.** Ouvrir la conversation
+  ne la marque pas lue : seule une réponse ou le bouton « Marquer comme traité » le fait.
+  Le badge du menu Messages compte ces messages.
+- Hooks dans `src/hooks/useChatAdmin.ts` ; vue partagée `ChatConversationView` ;
+  `DossierChatPanel` sur la fiche dossier ; `NewMessageToast` = pop-up global de l'admin
+  (sondage 15 s du dernier message client non traité). Chaque message client et chaque
+  réponse admin écrit une entrée `timeline` de type `message`.
+
+### 4. Demande chauffeur
 Conditions pour envoyer une demande chauffeur :
 1. BPA reçu du transporteur (`bpa_received_at` ou `status = 'bpa_received'`)
 2. Infos voyage validées par le client (`validated_at` dans `voyage_infos`)

@@ -141,6 +141,8 @@ import { canAccessPage, isFullAdminRole, ROLE_LABELS, type AdminRole } from '@/l
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFacturePDFBase64, generateFeuilleRoutePDF, generateFeuilleRoutePDFBase64, generateInfosVoyagePDF, generateInfosVoyagePDFBase64, getCompanyInfo } from '@/lib/pdf'
 import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
+import { NewMessageToast } from '@/components/admin/NewMessageToast'
+import { DossierChatPanel } from '@/components/admin/DossierChatPanel'
 import { ServiceClientelePage } from '@/components/admin/ServiceClientelePage'
 import { SeoPage } from '@/components/admin/SeoPage'
 import { WorkflowPage } from '@/components/admin/WorkflowPage'
@@ -480,6 +482,8 @@ export function AdminDashboard() {
   // Menu filtré selon le rôle (manager : sans Paramètres, Workflow, Templates, Stats, SEO)
   const visibleNavigation = useMemo(() => navigation.filter((n) => canAccessPage(role, n.id)), [role])
   const [currentPage, setCurrentPage] = useState<Page>('dossiers')
+  // Dossier à ouvrir sur la page Messages (pop-up « nouveau message »)
+  const [messagesFocusDossierId, setMessagesFocusDossierId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [transporteurFilter, setTransporteurFilter] = useState('')
@@ -1070,6 +1074,14 @@ export function AdminDashboard() {
           </button>
         </div>
       </aside>
+
+      {/* Pop-up nouveau message client (toutes pages) */}
+      <NewMessageToast
+        onOpen={(dossierId) => {
+          setMessagesFocusDossierId(dossierId)
+          setCurrentPage('messages')
+        }}
+      />
 
       {/* Main Content */}
       <main className="flex-1 ml-56">
@@ -1953,7 +1965,7 @@ export function AdminDashboard() {
 
           {/* Messages Page */}
           {currentPage === 'messages' && (
-            <MessagesPage />
+            <MessagesPage focusDossierId={messagesFocusDossierId} />
           )}
 
           {/* Service Clientèle Page */}
@@ -8253,6 +8265,9 @@ L'équipe Busmoov`,
           </div>
         )}
 
+        {/* Échanges chat avec le client */}
+        <DossierChatPanel dossier={dossier} />
+
         {/* Timeline / Historique */}
         <div className="card p-6">
           <h2 className="font-display text-lg font-semibold text-purple-dark mb-4 flex items-center gap-2">
@@ -8279,6 +8294,7 @@ L'équipe Busmoov`,
                       entry.type === 'email_sent' ? 'bg-cyan-100' :
                       entry.type === 'rappel_created' ? 'bg-orange-100' :
                       entry.type === 'rappel_done' ? 'bg-green-100' :
+                      entry.type === 'message' ? 'bg-amber-100' :
                       'bg-gray-100'
                     )}>
                       {entry.type === 'status_change' && <Clock size={12} className="text-blue-600" />}
@@ -8289,7 +8305,8 @@ L'équipe Busmoov`,
                       {entry.type === 'email_sent' && <Mail size={12} className="text-cyan-600" />}
                       {entry.type === 'rappel_created' && <Bell size={12} className="text-orange-600" />}
                       {entry.type === 'rappel_done' && <BellRing size={12} className="text-green-600" />}
-                      {!['status_change', 'devis_accepted', 'devis_refused', 'devis_unaccepted', 'payment', 'email_sent', 'rappel_created', 'rappel_done'].includes(entry.type) &&
+                      {entry.type === 'message' && <MessageCircle size={12} className="text-amber-600" />}
+                      {!['status_change', 'devis_accepted', 'devis_refused', 'devis_unaccepted', 'payment', 'email_sent', 'rappel_created', 'rappel_done', 'message'].includes(entry.type) &&
                         <History size={12} className="text-gray-600" />}
                     </div>
                     <div>

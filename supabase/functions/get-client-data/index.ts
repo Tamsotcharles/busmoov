@@ -80,7 +80,7 @@ serve(async (req) => {
           .from('devis')
           .select('*, transporteur:transporteurs(name, rating)')
           .eq('dossier_id', dossierId)
-          .order('created_at', { ascending: false })
+          .order('created_at', { ascending: true })
         result = { devis }
         break
 
@@ -144,7 +144,8 @@ serve(async (req) => {
       default:
         const [dossierData, devisData, paiementsData, facturesData, voyageData, contratData] = await Promise.all([
           supabase.from('dossiers').select('*').eq('id', dossierId).single(),
-          supabase.from('devis').select('*, transporteur:transporteurs(name, rating)').eq('dossier_id', dossierId),
+          // Ordre de création : c'est l'ordre d'affichage côté client, donc la numérotation « Fournisseur n°X » du chat
+          supabase.from('devis').select('*, transporteur:transporteurs(name, rating)').eq('dossier_id', dossierId).order('created_at', { ascending: true }),
           supabase.from('paiements').select('*').eq('dossier_id', dossierId),
           supabase.from('factures').select('*, facture_origine:factures!facture_origine_id(reference)').eq('dossier_id', dossierId),
           supabase.from('voyage_infos').select('*').eq('dossier_id', dossierId).single(),

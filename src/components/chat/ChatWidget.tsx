@@ -94,6 +94,7 @@ export function ChatWidget({ dossierId, isClient = true, suppliers = [], externa
         content: msgToSend,
         read_by_client: !isClient,
         read_by_admin: isClient,
+        supplierNum: selectedSupplier?.supplierNum ?? null,
       })
       setMessage('')
 
