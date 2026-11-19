@@ -71,12 +71,15 @@ interface Props {
 /** Fil de messages + zone de réponse + bouton « Traité ». Partagé entre la page Messages et la fiche dossier. */
 export function ChatConversationView({ conversation, messagesClassName, compact = false }: Props) {
   const [draft, setDraft] = useState('')
-  const endRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
   const reply = useAdminReply()
   const markHandled = useMarkConversationHandled()
 
+  // Faire défiler le fil jusqu'au dernier message, sans déplacer la page
+  // (scrollIntoView ferait sauter la fiche dossier jusqu'au bloc chat à l'ouverture).
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'end' })
+    const el = listRef.current
+    if (el) el.scrollTop = el.scrollHeight
   }, [conversation.messages.length, conversation.key])
 
   const send = async () => {
@@ -94,7 +97,7 @@ export function ChatConversationView({ conversation, messagesClassName, compact 
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
-      <div className={cn('flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50', messagesClassName)}>
+      <div ref={listRef} className={cn('flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50', messagesClassName)}>
         {conversation.messages.length === 0 ? (
           <p className="text-center text-sm text-gray-400 py-6">Aucun message</p>
         ) : (
@@ -125,7 +128,6 @@ export function ChatConversationView({ conversation, messagesClassName, compact 
             )
           })
         )}
-        <div ref={endRef} />
       </div>
 
       <div className={cn('border-t border-gray-200 bg-white', compact ? 'p-3' : 'p-4')}>
