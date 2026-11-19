@@ -10,9 +10,11 @@ type Filter = 'a_traiter' | 'toutes'
 interface Props {
   /** Dossier à ouvrir en arrivant (pop-up « nouveau message », lien depuis un dossier). */
   focusDossierId?: string | null
+  /** Ouvre la fiche dossier dans l'admin (même onglet). À défaut, ouverture dans un nouvel onglet. */
+  onOpenDossier?: (dossierId: string) => void
 }
 
-export function MessagesPage({ focusDossierId }: Props) {
+export function MessagesPage({ focusDossierId, onOpenDossier }: Props) {
   const { data: conversations = [], isLoading, refetch, isFetching } = useAllConversations()
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const [filter, setFilter] = useState<Filter>('a_traiter')
@@ -51,6 +53,11 @@ export function MessagesPage({ focusDossierId }: Props) {
   }
 
   const selected = conversations.find((c) => c.key === selectedKey) || null
+
+  const openDossier = (dossierId: string) => {
+    if (onOpenDossier) onOpenDossier(dossierId)
+    else window.open(`/admin?dossierId=${dossierId}`, '_blank', 'noopener')
+  }
 
   const filtered = useMemo(() => {
     let list = filter === 'a_traiter' ? pendingConvs : conversations
@@ -156,19 +163,18 @@ export function MessagesPage({ focusDossierId }: Props) {
             ) : (
               groups.map((group) => (
                 <div key={group.dossierId} className="border-b border-gray-100">
-                  <div className="px-4 py-2 bg-gray-50 flex items-center justify-between gap-2">
-                    <a
-                      href={`/admin?dossierId=${group.dossierId}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-semibold text-sm text-purple-dark hover:text-magenta flex items-center gap-1"
-                      title="Ouvrir le dossier dans un nouvel onglet"
-                    >
+                  <button
+                    type="button"
+                    onClick={() => openDossier(group.dossierId)}
+                    className="w-full px-4 py-2 bg-gray-50 hover:bg-purple-50 flex items-center justify-between gap-2 text-left group"
+                    title="Ouvrir la fiche dossier"
+                  >
+                    <span className="font-semibold text-sm text-purple-dark group-hover:text-magenta underline decoration-dotted underline-offset-2 flex items-center gap-1">
                       {group.dossierRef}
                       <ExternalLink size={12} />
-                    </a>
+                    </span>
                     <span className="text-xs text-gray-500 truncate">{group.clientName}</span>
-                  </div>
+                  </button>
 
                   {group.convs.map((conv) => (
                     <button
@@ -216,9 +222,10 @@ export function MessagesPage({ focusDossierId }: Props) {
                     <ChatStatusBadge status={selected.status} className="bg-white/90" />
                   </h3>
                   <p className="text-sm text-white/80 truncate">
-                    <a href={`/admin?dossierId=${selected.dossierId}`} target="_blank" rel="noreferrer" className="underline hover:text-white">
+                    <button type="button" onClick={() => openDossier(selected.dossierId)} className="underline hover:text-white inline-flex items-center gap-1" title="Ouvrir la fiche dossier">
                       {selected.dossierRef}
-                    </a>
+                      <ExternalLink size={12} />
+                    </button>
                     {' · '}{selected.clientName}{selected.clientEmail ? ` · ${selected.clientEmail}` : ''}
                   </p>
                   <p className="text-xs text-white/70 mt-0.5">

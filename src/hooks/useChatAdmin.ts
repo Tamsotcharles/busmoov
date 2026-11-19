@@ -23,7 +23,7 @@ export interface ChatConversation {
   clientEmail: string
   devisId: string | null
   recipient: ChatRecipient
-  /** Numéro du fournisseur tel que le client le voit (ordre de création des devis). */
+  /** Numéro du fournisseur tel que le client le voit (devis triés par prix TTC croissant). */
   supplierNum: number | null
   transporteurName: string | null
   devisPriceTtc: number | null
@@ -67,8 +67,10 @@ export function buildConversations(
   dossiers: Record<string, DossierInfo>,
   devisList: ChatDevisInfo[],
 ): ChatConversation[] {
-  // Numérotation des fournisseurs : ordre de création des devis du dossier,
-  // identique à l'ordre d'affichage côté client (get-client-data).
+  // Numérotation des fournisseurs : ordre d'affichage côté client (MesDevisPage),
+  // c'est-à-dire prix TTC croissant, puis date de création. Elle peut donc
+  // changer quand un nouveau devis moins cher arrive : c'est le devis (devis_id)
+  // qui identifie la conversation, pas le numéro.
   const devisByDossier = new Map<string, ChatDevisInfo[]>()
   for (const d of devisList) {
     if (!d.dossier_id) continue
@@ -77,7 +79,12 @@ export function buildConversations(
     devisByDossier.set(d.dossier_id, list)
   }
   for (const list of devisByDossier.values()) {
-    list.sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''))
+    list.sort((a, b) => {
+      const pa = a.price_ttc ?? Number.POSITIVE_INFINITY
+      const pb = b.price_ttc ?? Number.POSITIVE_INFINITY
+      if (pa !== pb) return pa - pb
+      return (a.created_at || '').localeCompare(b.created_at || '')
+    })
   }
   const devisById = new Map(devisList.map((d) => [d.id, d]))
 

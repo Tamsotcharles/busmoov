@@ -982,6 +982,9 @@ export function AdminDashboard() {
   }
 
   const hasDashboardFilters = searchQuery || statusFilter || transporteurFilter || voyageDateFrom || voyageDateTo || receptionDateFrom || receptionDateTo || amountMinDashboard || amountMaxDashboard || showOnlyStatsDossiers
+  // Filtres avancés du tableau de bord (dates, montant, tri) : repliés par défaut, ouverts si l'un est actif
+  const [showAdvancedDashboardFilters, setShowAdvancedDashboardFilters] = useState(false)
+  const hasAdvancedDashboardFilters = !!(voyageDateFrom || voyageDateTo || receptionDateFrom || receptionDateTo || amountMinDashboard || amountMaxDashboard || sortBy !== 'reception' || sortOrder !== 'desc')
 
   const handleSelectDossier = (dossier: DossierWithRelations) => {
     setSelectedDossier(dossier)
@@ -1109,176 +1112,103 @@ export function AdminDashboard() {
           {/* Dashboard View */}
           {currentPage === 'dashboard' && (
             <>
-              {/* Search & Filters */}
-              <div className="card p-4 mb-6 space-y-3">
-                {/* Ligne 1: Recherche et filtres principaux */}
-                <div className="flex flex-wrap gap-3 items-center">
-                  <div className="relative flex-1 min-w-64">
-                    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="🔍 Recherche client, dossier, tél, email..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="input pl-10"
-                    />
-                  </div>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="input w-auto"
-                  >
-                    <option value="">Tous statuts</option>
-                    <option value="flash-active">⚡ Offre Flash active</option>
-                    <option value="new">📥 Nouveau</option>
-                    <option value="x-cotation-manuelle">✋ À coter manuellement</option>
-                    <option value="quotes_sent">📤 Devisé</option>
-                    <option value="pending-client">⏳ Att. retour client</option>
-                    <option value="x-pending-payment">💳 Att. paiement</option>
-                    <option value="x-pending-solde">💶 Att. solde</option>
-                    <option value="x-pending-reservation">🔒 Att. résa</option>
-                    <option value="x-pending-info">📝 Att. infos</option>
-                    <option value="x-infos-to-validate">📋 Infos à valider</option>
-                    <option value="x-pending-driver">👨‍✈️ Att. chauffeur</option>
-                    <option value="confirmed">✅ Confirmé</option>
-                    <option value="completed">✅ Terminé</option>
-                    <option value="cancelled">❌ Abandonné</option>
-                    <option value="archived">📦 Archivés (transférés)</option>
-                    <option value="facture-fournisseur-pending">📄 Att. facture fournisseur</option>
-                    <option value="signed-only">📝 Signés uniquement</option>
-                  </select>
-                  <select
-                    value={transporteurFilter}
-                    onChange={(e) => setTransporteurFilter(e.target.value)}
-                    className="input w-auto"
-                  >
-                    <option value="">Tous transporteurs</option>
-                    {transporteurs.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.number} - {t.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Ligne 2: Filtres croisés */}
-                <div className="flex flex-wrap gap-3 items-center">
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm text-gray-500 whitespace-nowrap">Reçue :</label>
-                    <input
-                      type="date"
-                      className="input w-36 text-sm"
-                      value={receptionDateFrom}
-                      onChange={(e) => setReceptionDateFrom(e.target.value)}
-                    />
-                    <span className="text-gray-400">→</span>
-                    <input
-                      type="date"
-                      className="input w-36 text-sm"
-                      value={receptionDateTo}
-                      onChange={(e) => setReceptionDateTo(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm text-gray-500 whitespace-nowrap">Voyage :</label>
-                    <input
-                      type="date"
-                      className="input w-36 text-sm"
-                      value={voyageDateFrom}
-                      onChange={(e) => setVoyageDateFrom(e.target.value)}
-                    />
-                    <span className="text-gray-400">→</span>
-                    <input
-                      type="date"
-                      className="input w-36 text-sm"
-                      value={voyageDateTo}
-                      onChange={(e) => setVoyageDateTo(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm text-gray-500 whitespace-nowrap">Montant :</label>
-                    <input
-                      type="number"
-                      className="input w-24 text-sm"
-                      value={amountMinDashboard}
-                      onChange={(e) => setAmountMinDashboard(e.target.value)}
-                      placeholder="Min €"
-                      min="0"
-                    />
-                    <span className="text-gray-400">-</span>
-                    <input
-                      type="number"
-                      className="input w-24 text-sm"
-                      value={amountMaxDashboard}
-                      onChange={(e) => setAmountMaxDashboard(e.target.value)}
-                      placeholder="Max €"
-                      min="0"
-                    />
-                  </div>
-                </div>
-
-                {/* Ligne 3: Tri et compteur */}
-                <div className="flex flex-wrap gap-3 items-center">
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm text-gray-500 whitespace-nowrap">Trier par :</label>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as 'reception' | 'voyage' | 'amount')}
-                      className="input w-auto text-sm"
-                    >
-                      <option value="reception">Date réception</option>
-                      <option value="voyage">Date voyage</option>
-                      <option value="amount">Montant</option>
-                    </select>
-                    <button
-                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                      className="btn btn-sm btn-secondary"
-                      title={sortOrder === 'asc' ? 'Croissant' : 'Décroissant'}
-                    >
-                      {sortOrder === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    </button>
-                  </div>
-
-                  {hasDashboardFilters && (
-                    <button
-                      onClick={clearDashboardFilters}
-                      className="btn btn-sm btn-secondary text-xs"
-                    >
-                      <X size={14} />
-                      Effacer
+              {/* Pipeline : les 12 compteurs, en une bande compacte (clic = filtre de la liste) */}
+              <div className="card p-3 mb-6">
+                <div className="flex items-center justify-between px-1 mb-2">
+                  <h3 className="text-sm font-medium text-gray-500">Pipeline · cliquer sur une étape pour filtrer la liste</h3>
+                  {statusFilter && (
+                    <button onClick={() => setStatusFilter('')} className="text-xs text-magenta hover:underline">
+                      Tout afficher
                     </button>
                   )}
-
-                  <div className="ml-auto text-sm text-gray-500">
-                    {filteredDossiers.length} dossier{filteredDossiers.length > 1 ? 's' : ''}
-                    {hasDashboardFilters && ` sur ${dossiers.length}`}
-                  </div>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 2xl:grid-cols-12 gap-2">
+                  {statsCards.map((stat, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setStatusFilter(stat.filter)}
+                      className={cn(
+                        "rounded-lg border px-2 py-2 text-left transition-all hover:shadow",
+                        statusFilter === stat.filter
+                          ? "border-magenta bg-magenta/5 ring-1 ring-magenta"
+                          : stat.value > 0 ? "border-gray-200 bg-white" : "border-gray-100 bg-gray-50 text-gray-400"
+                      )}
+                      title={stat.label}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <stat.icon size={14} className={stat.value > 0 ? "text-magenta" : "text-gray-300"} />
+                        <span className={cn("font-display text-lg font-bold leading-none", stat.value > 0 ? "text-purple-dark" : "text-gray-400")}>
+                          {stat.value}
+                        </span>
+                      </div>
+                      <div className="text-[11px] mt-1 truncate">{stat.label}</div>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
-                {statsCards.map((stat, index) => (
-                  <div
-                    key={index}
-                    className={cn(
-                      "card p-4 cursor-pointer hover:shadow-lg transition-all",
-                      statusFilter === stat.filter && "ring-2 ring-magenta"
-                    )}
-                    onClick={() => setStatusFilter(stat.filter)}
-                  >
-                    <div className="text-2xl mb-1">
-                      <stat.icon size={24} className="text-gray-400" />
-                    </div>
-                    <div className="font-display text-2xl font-bold text-purple-dark">
-                      {stat.value}
-                    </div>
-                    <div className="text-xs text-gray-500">{stat.label}</div>
-                  </div>
-                ))}
+              {/* Notifications CRM */}
+              <div className="mb-6">
+                <NotificationsPanel
+                  onOpenDossier={(dossierId) => {
+                    const dossier = dossiers.find(d => d.id === dossierId)
+                    if (dossier) handleSelectDossier(dossier)
+                  }}
+                  maxHeight="300px"
+                />
               </div>
+
+              {/* Alertes Marge Positive */}
+              {dossiersAvecMargePositive.length > 0 && (
+                <div className="card mb-6 overflow-hidden border-l-4 border-emerald-500">
+                  <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-white flex items-center gap-2">
+                    <span className="text-xl">💰</span>
+                    <h3 className="font-display font-semibold text-emerald-700">
+                      Opportunités de marge ({dossiersAvecMargePositive.length})
+                    </h3>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    {dossiersAvecMargePositive.slice(0, 5).map((alerte) => (
+                      <div
+                        key={alerte.dossier.id}
+                        className="px-4 py-3 flex items-center justify-between hover:bg-emerald-50/50 cursor-pointer transition-colors"
+                        onClick={() => handleSelectDossier(alerte.dossier)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div>
+                            <span className="font-medium text-purple-dark">{alerte.dossier.reference}</span>
+                            <span className="text-gray-400 mx-2">•</span>
+                            <span className="text-sm text-gray-600">{alerte.dossier.client_name}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500">Prix fournisseur TTC</p>
+                            <p className="font-medium">{formatPrice(alerte.meilleurPrixTTC)}</p>
+                            <p className="text-xs text-gray-400">{alerte.transporteurName}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500">Prix vente TTC</p>
+                            <p className="font-medium">{formatPrice(alerte.prixVenteTTC)}</p>
+                          </div>
+                          <div className="text-right min-w-24">
+                            <p className="text-xs text-emerald-600">Marge HT</p>
+                            <p className="font-bold text-lg text-emerald-600">{formatPrice(alerte.margeEstimee)}</p>
+                            <p className="text-xs text-emerald-500">({alerte.margePourcent}%)</p>
+                          </div>
+                          <ChevronRight size={20} className="text-gray-400" />
+                        </div>
+                      </div>
+                    ))}
+                    {dossiersAvecMargePositive.length > 5 && (
+                      <div className="px-4 py-2 text-center text-sm text-gray-500 bg-gray-50">
+                        +{dossiersAvecMargePositive.length - 5} autres opportunités
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Revenue Stats avec filtres de période */}
               <div className="card p-6 mb-6">
@@ -1377,72 +1307,169 @@ export function AdminDashboard() {
                 )}
               </div>
 
-              {/* Notifications CRM */}
-              <div className="mb-6">
-                <NotificationsPanel
-                  onOpenDossier={(dossierId) => {
-                    const dossier = dossiers.find(d => d.id === dossierId)
-                    if (dossier) handleSelectDossier(dossier)
-                  }}
-                  maxHeight="300px"
-                />
-              </div>
-
-              {/* Alertes Marge Positive */}
-              {dossiersAvecMargePositive.length > 0 && (
-                <div className="card mb-6 overflow-hidden border-l-4 border-emerald-500">
-                  <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-white flex items-center gap-2">
-                    <span className="text-xl">💰</span>
-                    <h3 className="font-display font-semibold text-emerald-700">
-                      Opportunités de marge ({dossiersAvecMargePositive.length})
-                    </h3>
-                  </div>
-                  <div className="divide-y divide-gray-100">
-                    {dossiersAvecMargePositive.slice(0, 5).map((alerte) => (
-                      <div
-                        key={alerte.dossier.id}
-                        className="px-4 py-3 flex items-center justify-between hover:bg-emerald-50/50 cursor-pointer transition-colors"
-                        onClick={() => handleSelectDossier(alerte.dossier)}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div>
-                            <span className="font-medium text-purple-dark">{alerte.dossier.reference}</span>
-                            <span className="text-gray-400 mx-2">•</span>
-                            <span className="text-sm text-gray-600">{alerte.dossier.client_name}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-6">
-                          <div className="text-right">
-                            <p className="text-xs text-gray-500">Prix fournisseur TTC</p>
-                            <p className="font-medium">{formatPrice(alerte.meilleurPrixTTC)}</p>
-                            <p className="text-xs text-gray-400">{alerte.transporteurName}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs text-gray-500">Prix vente TTC</p>
-                            <p className="font-medium">{formatPrice(alerte.prixVenteTTC)}</p>
-                          </div>
-                          <div className="text-right min-w-24">
-                            <p className="text-xs text-emerald-600">Marge HT</p>
-                            <p className="font-bold text-lg text-emerald-600">{formatPrice(alerte.margeEstimee)}</p>
-                            <p className="text-xs text-emerald-500">({alerte.margePourcent}%)</p>
-                          </div>
-                          <ChevronRight size={20} className="text-gray-400" />
-                        </div>
-                      </div>
-                    ))}
-                    {dossiersAvecMargePositive.length > 5 && (
-                      <div className="px-4 py-2 text-center text-sm text-gray-500 bg-gray-50">
-                        +{dossiersAvecMargePositive.length - 5} autres opportunités
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {/* Dossiers Table */}
               <div className="card overflow-hidden">
                 <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
                   <h3 className="font-display font-semibold text-purple-dark">Dossiers</h3>
+                </div>
+
+                {/* Filtres de la liste */}
+                <div className="px-4 py-3 border-b border-gray-200 bg-gray-50/60 space-y-3">
+                {/* Ligne 1: Recherche et filtres principaux */}
+                <div className="flex flex-wrap gap-3 items-center">
+                  <div className="relative flex-1 min-w-64">
+                    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Recherche client, dossier, tél, email..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="input pl-10"
+                    />
+                  </div>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="input w-auto"
+                  >
+                    <option value="">Tous statuts</option>
+                    <option value="flash-active">⚡ Offre Flash active</option>
+                    <option value="new">📥 Nouveau</option>
+                    <option value="x-cotation-manuelle">✋ À coter manuellement</option>
+                    <option value="quotes_sent">📤 Devisé</option>
+                    <option value="pending-client">⏳ Att. retour client</option>
+                    <option value="x-pending-payment">💳 Att. paiement</option>
+                    <option value="x-pending-solde">💶 Att. solde</option>
+                    <option value="x-pending-reservation">🔒 Att. résa</option>
+                    <option value="x-pending-info">📝 Att. infos</option>
+                    <option value="x-infos-to-validate">📋 Infos à valider</option>
+                    <option value="x-pending-driver">👨‍✈️ Att. chauffeur</option>
+                    <option value="confirmed">✅ Confirmé</option>
+                    <option value="completed">✅ Terminé</option>
+                    <option value="cancelled">❌ Abandonné</option>
+                    <option value="archived">📦 Archivés (transférés)</option>
+                    <option value="facture-fournisseur-pending">📄 Att. facture fournisseur</option>
+                    <option value="signed-only">📝 Signés uniquement</option>
+                  </select>
+                  <select
+                    value={transporteurFilter}
+                    onChange={(e) => setTransporteurFilter(e.target.value)}
+                    className="input w-auto"
+                  >
+                    <option value="">Tous transporteurs</option>
+                    {transporteurs.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.number} - {t.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvancedDashboardFilters(!showAdvancedDashboardFilters)}
+                    className={cn("btn btn-sm btn-secondary text-xs", hasAdvancedDashboardFilters && "ring-1 ring-magenta")}
+                    title="Dates de réception / voyage, montant, tri"
+                  >
+                    {showAdvancedDashboardFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    Filtres avancés
+                  </button>
+                  {hasDashboardFilters && (
+                    <button
+                      onClick={clearDashboardFilters}
+                      className="btn btn-sm btn-secondary text-xs"
+                    >
+                      <X size={14} />
+                      Effacer
+                    </button>
+                  )}
+                  <div className="text-sm text-gray-500 whitespace-nowrap">
+                    {filteredDossiers.length} dossier{filteredDossiers.length > 1 ? 's' : ''}
+                    {hasDashboardFilters && ` sur ${dossiers.length}`}
+                  </div>
+                </div>
+
+                {(showAdvancedDashboardFilters || hasAdvancedDashboardFilters) && (<>
+                {/* Ligne 2: Filtres croisés */}
+                <div className="flex flex-wrap gap-3 items-center">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-500 whitespace-nowrap">Reçue :</label>
+                    <input
+                      type="date"
+                      className="input w-36 text-sm"
+                      value={receptionDateFrom}
+                      onChange={(e) => setReceptionDateFrom(e.target.value)}
+                    />
+                    <span className="text-gray-400">→</span>
+                    <input
+                      type="date"
+                      className="input w-36 text-sm"
+                      value={receptionDateTo}
+                      onChange={(e) => setReceptionDateTo(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-500 whitespace-nowrap">Voyage :</label>
+                    <input
+                      type="date"
+                      className="input w-36 text-sm"
+                      value={voyageDateFrom}
+                      onChange={(e) => setVoyageDateFrom(e.target.value)}
+                    />
+                    <span className="text-gray-400">→</span>
+                    <input
+                      type="date"
+                      className="input w-36 text-sm"
+                      value={voyageDateTo}
+                      onChange={(e) => setVoyageDateTo(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-500 whitespace-nowrap">Montant :</label>
+                    <input
+                      type="number"
+                      className="input w-24 text-sm"
+                      value={amountMinDashboard}
+                      onChange={(e) => setAmountMinDashboard(e.target.value)}
+                      placeholder="Min €"
+                      min="0"
+                    />
+                    <span className="text-gray-400">-</span>
+                    <input
+                      type="number"
+                      className="input w-24 text-sm"
+                      value={amountMaxDashboard}
+                      onChange={(e) => setAmountMaxDashboard(e.target.value)}
+                      placeholder="Max €"
+                      min="0"
+                    />
+                  </div>
+                </div>
+
+                {/* Ligne 3: Tri et compteur */}
+                <div className="flex flex-wrap gap-3 items-center">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-500 whitespace-nowrap">Trier par :</label>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as 'reception' | 'voyage' | 'amount')}
+                      className="input w-auto text-sm"
+                    >
+                      <option value="reception">Date réception</option>
+                      <option value="voyage">Date voyage</option>
+                      <option value="amount">Montant</option>
+                    </select>
+                    <button
+                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                      className="btn btn-sm btn-secondary"
+                      title={sortOrder === 'asc' ? 'Croissant' : 'Décroissant'}
+                    >
+                      {sortOrder === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </button>
+                  </div>
+
+                </div>
+                </>)}
                 </div>
 
                 <div className="overflow-x-auto">
@@ -1965,7 +1992,18 @@ export function AdminDashboard() {
 
           {/* Messages Page */}
           {currentPage === 'messages' && (
-            <MessagesPage focusDossierId={messagesFocusDossierId} />
+            <MessagesPage
+              focusDossierId={messagesFocusDossierId}
+              onOpenDossier={(dossierId) => {
+                const dossier = dossiers.find((d) => d.id === dossierId)
+                if (dossier) {
+                  handleSelectDossier(dossier)
+                  setCurrentPage('dossiers')
+                } else {
+                  window.open(`/admin?dossierId=${dossierId}`, '_blank', 'noopener')
+                }
+              }}
+            />
           )}
 
           {/* Service Clientèle Page */}

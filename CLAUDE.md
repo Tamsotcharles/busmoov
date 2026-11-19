@@ -93,7 +93,8 @@ La page `ServiceClientelePage.tsx` permet de :
 ### 3. Chat client (page Messages + bloc « Échanges chat » du dossier)
 - Table `messages` : `devis_id` null = le client écrit à **Busmoov** (chat général) ;
   `devis_id` renseigné = il écrit au **Fournisseur n°X** simulé (l'équipe répond sous ce nom).
-  Le n°X = rang du devis par `created_at` croissant (ordre renvoyé par `get-client-data`).
+  Le n°X = rang du devis par **prix TTC croissant** (ordre d'affichage de MesDevisPage, requête
+  directe `order('price_ttc')` et `get-client-data`) ; il peut changer si un devis moins cher arrive.
 - **« À traiter » = message client avec `read_by_admin = false`.** Ouvrir la conversation
   ne la marque pas lue : seule une réponse ou le bouton « Marquer comme traité » le fait.
   Le badge du menu Messages compte ces messages.
