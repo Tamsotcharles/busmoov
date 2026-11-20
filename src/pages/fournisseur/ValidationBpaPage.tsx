@@ -284,6 +284,31 @@ export function ValidationBpaPage() {
         } catch (notifErr) {
           console.error('Notification CRM (validation) non créée:', notifErr)
         }
+
+        // Email à l'équipe Busmoov (best-effort, ne bloque pas la validation).
+        try {
+          const frsName = dossierInfo.transporteur_name || 'Le transporteur'
+          const prixTxt = dossierInfo.prix_achat
+            ? `${dossierInfo.prix_achat.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} € TTC`
+            : 'non précisé'
+          const adminUrl = `${window.location.origin}/admin?dossierId=${dossierInfo.id}`
+          await supabase.functions.invoke('send-email', {
+            body: {
+              type: 'custom',
+              to: 'infos@busmoov.com',
+              subject: `✅ BPA reçu — ${dossierInfo.reference} (${frsName})`,
+              html_content:
+                `<p><strong>${frsName}</strong> a <strong>validé la commande</strong> du dossier ` +
+                `<strong>${dossierInfo.reference}</strong>.</p>` +
+                `<p>Trajet : ${dossierInfo.departure} → ${dossierInfo.arrival}<br>` +
+                `Date : ${formatDate(dossierInfo.departure_date)}<br>` +
+                `Prix d'achat : ${prixTxt}</p>` +
+                `<p><a href="${adminUrl}" style="display:inline-block;background:#4A1A6B;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:bold">Ouvrir le dossier</a></p>`,
+            },
+          })
+        } catch (mailErr) {
+          console.error('Notification BPA non envoyée:', mailErr)
+        }
       }
 
       setSuccess(true)

@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 
 export interface SupplierNotification {
   id: string
-  type: 'tarif_recu' | 'refus_fournisseur'
+  type: 'tarif_recu' | 'refus_fournisseur' | 'bpa_valide'
   title: string
   description: string | null
   dossier_id: string
@@ -15,7 +15,7 @@ export interface SupplierNotification {
 }
 
 /**
- * Dernière réponse fournisseur non lue (tarif reçu ou refus), pour le pop-up global de l'admin.
+ * Dernière réponse fournisseur non lue (tarif reçu, refus ou BPA validé), pour le pop-up global de l'admin.
  * Les notifications sont écrites côté serveur par la fonction proposition-tarif.
  */
 export function useLatestUnreadSupplierNotification() {
@@ -27,7 +27,7 @@ export function useLatestUnreadSupplierNotification() {
       const { data, error, count } = await (supabase as any)
         .from('notifications_crm')
         .select('id, type, title, description, dossier_id, dossier_reference, source_name, created_at', { count: 'exact' })
-        .in('type', ['tarif_recu', 'refus_fournisseur'])
+        .in('type', ['tarif_recu', 'refus_fournisseur', 'bpa_valide'])
         .eq('is_read', false)
         .order('created_at', { ascending: false })
         .limit(1)

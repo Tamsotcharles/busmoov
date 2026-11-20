@@ -7938,31 +7938,36 @@ L'équipe Busmoov`,
                               {(demande.status === 'devis_created' || demande.status === 'validated' || demande.status === 'bpa_received') && (
                                 <button
                                   onClick={async () => {
-                                    if (!confirm(`Annuler le statut pour ${demande.transporteur?.name} ?`)) return
+                                    const wasValidated = demande.status === 'validated' || demande.status === 'bpa_received'
+                                    if (!confirm(wasValidated
+                                      ? `Annuler la validation de ${demande.transporteur?.name} ? Le dossier repasse en attente d'un transporteur.`
+                                      : `Annuler le statut pour ${demande.transporteur?.name} ?`)) return
 
-                                    // Si on annule depuis validated ou bpa_received, revenir à devis_created
-                                    // Si on annule depuis devis_created, revenir à responded
-                                    const newStatus = (demande.status === 'validated' || demande.status === 'bpa_received')
-                                      ? 'devis_created'
-                                      : 'responded'
-
+                                    // Validé / BPA reçu → répondu (prix conservé) ; devis créé → répondu
+                                    const newStatus = wasValidated ? (demande.prix_propose ? 'responded' : 'sent') : 'responded'
                                     await updateDemandeFournisseur.mutateAsync({
                                       id: demande.id,
                                       status: newStatus,
+                                      ...(wasValidated ? { bpa_received_at: null } : {}),
                                     })
 
-                                    // Retirer le transporteur du dossier si c'était validé
-                                    if (demande.status === 'validated' || demande.status === 'bpa_received') {
+                                    // Le dossier n'a plus de transporteur : retour en attente de réservation
+                                    if (wasValidated) {
+                                      const statutsApresBpa = ['bpa-received', 'pending-info', 'pending-driver', 'confirmed']
                                       await updateDossier.mutateAsync({
                                         id: dossier.id,
                                         transporteur_id: null,
+                                        price_achat: null,
+                                        ...(statutsApresBpa.includes(dossier.status || '') ? { status: 'pending-reservation' } : {}),
                                       })
                                     }
 
                                     addTimelineEntry.mutate({
                                       dossier_id: dossier.id,
                                       type: 'note',
-                                      content: `Statut annulé pour ${demande.transporteur?.name} → ${newStatus === 'devis_created' ? 'Devis créé' : 'Répondu'}`,
+                                      content: wasValidated
+                                        ? `↩️ Validation de ${demande.transporteur?.name} annulée — dossier remis en attente d'un transporteur`
+                                        : `Statut annulé pour ${demande.transporteur?.name} → Répondu`,
                                     })
                                   }}
                                   className="btn btn-sm btn-outline text-red-600 border-red-300 hover:bg-red-50"
@@ -15368,18 +15373,38 @@ L'équipe Busmoov`
     alert(`${ok}/${cibles.length} relance(s) envoyée(s)`)
   }
 
-  const handleAnnulerStatut = async (demandeId: string, currentStatus: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleAnnulerStatut = async (demandeId: string, currentStatus: string, df?: any, dossier?: any) => {
+    const wasValidated = currentStatus === 'validated' || currentStatus === 'bpa_received'
+    if (wasValidated && !confirm(`Annuler la validation de ${df?.transporteur?.name || 'ce transporteur'} ? Le dossier repasse en attente d'un transporteur.`)) return
     try {
-      // Si on annule depuis validated ou bpa_received, revenir à devis_created
-      // Si on annule depuis devis_created, revenir à responded
-      const newStatus = (currentStatus === 'validated' || currentStatus === 'bpa_received')
-        ? 'devis_created'
-        : 'responded'
-
+      // Validé / BPA reçu → on revient à « répondu » (le prix proposé est conservé) ;
+      // devis créé → répondu.
+      const newStatus = wasValidated ? (df?.prix_propose ? 'responded' : 'sent') : 'responded'
       await updateDemandeFournisseur.mutateAsync({
         id: demandeId,
         status: newStatus,
+        ...(wasValidated ? { bpa_received_at: null } : {}),
       })
+
+      if (wasValidated && dossier?.id) {
+        // Le dossier n'a plus de transporteur : retour en attente de réservation
+        const statutsApresBpa = ['bpa-received', 'pending-info', 'pending-driver', 'confirmed']
+        await supabase
+          .from('dossiers')
+          .update({
+            transporteur_id: null,
+            price_achat: null,
+            ...(statutsApresBpa.includes(dossier.status) ? { status: 'pending-reservation' } : {}),
+          })
+          .eq('id', dossier.id)
+        queryClient.invalidateQueries({ queryKey: ['dossiers'] })
+        addTimelineEntry.mutate({
+          dossier_id: dossier.id,
+          type: 'note',
+          content: `↩️ Validation de ${df?.transporteur?.name || 'transporteur'} annulée — dossier remis en attente d'un transporteur`,
+        })
+      }
     } catch (error) {
       console.error('Erreur annulation:', error)
     }
@@ -15961,7 +15986,7 @@ L'équipe Busmoov`
                             {/* Bouton Annuler - si validé ou BPA reçu */}
                             {(df.status === 'validated' || df.status === 'bpa_received' || df.status === 'devis_created') && (
                               <button
-                                onClick={() => handleAnnulerStatut(df.id, df.status)}
+                                onClick={() => handleAnnulerStatut(df.id, df.status, df, dossier)}
                                 className="p-1.5 rounded bg-orange-100 hover:bg-orange-200 text-orange-600"
                                 title="Annuler statut"
                               >
