@@ -74,12 +74,34 @@ serve(async (req) => {
 
       const amount = parseFloat(payment.amount.value)
 
+      // Rattacher le paiement au contrat actif et a la facture en attente du
+      // meme type (la fiche dossier et l'export comptable s'appuient dessus).
+      const { data: contratActif } = await supabase
+        .from('contrats')
+        .select('id')
+        .eq('dossier_id', dossier_id)
+        .neq('status', 'cancelled')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      const { data: factureEnAttente } = await supabase
+        .from('factures')
+        .select('id')
+        .eq('dossier_id', dossier_id)
+        .eq('type', type || 'acompte')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
       // 1. Creer l'entree paiement
       // Note: type doit etre 'cb' pour carte bancaire (contrainte CHECK)
       const { error: paiementError } = await supabase
         .from('paiements')
         .insert({
           dossier_id,
+          contrat_id: contratActif?.id ?? null,
+          facture_id: factureEnAttente?.id ?? null,
           amount,
           type: 'cb', // Paiement par carte via Mollie
           payment_date: new Date().toISOString(),
@@ -129,11 +151,11 @@ serve(async (req) => {
         .single()
 
       // Calculer le total paye
+      // (la table paiements n'a pas de colonne status : toute ligne est un encaissement)
       const { data: paiements } = await supabase
         .from('paiements')
         .select('amount')
         .eq('dossier_id', dossier_id)
-        .eq('status', 'completed')
 
       const totalPaid = paiements?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0
 
@@ -157,7 +179,7 @@ serve(async (req) => {
       await supabase.from('timeline').insert({
         dossier_id,
         type: 'payment_received',
-        description: `Paiement ${type || 'acompte'} recu: ${amount}€ via Mollie`,
+        content: `Paiement ${type || 'acompte'} recu: ${amount}€ via Mollie`,
         metadata: { provider: 'mollie', payment_id: paymentId, amount },
       })
 
@@ -194,7 +216,7 @@ serve(async (req) => {
       await supabase.from('timeline').insert({
         dossier_id,
         type: 'payment_failed',
-        description: `Paiement ${type || ''} echoue (${payment.status})`,
+        content: `Paiement ${type || ''} echoue (${payment.status})`,
         metadata: { provider: 'mollie', payment_id: paymentId, status: payment.status },
       })
 
@@ -219,7 +241,7 @@ serve(async (req) => {
         dossier_reference: dossierInfo?.reference || reference,
         type: 'paiement_echoue',
         title: `Paiement CB ${statusLabel} - ${amount}€`,
-        description: `Le paiement ${type || 'acompte'} de ${dossierInfo?.client_name || 'Client'} a ${statusLabel}. Dossier: ${dossierInfo?.departure || ''} → ${dossierInfo?.arrival || ''}`,
+        content: `Le paiement ${type || 'acompte'} de ${dossierInfo?.client_name || 'Client'} a ${statusLabel}. Dossier: ${dossierInfo?.departure || ''} → ${dossierInfo?.arrival || ''}`,
         source_type: 'system',
         source_name: 'Mollie',
         metadata: {

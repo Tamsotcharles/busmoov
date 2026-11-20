@@ -227,7 +227,7 @@ serve(async (req) => {
     await supabase.from('timeline').insert({
       dossier_id,
       type: 'payment_link_created',
-      description: `Lien de paiement ${type} cree (${amount}€)`,
+      content: `Lien de paiement ${type} cree (${amount}€)`,
       metadata: { provider: 'mollie', payment_id: paymentResult.id },
     })
 

@@ -69,7 +69,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useQueryClient } from '@tanstack/react-query'
-import { useDossiers, useTransporteurs, useDashboardStats, useAllDevis, useUpdateDossier, useCreateDossier, useCreateDevis, useDevisByDossier, useUpdateDevis, useDeleteDevis, useContrats, useDeleteContrat, useCreatePaiement, useDeletePaiement, useTimeline, useAddTimelineEntry, useVoyageInfo, useCreateOrUpdateVoyageInfo, useDemandesFournisseurs, useAllDemandesFournisseurs, useCreateDemandeFournisseur, useUpdateDemandeFournisseur, useDeleteDemandeFournisseur, useUpdateTransporteur, useCreateTransporteur, useDeleteTransporteur, useWorkflowsDevisAuto, useCreateWorkflow, useUpdateWorkflow, useDeleteWorkflow, useDossierAutoDevis, useActivateAutoDevis, useDeactivateAutoDevis, useDefaultWorkflow, useAllDossiersAutoDevis, useCreateFacture, useDemandesChauffeur, useMarkFeuilleRouteEnvoyee, useContratByDossier, usePaiementsByContrat, useFacturesByDossier, usePaiementsFournisseurs, useCreatePaiementFournisseur, useDeletePaiementFournisseur, useRappels, useCreateRappel, useUpdateRappel, useDeleteRappel, generateChauffeurToken, useUnreadMessagesCount } from '@/hooks/useSupabase'
+import { useDossiers, useTransporteurs, useDashboardStats, useAllDevis, useUpdateDossier, useCreateDossier, useCreateDevis, useDevisByDossier, useUpdateDevis, useDeleteDevis, useContrats, useDeleteContrat, useCreatePaiement, useDeletePaiement, useTimeline, useAddTimelineEntry, useVoyageInfo, useCreateOrUpdateVoyageInfo, useDemandesFournisseurs, useAllDemandesFournisseurs, useCreateDemandeFournisseur, useUpdateDemandeFournisseur, useDeleteDemandeFournisseur, useUpdateTransporteur, useCreateTransporteur, useDeleteTransporteur, useWorkflowsDevisAuto, useCreateWorkflow, useUpdateWorkflow, useDeleteWorkflow, useDossierAutoDevis, useActivateAutoDevis, useDeactivateAutoDevis, useDefaultWorkflow, useAllDossiersAutoDevis, useCreateFacture, useDemandesChauffeur, useMarkFeuilleRouteEnvoyee, useContratByDossier, usePaiementsByDossier, useFacturesByDossier, usePaiementsFournisseurs, useCreatePaiementFournisseur, useDeletePaiementFournisseur, useRappels, useCreateRappel, useUpdateRappel, useDeleteRappel, generateChauffeurToken, useUnreadMessagesCount } from '@/hooks/useSupabase'
 import { DemandeInfosForm } from '@/components/admin/DemandeInfosForm'
 import { getServiceTypeLabel, devisTrajet } from '@/lib/service-type'
 import { DemandeContactChauffeurModal } from '@/components/admin/DemandeContactChauffeurModal'
@@ -143,6 +143,7 @@ import { downloadEInvoiceXML, convertToEInvoiceData } from '@/lib/e-invoice'
 import { MessagesPage } from '@/components/admin/MessagesPage'
 import { NewMessageToast } from '@/components/admin/NewMessageToast'
 import { DossierChatPanel } from '@/components/admin/DossierChatPanel'
+import { DossierPipeline } from '@/components/admin/DossierPipeline'
 import { ServiceClientelePage } from '@/components/admin/ServiceClientelePage'
 import { SeoPage } from '@/components/admin/SeoPage'
 import { WorkflowPage } from '@/components/admin/WorkflowPage'
@@ -4100,8 +4101,17 @@ function DossierDetailView({
 
   // Contrat et finances
   const { data: contrat } = useContratByDossier(dossier.id)
-  const { data: paiements = [], isLoading: paiementsLoading } = usePaiementsByContrat(contrat?.id)
+  const { data: paiements = [], isLoading: paiementsLoading } = usePaiementsByDossier(dossier.id)
   const { data: factures = [], isLoading: facturesLoading } = useFacturesByDossier(dossier.id)
+
+  // Devis sur lequel porte la demande de prix fournisseur : par défaut le devis
+  // validé par le client, sinon le moins cher ; l'admin peut en choisir un autre.
+  const devisParDefautDF =
+    dossierDevis.find((d) => d.status === 'accepted') ||
+    [...dossierDevis].filter((d) => d.status !== 'rejected').sort((a, b) => (a.price_ttc || 0) - (b.price_ttc || 0))[0] ||
+    dossierDevis[0] ||
+    null
+  const devisDF = dossierDevis.find((d) => d.id === selectedDevisIdDF) || devisParDefautDF
   const { data: paiementsFournisseur = [], isLoading: paiementsFournisseurLoading } = usePaiementsFournisseurs(dossier.id)
 
   // État de facturation : montants pilotés par le RESTE À FACTURER
@@ -5656,6 +5666,19 @@ L'équipe Busmoov`
       </div>
 
       <div className="max-w-6xl mx-auto p-6 space-y-6">
+        {/* Avancement : check-list dérivée des données (pas de saisie) */}
+        <DossierPipeline
+          dossier={dossier}
+          devis={dossierDevis}
+          contrat={contrat}
+          paiements={paiements}
+          factures={factures}
+          voyageInfo={voyageInfo}
+          demandesFournisseurs={demandesFournisseurs}
+          demandesChauffeur={demandesChauffeur}
+          timeline={timelineEntries}
+        />
+
         {/* Info Client */}
         <div className="card p-6">
           <h2 className="font-display text-lg font-semibold text-purple-dark mb-4 flex items-center gap-2">

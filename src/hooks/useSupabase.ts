@@ -728,6 +728,24 @@ export function useDeleteContrat() {
 
 // ============ PAIEMENTS ============
 
+/** Paiements d'un dossier, quel que soit le contrat rattaché (les paiements Mollie
+ *  peuvent arriver sans contrat_id : ne jamais filtrer par contrat pour le reste à payer). */
+export function usePaiementsByDossier(dossierId: string | undefined) {
+  return useQuery({
+    queryKey: ['paiements', 'dossier', dossierId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('paiements')
+        .select('*')
+        .eq('dossier_id', dossierId!)
+        .order('payment_date', { ascending: false })
+      if (error) throw error
+      return data
+    },
+    enabled: !!dossierId,
+  })
+}
+
 export function usePaiementsByContrat(contratId: string | undefined) {
   return useQuery({
     queryKey: ['paiements', contratId],
@@ -766,7 +784,7 @@ export function useCreatePaiement() {
       return data
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['paiements', data.contrat_id] })
+      queryClient.invalidateQueries({ queryKey: ['paiements'] })
       queryClient.invalidateQueries({ queryKey: ['contrats'] })
       queryClient.invalidateQueries({ queryKey: ['factures'] })
     },
@@ -785,7 +803,7 @@ export function useDeletePaiement() {
       return { id, contrat_id }
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['paiements', data.contrat_id] })
+      queryClient.invalidateQueries({ queryKey: ['paiements'] })
       queryClient.invalidateQueries({ queryKey: ['contrats'] })
     },
   })
