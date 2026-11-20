@@ -6,7 +6,7 @@ import { useClientAccess } from '@/hooks/useClientAccess'
 import { useCreateOrUpdateVoyageInfo, useUpdateDossier } from '@/hooks/useSupabase'
 import { ChatWidget } from '@/components/chat/ChatWidget'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatTime, formatPrice, getVehicleTypeLabel } from '@/lib/utils'
+import { formatDate, formatDateTime, formatTime, formatPrice, getVehicleTypeLabel, formatVoyageDateTime } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
 import type { Dossier, VoyageInfo, DossierWithRelations } from '@/types/database'
@@ -317,7 +317,7 @@ export function InfosVoyagePage() {
                     {t('infosVoyage.dateTime')}
                   </div>
                   <div className="font-medium text-gray-800">
-                    {info?.aller_date ? formatDateTime(info.aller_date) : '-'}
+                    {info?.aller_date ? formatVoyageDateTime(info.aller_date) : '-'}
                   </div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3">
@@ -364,7 +364,7 @@ export function InfosVoyagePage() {
                       {t('infosVoyage.dateTime')}
                     </div>
                     <div className="font-medium text-gray-800">
-                      {info?.retour_date ? formatDateTime(info.retour_date) : '-'}
+                      {info?.retour_date ? formatVoyageDateTime(info.retour_date) : '-'}
                     </div>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-3">

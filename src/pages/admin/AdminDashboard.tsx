@@ -134,7 +134,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif, getPrestationFournisseur, getLuggageLabel } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif, getPrestationFournisseur, getLuggageLabel, voyageWallClock, voyageHeure, formatVoyageDateTime } from '@/lib/utils'
 import { TransporteurPicker } from '@/components/admin/TransporteurPicker'
 import { UsersPage } from '@/components/admin/UsersPage'
 import { canAccessPage, isFullAdminRole, ROLE_LABELS, type AdminRole } from '@/lib/roles'
@@ -2959,13 +2959,15 @@ function VoyageInfoAdminSection({
   // Détecter s'il y a des modifications
   const hasModifications = useMemo(() => {
     const checks = [
+      !!voyageInfo.aller_date && voyageWallClock(voyageInfo.aller_date) !== voyageWallClock(originalAllerDate),
+      !!dossier.return_date && !!voyageInfo.retour_date && voyageWallClock(voyageInfo.retour_date) !== voyageWallClock(originalRetourDate),
       voyageInfo.aller_passagers !== dossier.passengers,
       voyageInfo.aller_adresse_depart !== dossier.departure_address && voyageInfo.aller_adresse_depart !== dossier.departure,
       voyageInfo.aller_adresse_arrivee !== dossier.arrival_address && voyageInfo.aller_adresse_arrivee !== dossier.arrival,
       dossier.return_date && voyageInfo.retour_passagers !== dossier.passengers,
     ]
     return checks.some(Boolean)
-  }, [voyageInfo, dossier])
+  }, [voyageInfo, dossier, originalAllerDate, originalRetourDate])
 
   // Sauvegarder les modifications
   const handleSaveChanges = async () => {
@@ -2976,12 +2978,12 @@ function VoyageInfoAdminSection({
       await updateVoyageInfo.mutateAsync({
         dossier_id: dossier.id,
         aller_date: editData.aller_date || voyageInfo.aller_date,
-        aller_heure: voyageInfo.aller_heure,
+        aller_heure: voyageHeure(editData.aller_date || voyageInfo.aller_date) || voyageInfo.aller_heure,
         aller_adresse_depart: editData.aller_adresse_depart || voyageInfo.aller_adresse_depart,
         aller_adresse_arrivee: editData.aller_adresse_arrivee || voyageInfo.aller_adresse_arrivee,
         aller_passagers: editData.aller_passagers || voyageInfo.aller_passagers,
         retour_date: editData.retour_date || voyageInfo.retour_date,
-        retour_heure: voyageInfo.retour_heure,
+        retour_heure: voyageHeure(editData.retour_date || voyageInfo.retour_date) || voyageInfo.retour_heure,
         retour_adresse_depart: editData.retour_adresse_depart || voyageInfo.retour_adresse_depart,
         retour_adresse_arrivee: editData.retour_adresse_arrivee || voyageInfo.retour_adresse_arrivee,
         retour_passagers: editData.retour_passagers || voyageInfo.retour_passagers,
@@ -3116,12 +3118,12 @@ L'équipe Busmoov`,
         client_name: dossier.client_name || '',
         type: tripType as 'aller' | 'retour' | 'aller_retour',
         aller_date: editData.aller_date || voyageInfo.aller_date,
-        aller_heure: voyageInfo.aller_heure,
+        aller_heure: voyageHeure(editData.aller_date || voyageInfo.aller_date) || voyageInfo.aller_heure,
         aller_adresse_depart: editData.aller_adresse_depart || voyageInfo.aller_adresse_depart,
         aller_adresse_arrivee: editData.aller_adresse_arrivee || voyageInfo.aller_adresse_arrivee,
         aller_passagers: editData.aller_passagers || voyageInfo.aller_passagers,
         retour_date: editData.retour_date || voyageInfo.retour_date,
-        retour_heure: voyageInfo.retour_heure,
+        retour_heure: voyageHeure(editData.retour_date || voyageInfo.retour_date) || voyageInfo.retour_heure,
         retour_adresse_depart: editData.retour_adresse_depart || voyageInfo.retour_adresse_depart,
         retour_adresse_arrivee: editData.retour_adresse_arrivee || voyageInfo.retour_adresse_arrivee,
         retour_passagers: editData.retour_passagers || voyageInfo.retour_passagers,
@@ -3175,12 +3177,12 @@ L'équipe Busmoov`,
         await updateVoyageInfo.mutateAsync({
           dossier_id: dossier.id,
           aller_date: editData.aller_date || voyageInfo.aller_date,
-          aller_heure: voyageInfo.aller_heure,
+          aller_heure: voyageHeure(editData.aller_date || voyageInfo.aller_date) || voyageInfo.aller_heure,
           aller_adresse_depart: editData.aller_adresse_depart || voyageInfo.aller_adresse_depart,
           aller_adresse_arrivee: editData.aller_adresse_arrivee || voyageInfo.aller_adresse_arrivee,
           aller_passagers: editData.aller_passagers || voyageInfo.aller_passagers,
           retour_date: editData.retour_date || voyageInfo.retour_date,
-          retour_heure: voyageInfo.retour_heure,
+          retour_heure: voyageHeure(editData.retour_date || voyageInfo.retour_date) || voyageInfo.retour_heure,
           retour_adresse_depart: editData.retour_adresse_depart || voyageInfo.retour_adresse_depart,
           retour_adresse_arrivee: editData.retour_adresse_arrivee || voyageInfo.retour_adresse_arrivee,
           retour_passagers: editData.retour_passagers || voyageInfo.retour_passagers,
@@ -3202,10 +3204,12 @@ L'équipe Busmoov`,
         // Mettre à jour departure_date si modifié dans infos voyage
         if (editData.aller_date || voyageInfo.aller_date) {
           updatedDossierData.departure_date = editData.aller_date || voyageInfo.aller_date
+          updatedDossierData.departure_time = voyageHeure(editData.aller_date || voyageInfo.aller_date) || dossier.departure_time
         }
         // Mettre à jour return_date si modifié dans infos voyage
         if (editData.retour_date || voyageInfo.retour_date) {
           updatedDossierData.return_date = editData.retour_date || voyageInfo.retour_date
+          updatedDossierData.return_time = voyageHeure(editData.retour_date || voyageInfo.retour_date) || dossier.return_time
         }
         await updateDossier.mutateAsync(updatedDossierData)
 
@@ -3221,12 +3225,12 @@ L'équipe Busmoov`,
         await updateVoyageInfo.mutateAsync({
           dossier_id: dossier.id,
           aller_date: editData.aller_date || voyageInfo.aller_date,
-          aller_heure: voyageInfo.aller_heure,
+          aller_heure: voyageHeure(editData.aller_date || voyageInfo.aller_date) || voyageInfo.aller_heure,
           aller_adresse_depart: editData.aller_adresse_depart || voyageInfo.aller_adresse_depart,
           aller_adresse_arrivee: editData.aller_adresse_arrivee || voyageInfo.aller_adresse_arrivee,
           aller_passagers: editData.aller_passagers || voyageInfo.aller_passagers,
           retour_date: editData.retour_date || voyageInfo.retour_date,
-          retour_heure: voyageInfo.retour_heure,
+          retour_heure: voyageHeure(editData.retour_date || voyageInfo.retour_date) || voyageInfo.retour_heure,
           retour_adresse_depart: editData.retour_adresse_depart || voyageInfo.retour_adresse_depart,
           retour_adresse_arrivee: editData.retour_adresse_arrivee || voyageInfo.retour_adresse_arrivee,
           retour_passagers: editData.retour_passagers || voyageInfo.retour_passagers,
@@ -3293,12 +3297,12 @@ L'équipe Busmoov`,
       await updateVoyageInfo.mutateAsync({
         dossier_id: dossier.id,
         aller_date: editData.aller_date || voyageInfo.aller_date,
-        aller_heure: voyageInfo.aller_heure,
+        aller_heure: voyageHeure(editData.aller_date || voyageInfo.aller_date) || voyageInfo.aller_heure,
         aller_adresse_depart: editData.aller_adresse_depart || voyageInfo.aller_adresse_depart,
         aller_adresse_arrivee: editData.aller_adresse_arrivee || voyageInfo.aller_adresse_arrivee,
         aller_passagers: editData.aller_passagers || voyageInfo.aller_passagers,
         retour_date: editData.retour_date || voyageInfo.retour_date,
-        retour_heure: voyageInfo.retour_heure,
+        retour_heure: voyageHeure(editData.retour_date || voyageInfo.retour_date) || voyageInfo.retour_heure,
         retour_adresse_depart: editData.retour_adresse_depart || voyageInfo.retour_adresse_depart,
         retour_adresse_arrivee: editData.retour_adresse_arrivee || voyageInfo.retour_adresse_arrivee,
         retour_passagers: editData.retour_passagers || voyageInfo.retour_passagers,
@@ -3456,13 +3460,13 @@ L'équipe Busmoov`,
           <div className="space-y-2">
             <CompareField
               label="Date/heure"
-              originalValue={originalAllerDate}
-              clientValue={voyageInfo.aller_date}
+              originalValue={voyageWallClock(originalAllerDate)}
+              clientValue={voyageWallClock(voyageInfo.aller_date)}
               isEditing={isEditing}
               editValue={editData.aller_date}
               onEditChange={(v) => setEditData({ ...editData, aller_date: v })}
               type="datetime-local"
-              formatFn={(v) => v ? formatDateTime(v) : '-'}
+              formatFn={(v) => formatVoyageDateTime(v)}
             />
             <CompareField
               label="Passagers"
@@ -3505,13 +3509,13 @@ L'équipe Busmoov`,
             <div className="space-y-2">
               <CompareField
                 label="Date/heure"
-                originalValue={originalRetourDate}
-                clientValue={voyageInfo.retour_date}
+                originalValue={voyageWallClock(originalRetourDate)}
+                clientValue={voyageWallClock(voyageInfo.retour_date)}
                 isEditing={isEditing}
                 editValue={editData.retour_date}
                 onEditChange={(v) => setEditData({ ...editData, retour_date: v })}
                 type="datetime-local"
-                formatFn={(v) => v ? formatDateTime(v) : '-'}
+                formatFn={(v) => formatVoyageDateTime(v)}
               />
               <CompareField
                 label="Passagers"

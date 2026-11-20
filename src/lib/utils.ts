@@ -61,6 +61,31 @@ export function formatDateTimeLocalized(date: string | Date | null | undefined, 
   return format(d, 'd MMM yyyy HH:mm', { locale })
 }
 
+/**
+ * Dates des infos voyage (voyage_infos.aller_date / retour_date) : saisies en
+ * heure locale (input datetime-local, sans fuseau) et stockées telles quelles
+ * en timestamptz, donc renvoyées par l'API avec un +00:00 qui n'en est pas un.
+ * On lit les 16 premiers caractères (AAAA-MM-JJTHH:mm) = l'heure voulue, sans
+ * conversion de fuseau (sinon 13:00 s'affiche 14:00 à Paris).
+ */
+export function voyageWallClock(value: string | null | undefined): string | null {
+  if (!value) return null
+  const v = value.replace(' ', 'T')
+  return v.length >= 16 ? v.slice(0, 16) : v
+}
+
+/** Heure HH:mm d'une date d'infos voyage, cohérente avec voyageWallClock. */
+export function voyageHeure(value: string | null | undefined): string | null {
+  const w = voyageWallClock(value)
+  return w && w.length >= 16 ? w.slice(11, 16) : null
+}
+
+/** Affichage « 20 nov. 2026 13:00 » d'une date d'infos voyage, sans décalage de fuseau. */
+export function formatVoyageDateTime(value: string | null | undefined): string {
+  const w = voyageWallClock(value)
+  return w ? formatDateTime(w) : '-'
+}
+
 export function formatTime(date: string | Date | null | undefined): string {
   if (!date) return '-'
   const d = typeof date === 'string' ? parseISO(date) : date

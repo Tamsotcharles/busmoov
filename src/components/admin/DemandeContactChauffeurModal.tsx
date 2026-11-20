@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { Truck, Calendar, MapPin, Users, Send, Loader2, Copy, CheckCircle, AlertCircle, Mail, FileText, Paperclip } from 'lucide-react'
-import { formatDate, formatDateTime, getSiteBaseUrl } from '@/lib/utils'
+import { formatDate, getSiteBaseUrl, formatVoyageDateTime } from '@/lib/utils'
 import { useCreateDemandeChauffeur, generateChauffeurToken } from '@/hooks/useSupabase'
 import { supabase } from '@/lib/supabase'
 import type { DossierWithRelations, Transporteur, VoyageInfo } from '@/types/database'
@@ -328,7 +328,7 @@ export function DemandeContactChauffeurModal({
             <span>ALLER</span>
             <span className="text-sm font-normal text-gray-500 ml-auto">
               {voyageInfo?.aller_date
-                ? formatDateTime(voyageInfo.aller_date)
+                ? formatVoyageDateTime(voyageInfo.aller_date)
                 : formatDate(dossier.departure_date)}
             </span>
           </div>
@@ -354,7 +354,7 @@ export function DemandeContactChauffeurModal({
               <span>RETOUR</span>
               <span className="text-sm font-normal text-gray-500 ml-auto">
                 {voyageInfo?.retour_date
-                  ? formatDateTime(voyageInfo.retour_date)
+                  ? formatVoyageDateTime(voyageInfo.retour_date)
                   : dossier.return_date
                   ? formatDate(dossier.return_date)
                   : '-'}
