@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { CheckCircle, XCircle, Loader2, Calendar, MapPin, Users, Bus, Clock, Euro, Send, Wifi, Info, Accessibility, Luggage } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { formatDate, formatPrice } from '@/lib/utils'
+import { formatDate, formatPrice, getPrestationFournisseur } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 
 // Taux de TVA par pays pour le transport de passagers
@@ -74,21 +74,6 @@ const VEHICLE_TYPE_LABELS: Record<string, string> = {
   '60-63': '60-63 places',
   '70': '70 places',
   '83-90': 'Double étage (83-90 places)',
-}
-
-const TRIP_MODE_LABELS: Record<string, string> = {
-  'simple': 'Transfert simple',
-  'aller_retour': 'Aller-retour',
-  'circuit': 'Circuit / Mise à disposition',
-}
-
-/** Les dossiers stockent one-way / round-trip / circuit (et d'anciennes valeurs) : on les ramène aux clés traduites. */
-const normalizeTripMode = (mode: string): 'simple' | 'aller_retour' | 'circuit' | string => {
-  const m = mode.toLowerCase()
-  if (m === 'one-way' || m === 'aller_simple' || m === 'simple' || m === 'aller simple') return 'simple'
-  if (m === 'round-trip' || m === 'aller_retour' || m.startsWith('aller-retour')) return 'aller_retour'
-  if (m === 'circuit' || m === 'mise-a-dispo' || m.includes('disposition')) return 'circuit'
-  return mode
 }
 
 const LUGGAGE_TYPE_LABELS: Record<string, string> = {
@@ -518,16 +503,25 @@ export function PropositionTarifPage() {
               </div>
             </div>
 
-            {/* Type de trajet */}
-            {demandeInfo.dossier.trip_mode && (
-              <div className="flex items-start gap-3">
-                <Bus size={18} className="text-purple-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <span className="text-sm text-gray-500">{t('fournisseur.tripType')}</span>
-                  <p className="font-medium">{t(`fournisseur.tripMode.${normalizeTripMode(demandeInfo.dossier.trip_mode)}`, TRIP_MODE_LABELS[normalizeTripMode(demandeInfo.dossier.trip_mode)] || demandeInfo.dossier.trip_mode)}</p>
+            {/* Type de prestation, sans ambiguïté (AR 1 jour / 2 transferts / mise à disposition) */}
+            {(() => {
+              const presta = getPrestationFournisseur({
+                serviceType: demandeInfo.devis?.service_type,
+                tripMode: demandeInfo.dossier.trip_mode,
+                departureDate: demandeInfo.dossier.departure_date,
+                returnDate: demandeInfo.dossier.return_date,
+              })
+              return (
+                <div className="md:col-span-2 flex items-start gap-3 bg-amber-50 border-2 border-amber-300 rounded-lg p-3">
+                  <Bus size={20} className="text-amber-700 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="text-xs uppercase tracking-wide text-amber-800 font-semibold">{t('fournisseur.tripType')}</span>
+                    <p className="font-bold text-purple-dark text-base">{presta.label}</p>
+                    <p className="text-sm text-gray-700">{presta.detail}</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )
+            })()}
 
             {/* Type de véhicule (du dossier) */}
             {demandeInfo.dossier.vehicle_type && (

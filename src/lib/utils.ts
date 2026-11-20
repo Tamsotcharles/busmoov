@@ -204,6 +204,67 @@ export function getTripModeLabel(tripMode: string | null | undefined): string {
   return modes[tripMode] || tripMode
 }
 
+export type PrestationCode = 'aller_simple' | 'ar_1j' | 'ar_sans_mad' | 'ar_mad'
+
+export interface PrestationFournisseur {
+  code: PrestationCode
+  /** Libellé court, sans ambiguïté pour un transporteur. */
+  label: string
+  /** Phrase d'explication : ce que le car doit faire concrètement. */
+  detail: string
+}
+
+/**
+ * Type de prestation tel qu'il doit être annoncé à un transporteur (demande de prix,
+ * page de proposition). Priorité au service_type du devis de référence ; à défaut,
+ * déduit du trip_mode et des dates. On ne suppose JAMAIS une mise à disposition :
+ * un aller-retour sur plusieurs jours sans précision = deux transferts.
+ */
+export function getPrestationFournisseur(opts: {
+  serviceType?: string | null
+  tripMode?: string | null
+  departureDate?: string | Date | null
+  returnDate?: string | Date | null
+}): PrestationFournisseur {
+  const { serviceType, tripMode } = opts
+  const toIso = (d: string | Date | null | undefined) => (d instanceof Date ? d.toISOString() : d)
+  const departureDate = toIso(opts.departureDate)
+  const returnDate = toIso(opts.returnDate)
+  const sameDay = !returnDate || !departureDate || returnDate.slice(0, 10) === departureDate.slice(0, 10)
+  let code: PrestationCode
+  if (serviceType === 'aller_simple' || serviceType === 'ar_1j' || serviceType === 'ar_sans_mad' || serviceType === 'ar_mad') {
+    code = serviceType
+  } else if (serviceType === 'mise_disposition' || tripMode === 'circuit' || tripMode === 'Aller-Retour avec mise à disposition') {
+    code = 'ar_mad'
+  } else if (tripMode === 'one-way' || tripMode === 'aller_simple' || tripMode === 'Aller simple' || (!returnDate && tripMode !== 'round-trip' && tripMode !== 'aller_retour')) {
+    code = 'aller_simple'
+  } else if (tripMode === 'Aller-Retour 1 jour' || sameDay) {
+    code = 'ar_1j'
+  } else {
+    code = 'ar_sans_mad'
+  }
+  const d1 = departureDate ? formatDate(departureDate) : 'la date aller'
+  const d2 = returnDate ? formatDate(returnDate) : 'la date retour'
+  switch (code) {
+    case 'aller_simple':
+      return { code, label: 'Aller simple', detail: `Un seul trajet le ${d1} : vous déposez le groupe à destination. Aucun retour à assurer.` }
+    case 'ar_1j':
+      return { code, label: 'Aller-retour dans la journée', detail: `Le ${d1} : vous emmenez le groupe, le car attend sur place et ramène le groupe le jour même.` }
+    case 'ar_sans_mad':
+      return {
+        code,
+        label: 'Aller-retour sans mise à disposition (2 transferts)',
+        detail: `Transfert aller le ${d1} et transfert retour le ${d2}. Le car ne reste PAS sur place entre les deux : aucun déplacement à assurer pendant le séjour.`,
+      }
+    case 'ar_mad':
+      return {
+        code,
+        label: 'Mise à disposition (car et chauffeur sur place)',
+        detail: `Le car et le chauffeur restent avec le groupe du ${d1} au ${d2} pour tous les déplacements sur place.`,
+      }
+  }
+}
+
 export function calculateTTC(priceHT: number, tvaRate: number): number {
   return Math.round(priceHT * (1 + tvaRate / 100))
 }
@@ -992,7 +1053,9 @@ export async function generateValidationFournisseurEmailFromTemplate(
   // Variables pour le template - toutes les infos disponibles
   const variables: Record<string, string | number | null | undefined> = {
     reference: dossierReference,
-    type_prestation: getServiceTypeLabel(serviceType),
+    // Libellé explicite (AR 1 jour / 2 transferts / MAD) + phrase d'explication
+    type_prestation: getPrestationFournisseur({ serviceType, departureDate, returnDate }).label,
+    type_prestation_detail: getPrestationFournisseur({ serviceType, departureDate, returnDate }).detail,
     is_mad: isMiseADispo ? 'true' : null,
     label_date_depart: labelDateDepart,
     label_date_retour: labelDateRetour,

@@ -134,7 +134,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif, getPrestationFournisseur } from '@/lib/utils'
 import { TransporteurPicker } from '@/components/admin/TransporteurPicker'
 import { UsersPage } from '@/components/admin/UsersPage'
 import { canAccessPage, isFullAdminRole, ROLE_LABELS, type AdminRole } from '@/lib/roles'
@@ -9486,7 +9486,20 @@ L'équipe Busmoov`)
               <p>Busmoov, filiale du groupe Centrale Autocar, vous sollicite pour une demande de prix. Nous avons une demande de transport ferme pour laquelle nous souhaitons recevoir votre meilleur tarif et connaître votre disponibilité. Une réponse rapide via le lien ci-dessous vous permet d'être retenu en priorité.</p>
               <div className="bg-gray-50 p-3 rounded my-2 space-y-1">
                 <p><strong>Trajet :</strong> {dossier.departure} → {dossier.arrival}</p>
-                <p><strong>Type :</strong> {getTripModeLabel(dossier.trip_mode)}</p>
+                {(() => {
+                  const presta = getPrestationFournisseur({
+                    serviceType: (devisDF as any)?.service_type, // eslint-disable-line @typescript-eslint/no-explicit-any
+                    tripMode: dossier.trip_mode,
+                    departureDate: dossier.departure_date,
+                    returnDate: dossier.return_date,
+                  })
+                  return (
+                    <p className="bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                      <strong>Prestation :</strong> {presta.label}
+                      <span className="block text-xs text-gray-600">{presta.detail}</span>
+                    </p>
+                  )
+                })()}
                 <p><strong>Date aller :</strong> {formatDate(dossier.departure_date)} à {dossier.departure_time || '--:--'}</p>
                 {dossier.return_date && (
                   <p><strong>Date retour :</strong> {formatDate(dossier.return_date)} à {dossier.return_time || '--:--'}</p>
@@ -9533,6 +9546,13 @@ L'équipe Busmoov`)
 
                   // Devis choisi dans le modal (validé par défaut) : véhicule et nb de cars
                   const devisAccepte = devisDF
+                  // Libellé de prestation explicite (AR 1 jour / 2 transferts / MAD) pour le transporteur
+                  const prestationDF = getPrestationFournisseur({
+                    serviceType: (devisDF as any)?.service_type, // eslint-disable-line @typescript-eslint/no-explicit-any
+                    tripMode: dossier.trip_mode,
+                    departureDate: dossier.departure_date,
+                    returnDate: dossier.return_date,
+                  })
 
                   // Jamais window.location.origin pour un lien d'email :
                   // envoye depuis un poste en dev, le transporteur recevait
@@ -9579,7 +9599,10 @@ L'équipe Busmoov`)
                             passengers: dossier.passengers?.toString() || '0',
                             // Libellés en français pour le transporteur (jamais les codes bruts
                             // round-trip / standard du dossier)
-                            type_prestation: getTripModeLabel(dossier.trip_mode).replace(/^[^\p{L}]+/u, ''),
+                            type_prestation: prestationDF.label,
+                            type_prestation_detail: prestationDF.detail,
+                            duree_jours: devisAccepte?.duree_jours && devisAccepte.duree_jours > 1 ? String(devisAccepte.duree_jours) : '',
+                            nb_chauffeurs: devisAccepte?.nombre_chauffeurs && devisAccepte.nombre_chauffeurs > 1 ? String(devisAccepte.nombre_chauffeurs) : '',
                             vehicle_type: getVehicleTypeLabel(devisAccepte?.vehicle_type || dossier.vehicle_type || 'standard'),
                             nb_cars: devisAccepte?.nombre_cars?.toString() || '1',
                             luggage_type: dossier.luggage_type || '',
@@ -15269,6 +15292,12 @@ L'équipe Busmoov`
       const devisRef = (dossier.devis || []).find((d: any) => d.id === df.devis_id) // eslint-disable-line @typescript-eslint/no-explicit-any
         || (dossier.devis || []).find((d: any) => d.status === 'accepted') // eslint-disable-line @typescript-eslint/no-explicit-any
       const lienPropositionTarif = `${getSiteBaseUrl()}/fournisseur/proposition-tarif?token=${token}&demande=${df.id}`
+      const prestationRef = getPrestationFournisseur({
+        serviceType: devisRef?.service_type,
+        tripMode: dossier.trip_mode,
+        departureDate: dossier.departure_date,
+        returnDate: dossier.return_date,
+      })
       const { error } = await supabase.functions.invoke('send-email', {
         body: {
           type: 'demande_tarif_fournisseur',
@@ -15284,7 +15313,10 @@ L'équipe Busmoov`
             return_time: dossier.return_time || '',
             return_date: dossier.return_date ? formatDate(dossier.return_date) : '',
             passengers: dossier.passengers?.toString() || '0',
-            type_prestation: getTripModeLabel(dossier.trip_mode).replace(/^[^\p{L}]+/u, ''),
+            type_prestation: prestationRef.label,
+            type_prestation_detail: prestationRef.detail,
+            duree_jours: devisRef?.duree_jours && devisRef.duree_jours > 1 ? String(devisRef.duree_jours) : '',
+            nb_chauffeurs: devisRef?.nombre_chauffeurs && devisRef.nombre_chauffeurs > 1 ? String(devisRef.nombre_chauffeurs) : '',
             vehicle_type: getVehicleTypeLabel(devisRef?.vehicle_type || dossier.vehicle_type || 'standard'),
             nb_cars: devisRef?.nombre_cars?.toString() || '1',
             luggage_type: dossier.luggage_type || '',
