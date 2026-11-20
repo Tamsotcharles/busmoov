@@ -554,6 +554,7 @@ export interface Database {
           marge_percent: number | null
           note_fournisseur: string | null
           note_interne: string | null
+          email_envoye: string | null
           prix_propose: number | null
           responded_at: string | null
           sent_at: string | null
@@ -573,6 +574,7 @@ export interface Database {
           marge_percent?: number | null
           note_fournisseur?: string | null
           note_interne?: string | null
+          email_envoye?: string | null
           prix_propose?: number | null
           responded_at?: string | null
           sent_at?: string | null
@@ -592,6 +594,7 @@ export interface Database {
           marge_percent?: number | null
           note_fournisseur?: string | null
           note_interne?: string | null
+          email_envoye?: string | null
           prix_propose?: number | null
           responded_at?: string | null
           sent_at?: string | null

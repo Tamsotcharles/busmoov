@@ -9541,7 +9541,7 @@ L'équipe Busmoov`)
                       transporteur_id: transporteur.id,
                       status: 'sent',
                       sent_at: new Date().toISOString(),
-                      note_interne: messageTemplateDF,
+                      email_envoye: messageTemplateDF,
                       validation_token: token,
                     })
 
@@ -9626,7 +9626,7 @@ L'équipe Busmoov`)
                       devis_id: devisDF?.id ?? null,
                       transporteur_id: transporteurId,
                       status: 'pending',
-                      note_interne: messageTemplateDF,
+                      email_envoye: messageTemplateDF,
                       validation_token: token,
                     })
                   }
@@ -14659,6 +14659,7 @@ function ExploitationPage({
   const [showEnvoiModal, setShowEnvoiModal] = useState(false)
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [selectedTransporteurs, setSelectedTransporteurs] = useState<string[]>([])
+  const [emailToView, setEmailToView] = useState<{ transporteur: string; reference: string; text: string } | null>(null)
   const [categoryFilter, setCategoryFilter] = useState('')
   const [messageTemplate, setMessageTemplate] = useState('')
 
@@ -15030,7 +15031,7 @@ L'équipe Busmoov`
           transporteur_id: transporteur.id,
           status: withEmail ? 'sent' : 'pending',
           sent_at: withEmail ? new Date().toISOString() : null,
-          note_interne: messageTemplate,
+          email_envoye: messageTemplate,
           validation_token: token,
         })
 
@@ -15692,14 +15693,30 @@ L'équipe Busmoov`
                           </div>
                           <div className="flex items-center gap-2">
                             <input
+                              key={`${df.id}-${df.prix_propose ?? ''}`}
                               type="number"
-                              value={df.prix_propose || 0}
-                              onChange={(e) => handleUpdatePrix(df.id, parseFloat(e.target.value))}
-                              className="input text-sm py-1 w-24"
+                              min={0}
+                              step={1}
+                              placeholder="Prix TTC"
+                              defaultValue={df.prix_propose ?? ''}
+                              onBlur={(e) => {
+                                const v = parseFloat(e.target.value)
+                                if (Number.isFinite(v) && v > 0 && v !== df.prix_propose) handleUpdatePrix(df.id, v)
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                              }}
+                              className="input text-sm py-1 w-28"
+                              title="Saisir le prix TTC communiqué par le transporteur (Entrée ou clic ailleurs pour enregistrer)"
                             />
-                            <a href="#" className="text-blue-500 text-xs">
-                              <ExternalLink size={14} />
-                            </a>
+                            <button
+                              type="button"
+                              onClick={() => setEmailToView({ transporteur: df.transporteur?.name || '', reference: dossier.reference, text: df.email_envoye || df.note_interne || '' })}
+                              className="text-blue-500 hover:text-blue-700"
+                              title="Voir le mail envoyé au transporteur"
+                            >
+                              <Mail size={14} />
+                            </button>
                           </div>
                           <div>
                             {margeInfo ? (
@@ -15721,8 +15738,9 @@ L'équipe Busmoov`
                           <div>{getStatusBadge(df.status)}</div>
                           <div>
                             <input
+                              key={`${df.id}-note-${df.note_interne ?? ''}`}
                               type="text"
-                              placeholder="Ajoutez une note"
+                              placeholder="Note interne (ex. relancé par tél.)"
                               defaultValue={df.note_interne || ''}
                               onBlur={async (e) => {
                                 if (e.target.value !== df.note_interne) {
@@ -15827,6 +15845,17 @@ L'équipe Busmoov`
           })
         )}
       </div>
+
+      {/* Mail envoyé au transporteur (lecture seule) */}
+      <Modal isOpen={!!emailToView} onClose={() => setEmailToView(null)} title={emailToView ? `Mail envoyé à ${emailToView.transporteur} · ${emailToView.reference}` : ''}>
+        {emailToView && (
+          emailToView.text ? (
+            <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-[60vh] overflow-y-auto">{emailToView.text}</pre>
+          ) : (
+            <p className="text-sm text-gray-500">Aucun texte conservé pour cette demande (créée avant le 20 nov. 2026 ou sans envoi).</p>
+          )
+        )}
+      </Modal>
 
       {/* Modal Envoi Demandes */}
       <Modal isOpen={showEnvoiModal} onClose={() => setShowEnvoiModal(false)} title="Demande Fournisseur">
