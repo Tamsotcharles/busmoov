@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { getSiteUrl } from '../_shared/site-url.ts'
 import { countryToLang, formatDateLong, type EmailLang } from '../_shared/lang.ts'
 import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
@@ -127,7 +128,7 @@ async function processOffreFlashReminders(
     const emailLanguage = countryToLang(dossier.country_code)
 
     // Générer le lien espace client
-    const baseUrl = Deno.env.get('APP_URL') || 'https://busmoov.com'
+    const baseUrl = getSiteUrl()
     const clientAccessUrl = `${baseUrl}/${emailLanguage}/espace-client?ref=${encodeURIComponent(dossier.reference)}&email=${encodeURIComponent(dossier.client_email)}`
 
     // Envoyer l'email de relance
@@ -250,7 +251,7 @@ async function processQuoteReminders(
     if (!dossier.client_email) continue
 
     const emailLanguage = countryToLang(dossier.country_code)
-    const baseUrl = Deno.env.get('APP_URL') || 'https://busmoov.com'
+    const baseUrl = getSiteUrl()
     const clientAccessUrl = `${baseUrl}/${emailLanguage}/espace-client?ref=${encodeURIComponent(dossier.reference)}&email=${encodeURIComponent(dossier.client_email)}`
 
     const nbDevis = (dossier.devis as { id: string; status: string }[]).filter(d => d.status === 'sent').length
@@ -365,7 +366,7 @@ async function processPaymentReminders(
       const acompteFacture = factures.find(f => f.type === 'acompte')
 
       const emailLanguage = countryToLang(dossier.country_code)
-      const baseUrl = Deno.env.get('APP_URL') || 'https://busmoov.com'
+      const baseUrl = getSiteUrl()
       const paymentUrl = `${baseUrl}/${emailLanguage}/recapitulatif/${dossier.id}`
 
       const emailError = await sendEmailViaHttp({
@@ -459,7 +460,7 @@ async function processPaymentReminders(
       const daysUntilDeparture = Math.ceil((new Date(dossier.departure_date).getTime() - now.getTime()) / (24 * 60 * 60 * 1000))
 
       const emailLanguage = countryToLang(dossier.country_code)
-      const baseUrl = Deno.env.get('APP_URL') || 'https://busmoov.com'
+      const baseUrl = getSiteUrl()
       const paymentUrl = `${baseUrl}/${emailLanguage}/recapitulatif/${dossier.id}`
 
       const emailError = await sendEmailViaHttp({
@@ -567,7 +568,7 @@ async function processInfoVoyageReminders(
 
     const daysUntilDeparture = Math.ceil((new Date(dossier.departure_date).getTime() - now.getTime()) / (24 * 60 * 60 * 1000))
     const emailLanguage = countryToLang(dossier.country_code)
-    const baseUrl = Deno.env.get('APP_URL') || 'https://busmoov.com'
+    const baseUrl = getSiteUrl()
     const infosVoyageUrl = `${baseUrl}/${emailLanguage}/infos-voyage/${dossier.id}`
 
     const emailError = await sendEmailViaHttp({

@@ -1,5 +1,6 @@
 // @ts-ignore
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { getSiteUrl } from '../_shared/site-url.ts'
 import { countryToLang } from '../_shared/lang.ts'
 import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts'
 // @ts-ignore
@@ -153,7 +154,7 @@ async function sendReviewRequestEmail(
     // Déterminer la langue à partir du country_code du dossier
     const language = countryToLang(dossier.country_code)
 
-    const baseUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://busmoov.com'
+    const baseUrl = getSiteUrl()
     const reviewUrl = `${baseUrl}/avis?token=${reviewToken}`
 
     // fetch direct + service_role explicite (pattern fiable, comme

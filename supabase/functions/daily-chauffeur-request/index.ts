@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { getSiteUrl } from '../_shared/site-url.ts'
 import { countryToLang, formatDateMedium } from '../_shared/lang.ts';
 import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts';
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -64,7 +65,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get base URL for generating links
-    const baseUrl = Deno.env.get("PUBLIC_SITE_URL") || "https://busmoov.fr";
+    const baseUrl = getSiteUrl();
 
     // Get departure dates to check
     const departureDates = getDepartureDates();

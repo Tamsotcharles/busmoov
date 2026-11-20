@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { getSiteUrl } from '../_shared/site-url.ts'
 import { formatDateShort } from '../_shared/lang.ts';
 import { isCronOrAdminCaller, unauthorizedResponse } from '../_shared/cron-auth.ts';
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -270,7 +271,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const baseUrl = Deno.env.get("PUBLIC_SITE_URL") || "https://busmoov.fr";
+    const baseUrl = getSiteUrl();
 
     // Parse request body
     let triggerFilter: string | null = null;
@@ -439,7 +440,7 @@ Deno.serve(async (req) => {
       // Get additional context for each dossier
       const { data: voyageInfos } = await supabase
         .from("voyage_infos")
-        .select("dossier_id, validated_at, chauffeur_info_recue_at, chauffeur_aller_nom, chauffeur_aller_tel")
+        .select("dossier_id, validated_at, client_validated_at, chauffeur_info_recue_at, chauffeur_aller_nom, chauffeur_aller_tel")
         .in("dossier_id", dossierIds);
 
       const voyageMap = new Map<
@@ -448,7 +449,8 @@ Deno.serve(async (req) => {
       >();
       for (const vi of voyageInfos || []) {
         voyageMap.set(vi.dossier_id, {
-          validated: !!vi.validated_at,
+          // Infos considérées reçues dès que le client les a soumises (pas seulement après validation admin)
+          validated: !!vi.validated_at || !!(vi as { client_validated_at?: string | null }).client_validated_at,
           chauffeurReceived: !!vi.chauffeur_info_recue_at,
           chauffeurNom: (vi as { chauffeur_aller_nom?: string }).chauffeur_aller_nom || "",
           chauffeurTel: (vi as { chauffeur_aller_tel?: string }).chauffeur_aller_tel || "",

@@ -3,6 +3,7 @@
 // confirmation, en service_role. Remplace les insertions anonymes directes
 // (policies RLS « Allow anonymous insert » supprimées le 12 oct. 2026).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { getSiteUrl } from '../_shared/site-url.ts'
 import { checkRequiresManualReview } from '../_shared/manual-review.ts'
 
 const ALLOWED_ORIGINS = [
@@ -58,7 +59,7 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const appUrl = (Deno.env.get('APP_URL') || 'https://www.busmoov.com').replace(/\/$/, '')
+    const appUrl = getSiteUrl()
     const supabase = createClient(supabaseUrl, serviceKey)
 
     const body = await req.json().catch(() => null)
