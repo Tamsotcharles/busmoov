@@ -15243,6 +15243,87 @@ L'équipe Busmoov`
     }
   }
 
+  /** Renvoie la demande de prix au transporteur (même lien personnalisé). */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleRelancer = async (df: any, dossier: any, options?: { silent?: boolean }) => {
+    const transporteur = df.transporteur
+    if (!transporteur?.email) {
+      if (!options?.silent) alert(`${transporteur?.name || 'Ce transporteur'} n'a pas d'adresse email renseignée`)
+      return false
+    }
+    try {
+      let token = df.validation_token
+      if (!token) {
+        token = generateChauffeurToken()
+        await updateDemandeFournisseur.mutateAsync({ id: df.id, validation_token: token })
+      }
+      const devisRef = (dossier.devis || []).find((d: any) => d.id === df.devis_id) // eslint-disable-line @typescript-eslint/no-explicit-any
+        || (dossier.devis || []).find((d: any) => d.status === 'accepted') // eslint-disable-line @typescript-eslint/no-explicit-any
+      const lienPropositionTarif = `${getSiteBaseUrl()}/fournisseur/proposition-tarif?token=${token}&demande=${df.id}`
+      const { error } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: 'demande_tarif_fournisseur',
+          to: transporteur.email,
+          data: {
+            reference: dossier.reference,
+            departure: dossier.departure,
+            arrival: dossier.arrival,
+            departure_date: formatDate(dossier.departure_date),
+            heure_depart: dossier.departure_time || '',
+            heure_retour: dossier.return_time || '',
+            departure_time: dossier.departure_time || '',
+            return_time: dossier.return_time || '',
+            return_date: dossier.return_date ? formatDate(dossier.return_date) : '',
+            passengers: dossier.passengers?.toString() || '0',
+            type_prestation: getTripModeLabel(dossier.trip_mode).replace(/^[^\p{L}]+/u, ''),
+            vehicle_type: getVehicleTypeLabel(devisRef?.vehicle_type || dossier.vehicle_type || 'standard'),
+            nb_cars: devisRef?.nombre_cars?.toString() || '1',
+            luggage_type: dossier.luggage_type || '',
+            lien_proposition: lienPropositionTarif,
+            lien_proposition_tarif: lienPropositionTarif,
+            dossier_id: dossier.id,
+          },
+        },
+      })
+      if (error) throw error
+      // On remet la demande en « envoyée » (une relance ré-ouvre une demande créée sans envoi)
+      await updateDemandeFournisseur.mutateAsync({
+        id: df.id,
+        status: df.status === 'pending' ? 'sent' : df.status,
+        sent_at: df.sent_at || new Date().toISOString(),
+        note_interne: `${df.note_interne ? df.note_interne + ' · ' : ''}Relancé le ${formatDate(new Date().toISOString())}`,
+      })
+      addTimelineEntry.mutate({
+        dossier_id: dossier.id,
+        type: 'email_sent',
+        content: `🔁 Relance demande de tarif envoyée à ${transporteur.name}`,
+      })
+      return true
+    } catch (error) {
+      console.error('Erreur relance fournisseur:', error)
+      if (!options?.silent) alert('Erreur lors de la relance')
+      return false
+    }
+  }
+
+  /** Relance tous les transporteurs du dossier qui n'ont pas encore répondu. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleRelanceGroupee = async (dossier: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cibles = (dossier.demandes_fournisseurs || []).filter((df: any) =>
+      (df.status === 'sent' || df.status === 'pending') && !df.prix_propose && df.transporteur?.email,
+    )
+    if (cibles.length === 0) {
+      alert('Aucun transporteur à relancer (tous ont répondu ou sont sans email).')
+      return
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!confirm(`Relancer ${cibles.length} transporteur(s) sans réponse ?\n${cibles.map((df: any) => df.transporteur.name).join(', ')}`)) return
+    let ok = 0
+    for (const df of cibles) if (await handleRelancer(df, dossier, { silent: true })) ok++
+    alert(`${ok}/${cibles.length} relance(s) envoyée(s)`)
+  }
+
   const handleAnnulerStatut = async (demandeId: string, currentStatus: string) => {
     try {
       // Si on annule depuis validated ou bpa_received, revenir à devis_created
@@ -15532,8 +15613,13 @@ ${dossier.special_requests ? '\n' + dossier.special_requests : ''}`
                     >
                       Nouvelle demande
                     </button>
-                    <button className="btn btn-outline text-sm py-1">
-                      Relance gr.
+                    <button
+                      onClick={() => handleRelanceGroupee(dossier)}
+                      className="btn btn-outline text-sm py-1"
+                      title="Relancer tous les transporteurs de ce dossier qui n'ont pas encore répondu"
+                    >
+                      <BellRing size={14} />
+                      Relancer les sans-réponse
                     </button>
                   </div>
                 </div>
@@ -15754,6 +15840,17 @@ L'équipe Busmoov`
                             />
                           </div>
                           <div className="flex items-center gap-1 flex-wrap">
+                            {/* Relancer ce transporteur (pas encore de prix) */}
+                            {(df.status === 'sent' || df.status === 'pending') && !df.prix_propose && (
+                              <button
+                                onClick={() => handleRelancer(df, dossier)}
+                                className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 border border-amber-200"
+                                title={df.transporteur?.email ? 'Relancer ce transporteur (renvoie la demande de prix)' : "Pas d'email pour ce transporteur"}
+                                disabled={!df.transporteur?.email}
+                              >
+                                <BellRing size={14} />
+                              </button>
+                            )}
                             {/* Bouton Vu - pour marquer tarif_recu comme traité */}
                             {df.status === 'tarif_recu' && (
                               <button
