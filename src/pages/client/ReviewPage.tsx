@@ -5,7 +5,7 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { supabase } from '@/lib/supabase'
 import { useClientAccess } from '@/hooks/useClientAccess'
-import { cn } from '@/lib/utils'
+import { cn, wallClockDate } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
 
@@ -144,7 +144,7 @@ export function ReviewPage() {
   }
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString(dateLocale, {
+    return wallClockDate(dateStr).toLocaleDateString(dateLocale, {
       day: 'numeric',
       month: 'long',
       year: 'numeric'

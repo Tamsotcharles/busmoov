@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { Info, ChevronDown, ChevronUp, MapPin, Luggage, Clock, Calendar, Euro, Percent, Car, Users, Calculator, Sparkles, AlertTriangle, UserCheck } from 'lucide-react'
-import { formatPrice } from '@/lib/utils'
+import { formatPrice, wallClockDate } from '@/lib/utils'
 import { TransporteurPicker } from './TransporteurPicker'
 import { supabase } from '@/lib/supabase'
 
@@ -875,7 +875,7 @@ export function EditDevisModal({
               </div>
               {dossier?.departure_date && dossier?.return_date && (
                 <span className="text-sm text-indigo-500">
-                  (du {new Date(dossier.departure_date).toLocaleDateString('fr-FR')} au {new Date(dossier.return_date).toLocaleDateString('fr-FR')})
+                  (du {wallClockDate(dossier.departure_date).toLocaleDateString('fr-FR')} au {wallClockDate(dossier.return_date).toLocaleDateString('fr-FR')})
                 </span>
               )}
             </div>

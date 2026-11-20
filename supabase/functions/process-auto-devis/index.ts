@@ -1474,7 +1474,7 @@ Deno.serve(async (req) => {
           const sentDevisCount = sentDevis.length || 1
 
           const departureDateFormatted = dossier.departure_date
-            ? new Date(dossier.departure_date).toLocaleDateString('fr-FR')
+            ? new Date(dossier.departure_date).toLocaleDateString('fr-FR', { timeZone: 'UTC' })
             : 'N/A'
 
           // Première étape : « Vos devis sont prêts » (template). Étapes

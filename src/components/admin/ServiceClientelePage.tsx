@@ -29,7 +29,7 @@ import {
   Truck,
   Paperclip,
 } from 'lucide-react'
-import { formatDate, formatPrice, cn, generateInfosVoyageUrl, generatePaymentUrl, generateClientAccessUrl, getLanguageFromCountry, getSiteBaseUrl, getStatutEffectif, etatFournisseur, labelEtatFournisseur } from '@/lib/utils'
+import { formatDate, formatPrice, cn, generateInfosVoyageUrl, generatePaymentUrl, generateClientAccessUrl, getLanguageFromCountry, getSiteBaseUrl, getStatutEffectif, etatFournisseur, labelEtatFournisseur, wallClockDate } from '@/lib/utils'
 import { Modal } from '@/components/ui/Modal'
 
 // Types
@@ -465,7 +465,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
       const enrichedDossiers: DossierRelance[] = (dossiersData || [])
         .filter(d => d.status) // Filter out dossiers without status
         .map(d => {
-          const departureDate = new Date(d.departure_date)
+          const departureDate = wallClockDate(d.departure_date)
           const joursAvant = Math.ceil((departureDate.getTime() - aujourdhui.getTime()) / (1000 * 60 * 60 * 24))
           const totalPaye = paiementsMap.get(d.id) || 0
           const soldeRestant = (d.price_ttc || 0) - totalPaye

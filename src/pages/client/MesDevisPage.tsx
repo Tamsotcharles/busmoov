@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useClientAccess } from '@/hooks/useClientAccess'
 import { Modal } from '@/components/ui/Modal'
 import { ChatWidget } from '@/components/chat/ChatWidget'
-import { formatDate, formatPrice, getVehicleTypeLabel, cn, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, type RouteInfo } from '@/lib/utils'
+import { formatDate, formatPrice, getVehicleTypeLabel, cn, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, type RouteInfo, wallClockDate, dateDuJour, dureeJoursCalendaires } from '@/lib/utils'
 import { generateDevisPDF, generateContratPDF, generateFacturePDF, generateFeuilleRoutePDF } from '@/lib/pdf'
 import { getServiceTypeLabel, devisTrajet } from '@/lib/service-type'
 import { Truck, Navigation } from 'lucide-react'
@@ -566,8 +566,8 @@ export function MesDevisPage() {
               let isSameDay = false
 
               if (hasReturn && departureDate && returnDate) {
-                const depDate = new Date(departureDate).toDateString()
-                const retDate = new Date(returnDate).toDateString()
+                const depDate = dateDuJour(departureDate)
+                const retDate = dateDuJour(returnDate)
                 isSameDay = depDate === retDate
               }
 
@@ -1732,7 +1732,7 @@ export function MesDevisPage() {
           // Calculer la date limite du solde (30 jours avant le départ)
           // Utiliser la date des infos voyage (modifiée par le client) si disponible, sinon celle du dossier
           const departureDateStr = voyageInfo?.aller_date || data?.dossier?.departure_date
-          const departureDate = departureDateStr ? new Date(departureDateStr) : null
+          const departureDate = departureDateStr ? wallClockDate(departureDateStr) : null
           const soldeDueDate = departureDate ? new Date(departureDate.getTime() - 30 * 24 * 60 * 60 * 1000) : null
           const isSoldePaid = soldeRestant <= 0
           const hasAcompte = paiements.length > 0 && totalPaye > 0
@@ -2510,9 +2510,7 @@ export function MesDevisPage() {
           const dureeJours = selectedDevis.devis.duree_jours || (() => {
             // Fallback: calculer depuis les dates du dossier
             if (data?.dossier?.return_date && data?.dossier?.departure_date) {
-              const depDate = new Date(data.dossier.departure_date)
-              const retDate = new Date(data.dossier.return_date)
-              return Math.max(1, Math.ceil((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+              return dureeJoursCalendaires(data.dossier.departure_date, data.dossier.return_date)
             }
             return 1
           })()

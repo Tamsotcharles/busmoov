@@ -380,7 +380,7 @@ serve(async (req) => {
       // Formater la date de départ
       const formatDate = (dateStr: string) => {
         const date = new Date(dateStr)
-        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+        return date.toLocaleDateString('fr-FR', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' })
       }
 
       // Liens localisés vers les pages client

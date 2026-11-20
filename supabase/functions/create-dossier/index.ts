@@ -45,7 +45,7 @@ const LANG_BY_COUNTRY: Record<string, string> = { FR: 'fr', ES: 'es', DE: 'de', 
 function formatDateForEmail(value: string | null | undefined): string {
   if (!value) return 'Non définie'
   try {
-    return new Date(value).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+    return new Date(value).toLocaleDateString('fr-FR', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' })
   } catch {
     return String(value)
   }

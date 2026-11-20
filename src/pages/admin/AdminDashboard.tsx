@@ -135,7 +135,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif, getPrestationFournisseur, getLuggageLabel, voyageWallClock, voyageHeure, formatVoyageDateTime, dureeJoursCalendaires } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif, getPrestationFournisseur, getLuggageLabel, voyageWallClock, voyageHeure, formatVoyageDateTime, dureeJoursCalendaires, wallClockDate, dateDuJour, toWallClockIso } from '@/lib/utils'
 import { TransporteurPicker } from '@/components/admin/TransporteurPicker'
 import { UsersPage } from '@/components/admin/UsersPage'
 import { canAccessPage, isFullAdminRole, ROLE_LABELS, type AdminRole } from '@/lib/roles'
@@ -927,9 +927,10 @@ export function AdminDashboard() {
       const matchesTransporteur = !transporteurFilter || d.transporteur_id === transporteurFilter
 
       // Filtre par période de voyage
-      const voyageDate = d.departure_date ? new Date(d.departure_date) : null
-      const matchesVoyageDateFrom = !voyageDateFrom || (voyageDate && voyageDate >= new Date(voyageDateFrom))
-      const matchesVoyageDateTo = !voyageDateTo || (voyageDate && voyageDate <= new Date(voyageDateTo + 'T23:59:59'))
+      // Comparaison sur le jour saisi (sans fuseau) : un départ à 23:00 restait hors période
+      const voyageJour = dateDuJour(d.departure_date)
+      const matchesVoyageDateFrom = !voyageDateFrom || (voyageJour && voyageJour >= voyageDateFrom)
+      const matchesVoyageDateTo = !voyageDateTo || (voyageJour && voyageJour <= voyageDateTo)
 
       // Filtre par date de réception (created_at)
       const receptionDate = d.created_at ? new Date(d.created_at) : null
@@ -2523,9 +2524,9 @@ function CreateDossierModal({
         client_phone: formData.client_phone || null,
         departure: formData.departure,
         arrival: formData.arrival,
-        departure_date: new Date(formData.departure_date).toISOString(),
+        departure_date: toWallClockIso(formData.departure_date) || formData.departure_date,
         departure_time: formData.departure_time || null,
-        return_date: formData.return_date ? new Date(formData.return_date).toISOString() : null,
+        return_date: toWallClockIso(formData.return_date),
         return_time: formData.return_time || null,
         passengers: formData.passengers,
         tva_rate: formData.tva_rate,
@@ -3070,7 +3071,7 @@ function VoyageInfoAdminSection({
 Veuillez trouver ci-dessous les informations pour le dossier ${dossier.reference} :
 
 📅 ALLER
-Date : ${allerDate ? new Date(allerDate).toLocaleDateString('fr-FR') : 'Non définie'}
+Date : ${allerDate ? wallClockDate(allerDate).toLocaleDateString('fr-FR') : 'Non définie'}
 Heure : ${allerHeure || 'Non définie'}
 Départ : ${allerDepart}
 Arrivée : ${allerArrivee}
@@ -3078,7 +3079,7 @@ Passagers : ${allerPassagers}
 Bagages : ${getLuggageLabel(dossier.luggage_type) || 'Non précisé'}
 ${retourDate ? `
 📅 RETOUR
-Date : ${new Date(retourDate).toLocaleDateString('fr-FR')}
+Date : ${wallClockDate(retourDate).toLocaleDateString('fr-FR')}
 Heure : ${retourHeure || 'Non définie'}
 Départ : ${retourDepart || 'Non défini'}
 Arrivée : ${retourArrivee || 'Non défini'}
@@ -3103,7 +3104,7 @@ L'équipe Busmoov`,
         subject: `Informations voyage (PDF joint) + demande chauffeur - ${dossier.reference}`,
         body: `Bonjour,
 
-Concernant le dossier ${dossier.reference} prévu le ${allerDate ? new Date(allerDate).toLocaleDateString('fr-FR') : ''} :
+Concernant le dossier ${dossier.reference} prévu le ${allerDate ? wallClockDate(allerDate).toLocaleDateString('fr-FR') : ''} :
 
 Trajet : ${allerDepart} → ${allerArrivee}
 Passagers : ${allerPassagers}
@@ -4425,7 +4426,7 @@ function DossierDetailView({
       subject: `Votre feuille de route - ${dossier.reference}`,
       body: `Bonjour ${dossier.client_name || ''},
 
-Votre voyage approche ! Veuillez trouver ci-joint votre feuille de route pour le ${allerDate ? new Date(allerDate).toLocaleDateString('fr-FR') : 'voyage'}.
+Votre voyage approche ! Veuillez trouver ci-joint votre feuille de route pour le ${allerDate ? wallClockDate(allerDate).toLocaleDateString('fr-FR') : 'voyage'}.
 
 📍 Trajet : ${voyageInfo.aller_adresse_depart || dossier.departure} → ${voyageInfo.aller_adresse_arrivee || dossier.arrival}
 👥 Passagers : ${voyageInfo.aller_passagers || dossier.passengers}
@@ -4581,7 +4582,7 @@ L'équipe Busmoov`,
               reference: dossier.reference,
               departure: dossier.departure || 'N/A',
               arrival: dossier.arrival || 'N/A',
-              departure_date: dossier.departure_date ? new Date(dossier.departure_date).toLocaleDateString('fr-FR') : 'N/A',
+              departure_date: dossier.departure_date ? wallClockDate(dossier.departure_date).toLocaleDateString('fr-FR') : 'N/A',
               passengers: String(dossier.passengers || 0),
               nb_devis: String(sentDevisCount),
               lien_espace_client: generateClientAccessUrl(dossier.reference, clientEmail, dossier.country_code),
@@ -4643,7 +4644,7 @@ L'équipe Busmoov`,
             reference: dossier.reference,
             departure: dossier.departure || 'N/A',
             arrival: dossier.arrival || 'N/A',
-            departure_date: dossier.departure_date ? new Date(dossier.departure_date).toLocaleDateString('fr-FR') : 'N/A',
+            departure_date: dossier.departure_date ? wallClockDate(dossier.departure_date).toLocaleDateString('fr-FR') : 'N/A',
             passengers: String(dossier.passengers || 0),
             nb_devis: String(sentDevisCount),
             lien_espace_client: generateClientAccessUrl(dossier.reference, clientEmail, dossier.country_code),
@@ -5109,7 +5110,7 @@ L'équipe Busmoov`
 
           // Formater la date de départ
           const formatDate = (dateStr: string) => {
-            const d = new Date(dateStr)
+            const d = wallClockDate(dateStr)
             return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
           }
 
@@ -5443,7 +5444,7 @@ L'équipe Busmoov`
 
           // Formater la date de départ
           const formatDate = (dateStr: string) => {
-            const d = new Date(dateStr)
+            const d = wallClockDate(dateStr)
             return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
           }
 
@@ -11124,8 +11125,8 @@ function NewDevisModal({
               // Déterminer si c'est un AR le même jour
               let isSameDay = false
               if (dossier.return_date && dossier.departure_date) {
-                const depDate = new Date(dossier.departure_date).toDateString()
-                const retDate = new Date(dossier.return_date).toDateString()
+                const depDate = dateDuJour(dossier.departure_date)
+                const retDate = dateDuJour(dossier.return_date)
                 isSameDay = depDate === retDate
               }
 
@@ -11588,7 +11589,7 @@ function NewDevisModal({
               <span className="text-indigo-600">jour{dureeJours > 1 ? 's' : ''}</span>
               {dossier?.departure_date && dossier?.return_date && (
                 <span className="text-sm text-indigo-500">
-                  (du {new Date(dossier.departure_date).toLocaleDateString('fr-FR')} au {new Date(dossier.return_date).toLocaleDateString('fr-FR')})
+                  (du {wallClockDate(dossier.departure_date).toLocaleDateString('fr-FR')} au {wallClockDate(dossier.return_date).toLocaleDateString('fr-FR')})
                 </span>
               )}
             </div>
@@ -12300,7 +12301,7 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
         targetDate = new Date(contrat.signed_at)
       } else {
         if (!d.departure_date) return false
-        targetDate = new Date(d.departure_date)
+        targetDate = wallClockDate(d.departure_date)
       }
 
       const targetYear = targetDate.getFullYear()
@@ -12596,7 +12597,7 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
         targetDate = new Date(contrat.signed_at)
       } else {
         if (!d.departure_date) return
-        targetDate = new Date(d.departure_date)
+        targetDate = wallClockDate(d.departure_date)
       }
 
       if (targetDate.getFullYear() !== selectedYear) return
@@ -15789,7 +15790,7 @@ ${dossier.special_requests ? '\n' + dossier.special_requests : ''}`
 Suite à notre échange, je vous confirme la réservation suivante :
 
 Référence : ${dossier.reference}
-Date : ${dossier.departure_date ? new Date(dossier.departure_date).toLocaleDateString('fr-FR') : '-'}
+Date : ${dossier.departure_date ? wallClockDate(dossier.departure_date).toLocaleDateString('fr-FR') : '-'}
 Trajet : ${dossier.departure} → ${dossier.arrival}
 Passagers : ${dossier.passengers}
 

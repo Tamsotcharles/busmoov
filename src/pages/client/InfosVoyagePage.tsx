@@ -6,7 +6,7 @@ import { useClientAccess } from '@/hooks/useClientAccess'
 import { useCreateOrUpdateVoyageInfo, useUpdateDossier } from '@/hooks/useSupabase'
 import { ChatWidget } from '@/components/chat/ChatWidget'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatTime, formatPrice, getVehicleTypeLabel, formatVoyageDateTime } from '@/lib/utils'
+import { formatDate, formatDateTime, formatTime, formatPrice, getVehicleTypeLabel, formatVoyageDateTime, voyageHeure } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import { useLocalizedPath } from '@/components/i18n'
 import type { Dossier, VoyageInfo, DossierWithRelations } from '@/types/database'
@@ -156,8 +156,9 @@ export function InfosVoyagePage() {
 
     try {
       // Extraire les heures des dates combinées
-      const allerHeure = voyageInfo.aller_date ? new Date(voyageInfo.aller_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false }) : null
-      const retourHeure = voyageInfo.retour_date ? new Date(voyageInfo.retour_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', hour12: false }) : null
+      // Heure = chiffres saisis, sans fuseau (sinon un client qui re-soumet sans rien changer décalait l'heure)
+      const allerHeure = voyageHeure(voyageInfo.aller_date)
+      const retourHeure = voyageHeure(voyageInfo.retour_date)
 
       // Save voyage info avec date de soumission client (en attente validation service)
       await createOrUpdateVoyageInfo.mutateAsync({

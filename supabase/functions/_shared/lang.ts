@@ -28,17 +28,17 @@ export const DATE_LOCALES: Record<EmailLang, string> = {
 
 /** « lundi 9 octobre 2026 » / « Monday 9 October 2026 ». */
 export function formatDateLong(dateStr: string, lang: string): string {
-  return new Date(dateStr).toLocaleDateString(DATE_LOCALES[asLang(lang)], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  return new Date(dateStr).toLocaleDateString(DATE_LOCALES[asLang(lang)], { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 /** « 9 octobre 2026 » / « 9 October 2026 ». */
 export function formatDateMedium(dateStr: string, lang: string): string {
-  return new Date(dateStr).toLocaleDateString(DATE_LOCALES[asLang(lang)], { day: 'numeric', month: 'long', year: 'numeric' })
+  return new Date(dateStr).toLocaleDateString(DATE_LOCALES[asLang(lang)], { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 /** « 09/10/2026 » selon la locale. */
 export function formatDateShort(dateStr: string, lang: string): string {
-  return new Date(dateStr).toLocaleDateString(DATE_LOCALES[asLang(lang)])
+  return new Date(dateStr).toLocaleDateString(DATE_LOCALES[asLang(lang)], { timeZone: 'UTC' })
 }
 
 export function formatCurrencyFor(amount: number, lang: string, minimumFractionDigits = 0): string {

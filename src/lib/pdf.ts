@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf'
-import { formatDateLocalized } from './utils'
+import { formatDateLocalized, dureeJoursCalendaires } from './utils'
 
 /** Libellé traduit d'un code bagages (aucun/leger/moyen/volumineux et anciens codes none/hand/standard/large). */
 function luggageLabelPdf(code: string | null | undefined, lang: string): string {
@@ -1626,9 +1626,7 @@ export async function generateDevisPDF(devis: DevisData, lang: string = 'fr'): P
     // Calculer la durée pour les repas
     let dureeJours = devis.duree_jours || 1
     if (!devis.duree_jours && devis.dossier?.return_date && devis.dossier?.departure_date) {
-      const depDate = new Date(devis.dossier.departure_date)
-      const retDate = new Date(devis.dossier.return_date)
-      dureeJours = Math.max(1, Math.ceil((retDate.getTime() - depDate.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+      dureeJours = dureeJoursCalendaires(devis.dossier.departure_date, devis.dossier.return_date)
     }
     const nbRepas = dureeJours * 2
 

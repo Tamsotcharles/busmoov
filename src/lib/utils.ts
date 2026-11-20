@@ -44,6 +44,38 @@ function dateSansFuseau(value: string): Date | null {
   return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
 }
 
+/**
+ * Date JS locale construite à partir des chiffres stockés (AAAA-MM-JJ[THH:mm]),
+ * sans conversion de fuseau : « 2026-11-26T23:00:00+00:00 » donne bien le
+ * 26 novembre 23:00, quel que soit le fuseau du navigateur. Pour les champs
+ * voyage (departure_date, return_date, aller_date, retour_date).
+ */
+export function wallClockDate(value: string | Date | null | undefined): Date {
+  if (!value) return new Date(NaN)
+  if (value instanceof Date) return value
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(value)
+  if (!m) return parseISO(value)
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), m[4] ? Number(m[4]) : 12, m[5] ? Number(m[5]) : 0)
+}
+
+/** Jour calendaire AAAA-MM-JJ d'un champ voyage, sans fuseau. */
+export function dateDuJour(value: string | Date | null | undefined): string | null {
+  if (!value) return null
+  if (value instanceof Date) return format(value, 'yyyy-MM-dd')
+  return value.slice(0, 10)
+}
+
+/**
+ * Valeur à enregistrer pour un champ voyage saisi dans un input datetime-local
+ * (« 2026-11-26T23:00 ») : les mêmes chiffres, marqués UTC, jamais
+ * toISOString() qui décalerait l'heure selon le fuseau du poste.
+ */
+export function toWallClockIso(local: string | null | undefined): string | null {
+  if (!local) return null
+  const w = local.replace(' ', 'T').slice(0, 16)
+  return w.length === 16 ? `${w}:00+00:00` : local
+}
+
 export function formatDate(date: string | Date | null | undefined): string {
   if (!date) return '-'
   const d = typeof date === 'string' ? (dateSansFuseau(date) || parseISO(date)) : date

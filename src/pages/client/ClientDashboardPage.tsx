@@ -1,3 +1,4 @@
+import { wallClockDate } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
@@ -379,7 +380,7 @@ export function ClientDashboardPage() {
             <p style="margin: 5px 0;"><strong>Client :</strong> ${dossier.client_name}</p>
             <p style="margin: 5px 0;"><strong>Email :</strong> ${dossier.client_email}</p>
             <p style="margin: 5px 0;"><strong>Trajet :</strong> ${dossier.departure} → ${dossier.arrival}</p>
-            <p style="margin: 5px 0;"><strong>Date :</strong> ${new Date(dossier.departure_date).toLocaleDateString('fr-FR')}</p>
+            <p style="margin: 5px 0;"><strong>Date :</strong> ${wallClockDate(dossier.departure_date).toLocaleDateString('fr-FR')}</p>
           </div>
 
           <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -451,7 +452,7 @@ export function ClientDashboardPage() {
   }
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString(dateLocale, {
+    return wallClockDate(date).toLocaleDateString(dateLocale, {
       day: 'numeric',
       month: 'long',
       year: 'numeric'
