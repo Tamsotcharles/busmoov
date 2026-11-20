@@ -342,7 +342,7 @@ const REGLES_CHAUFFEUR = {
 
 const TARIFS_HORS_GRILLE = {
   // Prix par km supplémentaire au-delà de la grille
-  PRIX_KM_SUPPLEMENTAIRE: 3,          // € par km
+  PRIX_KM_SUPPLEMENTAIRE: 7,          // € par km aller au-delà de la grille (grille Centrale, 20 nov. 2026)
 
   // Petits km AR 1 jour (≤50 km)
   PETIT_KM_SEUIL: 50,                 // km
@@ -835,14 +835,13 @@ function calculatePriceFromGrid(
   const coeff = capacites.find(c => c.code === vehicleType)?.coefficient || 1
 
   let prixBase = 0
-  // Km hors grille : dernière tranche + 3 € × 2 par km au-delà du maximum de
-  // la grille, ajouté AVANT le coefficient véhicule (même règle que le
-  // formulaire admin, pricing-rules.ts). Avant : « Prix non trouvé » au-delà.
+  // Km hors grille : dernière tranche + 7 € par km aller au-delà du maximum
+  // de la grille, ajouté AVANT le coefficient véhicule (grille Centrale).
   let supplementHorsGrille = 0
   const derniereTranche = <T extends { km_max: number }>(list: T[]): T | undefined =>
     list.reduce<T | undefined>((best, t) => (!best || Number(t.km_max) > Number(best.km_max) ? t : best), undefined)
   const horsGrille = (maxGrille: number) => {
-    supplementHorsGrille = (km - maxGrille) * TARIFS_HORS_GRILLE.PRIX_KM_SUPPLEMENTAIRE * 2
+    supplementHorsGrille = (km - maxGrille) * TARIFS_HORS_GRILLE.PRIX_KM_SUPPLEMENTAIRE
   }
 
   if (serviceType === 'aller_simple') {
@@ -853,17 +852,8 @@ function calculatePriceFromGrid(
     }
     if (tarif) prixBase = Number(tarif.prix_public)
   } else if (serviceType === 'ar_1j') {
-    if (km <= TARIFS_HORS_GRILLE.PETIT_KM_SEUIL) {
-      // Petits km (≤ 50 km) : forfait, la grille AR 1J commence au-dessus.
-      // Même règle que le front (pricing-rules.ts) : 690 €, ou 790 € / 830 €
-      // si l'amplitude dépasse 5 h selon que la distance est ≤ 20 km ou non.
-      prixBase = TARIFS_HORS_GRILLE.PETIT_KM_BASE
-      if (amplitudeHeures && amplitudeHeures > 5) {
-        prixBase = km <= 20
-          ? TARIFS_HORS_GRILLE.PETIT_KM_AMPLITUDE_5H_PLUS
-          : TARIFS_HORS_GRILLE.PETIT_KM_AMPLITUDE_5H_PLUS_50
-      }
-    } else {
+    {
+      // Grille Centrale : la tranche 0-50 km existe, plus de forfait « petits km ».
       let tarif = tarifs.ar1j.find(t => km >= t.km_min && km <= t.km_max)
       if (!tarif && km > TARIFS_HORS_GRILLE.GRILLE_AR_1J_MAX) {
         tarif = derniereTranche(tarifs.ar1j)
@@ -871,56 +861,43 @@ function calculatePriceFromGrid(
       }
       if (tarif) {
         const amplitudeKey = `prix_${amplitude || '12h'}` as keyof TarifAR1J
-        prixBase = Number(tarif[amplitudeKey]) || Number(tarif.prix_12h) || Number(tarif.prix_8h) || 0
+        // Case vide : prix de la colonne la plus haute disponible pour la tranche
+        prixBase = Number(tarif[amplitudeKey]) || Number(tarif.prix_9h_coupure) || Number(tarif.prix_12h) || Number(tarif.prix_10h) || Number(tarif.prix_8h) || 0
       }
     }
   } else if (serviceType === 'ar_mad') {
-    let tarif = tarifs.arMad.find(t => km >= t.km_min && km <= t.km_max)
+    // Moins de 70 km est compté comme 71 km (première tranche de la grille)
+    const kmMad = Math.max(km, TARIFS_HORS_GRILLE.GRILLE_AR_MAD_MIN + 1)
+    let tarif = tarifs.arMad.find(t => kmMad >= t.km_min && kmMad <= t.km_max)
     if (!tarif && km > TARIFS_HORS_GRILLE.GRILLE_AR_MAD_MAX) {
       tarif = derniereTranche(tarifs.arMad)
       horsGrille(TARIFS_HORS_GRILLE.GRILLE_AR_MAD_MAX)
     }
     if (tarif) {
-      const supplementParJour = Number(tarif.supplement_jour) || 800
+      const supplementParJour = tarif.supplement_jour != null ? Number(tarif.supplement_jour) : 800
 
       prixBase = prixParDuree(tarif, dureeJours, supplementParJour)
     }
   } else if (serviceType === 'ar_sans_mad') {
-    // RÈGLE: Si distance < 100 km, calculer sur base tarif aller simple × 2
-    // Mais générer UN SEUL devis AR sans MAD (le client ne voit pas le calcul interne)
-    const SEUIL_AR_SANS_MAD = 100
-    if (km < SEUIL_AR_SANS_MAD) {
-      // Chercher le prix aller simple dans la grille et multiplier par 2
-      const tarifAS = tarifs.allerSimple.find(t => km >= t.km_min && km <= t.km_max)
-      if (tarifAS) {
-        // Prix = tarif aller simple × 2 (mais UN SEUL devis pour le client)
-        prixBase = Number(tarifAS.prix_public) * 2
-        console.log(`AR sans MAD < 100km: tarif aller simple ${tarifAS.prix_public}€ × 2 = ${prixBase}€`)
-      } else {
-        // Fallback: si pas de tarif aller simple, retourner null
-        console.log(`AR sans MAD < 100km: pas de tarif aller simple trouvé pour ${km}km`)
-        return null
-      }
-    } else {
-      let tarif = tarifs.arSansMad.find(t => km >= t.km_min && km <= t.km_max)
-      if (!tarif && km > TARIFS_HORS_GRILLE.GRILLE_AR_SANS_MAD_MAX) {
-        tarif = derniereTranche(tarifs.arSansMad)
-        horsGrille(TARIFS_HORS_GRILLE.GRILLE_AR_SANS_MAD_MAX)
-      }
-      if (tarif) {
-        const supplementParJour = Number(tarif.supplement_jour) || 600
-
-        // Durée sans prix direct dans la grille (ex. 8 jours sur 150-200 km) :
-        // un AR sans MAD reste deux transferts, le séjour ne se facture pas
-        // à la journée → 2 × aller simple (règle Adrien, 20 nov. 2026).
-        const prixDirect = dureeJours <= 6 ? Number((tarif as Record<string, unknown>)[`prix_${dureeJours}j`]) || 0 : 0
-        if (prixDirect > 0) {
-          prixBase = prixDirect
-        } else {
-          const tarifAS = tarifs.allerSimple.find(t => km >= t.km_min && km <= t.km_max)
-            || (km > TARIFS_HORS_GRILLE.GRILLE_AR_SANS_MAD_MAX ? derniereTranche(tarifs.allerSimple) : undefined)
-          prixBase = tarifAS ? Number(tarifAS.prix_public) * 2 : prixParDuree(tarif, dureeJours, supplementParJour)
-          console.log(`AR sans MAD ${dureeJours}j sans prix direct : 2 × aller simple = ${prixBase}€`)
+    // Grille Centrale complète dès 0 km (0-100 km = 2 × aller simple, déjà dans la table).
+    // Au-delà de 6 jours : prix du 6e jour (supplement_jour = 0). Plafond : 2 allers simples,
+    // qui augmente de 7 €/km au-delà de 400 km.
+    let tarif = tarifs.arSansMad.find(t => km >= t.km_min && km <= t.km_max)
+    if (!tarif && km > TARIFS_HORS_GRILLE.GRILLE_AR_SANS_MAD_MAX) {
+      tarif = derniereTranche(tarifs.arSansMad)
+      horsGrille(TARIFS_HORS_GRILLE.GRILLE_AR_SANS_MAD_MAX)
+    }
+    if (tarif) {
+      const supplementParJour = tarif.supplement_jour != null ? Number(tarif.supplement_jour) : 0
+      prixBase = prixParDuree(tarif, dureeJours, supplementParJour)
+      if (km > TARIFS_HORS_GRILLE.GRILLE_ALLER_SIMPLE_MAX) {
+        const dernierAS = derniereTranche(tarifs.allerSimple)
+        if (dernierAS) {
+          const plafond = 2 * (Number(dernierAS.prix_public) + (km - TARIFS_HORS_GRILLE.GRILLE_ALLER_SIMPLE_MAX) * TARIFS_HORS_GRILLE.PRIX_KM_SUPPLEMENTAIRE)
+          if (prixBase + supplementHorsGrille > plafond) {
+            prixBase = plafond
+            supplementHorsGrille = 0
+          }
         }
       }
     }

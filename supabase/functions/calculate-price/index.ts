@@ -50,7 +50,7 @@ const REGLES_CHAUFFEUR = {
 } as const;
 
 const TARIFS_HORS_GRILLE = {
-  PRIX_KM_SUPPLEMENTAIRE: 3,
+  PRIX_KM_SUPPLEMENTAIRE: 7, // € par km aller au-delà de la grille (grille Centrale, 20 nov. 2026)
   PETIT_KM_SEUIL: 50,
   PETIT_KM_BASE: 690,
   PETIT_KM_AMPLITUDE_5H_PLUS: 790,
@@ -62,7 +62,7 @@ const TARIFS_HORS_GRILLE = {
   GRILLE_AR_SANS_MAD_MIN: 100,
   GRILLE_AR_SANS_MAD_MAX: 500,
   SUPPLEMENT_JOUR_MAD: 800,
-  SUPPLEMENT_JOUR_SANS_MAD: 600,
+  SUPPLEMENT_JOUR_SANS_MAD: 0, // au-delà de 6 jours : prix du 6e jour
 } as const;
 
 const DEPARTEMENTS_PROBLEMATIQUES = [
@@ -520,7 +520,7 @@ async function calculerTarif(
     if (distanceKm > maxGrille) {
       tranche = grille[grille.length - 1];
       kmHorsCadre = distanceKm - maxGrille;
-      supplementHorsCadre = kmHorsCadre * T.PRIX_KM_SUPPLEMENTAIRE * 2;
+      supplementHorsCadre = kmHorsCadre * T.PRIX_KM_SUPPLEMENTAIRE;
     }
 
     if (!tranche && grille.length > 0) {
@@ -536,13 +536,8 @@ async function calculerTarif(
     const grille = grilles.tarifsAR1J;
     const maxGrille = T.GRILLE_AR_1J_MAX;
 
-    if (distanceKm <= T.PETIT_KM_SEUIL) {
-      prixBase = T.PETIT_KM_BASE;
-      if (infosTrajet.amplitudeJournee && infosTrajet.amplitudeJournee > 5) {
-        prixBase = distanceKm <= 20 ? T.PETIT_KM_AMPLITUDE_5H_PLUS : T.PETIT_KM_AMPLITUDE_5H_PLUS_50;
-      }
-      detailType = `AR 1 jour (petit km)`;
-    } else {
+    {
+      // Grille Centrale : tranche 0-50 km présente, plus de forfait « petits km ».
       amplitudeUtilisee = infosTrajet.amplitudeJournee
         ? determinerAmplitudeGrille(infosTrajet.amplitudeJournee)
         : '12h';
@@ -552,7 +547,7 @@ async function calculerTarif(
       if (distanceKm > maxGrille) {
         tranche = grille[grille.length - 1];
         kmHorsCadre = distanceKm - maxGrille;
-        supplementHorsCadre = kmHorsCadre * T.PRIX_KM_SUPPLEMENTAIRE * 2;
+        supplementHorsCadre = kmHorsCadre * T.PRIX_KM_SUPPLEMENTAIRE;
       }
 
       if (tranche) {
@@ -560,7 +555,8 @@ async function calculerTarif(
         prixBase = Number(tranche[amplitudeKey]) || 0;
 
         if (!prixBase) {
-          const amplitudes: (keyof TarifAR1J)[] = ['prix_8h', 'prix_10h', 'prix_12h', 'prix_9h_coupure'];
+          // Case vide : prix de la colonne la plus haute disponible pour la tranche
+          const amplitudes: (keyof TarifAR1J)[] = ['prix_9h_coupure', 'prix_12h', 'prix_10h', 'prix_8h'];
           for (const amp of amplitudes) {
             if (tranche[amp]) {
               prixBase = Number(tranche[amp]);
@@ -582,20 +578,18 @@ async function calculerTarif(
   else if (typeService === 'ar_mad') {
     const grille = grilles.tarifsARMAD;
 
-    if (distanceKm < T.GRILLE_AR_MAD_MIN) {
-      return { erreur: `Distance minimum ${T.GRILLE_AR_MAD_MIN} km pour MAD` };
-    }
-
-    let tranche = grille.find(t => distanceKm > t.km_min && distanceKm <= t.km_max);
+    // Moins de 70 km est compté comme 71 km (première tranche de la grille)
+    const kmMad = Math.max(distanceKm, T.GRILLE_AR_MAD_MIN + 1);
+    let tranche = grille.find(t => kmMad > t.km_min && kmMad <= t.km_max);
 
     if (distanceKm > T.GRILLE_AR_MAD_MAX) {
       tranche = grille[grille.length - 1];
       kmHorsCadre = distanceKm - T.GRILLE_AR_MAD_MAX;
-      supplementHorsCadre = kmHorsCadre * T.PRIX_KM_SUPPLEMENTAIRE * 2;
+      supplementHorsCadre = kmHorsCadre * T.PRIX_KM_SUPPLEMENTAIRE;
     }
 
     if (tranche) {
-      const supplementParJour = Number(tranche.supplement_jour) || T.SUPPLEMENT_JOUR_MAD;
+      const supplementParJour = tranche.supplement_jour != null ? Number(tranche.supplement_jour) : T.SUPPLEMENT_JOUR_MAD;
 
       // Prix direct si renseigné, sinon dernier prix renseigné (≤ 6 j) + supplément
       // par jour manquant (prix_6j vide ne doit pas donner une base à 0 au-delà de 6 j).
@@ -620,65 +614,58 @@ async function calculerTarif(
 
   // ============ AR SANS MAD ============
   else if (typeService === 'ar_sans_mad') {
+    // Grille Centrale complète dès 0 km (0-100 km = 2 × aller simple, déjà dans la table).
+    // Au-delà de 6 jours : prix du 6e jour. Plafond : 2 allers simples, qui
+    // augmente de 7 €/km au-delà de 400 km.
     const grille = grilles.tarifsARSansMAD;
+    let tranche = grille.find(t => distanceKm > t.km_min && distanceKm <= t.km_max);
+    if (!tranche && distanceKm <= (grille[0]?.km_min ?? 0)) tranche = grille[0];
 
-    // Pour AR sans MAD < 100km, utiliser le tarif aller simple × 2
-    if (distanceKm < T.GRILLE_AR_SANS_MAD_MIN) {
-      const tarifAS = grilles.tarifsAllerSimple.find(t => distanceKm > t.km_min && distanceKm <= t.km_max);
-      if (tarifAS) {
-        prixBase = Number(tarifAS.prix_public) * 2;
-        detailType = `AR sans MAD (basé sur 2× aller simple)`;
-      } else {
-        return { erreur: `Pas de tarif aller simple trouvé pour ${distanceKm} km` };
-      }
+    if (distanceKm > T.GRILLE_AR_SANS_MAD_MAX) {
+      tranche = grille[grille.length - 1];
+      kmHorsCadre = distanceKm - T.GRILLE_AR_SANS_MAD_MAX;
+      supplementHorsCadre = kmHorsCadre * T.PRIX_KM_SUPPLEMENTAIRE;
+    }
+
+    if (!tranche) {
+      return { erreur: `Pas de tarif AR sans MAD trouvé pour ${distanceKm} km` };
+    }
+
+    const supplementParJour = tranche.supplement_jour != null ? Number(tranche.supplement_jour) : T.SUPPLEMENT_JOUR_SANS_MAD;
+    const prixDirect = nbJours <= 6 ? Number(tranche[`prix_${nbJours}j` as keyof TarifARSansMAD]) || 0 : 0;
+    if (prixDirect > 0) {
+      prixBase = prixDirect;
     } else {
-      // AR sans MAD >= 100km - utiliser la grille normale
-      let tranche = grille.find(t => distanceKm > t.km_min && distanceKm <= t.km_max);
-
-      if (distanceKm > T.GRILLE_AR_SANS_MAD_MAX) {
-        tranche = grille[grille.length - 1];
-        kmHorsCadre = distanceKm - T.GRILLE_AR_SANS_MAD_MAX;
-        supplementHorsCadre = kmHorsCadre * T.PRIX_KM_SUPPLEMENTAIRE * 2;
-      }
-
-      if (!tranche) {
-        return { erreur: `Pas de tarif AR sans MAD trouvé pour ${distanceKm} km` };
-      }
-
-      const supplementParJour = Number(tranche.supplement_jour) || T.SUPPLEMENT_JOUR_SANS_MAD;
-
-      // Prix direct si renseigné, sinon dernier prix renseigné (≤ 6 j) + supplément
-      // par jour manquant (prix_6j vide ne doit pas donner une base à 0 au-delà de 6 j).
-      const prixDirect = nbJours <= 6 ? Number(tranche[`prix_${nbJours}j` as keyof TarifARSansMAD]) || 0 : 0;
-      if (prixDirect > 0) {
-        prixBase = prixDirect;
-      } else {
-        // Durée sans prix direct : un AR sans MAD reste deux transferts, le
-        // séjour ne se facture pas à la journée → 2 × aller simple (règle du 20 nov. 2026).
-        const tarifAS = grilles.tarifsAllerSimple.find(t => distanceKm > t.km_min && distanceKm <= t.km_max)
-          || (distanceKm > T.GRILLE_AR_SANS_MAD_MAX ? grilles.tarifsAllerSimple[grilles.tarifsAllerSimple.length - 1] : undefined);
-        if (tarifAS) {
-          prixBase = Number(tarifAS.prix_public) * 2;
-          detailType = `AR sans MAD ${nbJours} jours (2 transferts = 2× aller simple)`;
-        } else {
-          for (let j = Math.min(nbJours - 1, 6); j >= 2; j--) {
-            const prix = Number(tranche[`prix_${j}j` as keyof TarifARSansMAD]) || 0;
-            if (prix > 0) {
-              prixBase = prix;
-              joursSupplementaires = nbJours - j;
-              supplementJours = joursSupplementaires * supplementParJour;
-              break;
-            }
-          }
+      for (let j = Math.min(nbJours - 1, 6); j >= 2; j--) {
+        const prix = Number(tranche[`prix_${j}j` as keyof TarifARSansMAD]) || 0;
+        if (prix > 0) {
+          prixBase = prix;
+          joursSupplementaires = nbJours - j;
+          supplementJours = joursSupplementaires * supplementParJour;
+          break;
         }
       }
-
-      if (!prixBase) {
-        return { erreur: 'Durée non disponible' };
-      }
-
-      if (!detailType.startsWith('AR sans MAD')) detailType = `AR ${nbJours} jours sans MAD`;
     }
+
+    if (!prixBase) {
+      return { erreur: 'Durée non disponible' };
+    }
+
+    if (distanceKm > T.GRILLE_ALLER_SIMPLE_MAX) {
+      const dernierAS = grilles.tarifsAllerSimple[grilles.tarifsAllerSimple.length - 1];
+      if (dernierAS) {
+        const plafond = 2 * (Number(dernierAS.prix_public) + (distanceKm - T.GRILLE_ALLER_SIMPLE_MAX) * T.PRIX_KM_SUPPLEMENTAIRE);
+        if (prixBase + supplementHorsCadre + supplementJours > plafond) {
+          prixBase = plafond;
+          supplementHorsCadre = 0;
+          kmHorsCadre = 0;
+          supplementJours = 0;
+          joursSupplementaires = 0;
+        }
+      }
+    }
+
+    detailType = `AR ${nbJours} jours sans MAD`;
   }
 
   // Calculs finaux
