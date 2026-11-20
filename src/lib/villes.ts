@@ -403,7 +403,7 @@ export const villes: Ville[] = [
         h2: 'L\'année des groupes à Marseille',
         paragraphes: [
           'À Marseille, la saison des groupes commence avec les croisières : d\'avril à octobre, les transferts entre l\'aéroport de Marignane, la gare Saint-Charles et les terminaux du port occupent les transporteurs chaque jour d\'escale. L\'été, les calanques et Cassis attirent les comités d\'entreprise et les colonies, avec une contrainte : l\'accès aux massifs est réglementé de juin à septembre les jours de risque d\'incendie, et le chauffeur vérifie la carte la veille. Les [journées à la mer](/blog/journee-mer-autocar) des écoles et des centres de loisirs remplissent mai, juin et septembre.',
-          'Septembre est le mois de la Foire internationale de Marseille au Parc Chanot, octobre celui de la Fiesta des Suds, décembre celui des pastorales, des crèches et des marchés de Noël de Provence, Aubagne et Aix en tête. Toute la saison, les matchs de l\'OM au Vélodrome mobilisent des cars de supporters de toute la région, et les mariages dans les bastides des Alpilles et du Luberon font les samedis de mai à septembre, voir notre guide [autocar pour un mariage](/blog/location-autocar-mariage).',
+          'Septembre est le mois de la Foire internationale de Marseille au Parc Chanot, octobre celui de la Fiesta des Suds, décembre celui des pastorales, des crèches et des marchés de Noël de Provence, Aubagne et Aix en tête. Toute la saison, les matchs de l\'OM au Vélodrome mobilisent des cars de supporters de toute la région, et les mariages dans les bastides des Alpilles et du Luberon font les samedis de mai à septembre, voir notre guide [autocar pour un mariage](/location-autocar-mariage).',
         ],
       },
       {
@@ -936,7 +936,7 @@ export const villes: Ville[] = [
         h2: 'Cap Ferret, Le Teich, Biscarrosse : les accès cars du Bassin',
         paragraphes: [
           'Le tour du Bassin par la route fait 1h30 ; en bateau depuis Arcachon, le Cap Ferret est à 30 minutes, et le car peut attendre le groupe au Cap après avoir fait le tour. Sur la presqu\'île, la route unique est saturée l\'été et les villages ostréicoles ne laissent pas entrer les cars : dépose aux parkings du Cap Ferret et du Canon, puis marche ou navette. Le Teich a un parking cars à l\'entrée de la réserve ornithologique ; Biscarrosse et les lacs sont à 45 minutes par la forêt, sans difficulté.',
-          'Pour la dune du Pilat, le parking cars est au pied, à cinq minutes de l\'escalier ; le chauffeur dépose, stationne et reprend au même endroit, et les billets de groupe se prennent à l\'entrée. Pour une journée mer avec une classe, notre guide [journée à la mer en autocar](/blog/journee-mer-autocar) donne le déroulé type ; pour les invités d\'un mariage, [autocar pour un mariage](/blog/location-autocar-mariage). Les groupes venus de la métropole trouvent aussi notre page [autocar à Bordeaux](/location-autocar/bordeaux).',
+          'Pour la dune du Pilat, le parking cars est au pied, à cinq minutes de l\'escalier ; le chauffeur dépose, stationne et reprend au même endroit, et les billets de groupe se prennent à l\'entrée. Pour une journée mer avec une classe, notre guide [journée à la mer en autocar](/blog/journee-mer-autocar) donne le déroulé type ; pour les invités d\'un mariage, [autocar pour un mariage](/location-autocar-mariage). Les groupes venus de la métropole trouvent aussi notre page [autocar à Bordeaux](/location-autocar/bordeaux).',
         ],
       },
     ],

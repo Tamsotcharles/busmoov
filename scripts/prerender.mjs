@@ -580,15 +580,17 @@ for (const landing of landings) {
       url: urlFor('fr', landing.slug),
       provider: { '@type': 'Organization', name: 'Busmoov', url: BASE_URL },
     },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: landing.faq.map((f) => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
+    ...(landing.faq.length
+      ? [{
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: landing.faq.map((f) => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+          })),
+        }]
+      : []),
   ]
   const body = wrap(
     h1(landing.h1) +
@@ -600,8 +602,9 @@ for (const landing of landings) {
       (s.liste ? ulMd(s.liste) : '') +
       (s.tableau ? tableau(s.tableau) : '')
     ).join('') +
-    h2('Questions fréquentes') +
-    landing.faq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + pMd(f.a)).join('')
+    (landing.faq.length
+      ? h2('Questions fréquentes') + landing.faq.map((f) => `<h3 class="font-semibold mt-3">${esc(f.q)}</h3>` + pMd(f.a)).join('')
+      : '')
   )
   renderPage({
     lang: 'fr',

@@ -64,7 +64,7 @@ export const locationBusPrix = {
 }
 
 export const locationBusOccasions: string[] = [
-  'Mariages et événements familiaux : navettes invités entre la mairie, la cérémonie et le lieu de réception, retour de nuit compris, voir notre guide [autocar pour un mariage](/blog/location-autocar-mariage)',
+  'Mariages et événements familiaux : navettes invités entre la mairie, la cérémonie et le lieu de réception, retour de nuit compris, voir notre guide [autocar pour un mariage](/location-autocar-mariage)',
   'Séminaires, salons et [déplacements d\'entreprise](/blog/autocar-deplacement-entreprise), y compris les [navettes d\'entreprise](/navette-entreprise) régulières',
   '[Sorties scolaires](/services/sorties-scolaires) et voyages de classe, avec des véhicules aux normes transport d\'enfants',
   'Transferts aéroport et gare pour groupes : [Roissy CDG](/navette-aeroport-cdg), [Orly](/navette-aeroport-orly), gares TGV',
