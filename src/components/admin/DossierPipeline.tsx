@@ -174,7 +174,9 @@ function buildPipelineSteps(p: Props): Step[] {
     label: 'Voyage effectué',
     done: termine,
     date: termine ? endDate : null,
-    detail: termine ? (avis ? 'Avis demandé' : dossier.status === 'completed' ? 'Dossier clôturé' : 'Date passée') : endDate ? `Départ le ${formatDate(endDate)}` : undefined,
+    detail: termine
+      ? (avis ? 'Avis demandé' : dossier.status === 'completed' ? 'Dossier clôturé' : 'Date passée')
+      : dossier.departure_date ? `Départ le ${formatDate(dossier.departure_date)}` : undefined,
     hint: 'Le voyage n’a pas encore eu lieu.',
   })
 
