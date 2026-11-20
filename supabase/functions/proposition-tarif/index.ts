@@ -38,6 +38,51 @@ function getCorsHeaders(origin: string | null) {
  *   submit -> enregistre le prix propose
  *   refuse -> marque le transporteur non disponible
  */
+
+/**
+ * Alerte email à l'équipe quand un transporteur répond (tarif ou refus).
+ * Destinataire : app_settings.notifications_fournisseurs.email (sinon
+ * ADMIN_NOTIFY_EMAIL, sinon infos@busmoov.com). Jamais bloquant.
+ */
+async function notifyAdminByEmail(
+  // deno-lint-ignore no-explicit-any
+  supabaseAdmin: any,
+  params: { subject: string; html: string; dossierId: string },
+) {
+  try {
+    let to = Deno.env.get('ADMIN_NOTIFY_EMAIL') || 'infos@busmoov.com'
+    const { data: setting } = await supabaseAdmin
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'notifications_fournisseurs')
+      .maybeSingle()
+    const cfg = setting?.value as { email?: string; enabled?: boolean } | null
+    if (cfg?.enabled === false) return
+    if (cfg?.email) to = cfg.email
+
+    const res = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+      },
+      body: JSON.stringify({
+        type: 'custom',
+        to,
+        subject: params.subject,
+        html_content: params.html,
+        data: { dossier_id: params.dossierId, language: 'fr' },
+      }),
+    })
+    if (!res.ok) console.error('Alerte admin non envoyée:', res.status, await res.text())
+  } catch (e) {
+    console.error('Alerte admin: erreur', e)
+  }
+}
+
+const esc = (v: unknown) =>
+  String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req.headers.get('origin'))
 
@@ -73,7 +118,7 @@ serve(async (req) => {
         validation_token,
         transporteur_id,
         dossier:dossiers (
-          id, reference, departure, arrival, departure_date, departure_time,
+          id, reference, client_name, departure, arrival, departure_date, departure_time,
           return_date, return_time, passengers, trip_mode, special_requests,
           vehicle_type, nombre_cars, nombre_chauffeurs, wifi, wc,
           accessibility, luggage_type, country_code, tva_rate,
@@ -141,6 +186,21 @@ serve(async (req) => {
           source_name: transporteur.name,
           source_id: transporteur.id,
         })
+
+        const adminUrl = `https://www.busmoov.com/admin?dossierId=${dossier.id}`
+        await notifyAdminByEmail(supabaseAdmin, {
+          dossierId: dossier.id,
+          subject: `💰 Tarif reçu : ${fmt(prixNumber)} TTC — ${dossier.reference} (${transporteur.name})`,
+          html: `
+            <p><strong>${esc(transporteur.name)}</strong> vient de répondre à la demande de prix du dossier <strong>${esc(dossier.reference)}</strong>.</p>
+            <table style="border-collapse:collapse">
+              <tr><td style="padding:4px 12px 4px 0;color:#666">Trajet</td><td style="padding:4px 0"><strong>${esc(dossier.departure)} → ${esc(dossier.arrival)}</strong></td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#666">Prix proposé</td><td style="padding:4px 0"><strong>${fmt(prixNumber)} TTC</strong> (${fmt(prixHT)} HT)</td></tr>
+              <tr><td style="padding:4px 12px 4px 0;color:#666">Client</td><td style="padding:4px 0">${esc(dossier.client_name)}</td></tr>
+            </table>
+            <p style="margin-top:16px"><a href="${adminUrl}" style="display:inline-block;padding:10px 18px;background-color:#E6007E;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold">Ouvrir le dossier et valider la commande</a></p>
+          `,
+        })
       }
 
       return json({ success: true })
@@ -174,6 +234,15 @@ serve(async (req) => {
           source_type: 'transporteur',
           source_name: transporteur.name,
           source_id: transporteur.id,
+        })
+
+        await notifyAdminByEmail(supabaseAdmin, {
+          dossierId: dossier.id,
+          subject: `⛔ Refus fournisseur — ${dossier.reference} (${transporteur.name})`,
+          html: `
+            <p><strong>${esc(transporteur.name)}</strong> n'est pas disponible pour le dossier <strong>${esc(dossier.reference)}</strong> (${esc(dossier.departure)} → ${esc(dossier.arrival)}).</p>
+            <p><a href="https://www.busmoov.com/admin?dossierId=${dossier.id}">Ouvrir le dossier</a> pour solliciter d'autres transporteurs.</p>
+          `,
         })
       }
 

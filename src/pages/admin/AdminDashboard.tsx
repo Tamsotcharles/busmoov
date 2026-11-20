@@ -144,6 +144,7 @@ import { MessagesPage } from '@/components/admin/MessagesPage'
 import { NewMessageToast } from '@/components/admin/NewMessageToast'
 import { DossierChatPanel } from '@/components/admin/DossierChatPanel'
 import { DossierPipeline } from '@/components/admin/DossierPipeline'
+import { NewSupplierTarifToast } from '@/components/admin/NewSupplierTarifToast'
 import { ServiceClientelePage } from '@/components/admin/ServiceClientelePage'
 import { SeoPage } from '@/components/admin/SeoPage'
 import { WorkflowPage } from '@/components/admin/WorkflowPage'
@@ -1084,6 +1085,13 @@ export function AdminDashboard() {
         onOpen={(dossierId) => {
           setMessagesFocusDossierId(dossierId)
           setCurrentPage('messages')
+        }}
+      />
+      <NewSupplierTarifToast
+        onOpen={(dossierId) => {
+          const d = dossiers.find((x) => x.id === dossierId)
+          if (d) handleSelectDossier(d)
+          else window.open(`/admin?dossierId=${dossierId}`, '_blank', 'noopener')
         }}
       />
 
