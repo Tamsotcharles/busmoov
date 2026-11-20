@@ -8054,6 +8054,11 @@ L'équipe Busmoov`,
                       <p className="text-sm text-gray-500">
                         {devis.transporteur?.name || 'Transporteur'} ({devis.transporteur?.number})
                       </p>
+                      {devis.status === 'accepted' && (devis.accepted_at || contrat?.signed_at || dossier.contract_signed_at) && (
+                        <p className="text-xs font-medium text-green-700 mt-0.5">
+                          ✓ Validé par le client le {formatDateTime(devis.accepted_at || contrat?.signed_at || dossier.contract_signed_at)}
+                        </p>
+                      )}
                       {(() => {
                         const tr = devisTrajet(devis, dossier)
                         if (!tr.dateDepart) return null
