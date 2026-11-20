@@ -3933,6 +3933,8 @@ function DossierDetailView({
   const [countryFilterDF, setCountryFilterDF] = useState('')
   const [messageTemplateDF, setMessageTemplateDF] = useState('')
   const [showPreviewDF, setShowPreviewDF] = useState(false)
+  // Devis de référence de la demande de prix (null = devis validé, sinon le moins cher)
+  const [selectedDevisIdDF, setSelectedDevisIdDF] = useState<string | null>(null)
   const createDemandeFournisseur = useCreateDemandeFournisseur()
   const [formData, setFormData] = useState({
     client_name: dossier.client_name || '',
@@ -7542,7 +7544,7 @@ L'équipe Busmoov`,
               Réponses fournisseurs ({demandesFournisseurs.length})
             </h2>
             <button
-              onClick={() => setShowDemandeFournisseurModal(true)}
+              onClick={() => { setSelectedDevisIdDF(null); setShowDemandeFournisseurModal(true) }}
               className="btn btn-sm btn-primary"
             >
               <Plus size={14} />
@@ -7557,13 +7559,15 @@ L'équipe Busmoov`,
                   .filter((df: any) => df.prix_propose && df.prix_propose > 0)
                   .map((df: any) => df.prix_propose)
                 const meilleurPrix = prixProposes.length > 0 ? Math.min(...prixProposes) : null
-                const prixVenteHT = dossier.price_ht || 0
-
                 // Récupérer le devis accepté pour avoir les vrais prix HT/TTC validés
-                const devisAccepte = dossier.devis?.find((d: any) => d.status === 'accepted')
+                const devisAcceptePourDossier = dossier.devis?.find((d: any) => d.status === 'accepted')
 
                 return demandesFournisseurs.map((demande: any) => {
                   const isMeilleur = meilleurPrix && demande.prix_propose === meilleurPrix
+                  // Devis sur lequel la demande a été faite (sinon devis validé, sinon dossier)
+                  const devisDemande = demande.devis_id ? dossierDevis.find((d) => d.id === demande.devis_id) : undefined
+                  const devisAccepte: any = devisDemande || devisAcceptePourDossier
+                  const prixVenteHT = devisDemande?.price_ht || dossier.price_ht || 0
 
                   // Utiliser les données du devis si disponibles (plus fiables), sinon le price_achat du dossier
                   // Le price_achat du dossier est maintenant toujours en HT
@@ -7619,6 +7623,11 @@ L'équipe Busmoov`,
                             <p className="text-xs text-gray-500">
                               {demande.transporteur?.city || ''}
                               {demande.transporteur?.number && ` • ${demande.transporteur.number}`}
+                              {devisDemande && (
+                                <span className="ml-1 text-purple-dark" title="Devis de référence de la demande">
+                                  • devis {devisDemande.reference}{devisDemande.status === 'accepted' ? ' (validé)' : ''}
+                                </span>
+                              )}
                             </p>
                           </div>
                         </div>
@@ -9190,6 +9199,31 @@ L'équipe Busmoov`,
             </p>
           </div>
 
+          {/* Devis de référence : véhicule / nb de cars envoyés au transporteur, marge calculée dessus */}
+          {dossierDevis.length > 0 && (
+            <div>
+              <label className="label">Devis de référence</label>
+              <select
+                value={devisDF?.id || ''}
+                onChange={(e) => setSelectedDevisIdDF(e.target.value || null)}
+                className="input"
+              >
+                {[...dossierDevis]
+                  .sort((a, b) => (a.price_ttc || 0) - (b.price_ttc || 0))
+                  .map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.reference} · {formatPrice(d.price_ttc)} TTC · {getVehicleTypeLabel(d.vehicle_type || 'standard')}
+                      {d.nombre_cars && d.nombre_cars > 1 ? ` × ${d.nombre_cars}` : ''}
+                      {d.status === 'accepted' ? ' · validé par le client' : d.status === 'rejected' ? ' · refusé' : d.status === 'draft' ? ' · brouillon' : ''}
+                    </option>
+                  ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Par défaut le devis validé par le client (sinon le moins cher). Le prix client n'est jamais transmis au transporteur.
+              </p>
+            </div>
+          )}
+
           {/* Recherche et filtres */}
           <div className="grid grid-cols-3 gap-3">
             <div>
@@ -9386,6 +9420,11 @@ L'équipe Busmoov`)
         <div className="space-y-4">
           {/* Destinataires */}
           <div className="bg-blue-50 p-3 rounded-lg">
+            {devisDF && (
+              <p className="text-xs text-blue-700 mb-2">
+                Devis de référence : <strong>{devisDF.reference}</strong> ({formatPrice(devisDF.price_ttc)} TTC, prix non transmis)
+              </p>
+            )}
             <p className="text-sm font-medium text-blue-800 mb-2">
               Destinataires ({selectedTransporteursDF.length}) :
             </p>
@@ -9431,11 +9470,11 @@ L'équipe Busmoov`)
                   <p><strong>Date retour :</strong> {formatDate(dossier.return_date)} à {dossier.return_time || '--:--'}</p>
                 )}
                 <p><strong>Passagers :</strong> {dossier.passengers} personnes</p>
-                {dossier.vehicle_type && (
-                  <p><strong>Véhicule :</strong> {getVehicleTypeLabel(dossier.vehicle_type)}</p>
+                {(devisDF?.vehicle_type || dossier.vehicle_type) && (
+                  <p><strong>Véhicule :</strong> {getVehicleTypeLabel(devisDF?.vehicle_type || dossier.vehicle_type || 'standard')}</p>
                 )}
-                {dossier.nombre_cars && dossier.nombre_cars > 1 && (
-                  <p><strong>Nombre de cars :</strong> {dossier.nombre_cars}</p>
+                {(devisDF?.nombre_cars || dossier.nombre_cars || 0) > 1 && (
+                  <p><strong>Nombre de cars :</strong> {devisDF?.nombre_cars || dossier.nombre_cars}</p>
                 )}
                 {/* Détail MAD si circuit */}
                 {dossier.trip_mode === 'circuit' && extractMadDetails(dossier.special_requests) && (
@@ -9470,8 +9509,8 @@ L'équipe Busmoov`)
                     return { id, name: t?.name || 'Inconnu', email: t?.email || null }
                   })
 
-                  // Récupérer le devis accepté pour avoir les infos véhicule
-                  const devisAccepte = dossier.devis?.find((d: any) => d.status === 'accepted') || dossier.devis?.[0]
+                  // Devis choisi dans le modal (validé par défaut) : véhicule et nb de cars
+                  const devisAccepte = devisDF
 
                   // Jamais window.location.origin pour un lien d'email :
                   // envoye depuis un poste en dev, le transporteur recevait
@@ -9485,6 +9524,7 @@ L'équipe Busmoov`)
                     // Créer la demande fournisseur avec le token
                     const demande = await createDemandeFournisseur.mutateAsync({
                       dossier_id: dossier.id,
+                      devis_id: devisDF?.id ?? null,
                       transporteur_id: transporteur.id,
                       status: 'sent',
                       sent_at: new Date().toISOString(),
@@ -9534,7 +9574,7 @@ L'équipe Busmoov`)
                   addTimelineEntry.mutate({
                     dossier_id: dossier.id,
                     type: 'email_sent',
-                    content: `📋 Demande de tarif envoyée à ${transporteursInfos.length} transporteur(s) : ${transporteursInfos.map(t => t.name).join(', ')}`,
+                    content: `📋 Demande de tarif envoyée à ${transporteursInfos.length} transporteur(s) : ${transporteursInfos.map(t => t.name).join(', ')}${devisDF ? ` (devis ${devisDF.reference})` : ''}`,
                   })
                   setShowPreviewDF(false)
                   setShowDemandeFournisseurModal(false)
@@ -9567,6 +9607,7 @@ L'équipe Busmoov`)
                     const token = generateChauffeurToken()
                     await createDemandeFournisseur.mutateAsync({
                       dossier_id: dossier.id,
+                      devis_id: devisDF?.id ?? null,
                       transporteur_id: transporteurId,
                       status: 'pending',
                       note_interne: messageTemplateDF,
