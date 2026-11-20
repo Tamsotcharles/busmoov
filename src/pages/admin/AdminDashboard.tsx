@@ -3068,7 +3068,7 @@ L'équipe Busmoov`,
       // demande_chauffeur
       setEmailForm({
         to: transporteur.email || '',
-        subject: `Demande informations chauffeur - ${dossier.reference}`,
+        subject: `Informations voyage (PDF joint) + demande chauffeur - ${dossier.reference}`,
         body: `Bonjour,
 
 Concernant le dossier ${dossier.reference} prévu le ${allerDate ? new Date(allerDate).toLocaleDateString('fr-FR') : ''} :

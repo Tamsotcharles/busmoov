@@ -1348,6 +1348,15 @@ serve(async (req: Request) => {
             status: 'sent',
             sent_at: new Date().toISOString(),
             html_content: finalBody,
+            // Pièces jointes conservées (base64) pour les rouvrir depuis l'admin
+            attachments: Array.isArray(attachments) && attachments.length > 0
+              ? (attachments as Attachment[]).map((a) => ({
+                  filename: a.filename,
+                  content_type: a.contentType || 'application/octet-stream',
+                  size: Math.round((a.content?.length || 0) * 3 / 4),
+                  content: a.content,
+                }))
+              : null,
           })
 
         console.log(`Email logged in email_logs table (resend_id: ${result.id})`)

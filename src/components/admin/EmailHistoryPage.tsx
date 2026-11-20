@@ -1,7 +1,31 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Mail, RefreshCw, CheckCircle, Clock, AlertCircle, Send, Eye, XCircle, X, ExternalLink, UserRound } from 'lucide-react'
+import { Mail, RefreshCw, CheckCircle, Clock, AlertCircle, Send, Eye, XCircle, X, ExternalLink, UserRound, Paperclip } from 'lucide-react'
 import { formatDate, generateClientAccessUrl } from '@/lib/utils'
+
+interface EmailAttachment {
+  filename: string
+  content_type: string
+  size?: number
+  /** Base64, présent pour les emails envoyés depuis le 20 nov. 2026. */
+  content?: string | null
+}
+
+/** Ouvre une pièce jointe (base64) dans un nouvel onglet. */
+function openAttachment(att: EmailAttachment) {
+  if (!att.content) return
+  const bin = atob(att.content)
+  const bytes = new Uint8Array(bin.length)
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+  const url = URL.createObjectURL(new Blob([bytes], { type: att.content_type || 'application/octet-stream' }))
+  window.open(url, '_blank', 'noopener')
+  setTimeout(() => URL.revokeObjectURL(url), 60000)
+}
+
+function formatSize(bytes?: number) {
+  if (!bytes) return ''
+  return bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} Mo` : `${Math.round(bytes / 1024)} Ko`
+}
 
 interface EmailLog {
   id: string
@@ -20,6 +44,7 @@ interface EmailLog {
   complained_at: string | null
   created_at: string
   html_content: string | null
+  attachments?: EmailAttachment[] | null
   dossiers?: {
     reference: string
     client_email: string | null
@@ -295,6 +320,15 @@ export function EmailHistoryPage() {
                       <span className="text-sm text-gray-900 line-clamp-1">
                         {email.subject}
                       </span>
+                      {email.attachments && email.attachments.length > 0 && (
+                        <span
+                          className="inline-flex items-center gap-1 text-xs text-gray-500 mt-0.5"
+                          title={email.attachments.map((a) => a.filename).join(', ')}
+                        >
+                          <Paperclip size={12} />
+                          {email.attachments.length === 1 ? email.attachments[0].filename : `${email.attachments.length} pièces jointes`}
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-gray-500">
@@ -391,6 +425,24 @@ export function EmailHistoryPage() {
                 <span className="text-gray-500">Sujet :</span>{' '}
                 <span className="font-medium text-gray-900">{previewEmail.subject}</span>
               </div>
+              {previewEmail.attachments && previewEmail.attachments.length > 0 && (
+                <div className="col-span-2 flex flex-wrap items-center gap-2">
+                  <span className="text-gray-500 inline-flex items-center gap-1"><Paperclip size={12} /> Pièces jointes :</span>
+                  {previewEmail.attachments.map((att, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => openAttachment(att)}
+                      disabled={!att.content}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded border border-gray-300 bg-white text-gray-800 hover:border-magenta hover:text-magenta disabled:opacity-50"
+                      title={att.content ? 'Ouvrir la pièce jointe' : 'Contenu non conservé'}
+                    >
+                      {att.filename}
+                      {att.size ? <span className="text-gray-400">({formatSize(att.size)})</span> : null}
+                    </button>
+                  ))}
+                </div>
+              )}
               {previewEmail.dossiers?.reference && (
                 <div>
                   <span className="text-gray-500">Dossier :</span>{' '}
