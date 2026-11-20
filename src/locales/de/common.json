@@ -553,6 +553,7 @@
       "vehicle": "Fahrzeug:",
       "downloadPdf": "Fahrtblatt PDF herunterladen",
       "preparing": "Fahrtblatt wird vorbereitet",
+      "noChanges48h": "Innerhalb von 48 Stunden vor der Abfahrt sind keine Änderungen mehr möglich.",
       "preparingText": "Die Fahrerinformationen werden Ihnen in Kürze mitgeteilt. Sie erhalten eine E-Mail, sobald das Fahrtblatt verfügbar ist."
     },
     "payment": {

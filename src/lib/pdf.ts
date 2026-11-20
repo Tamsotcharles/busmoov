@@ -3205,6 +3205,14 @@ interface FeuilleRouteData {
   options_non_incluses?: string[] | null
 }
 
+/** Mention feuille de route : plus aucune modification possible 48 h avant le départ (Adrien, 20 nov. 2026). */
+function noChanges48hLabel(lang: string): string {
+  return lang === 'de' ? 'Innerhalb von 48 Stunden vor der Abfahrt sind keine Änderungen mehr möglich.'
+    : lang === 'es' ? 'No se admite ninguna modificación en las 48 h previas a la salida.'
+    : lang === 'en' ? 'No changes can be made within 48 hours before departure.'
+    : 'Plus aucune modification possible dans les 48 h précédant le départ.'
+}
+
 export async function generateFeuilleRoutePDF(data: FeuilleRouteData, lang: string = 'fr'): Promise<void> {
   const COMPANY_INFO = await getCompanyInfo()
   const t = getPdfTranslations(lang)
@@ -3454,6 +3462,10 @@ export async function generateFeuilleRoutePDF(data: FeuilleRouteData, lang: stri
   doc.setFont('helvetica', 'bold')
   const astreinteTel = data.astreinte_tel || COMPANY_INFO.phone
   doc.text(`En cas d'urgence contacter le ${astreinteTel}.`, pageWidth / 2, y, { align: 'center' })
+  y += 7
+  doc.setFontSize(9)
+  doc.setTextColor(192, 57, 43)
+  doc.text(noChanges48hLabel(lang), pageWidth / 2, y, { align: 'center' })
 
   // ========== PAGE 2 - RAPPEL LÉGISLATION ==========
   doc.addPage()
@@ -3763,6 +3775,10 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData, lang
   doc.setFont('helvetica', 'bold')
   const astreinteTel = data.astreinte_tel || COMPANY_INFO.phone
   doc.text(`${emergencyContactLabel} ${astreinteTel}.`, pageWidth / 2, y, { align: 'center' })
+  y += 7
+  doc.setFontSize(9)
+  doc.setTextColor(192, 57, 43)
+  doc.text(noChanges48hLabel(lang), pageWidth / 2, y, { align: 'center' })
 
   // PAGE 2 - LEGISLATION
   const legislationReminderLabel = lang === 'de' ? 'Gesetzliche Hinweise' : lang === 'es' ? 'Recordatorio de la legislación' : lang === 'en' ? 'Legislation reminder' : 'Rappel de la législation'

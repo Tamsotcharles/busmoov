@@ -1591,6 +1591,10 @@ export function MesDevisPage() {
               <Navigation size={20} className="text-purple-600" />
               Feuille de route
             </h4>
+            <p className="mb-4 inline-flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm font-medium text-amber-800">
+              <Clock size={16} />
+              {t('mesDevis.roadmap.noChanges48h', 'Plus aucune modification possible dans les 48 h précédant le départ.')}
+            </p>
 
             <div className="grid md:grid-cols-2 gap-6">
               {/* Trajet Aller */}

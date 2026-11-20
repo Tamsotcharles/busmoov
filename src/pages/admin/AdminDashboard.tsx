@@ -4430,6 +4430,8 @@ ${chauffeurAllerNom ? `
 ` : ''}
 La feuille de route en pièce jointe contient toutes les informations nécessaires pour votre voyage (coordonnées chauffeur, adresses exactes, rappel de la législation).
 
+⚠️ Plus aucune modification n'est possible dans les 48 h précédant le départ.
+
 En cas de question ou de besoin, n'hésitez pas à nous contacter.
 
 Nous vous souhaitons un excellent voyage !

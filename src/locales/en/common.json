@@ -523,6 +523,7 @@
       "vehicle": "Vehicle:",
       "downloadPdf": "Download roadmap PDF",
       "preparing": "Roadmap being prepared",
+      "noChanges48h": "No changes can be made within 48 hours before departure.",
       "preparingText": "Driver information will be provided shortly. You will receive an email as soon as the roadmap is available."
     },
     "payment": {

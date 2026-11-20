@@ -573,6 +573,7 @@
       "vehicle": "Véhicule :",
       "downloadPdf": "Télécharger la feuille de route PDF",
       "preparing": "Feuille de route en préparation",
+      "noChanges48h": "Plus aucune modification possible dans les 48 h précédant le départ.",
       "preparingText": "Les informations du chauffeur vous seront communiquées prochainement. Vous recevrez un email dès que la feuille de route sera disponible."
     },
     "quote": {

@@ -553,6 +553,7 @@
       "vehicle": "Vehículo:",
       "downloadPdf": "Descargar la hoja de ruta PDF",
       "preparing": "Hoja de ruta en preparación",
+      "noChanges48h": "No se admite ninguna modificación en las 48 h previas a la salida.",
       "preparingText": "La información del conductor le será comunicada próximamente. Recibirá un email cuando la hoja de ruta esté disponible."
     },
     "payment": {
