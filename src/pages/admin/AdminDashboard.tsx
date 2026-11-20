@@ -7611,7 +7611,8 @@ L'équipe Busmoov`,
                         "p-4 rounded-lg border-2 transition-all",
                         isNouveauTarif ? "border-orange-400 bg-orange-50 ring-2 ring-orange-300 ring-offset-1" :
                         isMeilleur && demande.prix_propose ? "border-emerald-400 bg-emerald-50" : "border-gray-200 bg-gray-50",
-                        demande.status === 'accepted' && "border-blue-400 bg-blue-50"
+                        demande.status === 'accepted' && "border-blue-400 bg-blue-50",
+                        (demande.status === 'non_disponible' || demande.status === 'refused') && "border-red-300 bg-red-50 opacity-80"
                       )}
                     >
                       <div className="flex items-center justify-between">
@@ -7714,6 +7715,14 @@ L'équipe Busmoov`,
                             ) : demande.status === 'responded' || demande.prix_propose ? (
                               <span className="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
                                 Répondu
+                              </span>
+                            ) : demande.status === 'non_disponible' ? (
+                              <span className="px-2 py-1 rounded-full text-xs font-bold bg-red-600 text-white">
+                                ⛔ Pas disponible
+                              </span>
+                            ) : demande.status === 'refused' ? (
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                Refusé
                               </span>
                             ) : demande.status === 'sent' ? (
                               <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
@@ -15419,6 +15428,7 @@ L'équipe Busmoov`
       bpa_received: { label: '✓ BPA reçu', bg: '#10B981', color: '#FFFFFF' },
       accepted: { label: '✓ Validé', bg: '#3B82F6', color: '#FFFFFF' }, // Legacy
       refused: { label: 'Refusé', bg: '#FEE2E2', color: '#991B1B' },
+      non_disponible: { label: '⛔ Pas dispo', bg: '#DC2626', color: '#FFFFFF' },
     }
     const config = statusConfig[status] || statusConfig.pending
     return (
@@ -15762,12 +15772,14 @@ L'équipe Busmoov`
                       const isBpaReceived = df.status === 'bpa_received'
                       const isValidated = df.status === 'validated'
                       const isTarifRecu = df.status === 'tarif_recu'
+                      const isRefus = df.status === 'non_disponible' || df.status === 'refused'
 
                       return (
                         <div
                           key={df.id}
                           className={`grid grid-cols-6 gap-4 p-3 items-center text-sm ${
                             isTarifRecu ? 'bg-orange-100 border-l-4 border-orange-500 animate-pulse' :
+                            isRefus ? 'bg-red-50 border-l-4 border-red-500 text-gray-500' :
                             isBpaReceived ? 'bg-green-50 border-l-4 border-green-500' :
                             isValidated ? 'bg-blue-50 border-l-4 border-blue-500' :
                             isSelected ? 'bg-green-50 border-l-4 border-green-500' : 'hover:bg-gray-50'
