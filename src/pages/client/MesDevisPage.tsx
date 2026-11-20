@@ -1712,9 +1712,10 @@ export function MesDevisPage() {
           const validatedDevis = data.devis.find(d => d.status === 'accepted')
 
           // Filtrer les devis à afficher
+          // Les devis « plus disponibles » restent visibles, grisés, en fin de liste
           const devisToShow = hasSignedContract && validatedDevis
             ? [validatedDevis]
-            : data.devis
+            : [...data.devis].sort((a, b) => (a.status === 'unavailable' ? 1 : 0) - (b.status === 'unavailable' ? 1 : 0))
 
           // Le dossier est en attente de paiement ou en attente de réservation (acompte payé)
           const isPendingPayment = data?.dossier?.status === 'pending-payment'
@@ -1844,6 +1845,7 @@ export function MesDevisPage() {
               const isConfirmed = devis.status === 'accepted' && !isPendingPayment
               // isPending = devis accepté mais paiement pas encore effectué
               const isPending = devis.status === 'accepted' && isPendingPayment
+              const isUnavailable = devis.status === 'unavailable'
               // Trouver le vrai numéro du fournisseur dans la liste originale
               const originalIndex = data.devis.findIndex(d => d.id === devis.id)
               const supplierNum = originalIndex + 1
@@ -1859,11 +1861,17 @@ export function MesDevisPage() {
                     'card overflow-hidden transition-all hover:shadow-xl',
                     isConfirmed ? 'border-2 border-emerald-500 ring-4 ring-emerald-100' :
                     isPending ? 'border-2 border-orange-400 ring-4 ring-orange-100' :
+                    isUnavailable ? 'opacity-60 grayscale' :
                     'hover:border-magenta hover:ring-4 hover:ring-magenta/10'
                   )}
                 >
+                  {isUnavailable && (
+                    <div className="bg-gray-500 text-white text-center py-2 text-sm font-semibold">
+                      {t('mesDevis.quote.unavailable', "Ce devis n'est plus disponible")}
+                    </div>
+                  )}
                   {/* Badge Best-seller ou Confirmé */}
-                  {index === 0 && !isConfirmed && !isPending && !hasSignedContract && (
+                  {index === 0 && !isConfirmed && !isPending && !hasSignedContract && !isUnavailable && (
                     <div className="bg-gradient-to-r from-magenta to-purple text-white text-center py-2 text-sm font-semibold">
                       {t('mesDevis.quote.bestValue')}
                     </div>
@@ -2158,6 +2166,10 @@ export function MesDevisPage() {
                                 <button className="btn btn-warning w-full" disabled>
                                   <Clock size={18} />
                                   {t('mesDevis.quote.waiting')}
+                                </button>
+                              ) : isUnavailable ? (
+                                <button className="btn btn-secondary w-full" disabled>
+                                  {t('mesDevis.quote.unavailable', "Ce devis n'est plus disponible")}
                                 </button>
                               ) : (
                                 <button

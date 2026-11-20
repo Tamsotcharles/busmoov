@@ -577,6 +577,7 @@
     },
     "quote": {
       "bestValue": "Bestes Preis-Leistungs-Verhältnis",
+      "unavailable": "Dieses Angebot ist nicht mehr verfügbar",
       "confirmedSupplier": "Bestätigter Anbieter für Ihre Reise",
       "waitingTransfer": "Warten auf Ihre Überweisung",
       "waitingPaymentBadge": "Zahlung ausstehend",

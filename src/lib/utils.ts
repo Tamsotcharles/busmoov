@@ -29,16 +29,43 @@ const dateLocales: Record<string, typeof fr> = {
   en: enGB,
 }
 
+/**
+ * Les dates du dossier et des infos voyage (departure_date, return_date,
+ * aller_date…) sont saisies en heure locale et stockées telles quelles : l'API
+ * les renvoie avec un « +00:00 » qui n'est pas un vrai fuseau. Pour une date
+ * seule, on lit donc la partie date brute : sinon un retour « 26 nov. 23:00 »
+ * s'affiche « 27 nov. » à Paris. (Les horodatages réels comme created_at ne
+ * sont affichés qu'à la date près : un écart d'une heure autour de minuit est
+ * sans conséquence.)
+ */
+function dateSansFuseau(value: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]00(?::?00)?)$/.exec(value)
+  if (!m) return null
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+}
+
 export function formatDate(date: string | Date | null | undefined): string {
   if (!date) return '-'
-  const d = typeof date === 'string' ? parseISO(date) : date
+  const d = typeof date === 'string' ? (dateSansFuseau(date) || parseISO(date)) : date
   return format(d, 'd MMM yyyy', { locale: fr })
+}
+
+/** Nombre de jours calendaires d'un voyage (départ et retour inclus), sans effet de fuseau : 20:00 → 23:00 le même jour = 1. */
+export function dureeJoursCalendaires(departureDate: string | Date | null | undefined, returnDate: string | Date | null | undefined): number {
+  if (!departureDate || !returnDate) return 1
+  const toUtcDay = (v: string | Date) => {
+    const str = typeof v === 'string' ? v : v.toISOString()
+    const [y, m, d] = str.slice(0, 10).split('-').map(Number)
+    return Date.UTC(y, m - 1, d)
+  }
+  const diff = Math.round((toUtcDay(returnDate) - toUtcDay(departureDate)) / 86400000)
+  return Math.max(1, diff + 1)
 }
 
 // Version localisée pour les PDFs
 export function formatDateLocalized(date: string | Date | null | undefined, lang: string = 'fr'): string {
   if (!date) return '-'
-  const d = typeof date === 'string' ? parseISO(date) : date
+  const d = typeof date === 'string' ? (dateSansFuseau(date) || parseISO(date)) : date
   const locale = dateLocales[lang] || fr
   // Format adapté à la langue
   if (lang === 'de') {

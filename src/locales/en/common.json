@@ -577,6 +577,7 @@
     },
     "quote": {
       "bestValue": "Best value for money",
+      "unavailable": "This quote is no longer available",
       "confirmedSupplier": "Confirmed supplier for your trip",
       "waitingTransfer": "Awaiting your bank transfer",
       "waitingPaymentBadge": "Awaiting payment",

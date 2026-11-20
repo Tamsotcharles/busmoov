@@ -577,6 +577,7 @@
     },
     "quote": {
       "bestValue": "Mejor relación calidad-precio",
+      "unavailable": "Este presupuesto ya no está disponible",
       "confirmedSupplier": "Proveedor confirmado para su viaje",
       "waitingTransfer": "Esperando su transferencia",
       "waitingPaymentBadge": "Pendiente de pago",

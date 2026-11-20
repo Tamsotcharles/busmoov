@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
+  Ban,
   LayoutDashboard,
   UsersRound,
   Workflow,
@@ -134,7 +135,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif, getPrestationFournisseur, getLuggageLabel, voyageWallClock, voyageHeure, formatVoyageDateTime } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif, getPrestationFournisseur, getLuggageLabel, voyageWallClock, voyageHeure, formatVoyageDateTime, dureeJoursCalendaires } from '@/lib/utils'
 import { TransporteurPicker } from '@/components/admin/TransporteurPicker'
 import { UsersPage } from '@/components/admin/UsersPage'
 import { canAccessPage, isFullAdminRole, ROLE_LABELS, type AdminRole } from '@/lib/roles'
@@ -506,6 +507,22 @@ export function AdminDashboard() {
   const [statsDateTo, setStatsDateTo] = useState('')
   // Filtre pour afficher uniquement les dossiers des stats (cliquables)
   const [showOnlyStatsDossiers, setShowOnlyStatsDossiers] = useState(false)
+  // Une recherche (nom, téléphone, dossier…) efface les autres filtres : sinon le
+  // dossier cherché reste caché par un statut, une période ou une card active.
+  const searchAndResetFilters = (value: string) => {
+    setSearchQuery(value)
+    if (value.trim()) {
+      setStatusFilter('')
+      setTransporteurFilter('')
+      setVoyageDateFrom('')
+      setVoyageDateTo('')
+      setReceptionDateFrom('')
+      setReceptionDateTo('')
+      setAmountMinDashboard('')
+      setAmountMaxDashboard('')
+      setShowOnlyStatsDossiers(false)
+    }
+  }
   const [showCreateDossierModal, setShowCreateDossierModal] = useState(false)
   const [createDossierPrefill, setCreateDossierPrefill] = useState<CreateDossierPrefill | null>(null)
   const ouvrirNouveauDossierPourClient = (client: CreateDossierPrefill) => {
@@ -534,7 +551,7 @@ export function AdminDashboard() {
   // Les filtres croisés (calculés cote client sur plusieurs dimensions) ne
   // sont pas des statuts Supabase : useDossiers ne doit pas les passer comme
   // status, sinon il ne trouverait rien.
-  const crossFilters = ['x-cotation-manuelle', 'x-pending-payment', 'x-pending-solde', 'x-pending-reservation', 'x-pending-info', 'x-infos-to-validate', 'x-pending-driver']
+  const crossFilters = ['x-cotation-manuelle', 'x-pending-payment', 'x-pending-solde', 'x-pending-reservation', 'x-pending-info', 'x-infos-to-validate', 'x-pending-driver', 'x-pending-driver-retour']
   const specialFilters = ['flash-active', 'facture-fournisseur-pending', 'signed-only', ...crossFilters]
   const { data: dossiers = [], isLoading: dossiersLoading } = useDossiers({
     status: statusFilter && !specialFilters.includes(statusFilter) ? statusFilter : undefined,
@@ -551,15 +568,15 @@ export function AdminDashboard() {
 
   // Infos voyage par dossier (le client a-t-il rempli / validé, chauffeur reçu ?)
   // Chargé à part car useDossiers ne joint pas voyage_infos.
-  const [voyageInfosMap, setVoyageInfosMap] = useState<Record<string, { hasInfos: boolean; validated: boolean; chauffeurRecu: boolean }>>({})
+  const [voyageInfosMap, setVoyageInfosMap] = useState<Record<string, { hasInfos: boolean; validated: boolean; chauffeurRecu: boolean; chauffeurRetour: boolean }>>({})
   useEffect(() => {
     let annule = false
     ;(async () => {
       const { data } = await supabase
         .from('voyage_infos')
-        .select('dossier_id, aller_adresse_depart, validated_at, chauffeur_info_recue_at')
+        .select('dossier_id, aller_adresse_depart, validated_at, chauffeur_info_recue_at, chauffeur_retour_nom')
       if (annule || !data) return
-      const map: Record<string, { hasInfos: boolean; validated: boolean; chauffeurRecu: boolean }> = {}
+      const map: Record<string, { hasInfos: boolean; validated: boolean; chauffeurRecu: boolean; chauffeurRetour: boolean }> = {}
       for (const vi of data as any[]) {
         if (!vi.dossier_id) continue
         map[vi.dossier_id] = {
@@ -567,6 +584,7 @@ export function AdminDashboard() {
           hasInfos: !!vi.aller_adresse_depart,
           validated: !!vi.validated_at,
           chauffeurRecu: !!vi.chauffeur_info_recue_at,
+          chauffeurRetour: !!vi.chauffeur_retour_nom,
         }
       }
       setVoyageInfosMap(map)
@@ -627,6 +645,12 @@ export function AdminDashboard() {
         bpaConfirmeByDossier.has(d.id) &&
         voyageInfosMap[d.id]?.validated &&
         !voyageInfosMap[d.id]?.chauffeurRecu,
+      // Aller-retour : chauffeur aller reçu mais pas de chauffeur pour le retour
+      pendingDriverRetour: (d: any) =>
+        isSigned(d) && !isClosed(d) && !!d.return_date &&
+        bpaConfirmeByDossier.has(d.id) &&
+        !!voyageInfosMap[d.id]?.chauffeurRecu &&
+        !voyageInfosMap[d.id]?.chauffeurRetour,
       confirmed: (d: any) => d.status === 'confirmed',
       completed: (d: any) => d.status === 'completed',
     }
@@ -642,6 +666,7 @@ export function AdminDashboard() {
     pendingInfo: allDossiers.filter(cardPredicates.pendingInfo).length,
     infosToValidate: allDossiers.filter(cardPredicates.infosToValidate).length,
     pendingDriver: allDossiers.filter(cardPredicates.pendingDriver).length,
+    pendingDriverRetour: allDossiers.filter(cardPredicates.pendingDriverRetour).length,
   }), [allDossiers, cardPredicates])
 
   // Statut d'affichage effectif d'un dossier (prochain jalon reel), pour
@@ -943,6 +968,7 @@ export function AdminDashboard() {
         : statusFilter === 'x-pending-info' ? cardPredicates.pendingInfo(d)
         : statusFilter === 'x-infos-to-validate' ? cardPredicates.infosToValidate(d)
         : statusFilter === 'x-pending-driver' ? cardPredicates.pendingDriver(d)
+        : statusFilter === 'x-pending-driver-retour' ? cardPredicates.pendingDriverRetour(d)
         : true
 
       return matchesTransporteur && matchesVoyageDateFrom && matchesVoyageDateTo && matchesReceptionDateFrom && matchesReceptionDateTo && matchesAmountMin && matchesAmountMax && matchesFlashActive && matchesFactureFournisseurPending && matchesSignedOnly && matchesStatsDossiers && matchesCross
@@ -1015,6 +1041,7 @@ export function AdminDashboard() {
     { label: 'Att. infos', value: crossStats.pendingInfo, icon: FileText, color: 'purple', filter: 'x-pending-info' },
     { label: 'Infos à valider', value: crossStats.infosToValidate, icon: CheckCircle, color: 'teal', filter: 'x-infos-to-validate' },
     { label: 'Att. chauffeur', value: crossStats.pendingDriver, icon: Truck, color: 'indigo', filter: 'x-pending-driver' },
+    { label: 'Att. chauffeur retour', value: crossStats.pendingDriverRetour, icon: Truck, color: 'indigo', filter: 'x-pending-driver-retour' },
     { label: 'Confirmés', value: stats?.confirmed || 0, icon: CheckCircle, color: 'green', filter: 'confirmed' },
     { label: 'Terminés', value: stats?.completed || 0, icon: TrendingUp, color: 'emerald', filter: 'completed' },
   ]
@@ -1332,7 +1359,7 @@ export function AdminDashboard() {
                       type="text"
                       placeholder="Recherche client, dossier, tél, email..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => searchAndResetFilters(e.target.value)}
                       className="input pl-10"
                     />
                   </div>
@@ -1353,6 +1380,7 @@ export function AdminDashboard() {
                     <option value="x-pending-info">📝 Att. infos</option>
                     <option value="x-infos-to-validate">📋 Infos à valider</option>
                     <option value="x-pending-driver">👨‍✈️ Att. chauffeur</option>
+                    <option value="x-pending-driver-retour">👨‍✈️ Att. chauffeur retour</option>
                     <option value="confirmed">✅ Confirmé</option>
                     <option value="completed">✅ Terminé</option>
                     <option value="cancelled">❌ Abandonné</option>
@@ -1549,7 +1577,7 @@ export function AdminDashboard() {
                       type="text"
                       placeholder="Recherche par nom, email, référence..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => searchAndResetFilters(e.target.value)}
                       className="input pl-10"
                     />
                   </div>
@@ -1569,6 +1597,7 @@ export function AdminDashboard() {
                     <option value="x-pending-info">Att. infos</option>
                     <option value="x-infos-to-validate">Infos à valider</option>
                     <option value="x-pending-driver">Att. chauffeur</option>
+                    <option value="x-pending-driver-retour">Att. chauffeur retour</option>
                     <option value="confirmed">Confirmé</option>
                     <option value="completed">Terminé</option>
                     <option value="cancelled">Abandonné</option>
@@ -2813,6 +2842,7 @@ function DevisStatusBadge({ status, scheduledAt }: { status: string; scheduledAt
     client_validated: { label: 'PROFORMA (En attente)', className: 'bg-orange-100 text-orange-700 font-bold' },
     accepted: { label: 'PROFORMA CONFIRMÉE', className: 'bg-green-100 text-green-700 font-bold' },
     rejected: { label: 'Refusé (pas de dispo)', className: 'bg-red-100 text-red-700' },
+    unavailable: { label: '⛔ Plus disponible', className: 'bg-gray-200 text-gray-600' },
     expired: { label: 'Expiré', className: 'bg-gray-100 text-gray-500' },
   }
 
@@ -4123,7 +4153,7 @@ function DossierDetailView({
   // validé par le client, sinon le moins cher ; l'admin peut en choisir un autre.
   const devisParDefautDF =
     dossierDevis.find((d) => d.status === 'accepted') ||
-    [...dossierDevis].filter((d) => d.status !== 'rejected').sort((a, b) => (a.price_ttc || 0) - (b.price_ttc || 0))[0] ||
+    [...dossierDevis].filter((d) => d.status !== 'rejected' && d.status !== 'unavailable').sort((a, b) => (a.price_ttc || 0) - (b.price_ttc || 0))[0] ||
     dossierDevis[0] ||
     null
   const devisDF = dossierDevis.find((d) => d.id === selectedDevisIdDF) || devisParDefautDF
@@ -4670,6 +4700,25 @@ L'équipe Busmoov`,
   }
 
   // Supprimer un devis (non validé uniquement)
+  /** Devis « plus disponible » : le client le voit grisé et ne peut plus le choisir ; réversible. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleToggleDevisDisponible = async (devis: any) => {
+    const rendreIndisponible = devis.status !== 'unavailable'
+    if (rendreIndisponible && !confirm(`Marquer le devis ${devis.reference} comme plus disponible ? Le client ne pourra plus le choisir.`)) return
+    try {
+      await updateDevis.mutateAsync({ id: devis.id, status: rendreIndisponible ? 'unavailable' : 'sent' })
+      addTimelineEntry.mutate({
+        dossier_id: dossier.id,
+        type: 'note',
+        content: rendreIndisponible ? `⛔ Devis ${devis.reference} marqué « plus disponible »` : `✅ Devis ${devis.reference} remis en ligne`,
+      })
+      queryClient.invalidateQueries({ queryKey: ['dossier', dossier.id] })
+    } catch (error) {
+      console.error('Erreur disponibilité devis:', error)
+      alert('Erreur lors de la mise à jour du devis')
+    }
+  }
+
   const handleDeleteDevis = async (devisId: string, devisRef: string) => {
     if (!confirm(`Supprimer définitivement le devis ${devisRef} ?\n\nCette action est irréversible.`)) return
 
@@ -5994,9 +6043,7 @@ L'équipe Busmoov`
                         onClick={() => {
                           const devisAccepte = dossierDevis.find((d: any) => d.status === 'accepted')
                           // Calculer la durée en jours pour les circuits/MAD
-                          const dureeJoursContrat = dossier.departure_date && dossier.return_date
-                            ? Math.ceil((new Date(dossier.return_date).getTime() - new Date(dossier.departure_date).getTime()) / (1000 * 60 * 60 * 24)) + 1
-                            : 1
+                          const dureeJoursContrat = dureeJoursCalendaires(dossier?.departure_date, dossier?.return_date)
 
                           // Récupérer les options du devis accepté
                           const optionsDetails = (devisAccepte as any)?.options_details || {}
@@ -6729,9 +6776,7 @@ L'équipe Busmoov`
                                     : null
 
                                   // Calculer la durée et les options comme pour la proforma
-                                  const dureeJoursFacture = dossier.departure_date && dossier.return_date
-                                    ? Math.ceil((new Date(dossier.return_date).getTime() - new Date(dossier.departure_date).getTime()) / (1000 * 60 * 60 * 24)) + 1
-                                    : 1
+                                  const dureeJoursFacture = dureeJoursCalendaires(dossier?.departure_date, dossier?.return_date)
                                   const optionsDetailsFacture = (devisAccepte as any)?.options_details || {}
                                   const nbChauffeursFacture = devisAccepte?.nombre_chauffeurs || 1
                                   const nbRepasFacture = dureeJoursFacture * 2
@@ -8218,7 +8263,25 @@ L'équipe Busmoov`,
                               <Pencil size={14} />
                               Signer pour client
                             </button>
+                            <button
+                              className="btn btn-sm border-gray-300 text-gray-600 hover:bg-gray-100"
+                              title="Marquer ce devis comme plus disponible (le client ne pourra plus le choisir)"
+                              onClick={() => handleToggleDevisDisponible(devis)}
+                            >
+                              <Ban size={14} />
+                              Plus dispo
+                            </button>
                           </>
+                        )}
+                        {devis.status === 'unavailable' && (
+                          <button
+                            className="btn btn-sm border-green-300 text-green-700 hover:bg-green-50"
+                            title="Remettre ce devis à disposition du client"
+                            onClick={() => handleToggleDevisDisponible(devis)}
+                          >
+                            <RotateCcw size={14} />
+                            Remettre en ligne
+                          </button>
                         )}
                         {devis.status === 'client_validated' && (
                           <>
@@ -16863,9 +16926,7 @@ function FacturesPage() {
       const devisAccepteFacture = selectedDossier.devis?.find((d: any) => d.status === 'accepted')
 
       // Calculer la durée et les options
-      const dureeJoursFactureNew = selectedDossier.departure_date && selectedDossier.return_date
-        ? Math.ceil((new Date(selectedDossier.return_date).getTime() - new Date(selectedDossier.departure_date).getTime()) / (1000 * 60 * 60 * 24)) + 1
-        : 1
+      const dureeJoursFactureNew = dureeJoursCalendaires(selectedDossier?.departure_date, selectedDossier?.return_date)
       const optionsDetailsFactureNew = (devisAccepteFacture as any)?.options_details || {}
       const nbChauffeursFactureNew = devisAccepteFacture?.nombre_chauffeurs || 1
       const nbRepasFactureNew = dureeJoursFactureNew * 2
@@ -17009,9 +17070,7 @@ function FacturesPage() {
       const devisAccepteDL = facture.dossier?.devis?.find((d: any) => d.status === 'accepted')
 
       // Calculer la durée et les options
-      const dureeJoursDL = facture.dossier?.departure_date && facture.dossier?.return_date
-        ? Math.ceil((new Date(facture.dossier.return_date).getTime() - new Date(facture.dossier.departure_date).getTime()) / (1000 * 60 * 60 * 24)) + 1
-        : 1
+      const dureeJoursDL = dureeJoursCalendaires(facture.dossier?.departure_date, facture.dossier?.return_date)
       const optionsDetailsDL = (devisAccepteDL as any)?.options_details || {}
       const nbChauffeursDL = devisAccepteDL?.nombre_chauffeurs || 1
       const nbRepasDL = dureeJoursDL * 2

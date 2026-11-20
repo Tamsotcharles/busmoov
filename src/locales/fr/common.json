@@ -577,6 +577,7 @@
     },
     "quote": {
       "bestValue": "Meilleur rapport qualité-prix",
+      "unavailable": "Ce devis n'est plus disponible",
       "confirmedSupplier": "Fournisseur confirmé pour votre voyage",
       "waitingTransfer": "En attente de votre virement",
       "waitingPaymentBadge": "En attente de paiement",
