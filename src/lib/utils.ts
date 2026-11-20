@@ -153,7 +153,13 @@ export function getStatusConfig(status: string) {
 export function getVehicleTypeLabel(type: string | null | undefined): string {
   if (!type) return 'Autocar'
   const types: Record<string, string> = {
-    minibus: 'Minibus',
+    // Codes des grilles tarifaires (capacites_vehicules)
+    minibus: 'Minibus (jusqu\'à 20 places)',
+    standard: 'Autocar standard (jusqu\'à 59 places)',
+    '60-63': 'Autocar 60-63 places',
+    '70': 'Autocar 64-70 places',
+    '83-90': 'Autocar 71-90 places',
+    autocar: 'Autocar',
     'autocar-standard': 'Autocar Standard',
     'autocar_standard': 'Autocar Standard',
     'autocar-gt': 'Autocar Grand Tourisme',
