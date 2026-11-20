@@ -597,30 +597,19 @@ async function calculerTarif(
     if (tranche) {
       const supplementParJour = Number(tranche.supplement_jour) || T.SUPPLEMENT_JOUR_MAD;
 
-      if (nbJours > 6) {
-        joursSupplementaires = nbJours - 6;
-        supplementJours = joursSupplementaires * supplementParJour;
-        prixBase = Number(tranche.prix_6j) || 0;
+      // Prix direct si renseigné, sinon dernier prix renseigné (≤ 6 j) + supplément
+      // par jour manquant (prix_6j vide ne doit pas donner une base à 0 au-delà de 6 j).
+      const prixDirect = nbJours <= 6 ? Number(tranche[`prix_${nbJours}j` as keyof TarifARMAD]) || 0 : 0;
+      if (prixDirect > 0) {
+        prixBase = prixDirect;
       } else {
-        const joursKey = `prix_${nbJours}j` as keyof TarifARMAD;
-        prixBase = Number(tranche[joursKey]) || 0;
-
-        if (!prixBase) {
-          let dernierJourDispo = 0;
-          let dernierPrix = 0;
-          for (let j = nbJours - 1; j >= 2; j--) {
-            const key = `prix_${j}j` as keyof TarifARMAD;
-            const prix = Number(tranche[key]) || 0;
-            if (prix > 0) {
-              dernierJourDispo = j;
-              dernierPrix = prix;
-              break;
-            }
-          }
-          if (dernierPrix > 0) {
-            prixBase = dernierPrix;
-            joursSupplementaires = nbJours - dernierJourDispo;
+        for (let j = Math.min(nbJours - 1, 6); j >= 2; j--) {
+          const prix = Number(tranche[`prix_${j}j` as keyof TarifARMAD]) || 0;
+          if (prix > 0) {
+            prixBase = prix;
+            joursSupplementaires = nbJours - j;
             supplementJours = joursSupplementaires * supplementParJour;
+            break;
           }
         }
       }
@@ -658,30 +647,19 @@ async function calculerTarif(
 
       const supplementParJour = Number(tranche.supplement_jour) || T.SUPPLEMENT_JOUR_SANS_MAD;
 
-      if (nbJours > 6) {
-        joursSupplementaires = nbJours - 6;
-        supplementJours = joursSupplementaires * supplementParJour;
-        prixBase = Number(tranche.prix_6j) || 0;
+      // Prix direct si renseigné, sinon dernier prix renseigné (≤ 6 j) + supplément
+      // par jour manquant (prix_6j vide ne doit pas donner une base à 0 au-delà de 6 j).
+      const prixDirect = nbJours <= 6 ? Number(tranche[`prix_${nbJours}j` as keyof TarifARSansMAD]) || 0 : 0;
+      if (prixDirect > 0) {
+        prixBase = prixDirect;
       } else {
-        const joursKey = `prix_${nbJours}j` as keyof TarifARSansMAD;
-        prixBase = Number(tranche[joursKey]) || 0;
-
-        if (!prixBase) {
-          let dernierJourDispo = 0;
-          let dernierPrix = 0;
-          for (let j = nbJours - 1; j >= 2; j--) {
-            const key = `prix_${j}j` as keyof TarifARSansMAD;
-            const prix = Number(tranche[key]) || 0;
-            if (prix > 0) {
-              dernierJourDispo = j;
-              dernierPrix = prix;
-              break;
-            }
-          }
-          if (dernierPrix > 0) {
-            prixBase = dernierPrix;
-            joursSupplementaires = nbJours - dernierJourDispo;
+        for (let j = Math.min(nbJours - 1, 6); j >= 2; j--) {
+          const prix = Number(tranche[`prix_${j}j` as keyof TarifARSansMAD]) || 0;
+          if (prix > 0) {
+            prixBase = prix;
+            joursSupplementaires = nbJours - j;
             supplementJours = joursSupplementaires * supplementParJour;
+            break;
           }
         }
       }

@@ -142,6 +142,14 @@ export function useDossiers(filters?: {
         // par les guillemets.
         const mots = filters.search.trim().split(/\s+/).filter(Boolean).slice(0, 5)
         const telComplet = filters.search.replace(/\D/g, '')
+        // Numéro saisi avec espaces, points, 0 initial ou +33 : les numéros sont
+        // stockés tels que saisis par le client (souvent sans le 0 : « 612497715 »),
+        // on cherche donc les 9 derniers chiffres significatifs.
+        const telSignificatif = telComplet.replace(/^(0033|33|0)/, '')
+        const rechercheEstUnTel = /^[\d\s.+()-]+$/.test(filters.search.trim()) && telSignificatif.length >= 6
+        if (rechercheEstUnTel) {
+          query = query.or(`client_phone.ilike."%${telSignificatif}%",reference.ilike."%${filters.search.trim()}%"`)
+        } else
         for (const mot of mots) {
           const v = `"%${mot.replace(/"/g, '')}%"`
           const clauses = [

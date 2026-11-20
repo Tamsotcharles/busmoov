@@ -787,6 +787,32 @@ async function calculateRoute(departure: string, arrival: string, countryCode: s
  * Calculer le prix depuis les grilles tarifaires
  * Retourne le prix TTC final ou null si pas de tarif trouvé
  */
+/**
+ * Prix d'une tranche AR (MAD ou sans MAD) pour une durée en jours.
+ * Prix direct s'il est renseigné ; sinon dernier prix renseigné (≤ 6 j)
+ * + supplément par jour manquant. Avant, au-delà de 6 jours le code
+ * partait de prix_6j même vide : 0 + 2 × 600 = 1 200 € pour 8 jours
+ * sur 150-200 km, au lieu de 2 490 (3 j) + 5 × 600.
+ */
+function prixParDuree(
+  tarif: { prix_2j: unknown; prix_3j: unknown; prix_4j: unknown; prix_5j: unknown; prix_6j: unknown },
+  dureeJours: number,
+  supplementParJour: number,
+): number {
+  const prixDirects: Record<number, number> = {
+    2: Number(tarif.prix_2j) || 0,
+    3: Number(tarif.prix_3j) || 0,
+    4: Number(tarif.prix_4j) || 0,
+    5: Number(tarif.prix_5j) || 0,
+    6: Number(tarif.prix_6j) || 0,
+  }
+  if (dureeJours <= 6 && prixDirects[dureeJours] > 0) return prixDirects[dureeJours]
+  for (let j = Math.min(dureeJours - 1, 6); j >= 2; j--) {
+    if (prixDirects[j] > 0) return prixDirects[j] + (dureeJours - j) * supplementParJour
+  }
+  return 0
+}
+
 function calculatePriceFromGrid(
   km: number,
   serviceType: string,
@@ -857,35 +883,7 @@ function calculatePriceFromGrid(
     if (tarif) {
       const supplementParJour = Number(tarif.supplement_jour) || 800
 
-      if (dureeJours > 6) {
-        prixBase = (Number(tarif.prix_6j) || 0) + (dureeJours - 6) * supplementParJour
-      } else {
-        // Chercher le prix pour ce nombre de jours
-        const prixDirects: Record<number, number> = {
-          2: Number(tarif.prix_2j) || 0,
-          3: Number(tarif.prix_3j) || 0,
-          4: Number(tarif.prix_4j) || 0,
-          5: Number(tarif.prix_5j) || 0,
-          6: Number(tarif.prix_6j) || 0,
-        }
-        prixBase = prixDirects[dureeJours] || 0
-
-        // Si pas de prix pour ce nombre de jours, chercher le dernier prix disponible et ajouter les suppléments
-        if (!prixBase) {
-          let dernierJourDispo = 0
-          let dernierPrix = 0
-          for (let j = dureeJours - 1; j >= 2; j--) {
-            if (prixDirects[j] > 0) {
-              dernierJourDispo = j
-              dernierPrix = prixDirects[j]
-              break
-            }
-          }
-          if (dernierPrix > 0) {
-            prixBase = dernierPrix + (dureeJours - dernierJourDispo) * supplementParJour
-          }
-        }
-      }
+      prixBase = prixParDuree(tarif, dureeJours, supplementParJour)
     }
   } else if (serviceType === 'ar_sans_mad') {
     // RÈGLE: Si distance < 100 km, calculer sur base tarif aller simple × 2
@@ -912,35 +910,7 @@ function calculatePriceFromGrid(
       if (tarif) {
         const supplementParJour = Number(tarif.supplement_jour) || 600
 
-        if (dureeJours > 6) {
-          prixBase = (Number(tarif.prix_6j) || 0) + (dureeJours - 6) * supplementParJour
-        } else {
-          // Chercher le prix pour ce nombre de jours
-          const prixDirects: Record<number, number> = {
-            2: Number(tarif.prix_2j) || 0,
-            3: Number(tarif.prix_3j) || 0,
-            4: Number(tarif.prix_4j) || 0,
-            5: Number(tarif.prix_5j) || 0,
-            6: Number(tarif.prix_6j) || 0,
-          }
-          prixBase = prixDirects[dureeJours] || 0
-
-          // Si pas de prix pour ce nombre de jours, chercher le dernier prix disponible et ajouter les suppléments
-          if (!prixBase) {
-            let dernierJourDispo = 0
-            let dernierPrix = 0
-            for (let j = dureeJours - 1; j >= 2; j--) {
-              if (prixDirects[j] > 0) {
-                dernierJourDispo = j
-                dernierPrix = prixDirects[j]
-                break
-              }
-            }
-            if (dernierPrix > 0) {
-              prixBase = dernierPrix + (dureeJours - dernierJourDispo) * supplementParJour
-            }
-          }
-        }
+        prixBase = prixParDuree(tarif, dureeJours, supplementParJour)
       }
     }
   }
