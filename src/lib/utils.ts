@@ -204,6 +204,22 @@ export function getTripModeLabel(tripMode: string | null | undefined): string {
   return modes[tripMode] || tripMode
 }
 
+/** Libellé français d'un type de bagages (codes dossiers : aucun/leger/moyen/volumineux ; anciens : none/hand/standard/large). */
+export function getLuggageLabel(code: string | null | undefined): string {
+  if (!code) return ''
+  const map: Record<string, string> = {
+    aucun: 'Aucun bagage',
+    none: 'Aucun bagage',
+    leger: 'Léger (sacs à main, petits sacs)',
+    hand: 'Léger (bagages à main)',
+    moyen: 'Moyen (valises cabine)',
+    standard: 'Standard (1 valise par personne)',
+    volumineux: 'Volumineux (grosses valises en soute)',
+    large: 'Volumineux (grosses valises en soute)',
+  }
+  return map[code] || code
+}
+
 export type PrestationCode = 'aller_simple' | 'ar_1j' | 'ar_sans_mad' | 'ar_mad'
 
 export interface PrestationFournisseur {
@@ -587,6 +603,7 @@ export interface ValidationFournisseurParams {
   serviceType?: string | null
   nbCars?: number | null
   nbChauffeurs?: number | null
+  luggageType?: string | null
   // Paramètres pour la mise à disposition
   detailMad?: string | null
   dureeJours?: number | null
@@ -990,6 +1007,7 @@ export async function generateValidationFournisseurEmailFromTemplate(
     serviceType,
     nbCars,
     nbChauffeurs,
+    luggageType,
     detailMad,
     dureeJours,
     amplitude,
@@ -1068,6 +1086,7 @@ export async function generateValidationFournisseurEmailFromTemplate(
     passengers: passengers,
     nb_cars: nbCars,
     nb_chauffeurs: nbChauffeurs,
+    luggage_type: getLuggageLabel(luggageType),
     detail_mad: detailMad,
     // La durée n'a de sens que pour une mise à disposition (pas pour deux transferts)
     duree_jours: isMiseADispo ? dureeJours : null,

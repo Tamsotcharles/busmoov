@@ -1,5 +1,15 @@
 import { jsPDF } from 'jspdf'
 import { formatDateLocalized } from './utils'
+
+/** Libellé traduit d'un code bagages (aucun/leger/moyen/volumineux et anciens codes none/hand/standard/large). */
+function luggageLabelPdf(code: string | null | undefined, lang: string): string {
+  const t = getPdfTranslations(lang)
+  if (!code || code === 'aucun' || code === 'none') return t.luggageNone
+  if (code === 'leger' || code === 'hand') return t.luggageLight
+  if (code === 'moyen' || code === 'standard') return t.luggageMedium
+  if (code === 'volumineux' || code === 'large') return t.luggageHeavy
+  return code
+}
 import { supabase } from './supabase'
 import type { CompanySettings } from '@/types/database'
 
@@ -3428,7 +3438,7 @@ export async function generateFeuilleRoutePDF(data: FeuilleRouteData, lang: stri
   doc.setFont('helvetica', 'bold')
   doc.text('Type de bagage : ', 15, y)
   doc.setFont('helvetica', 'normal')
-  const bagageFeuille = data.luggage_type || 'Pas de bagage'
+  const bagageFeuille = luggageLabelPdf(data.luggage_type, lang)
   doc.text(bagageFeuille, 45, y)
 
   // Commentaires
@@ -3737,7 +3747,7 @@ export async function generateFeuilleRoutePDFBase64(data: FeuilleRouteData, lang
   doc.setFont('helvetica', 'bold')
   doc.text(luggageTypeLabel, 15, y)
   doc.setFont('helvetica', 'normal')
-  const bagageFeuille = data.luggage_type || noLuggageLabel
+  const bagageFeuille = luggageLabelPdf(data.luggage_type, lang)
   doc.text(bagageFeuille, 15 + doc.getTextWidth(luggageTypeLabel), y)
 
   if (data.commentaires) {
@@ -4079,7 +4089,7 @@ export async function generateInfosVoyagePDF(data: InfosVoyageData, lang: string
   doc.setFont('helvetica', 'bold')
   doc.text('Type de bagage : ', 15, y)
   doc.setFont('helvetica', 'normal')
-  const bagageVoyage = data.luggage_type || 'Pas de bagage'
+  const bagageVoyage = luggageLabelPdf(data.luggage_type, lang)
   doc.text(bagageVoyage, 45, y)
 
   // Commentaires
@@ -4309,7 +4319,7 @@ export async function generateInfosVoyagePDFBase64(data: InfosVoyageData, lang: 
   doc.setFont('helvetica', 'bold')
   doc.text('Type de bagage : ', 15, y)
   doc.setFont('helvetica', 'normal')
-  const bagageVoyage = data.luggage_type || 'Pas de bagage'
+  const bagageVoyage = luggageLabelPdf(data.luggage_type, lang)
   doc.text(bagageVoyage, 45, y)
 
   if (data.commentaires) {

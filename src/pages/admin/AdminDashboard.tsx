@@ -134,7 +134,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif, getPrestationFournisseur } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif, getPrestationFournisseur, getLuggageLabel } from '@/lib/utils'
 import { TransporteurPicker } from '@/components/admin/TransporteurPicker'
 import { UsersPage } from '@/components/admin/UsersPage'
 import { canAccessPage, isFullAdminRole, ROLE_LABELS, type AdminRole } from '@/lib/roles'
@@ -3043,6 +3043,7 @@ Heure : ${allerHeure || 'Non définie'}
 Départ : ${allerDepart}
 Arrivée : ${allerArrivee}
 Passagers : ${allerPassagers}
+Bagages : ${getLuggageLabel(dossier.luggage_type) || 'Non précisé'}
 ${retourDate ? `
 📅 RETOUR
 Date : ${new Date(retourDate).toLocaleDateString('fr-FR')}
@@ -7854,6 +7855,7 @@ L'équipe Busmoov`,
                                       serviceType: devisAvecInfos?.service_type || (dossier as any).service_type,
                                       nbCars: nbCars,
                                       nbChauffeurs: nbChauffeurs,
+                                      luggageType: dossier.luggage_type,
                                       detailMad: devisAvecInfos?.detail_mad,
                                       dureeJours: devisAvecInfos?.duree_jours,
                                       amplitude: devisAvecInfos?.amplitude,
@@ -9605,7 +9607,7 @@ L'équipe Busmoov`)
                             nb_chauffeurs: devisAccepte?.nombre_chauffeurs && devisAccepte.nombre_chauffeurs > 1 ? String(devisAccepte.nombre_chauffeurs) : '',
                             vehicle_type: getVehicleTypeLabel(devisAccepte?.vehicle_type || dossier.vehicle_type || 'standard'),
                             nb_cars: devisAccepte?.nombre_cars?.toString() || '1',
-                            luggage_type: dossier.luggage_type || '',
+                            luggage_type: getLuggageLabel(dossier.luggage_type),
                             // Le template affiche {{lien_proposition}} : c'est ce
                             // lien, porteur du token, qui permet au transporteur de
                             // saisir son tarif. L'ancien nom lien_proposition_tarif
@@ -15200,6 +15202,7 @@ L'équipe Busmoov`
       serviceType: devisAvecInfos?.service_type || (dossier as any).service_type,
       nbCars: nbCars,
       nbChauffeurs: nbChauffeurs,
+      luggageType: dossier.luggage_type,
       detailMad: devisAvecInfos?.detail_mad,
       dureeJours: devisAvecInfos?.duree_jours,
       amplitude: devisAvecInfos?.amplitude,
@@ -15319,7 +15322,7 @@ L'équipe Busmoov`
             nb_chauffeurs: devisRef?.nombre_chauffeurs && devisRef.nombre_chauffeurs > 1 ? String(devisRef.nombre_chauffeurs) : '',
             vehicle_type: getVehicleTypeLabel(devisRef?.vehicle_type || dossier.vehicle_type || 'standard'),
             nb_cars: devisRef?.nombre_cars?.toString() || '1',
-            luggage_type: dossier.luggage_type || '',
+            luggage_type: getLuggageLabel(dossier.luggage_type),
             lien_proposition: lienPropositionTarif,
             lien_proposition_tarif: lienPropositionTarif,
             dossier_id: dossier.id,
