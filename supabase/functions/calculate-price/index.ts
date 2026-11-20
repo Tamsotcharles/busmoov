@@ -653,13 +653,22 @@ async function calculerTarif(
       if (prixDirect > 0) {
         prixBase = prixDirect;
       } else {
-        for (let j = Math.min(nbJours - 1, 6); j >= 2; j--) {
-          const prix = Number(tranche[`prix_${j}j` as keyof TarifARSansMAD]) || 0;
-          if (prix > 0) {
-            prixBase = prix;
-            joursSupplementaires = nbJours - j;
-            supplementJours = joursSupplementaires * supplementParJour;
-            break;
+        // Durée sans prix direct : un AR sans MAD reste deux transferts, le
+        // séjour ne se facture pas à la journée → 2 × aller simple (règle du 20 nov. 2026).
+        const tarifAS = grilles.tarifsAllerSimple.find(t => distanceKm > t.km_min && distanceKm <= t.km_max)
+          || (distanceKm > T.GRILLE_AR_SANS_MAD_MAX ? grilles.tarifsAllerSimple[grilles.tarifsAllerSimple.length - 1] : undefined);
+        if (tarifAS) {
+          prixBase = Number(tarifAS.prix_public) * 2;
+          detailType = `AR sans MAD ${nbJours} jours (2 transferts = 2× aller simple)`;
+        } else {
+          for (let j = Math.min(nbJours - 1, 6); j >= 2; j--) {
+            const prix = Number(tranche[`prix_${j}j` as keyof TarifARSansMAD]) || 0;
+            if (prix > 0) {
+              prixBase = prix;
+              joursSupplementaires = nbJours - j;
+              supplementJours = joursSupplementaires * supplementParJour;
+              break;
+            }
           }
         }
       }
@@ -668,7 +677,7 @@ async function calculerTarif(
         return { erreur: 'Durée non disponible' };
       }
 
-      detailType = `AR ${nbJours} jours sans MAD`;
+      if (!detailType.startsWith('AR sans MAD')) detailType = `AR ${nbJours} jours sans MAD`;
     }
   }
 

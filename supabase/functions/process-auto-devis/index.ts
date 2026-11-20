@@ -910,7 +910,18 @@ function calculatePriceFromGrid(
       if (tarif) {
         const supplementParJour = Number(tarif.supplement_jour) || 600
 
-        prixBase = prixParDuree(tarif, dureeJours, supplementParJour)
+        // Durée sans prix direct dans la grille (ex. 8 jours sur 150-200 km) :
+        // un AR sans MAD reste deux transferts, le séjour ne se facture pas
+        // à la journée → 2 × aller simple (règle Adrien, 20 nov. 2026).
+        const prixDirect = dureeJours <= 6 ? Number((tarif as Record<string, unknown>)[`prix_${dureeJours}j`]) || 0 : 0
+        if (prixDirect > 0) {
+          prixBase = prixDirect
+        } else {
+          const tarifAS = tarifs.allerSimple.find(t => km >= t.km_min && km <= t.km_max)
+            || (km > TARIFS_HORS_GRILLE.GRILLE_AR_SANS_MAD_MAX ? derniereTranche(tarifs.allerSimple) : undefined)
+          prixBase = tarifAS ? Number(tarifAS.prix_public) * 2 : prixParDuree(tarif, dureeJours, supplementParJour)
+          console.log(`AR sans MAD ${dureeJours}j sans prix direct : 2 × aller simple = ${prixBase}€`)
+        }
       }
     }
   }
