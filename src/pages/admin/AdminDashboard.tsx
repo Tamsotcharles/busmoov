@@ -12578,11 +12578,13 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
 
   // Stats par mois (pour le graphique) - basé sur la date de signature ou de départ
   const statsByMonth = useMemo(() => {
-    const months: Record<string, { month: string, ca: number, marge: number, signatures: number }> = {}
+    const months: Record<string, { month: string, ca: number, marge: number, signatures: number, sansAchat: number }> = {}
 
     dossiers.forEach(d => {
       const contrat = Array.isArray(d.contrats) ? d.contrats[0] : d.contrats
       if (!contrat?.signed_at) return
+      // Un dossier annulé ou perdu ne fait ni CA ni marge (même règle que les totaux)
+      if (d.status === 'cancelled' || d.status === 'lost') return
 
       // Choisir la date selon le mode
       let targetDate: Date
@@ -12599,10 +12601,16 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
       const monthName = targetDate.toLocaleDateString('fr-FR', { month: 'short' })
 
       if (!months[monthKey]) {
-        months[monthKey] = { month: monthName, ca: 0, marge: 0, signatures: 0 }
+        months[monthKey] = { month: monthName, ca: 0, marge: 0, signatures: 0, sansAchat: 0 }
       }
       months[monthKey].ca += d.price_ttc || 0
-      months[monthKey].marge += (d.price_ht || 0) - prixAchatHTReel(d, allDemandesFournisseursStats)
+      // Sans prix d'achat connu, la marge est inconnue : on ne compte pas tout le CA HT comme marge
+      const achatHT = prixAchatHTReel(d, allDemandesFournisseursStats)
+      if (achatHT > 0) {
+        months[monthKey].marge += (d.price_ht || 0) - achatHT
+      } else {
+        months[monthKey].sansAchat++
+      }
       months[monthKey].signatures++
     })
 
@@ -13178,6 +13186,11 @@ function StatsPage({ dossiers, transporteurs, paiementsFournisseurs }: {
                 <div className="w-28 text-right">
                   <p className="text-sm font-semibold text-blue-600">{formatPrice(s.ca)}</p>
                   <p className="text-xs text-emerald-600">{formatPrice(s.marge)}</p>
+                  {s.sansAchat > 0 && (
+                    <p className="text-[10px] text-amber-600" title="Marge non comptée : prix d'achat inconnu">
+                      {s.sansAchat} sans prix d'achat
+                    </p>
+                  )}
                 </div>
                 <div className="w-16 text-right">
                   <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
