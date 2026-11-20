@@ -125,8 +125,17 @@ function checkConditions(
     chauffeurReceived?: boolean;
     daysBefore?: number;
     paymentType?: string | null; // Type de paiement (acompte ou solde)
+    /** Total encaissé sur le dossier (table paiements, toutes méthodes). */
+    paidTotal?: number;
   }
 ): boolean {
+  const paidTotal = context.paidTotal ?? 0;
+  // Les colonnes acompte_paid_at / solde_paid_at n'existent pas sur dossiers :
+  // l'état de paiement se lit sur les encaissements réels.
+  const soldePaid =
+    !!dossier.solde_paid_at ||
+    ((dossier.price_ttc ?? 0) > 0 && paidTotal >= (dossier.price_ttc ?? 0) - 0.01);
+  const acomptePaid = !!dossier.acompte_paid_at || paidTotal > 0;
   for (const [key, value] of Object.entries(conditions)) {
     switch (key) {
       case "days_before":
@@ -134,10 +143,10 @@ function checkConditions(
         if (context.daysBefore > (value as number)) return false;
         break;
       case "solde_pending":
-        if (value === true && dossier.solde_paid_at) return false;
+        if (value === true && soldePaid) return false;
         break;
       case "payment_status":
-        if (value === "pending" && dossier.acompte_paid_at) return false;
+        if (value === "pending" && acomptePaid) return false;
         break;
       case "infos_missing":
         if (value === true && context.infosValidated) return false;
@@ -446,6 +455,16 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Encaissements réels par dossier (les paiements Mollie n'ont pas de contrat)
+      const { data: paiementsRows } = await supabase
+        .from("paiements")
+        .select("dossier_id, amount")
+        .in("dossier_id", dossierIds);
+      const paidMap = new Map<string, number>();
+      for (const row of (paiementsRows || []) as { dossier_id: string; amount: number | null }[]) {
+        paidMap.set(row.dossier_id, (paidMap.get(row.dossier_id) || 0) + Number(row.amount || 0));
+      }
+
       // Noms des transporteurs (pour le template coordonnées chauffeur)
       const transporteurIds = [...new Set(
         dossiers.map((d) => (d as { transporteur_id?: string }).transporteur_id).filter(Boolean)
@@ -516,6 +535,7 @@ Deno.serve(async (req) => {
             voyageMap.get(dossier.id)?.chauffeurReceived || false,
           daysBefore,
           paymentType, // Passer le type de paiement au contexte
+          paidTotal: paidMap.get(dossier.id) || 0,
         };
 
         if (
@@ -533,10 +553,13 @@ Deno.serve(async (req) => {
           // Déterminer la langue du dossier
           const language = getLanguageFromCountry(dossier.country_code);
 
-          // Calculer le montant du solde (total - acompte)
-          const soldeAmount = dossier.price_ttc && dossier.acompte_amount
-            ? dossier.price_ttc - dossier.acompte_amount
-            : dossier.price_ttc || 0;
+          // Montant du solde = total - encaissé (à défaut, total - acompte prévu)
+          const paidSoFar = paidMap.get(dossier.id) || 0;
+          const soldeAmount = paidSoFar > 0
+            ? Math.max((dossier.price_ttc || 0) - paidSoFar, 0)
+            : dossier.price_ttc && dossier.acompte_amount
+              ? dossier.price_ttc - dossier.acompte_amount
+              : dossier.price_ttc || 0;
 
           const formatCurrency = (amount: number | null | undefined): string => {
             if (!amount) return "";
