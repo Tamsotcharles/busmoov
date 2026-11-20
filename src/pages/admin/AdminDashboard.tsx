@@ -4310,7 +4310,7 @@ function DossierDetailView({
         .update({ status: 'confirmed' })
         .eq('id', dossier.id)
 
-      queryClient.invalidateQueries({ queryKey: ['voyage-info', dossier.id] })
+      queryClient.invalidateQueries({ queryKey: ['voyage_info', dossier.id] })
       queryClient.invalidateQueries({ queryKey: ['dossiers'] })
 
       setShowChauffeurManuelModal(false)
@@ -4491,7 +4491,7 @@ L'équipe Busmoov`,
         content: `Feuille de route envoyée au client (${feuilleRouteEmailForm.to})`,
       })
 
-      queryClient.invalidateQueries({ queryKey: ['voyage-info', dossier.id] })
+      queryClient.invalidateQueries({ queryKey: ['voyage_info', dossier.id] })
       queryClient.invalidateQueries({ queryKey: ['dossiers'] })
 
       setShowFeuilleRouteEmailModal(false)
@@ -9786,8 +9786,8 @@ L'équipe Busmoov`)
             </div>
           </div>
 
-          {/* Option même chauffeur retour */}
-          {voyageInfo?.feuille_route_type === 'aller_retour' && (
+          {/* Option même chauffeur retour : dès qu'il y a un retour (type de feuille ou date retour du dossier) */}
+          {(voyageInfo?.feuille_route_type === 'aller_retour' || (!voyageInfo?.feuille_route_type && !!dossier.return_date)) && (
             <>
               <div className="flex items-center gap-2 py-2 border-t border-b border-gray-200">
                 <input
