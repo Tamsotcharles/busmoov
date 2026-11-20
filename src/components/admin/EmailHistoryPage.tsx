@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Mail, RefreshCw, CheckCircle, Clock, AlertCircle, Send, Eye, XCircle, X, ExternalLink, UserRound, Paperclip } from 'lucide-react'
+import { Mail, RefreshCw, CheckCircle, Clock, AlertCircle, Send, Eye, XCircle, X, ExternalLink, UserRound, Paperclip, Search } from 'lucide-react'
 import { formatDate, generateClientAccessUrl } from '@/lib/utils'
 
 interface EmailAttachment {
@@ -96,21 +96,30 @@ export function EmailHistoryPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<string>('all')
+  const [search, setSearch] = useState('')
+  const [templateFilter, setTemplateFilter] = useState<string>('all')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [previewEmail, setPreviewEmail] = useState<EmailLog | null>(null)
 
-  const loadEmails = async () => {
+  const loadEmails = async (term: string = search) => {
     setIsLoading(true)
     setError(null)
     try {
       // Cast nécessaire car les types ne sont pas encore générés pour email_logs
-      const { data, error: dbError } = await (supabase
+      let query = (supabase
         .from('email_logs' as any)
         .select(`
           *,
           dossiers (reference, client_email, country_code)
-        `)
+        `) as any)
+      // Recherche côté serveur (destinataire, sujet — le sujet contient la référence du dossier),
+      // pour retrouver aussi les emails plus anciens que les 300 derniers.
+      const q = term.trim().replace(/"/g, '')
+      if (q) query = query.or(`recipient.ilike."%${q}%",subject.ilike."%${q}%"`)
+      const { data, error: dbError } = await query
         .order('created_at', { ascending: false })
-        .limit(100) as any)
+        .limit(300)
 
       if (dbError) throw dbError
 
@@ -124,12 +133,23 @@ export function EmailHistoryPage() {
   }
 
   useEffect(() => {
-    loadEmails()
-  }, [])
+    const t = setTimeout(() => { loadEmails(search) }, search ? 400 : 0)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search])
 
+  const q = search.trim().toLowerCase()
   const filteredEmails = emails.filter(email => {
-    if (filter === 'all') return true
-    return email.status === filter
+    if (filter !== 'all' && email.status !== filter) return false
+    if (templateFilter !== 'all' && (email.template_key || 'custom') !== templateFilter) return false
+    if (dateFrom && email.created_at.slice(0, 10) < dateFrom) return false
+    if (dateTo && email.created_at.slice(0, 10) > dateTo) return false
+    if (q && !(
+      email.recipient.toLowerCase().includes(q) ||
+      email.subject.toLowerCase().includes(q) ||
+      (email.dossiers?.reference || '').toLowerCase().includes(q)
+    )) return false
+    return true
   })
 
   const stats = {
@@ -154,7 +174,7 @@ export function EmailHistoryPage() {
           </div>
         </div>
         <button
-          onClick={loadEmails}
+          onClick={() => loadEmails()}
           disabled={isLoading}
           className="btn btn-secondary flex items-center gap-2"
         >
@@ -222,7 +242,36 @@ export function EmailHistoryPage() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Recherche et filtres */}
+      <div className="card p-4 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-64">
+          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher : destinataire, sujet, référence dossier…"
+            className="input pl-9"
+          />
+        </div>
+        <select value={templateFilter} onChange={(e) => setTemplateFilter(e.target.value)} className="input w-auto">
+          <option value="all">Tous les types</option>
+          {Object.entries(TEMPLATE_LABELS).map(([key, label]) => (
+            <option key={key} value={key}>{label}</option>
+          ))}
+        </select>
+        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="input w-auto" title="Du" />
+        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="input w-auto" title="Au" />
+        {(search || templateFilter !== 'all' || dateFrom || dateTo || filter !== 'all') && (
+          <button
+            onClick={() => { setSearch(''); setTemplateFilter('all'); setDateFrom(''); setDateTo(''); setFilter('all') }}
+            className="text-sm text-gray-500 hover:text-magenta inline-flex items-center gap-1"
+          >
+            <X className="h-4 w-4" /> Effacer
+          </button>
+        )}
+        <span className="text-sm text-gray-500 ml-auto">{filteredEmails.length} email{filteredEmails.length > 1 ? 's' : ''}</span>
+      </div>
       <div className="flex gap-2">
         {['all', 'sent', 'delivered', 'opened', 'bounced'].map(status => (
           <button

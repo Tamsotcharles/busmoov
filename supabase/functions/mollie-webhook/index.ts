@@ -183,6 +183,27 @@ serve(async (req) => {
         metadata: { provider: 'mollie', payment_id: paymentId, amount },
       })
 
+      // 5 bis. Notification CRM (pop-up + panneau) : paiement CB reçu
+      try {
+        const { data: dossierNotif } = await supabase
+          .from('dossiers')
+          .select('reference, client_name, departure, arrival')
+          .eq('id', dossier_id)
+          .single()
+        await supabase.from('notifications_crm').insert({
+          dossier_id,
+          dossier_reference: dossierNotif?.reference || reference,
+          type: 'paiement_recu',
+          title: `Paiement CB reçu - ${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`,
+          description: `${dossierNotif?.client_name || 'Client'} a réglé ${type || 'l\'acompte'} par carte (Mollie). ${dossierNotif?.departure || ''} → ${dossierNotif?.arrival || ''}`,
+          source_type: 'system',
+          source_name: 'Mollie',
+          metadata: { payment_id: paymentId, amount, payment_type: type || 'acompte' },
+        })
+      } catch (notifErr) {
+        console.error('Notification paiement non créée:', notifErr)
+      }
+
       // 6. Declencher le workflow (email de confirmation)
       try {
         await fetch(`${SUPABASE_URL}/functions/v1/process-workflow`, {
@@ -241,7 +262,7 @@ serve(async (req) => {
         dossier_reference: dossierInfo?.reference || reference,
         type: 'paiement_echoue',
         title: `Paiement CB ${statusLabel} - ${amount}€`,
-        content: `Le paiement ${type || 'acompte'} de ${dossierInfo?.client_name || 'Client'} a ${statusLabel}. Dossier: ${dossierInfo?.departure || ''} → ${dossierInfo?.arrival || ''}`,
+        description: `Le paiement ${type || 'acompte'} de ${dossierInfo?.client_name || 'Client'} a ${statusLabel}. Dossier: ${dossierInfo?.departure || ''} → ${dossierInfo?.arrival || ''}`,
         source_type: 'system',
         source_name: 'Mollie',
         metadata: {

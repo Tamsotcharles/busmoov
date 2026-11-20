@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Euro, XCircle, CheckCircle, X } from 'lucide-react'
+import { Euro, XCircle, CheckCircle, CreditCard, X } from 'lucide-react'
 import { useLatestUnreadSupplierNotification, type SupplierNotification } from '@/hooks/useSupplierNotifications'
 import { useNotificationSound } from '@/hooks/useNotifications'
 
@@ -42,20 +42,21 @@ export function NewSupplierTarifToast({ onOpen }: Props) {
 
   const isRefus = toast.type === 'refus_fournisseur'
   const isBpa = toast.type === 'bpa_valide'
+  const isPaiement = toast.type === 'paiement_recu'
 
   return (
     <div
       className={`fixed top-6 right-6 z-[60] w-96 max-w-[calc(100vw-3rem)] bg-white rounded-xl shadow-2xl border animate-fadeIn ${
-        isRefus ? 'border-red-300' : isBpa ? 'border-blue-300' : 'border-emerald-300'
+        isRefus ? 'border-red-300' : isBpa ? 'border-blue-300' : isPaiement ? 'border-green-400' : 'border-emerald-300'
       }`}
     >
       <div className="flex items-start gap-3 p-4">
         <div
           className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-            isRefus ? 'bg-red-100 text-red-700' : isBpa ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'
+            isRefus ? 'bg-red-100 text-red-700' : isBpa ? 'bg-blue-100 text-blue-700' : isPaiement ? 'bg-green-100 text-green-700' : 'bg-emerald-100 text-emerald-700'
           }`}
         >
-          {isRefus ? <XCircle size={20} /> : isBpa ? <CheckCircle size={20} /> : <Euro size={20} />}
+          {isRefus ? <XCircle size={20} /> : isBpa ? <CheckCircle size={20} /> : isPaiement ? <CreditCard size={20} /> : <Euro size={20} />}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-purple-dark">
@@ -73,7 +74,7 @@ export function NewSupplierTarifToast({ onOpen }: Props) {
             }}
             className="mt-2 text-sm font-medium text-magenta hover:underline"
           >
-            {isRefus || isBpa ? 'Ouvrir le dossier →' : 'Ouvrir et valider la commande →'}
+            {isRefus || isBpa || isPaiement ? 'Ouvrir le dossier →' : 'Ouvrir et valider la commande →'}
           </button>
         </div>
         <button onClick={() => setToast(null)} className="text-gray-400 hover:text-gray-600" title="Fermer">

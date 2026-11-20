@@ -10,7 +10,7 @@ interface NotificationCRM {
   created_at: string
   dossier_id: string | null
   dossier_reference: string | null
-  type: 'infos_voyage' | 'contact_chauffeur' | 'tarif_fournisseur' | 'refus_fournisseur' | 'bpa_valide' | 'paiement_echoue' | 'contrat_signe' | 'nouveau_message'
+  type: 'infos_voyage' | 'contact_chauffeur' | 'tarif_fournisseur' | 'tarif_recu' | 'refus_fournisseur' | 'bpa_valide' | 'paiement_echoue' | 'paiement_recu' | 'contrat_signe' | 'nouveau_message'
   title: string
   description: string | null
   source_type: string | null
@@ -34,7 +34,8 @@ const TYPE_CONFIG = {
     bgColor: 'bg-green-100',
     label: 'Contact chauffeur',
   },
-  tarif_fournisseur: {
+  // Clé écrite par la fonction proposition-tarif (l'ancienne clé tarif_fournisseur n'était jamais produite)
+  tarif_recu: {
     icon: Euro,
     color: 'text-amber-600',
     bgColor: 'bg-amber-100',
@@ -52,11 +53,17 @@ const TYPE_CONFIG = {
     bgColor: 'bg-emerald-100',
     label: 'BPA validé',
   },
+  paiement_recu: {
+    icon: CreditCard,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    label: 'Paiement reçu',
+  },
   paiement_echoue: {
     icon: CreditCard,
     color: 'text-red-600',
     bgColor: 'bg-red-100',
-    label: 'Paiement CB',
+    label: 'Paiement échoué',
   },
   contrat_signe: {
     icon: FileSignature,
@@ -263,7 +270,7 @@ export function NotificationsPanel({ onOpenDossier, maxHeight = '400px' }: Notif
             ) : (
               <div className="divide-y">
                 {notifications.map((notification) => {
-                  const config = TYPE_CONFIG[notification.type] || {
+                  const config = (TYPE_CONFIG as Record<string, (typeof TYPE_CONFIG)[keyof typeof TYPE_CONFIG]>)[notification.type] || {
                     icon: Bell,
                     color: 'text-gray-600',
                     bgColor: 'bg-gray-100',

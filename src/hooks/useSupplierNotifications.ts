@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 
 export interface SupplierNotification {
   id: string
-  type: 'tarif_recu' | 'refus_fournisseur' | 'bpa_valide'
+  type: 'tarif_recu' | 'refus_fournisseur' | 'bpa_valide' | 'paiement_recu'
   title: string
   description: string | null
   dossier_id: string
@@ -27,7 +27,7 @@ export function useLatestUnreadSupplierNotification() {
       const { data, error, count } = await (supabase as any)
         .from('notifications_crm')
         .select('id, type, title, description, dossier_id, dossier_reference, source_name, created_at', { count: 'exact' })
-        .in('type', ['tarif_recu', 'refus_fournisseur', 'bpa_valide'])
+        .in('type', ['tarif_recu', 'refus_fournisseur', 'bpa_valide', 'paiement_recu'])
         .eq('is_read', false)
         .order('created_at', { ascending: false })
         .limit(1)
