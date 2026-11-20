@@ -7793,7 +7793,7 @@ L'équipe Busmoov`,
                               )}
 
                               {/* Bouton valider au fournisseur */}
-                              {(demande.status === 'responded' || demande.status === 'devis_created') && (
+                              {(demande.status === 'responded' || demande.status === 'tarif_recu' || demande.status === 'devis_created') && (
                                 <button
                                   onClick={async () => {
                                     // Ouvrir l'email de validation au fournisseur
@@ -9560,7 +9560,10 @@ L'équipe Busmoov`)
                             return_time: dossier.return_time || '',
                             return_date: dossier.return_date ? formatDate(dossier.return_date) : '',
                             passengers: dossier.passengers?.toString() || '0',
-                            vehicle_type: devisAccepte?.vehicle_type || 'standard',
+                            // Libellés en français pour le transporteur (jamais les codes bruts
+                            // round-trip / standard du dossier)
+                            type_prestation: getTripModeLabel(dossier.trip_mode).replace(/^[^\p{L}]+/u, ''),
+                            vehicle_type: getVehicleTypeLabel(devisAccepte?.vehicle_type || dossier.vehicle_type || 'standard'),
                             nb_cars: devisAccepte?.nombre_cars?.toString() || '1',
                             luggage_type: dossier.luggage_type || '',
                             // Le template affiche {{lien_proposition}} : c'est ce

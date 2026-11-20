@@ -82,6 +82,15 @@ const TRIP_MODE_LABELS: Record<string, string> = {
   'circuit': 'Circuit / Mise à disposition',
 }
 
+/** Les dossiers stockent one-way / round-trip / circuit (et d'anciennes valeurs) : on les ramène aux clés traduites. */
+const normalizeTripMode = (mode: string): 'simple' | 'aller_retour' | 'circuit' | string => {
+  const m = mode.toLowerCase()
+  if (m === 'one-way' || m === 'aller_simple' || m === 'simple' || m === 'aller simple') return 'simple'
+  if (m === 'round-trip' || m === 'aller_retour' || m.startsWith('aller-retour')) return 'aller_retour'
+  if (m === 'circuit' || m === 'mise-a-dispo' || m.includes('disposition')) return 'circuit'
+  return mode
+}
+
 const LUGGAGE_TYPE_LABELS: Record<string, string> = {
   'none': 'Sans bagages',
   'hand': 'Bagages à main uniquement',
@@ -515,7 +524,7 @@ export function PropositionTarifPage() {
                 <Bus size={18} className="text-purple-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <span className="text-sm text-gray-500">{t('fournisseur.tripType')}</span>
-                  <p className="font-medium">{t(`fournisseur.tripMode.${demandeInfo.dossier.trip_mode}`, TRIP_MODE_LABELS[demandeInfo.dossier.trip_mode] || demandeInfo.dossier.trip_mode)}</p>
+                  <p className="font-medium">{t(`fournisseur.tripMode.${normalizeTripMode(demandeInfo.dossier.trip_mode)}`, TRIP_MODE_LABELS[normalizeTripMode(demandeInfo.dossier.trip_mode)] || demandeInfo.dossier.trip_mode)}</p>
                 </div>
               </div>
             )}
