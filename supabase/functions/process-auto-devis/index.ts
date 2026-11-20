@@ -630,7 +630,10 @@ interface MajorationRegion {
 function extraireDepartement(villeAvecCP: string | null | undefined): string | null {
   if (!villeAvecCP) return null
 
-  const match = villeAvecCP.match(/\((\d{2,5})\)/)
+  // Formats acceptés : « Paris (75001) » (ancien formulaire) ou une adresse
+  // Geoapify « 12 rue X, 69330 Pusignan, France » (code postal à 5 chiffres).
+  // Un libellé « Ville, Région, France » sans code postal ne donne pas de zone.
+  const match = villeAvecCP.match(/\((\d{2,5})\)/) || villeAvecCP.match(/(?:^|\D)(\d{5})(?!\d)/)
   if (match) {
     const cp = match[1]
     if (cp.length === 5) {
@@ -1230,7 +1233,7 @@ Deno.serve(async (req) => {
       const dureeJours = calculateDureeJours(dossier)
 
       // Extraire le département pour vérifier la disponibilité grande capacité
-      const departement = extraireDepartement(dossier.departure)
+      const departement = extraireDepartement(dossier.departure_address) || extraireDepartement(dossier.departure)
       const regionInfo = majorationsRegions.find(m => m.region_code === departement)
       const grandeCapaciteDispo = regionInfo?.grande_capacite_dispo ?? true // Par défaut dispo
 
