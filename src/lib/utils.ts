@@ -874,7 +874,7 @@ function substituteTemplateVariables(
 
     // Pattern pour {{#if var}}content{{else}}altContent{{/if}}
     result = result.replace(
-      /{{#if\s+(\w+)}}([\s\S]*?){{else}}([\s\S]*?){{\/if}}/g,
+      /{{#if\s+(\w+)}}((?:(?!{{#if)[\s\S])*?){{else}}((?:(?!{{#if)[\s\S])*?){{\/if}}/g,
       (_match, varName, ifContent, elseContent) => {
         const value = variables[varName]
         if (value != null && value !== '') {
@@ -886,7 +886,7 @@ function substituteTemplateVariables(
 
     // Pattern pour {{#if var}}content{{/if}} (sans else)
     result = result.replace(
-      /{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g,
+      /{{#if\s+(\w+)}}((?:(?!{{#if)[\s\S])*?){{\/if}}/g,
       (_match, varName, content) => {
         const value = variables[varName]
         if (value != null && value !== '') {
