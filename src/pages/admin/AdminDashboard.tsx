@@ -4418,6 +4418,10 @@ L'équipe Busmoov`,
       alert('Email du client manquant')
       return
     }
+    if (dossier.return_date && !voyageInfo.chauffeur_retour_nom
+      && !confirm('Le chauffeur du retour n\'est pas renseigné : la feuille de route partira sans. Envoyer quand même ?')) {
+      return
+    }
 
     setIsSendingFeuilleRouteEmail(true)
     try {
@@ -6991,6 +6995,12 @@ L'équipe Busmoov`,
                               ? `Demande envoyée le ${formatDate(voyageInfo.demande_chauffeur_envoyee_at)}`
                               : 'Demander les informations du chauffeur au transporteur'}
                           </p>
+                          {voyageInfo.chauffeur_info_recue_at && dossier.return_date && !voyageInfo.chauffeur_retour_nom && (
+                            <p className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-amber-800 bg-amber-100 border border-amber-300 rounded px-2 py-1">
+                              <AlertTriangle size={14} />
+                              Chauffeur retour non renseigné : cliquer « Modifier » et décocher « Mêmes chauffeurs pour le retour »
+                            </p>
+                          )}
                         </div>
                         <div className="flex gap-2">
                           {voyageInfo.chauffeur_info_recue_at && (

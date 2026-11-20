@@ -63,6 +63,7 @@ interface DossierRelance {
   bpa_received: boolean
   voyage_info_validated: boolean
   chauffeur_info_received: boolean
+  chauffeur_retour_manquant: boolean
   demande_chauffeur_pending: boolean
 }
 
@@ -176,6 +177,19 @@ const REQUETES_PREDEFINIES: RequetePredefinie[] = [
              !d.chauffeur_info_received &&
              !d.demande_chauffeur_pending &&
              d.transporteur_id !== null
+    },
+  },
+  {
+    id: 'chauffeur_retour_manquant',
+    name: 'Chauffeur retour manquant',
+    description: 'Aller-retour avec infos chauffeur reçues mais sans chauffeur pour le retour',
+    icon: <Truck size={18} />,
+    color: 'red',
+    priority: 'high',
+    actionType: 'custom',
+    filter: (d) => {
+      const joursAvant = d.jours_avant_depart
+      return d.chauffeur_retour_manquant && joursAvant >= -1 && d.status !== 'completed' && d.status !== 'cancelled'
     },
   },
   {
@@ -378,7 +392,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
       // Charger les voyage_infos pour vérifier validated_at et chauffeur_info_recue_at
       const { data: voyageInfosData } = await supabase
         .from('voyage_infos')
-        .select('dossier_id, validated_at, chauffeur_info_recue_at')
+        .select('dossier_id, validated_at, chauffeur_info_recue_at, chauffeur_retour_nom')
 
       // Charger les demandes_fournisseurs pour vérifier bpa_received_at ou status = 'bpa_received'
       const { data: demandesFournisseursData } = await supabase
@@ -394,7 +408,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
       // Mapper les données
       const paiementsMap = new Map<string, number>()
       const relancesMap = new Map<string, { date: string; count: number }>()
-      const voyageInfosMap = new Map<string, { validated: boolean; chauffeurReceived: boolean }>()
+      const voyageInfosMap = new Map<string, { validated: boolean; chauffeurReceived: boolean; chauffeurRetour: boolean }>()
       const bpaReceivedMap = new Set<string>()
       const demandeChauffeurPendingMap = new Set<string>()
 
@@ -419,7 +433,8 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
         if (!vi.dossier_id) return
         voyageInfosMap.set(vi.dossier_id, {
           validated: !!vi.validated_at,
-          chauffeurReceived: !!vi.chauffeur_info_recue_at
+          chauffeurReceived: !!vi.chauffeur_info_recue_at,
+          chauffeurRetour: !!vi.chauffeur_retour_nom,
         })
       })
 
@@ -489,6 +504,7 @@ export function ServiceClientelePage({ onNavigateToDossier }: ServiceClientelePa
             bpa_received: bpaReceivedMap.has(d.id),
             voyage_info_validated: voyageInfo?.validated || false,
             chauffeur_info_received: voyageInfo?.chauffeurReceived || false,
+            chauffeur_retour_manquant: !!voyageInfo?.chauffeurReceived && !!d.return_date && !voyageInfo?.chauffeurRetour,
             demande_chauffeur_pending: demandeChauffeurPendingMap.has(d.id),
           }
         })

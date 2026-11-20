@@ -23,6 +23,7 @@ interface VoyageInfoLike {
   updated_at?: string | null
   created_at?: string | null
   chauffeur_aller_nom?: string | null
+  chauffeur_retour_nom?: string | null
   chauffeur_info_recue_at?: string | null
   demande_chauffeur_envoyee_at?: string | null
   feuille_route_envoyee_at?: string | null
@@ -145,15 +146,21 @@ function buildPipelineSteps(p: Props): Step[] {
   })
 
   const chauffeurRecu = !!(voyageInfo?.chauffeur_info_recue_at || voyageInfo?.chauffeur_aller_nom || dossier.chauffeur_name)
+  // Aller-retour : le chauffeur du retour doit être connu lui aussi
+  const chauffeurRetourManquant = chauffeurRecu && !!dossier.return_date && !voyageInfo?.chauffeur_retour_nom
   const demandeChauffeur = demandesChauffeur.find((dc) => dc.status === 'pending' || dc.status === 'sent')
   push({
     key: 'chauffeur',
     label: 'Infos chauffeur reçues',
-    done: chauffeurRecu,
+    done: chauffeurRecu && !chauffeurRetourManquant,
     date: voyageInfo?.chauffeur_info_recue_at || tl('chauffeur_info_received') || tl('chauffeur_info') || demandeChauffeur?.sent_at || voyageInfo?.demande_chauffeur_envoyee_at,
-    detail: !chauffeurRecu && (demandeChauffeur || voyageInfo?.demande_chauffeur_envoyee_at) ? 'Demandées au transporteur' : undefined,
-    partial: !chauffeurRecu && !!(demandeChauffeur || voyageInfo?.demande_chauffeur_envoyee_at),
-    hint: demandeChauffeur ? 'Attendre la réponse du transporteur ou saisir les infos à la main.' : 'Demander les coordonnées du chauffeur au transporteur.',
+    detail: chauffeurRetourManquant
+      ? 'Chauffeur retour manquant'
+      : !chauffeurRecu && (demandeChauffeur || voyageInfo?.demande_chauffeur_envoyee_at) ? 'Demandées au transporteur' : undefined,
+    partial: chauffeurRetourManquant || (!chauffeurRecu && !!(demandeChauffeur || voyageInfo?.demande_chauffeur_envoyee_at)),
+    hint: chauffeurRetourManquant
+      ? 'Renseigner le chauffeur du retour (Saisir manuellement / Modifier) avant la feuille de route.'
+      : demandeChauffeur ? 'Attendre la réponse du transporteur ou saisir les infos à la main.' : 'Demander les coordonnées du chauffeur au transporteur.',
   })
 
   const feuilleRoute = voyageInfo?.feuille_route_envoyee_at || tl('feuille_route_sent') || tl('feuille_route')
