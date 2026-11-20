@@ -13,6 +13,7 @@ export function cn(...inputs: ClassValue[]) {
  * Générer une référence de devis au format uniforme
  * Format: DEV-YYYYMM-XXXXXX (ex: DEV-202601-ABC123)
  */
+/** @deprecated Depuis le 20 nov. 2026 la référence est posée par le trigger en base (DEV-10001-1). Ne plus appeler. */
 export function generateDevisReference(): string {
   const now = new Date()
   const year = now.getFullYear()

@@ -953,6 +953,7 @@ function calculateDureeJours(dossier: any): number {
 /**
  * Générer une référence de devis
  */
+// deno-lint-ignore no-unused-vars
 function generateDevisReference(): string {
   const now = new Date()
   const year = now.getFullYear()
@@ -1398,12 +1399,10 @@ Deno.serve(async (req) => {
       const transporteurId = TRANSPORTEURS_AUTO[currentStep % TRANSPORTEURS_AUTO.length]
       const devisGeneres = autoDevis.devis_generes || []
 
-      const devisRef = generateDevisReference()
-
+      // Référence posée par le trigger en base : DEV-<n° dossier>-<rang>
       const { data: newDevis, error: devisError } = await supabase
         .from('devis')
         .insert({
-          reference: devisRef,
           dossier_id: dossier.id,
           transporteur_id: transporteurId,
           price_ht: prixHT,
@@ -1438,6 +1437,7 @@ Deno.serve(async (req) => {
         })
         continue
       }
+      const devisRef: string = newDevis.reference
 
       devisGeneres.push({
         devis_id: newDevis.id,

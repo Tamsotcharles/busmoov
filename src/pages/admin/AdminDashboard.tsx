@@ -135,7 +135,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Modal } from '@/components/ui/Modal'
 import { EmailPreviewModal, useEmailPreview, type EmailData } from '@/components/ui/EmailPreviewModal'
 import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete'
-import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateDevisReference, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif, getPrestationFournisseur, getLuggageLabel, voyageWallClock, voyageHeure, formatVoyageDateTime, dureeJoursCalendaires, wallClockDate, dateDuJour, toWallClockIso } from '@/lib/utils'
+import { formatDate, formatDateTime, formatPrice, cn, generateValidationFournisseurEmailFromTemplate, generateDemandePrixEmailFromTemplate, generateValidationToken, getDistanceWithCache, calculateRouteInfo, calculateNumberOfCars, calculateNumberOfDrivers, getVehicleTypeLabel, getTripModeLabel, calculateAmplitudeFromTimes, extractMadDetails, getSiteBaseUrl, generateClientAccessUrl, generatePaymentUrl, generateInfosVoyageUrl, getLanguageFromCountry, TEMPLATE_TRANSLATIONS, generateFactureReference, computeStatutEffectif, etatFournisseur, labelEtatFournisseur, prixAchatHTReel, libelleFacture, isTransporteurFictif, getPrestationFournisseur, getLuggageLabel, voyageWallClock, voyageHeure, formatVoyageDateTime, dureeJoursCalendaires, wallClockDate, dateDuJour, toWallClockIso } from '@/lib/utils'
 import { TransporteurPicker } from '@/components/admin/TransporteurPicker'
 import { UsersPage } from '@/components/admin/UsersPage'
 import { canAccessPage, isFullAdminRole, ROLE_LABELS, type AdminRole } from '@/lib/roles'
@@ -2512,12 +2512,8 @@ function CreateDossierModal({
 
     setIsSubmitting(true)
     try {
-      // Generate reference
-      const reference = `DOS-${Date.now().toString(36).toUpperCase()}`
-
-      // Create dossier
+      // Référence posée par le trigger en base (DOS-10001…)
       const dossierData = await createDossier.mutateAsync({
-        reference,
         client_name: formData.client_name,
         client_company: formData.client_company || null,
         client_email: formData.client_email.toLowerCase(),
@@ -2542,7 +2538,6 @@ function CreateDossierModal({
       // If transporteur and price are set, create a devis
       if (formData.transporteur_id && formData.price_ht > 0) {
         await createDevis.mutateAsync({
-          reference: generateDevisReference(),
           dossier_id: dossierData.id,
           transporteur_id: formData.transporteur_id,
           price_ht: formData.price_ht,
@@ -4054,7 +4049,6 @@ function DossierDetailView({
     try {
       const copie = await createDevis.mutateAsync({
         dossier_id: dossier.id,
-        reference: generateDevisReference(),
         status: 'draft',
       client_notes: source.client_notes ?? null,
       km: source.km ?? null,
@@ -7814,16 +7808,12 @@ L'équipe Busmoov`,
                                       const prixVenteHT = Math.round(prixAchatHT * (1 + margePercent / 100))
                                       const prixVenteTTC = Math.round(prixVenteHT * (1 + tvaRate / 100))
 
-                                      // Générer référence devis
-                                      const refDevis = generateDevisReference()
-
-                                      console.log('Création devis...', { prixAchatHT, prixVenteHT, refDevis })
+                                      console.log('Création devis...', { prixAchatHT, prixVenteHT })
 
                                       // Créer le devis client avec 18% de marge
                                       const newDevis = await createDevis.mutateAsync({
                                         dossier_id: dossier.id,
                                         transporteur_id: demande.transporteur_id,
-                                        reference: refDevis,
                                         price_ht: prixVenteHT,
                                         price_ttc: prixVenteTTC,
                                         price_achat_ht: prixAchatHT,
@@ -7856,7 +7846,7 @@ L'équipe Busmoov`,
                                       queryClient.invalidateQueries({ queryKey: ['devis'] })
                                       queryClient.invalidateQueries({ queryKey: ['devis', 'dossier', dossier.id] })
 
-                                      alert(`Devis ${refDevis} créé avec succès !`)
+                                      alert(`Devis ${newDevis.reference} créé avec succès !`)
                                     } catch (error) {
                                       console.error('Erreur création devis:', error)
                                       alert('Erreur lors de la création du devis: ' + (error as Error).message)
@@ -11401,7 +11391,6 @@ function NewDevisModal({
       await createDevis.mutateAsync({
         dossier_id: dossier.id,
         transporteur_id: formData.transporteur_id,
-        reference: generateDevisReference(),
         price_ht: formData.price_ht,
         price_ttc: formData.price_ttc,
         price_achat_ht: formData.price_achat_ht || null,
@@ -15505,9 +15494,6 @@ L'équipe Busmoov`
       const prixVenteHT = Math.round(prixAchatHT * (1 + margePercent / 100))
       const prixVenteTTC = Math.round(prixVenteHT * (1 + tvaRate / 100))
 
-      // Générer référence devis
-      const refDevis = generateDevisReference()
-
       // Marquer la demande comme "devis créé"
       await updateDemandeFournisseur.mutateAsync({
         id: demande.id,
@@ -15518,7 +15504,6 @@ L'équipe Busmoov`
       await createDevis.mutateAsync({
         dossier_id: dossier.id,
         transporteur_id: demande.transporteur_id,
-        reference: refDevis,
         price_ht: prixVenteHT,
         price_ttc: prixVenteTTC,
         price_achat_ht: prixAchatHT,
