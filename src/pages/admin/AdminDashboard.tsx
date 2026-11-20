@@ -9601,7 +9601,7 @@ L'équipe Busmoov`)
                             // round-trip / standard du dossier)
                             type_prestation: prestationDF.label,
                             type_prestation_detail: prestationDF.detail,
-                            duree_jours: devisAccepte?.duree_jours && devisAccepte.duree_jours > 1 ? String(devisAccepte.duree_jours) : '',
+                            duree_jours: prestationDF.code === 'ar_mad' && devisAccepte?.duree_jours && devisAccepte.duree_jours > 1 ? String(devisAccepte.duree_jours) : '',
                             nb_chauffeurs: devisAccepte?.nombre_chauffeurs && devisAccepte.nombre_chauffeurs > 1 ? String(devisAccepte.nombre_chauffeurs) : '',
                             vehicle_type: getVehicleTypeLabel(devisAccepte?.vehicle_type || dossier.vehicle_type || 'standard'),
                             nb_cars: devisAccepte?.nombre_cars?.toString() || '1',
@@ -15315,7 +15315,7 @@ L'équipe Busmoov`
             passengers: dossier.passengers?.toString() || '0',
             type_prestation: prestationRef.label,
             type_prestation_detail: prestationRef.detail,
-            duree_jours: devisRef?.duree_jours && devisRef.duree_jours > 1 ? String(devisRef.duree_jours) : '',
+            duree_jours: prestationRef.code === 'ar_mad' && devisRef?.duree_jours && devisRef.duree_jours > 1 ? String(devisRef.duree_jours) : '',
             nb_chauffeurs: devisRef?.nombre_chauffeurs && devisRef.nombre_chauffeurs > 1 ? String(devisRef.nombre_chauffeurs) : '',
             vehicle_type: getVehicleTypeLabel(devisRef?.vehicle_type || dossier.vehicle_type || 'standard'),
             nb_cars: devisRef?.nombre_cars?.toString() || '1',

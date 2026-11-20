@@ -633,7 +633,7 @@ export function PropositionTarifPage() {
                       <p className="font-medium">{demandeInfo.devis.km} km</p>
                     </div>
                   )}
-                  {demandeInfo.devis.duree_jours && demandeInfo.devis.duree_jours > 1 && (
+                  {demandeInfo.devis.service_type === 'ar_mad' && demandeInfo.devis.duree_jours && demandeInfo.devis.duree_jours > 1 && (
                     <div>
                       <span className="text-gray-500">{t('fournisseur.duration')}</span>
                       <p className="font-medium">{demandeInfo.devis.duree_jours} {t('fournisseur.days')}</p>

@@ -1037,7 +1037,7 @@ export async function generateValidationFournisseurEmailFromTemplate(
     : null
 
   // Le prix d'achat est le prix fournisseur (déjà en TTC)
-  const prixAchatFormate = prixAchat ? prixAchat.toFixed(2).replace('.', ',') : null
+  const prixAchatFormate = prixAchat ? prixAchat.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : null
 
   // Labels dynamiques selon le type de trajet (traduits)
   const dateLabels: Record<string, { depart: string; retour: string; debut: string; fin: string }> = {
@@ -1069,7 +1069,8 @@ export async function generateValidationFournisseurEmailFromTemplate(
     nb_cars: nbCars,
     nb_chauffeurs: nbChauffeurs,
     detail_mad: detailMad,
-    duree_jours: dureeJours,
+    // La durée n'a de sens que pour une mise à disposition (pas pour deux transferts)
+    duree_jours: isMiseADispo ? dureeJours : null,
     amplitude: amplitude,
     prix_achat: prixAchatFormate,
     lien_validation: lienValidation,
