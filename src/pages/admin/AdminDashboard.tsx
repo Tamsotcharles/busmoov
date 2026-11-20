@@ -9466,7 +9466,7 @@ L'équipe Busmoov`)
               <p><strong>Objet :</strong> Demande de tarif - {dossier.departure} → {dossier.arrival} le {formatDate(dossier.departure_date)}</p>
               <hr className="my-2" />
               <p>Bonjour,</p>
-              <p>Nous avons une demande de transport pour laquelle nous aimerions recevoir votre meilleur tarif.</p>
+              <p>Busmoov, filiale du groupe Centrale Autocar, vous sollicite pour une demande de prix. Nous avons une demande de transport ferme pour laquelle nous souhaitons recevoir votre meilleur tarif et connaître votre disponibilité. Une réponse rapide via le lien ci-dessous vous permet d'être retenu en priorité.</p>
               <div className="bg-gray-50 p-3 rounded my-2 space-y-1">
                 <p><strong>Trajet :</strong> {dossier.departure} → {dossier.arrival}</p>
                 <p><strong>Type :</strong> {getTripModeLabel(dossier.trip_mode)}</p>
@@ -14690,7 +14690,7 @@ function ExploitationPage({
       fr: {
         subject: 'Demande de tarif',
         greeting: 'Bonjour,',
-        intro: 'Nous avons une demande de transport pour laquelle nous aimerions recevoir votre meilleur tarif.',
+        intro: 'Busmoov, filiale du groupe Centrale Autocar, vous sollicite pour une demande de prix. Nous avons une demande de transport ferme pour laquelle nous souhaitons recevoir votre meilleur tarif et connaître votre disponibilité. Une réponse rapide via le lien ci-dessous vous permet d\'être retenu en priorité.',
         route: 'Trajet',
         type: 'Type',
         departureDate: 'Date aller',

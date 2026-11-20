@@ -728,7 +728,7 @@ export const TEMPLATE_TRANSLATIONS: Record<string, Record<string, string>> = {
     // Demande de disponibilité
     availabilityRequest: 'Demande de disponibilité',
     hello: 'Bonjour',
-    availabilityRequestIntro: 'Pouvez-vous me faire une proposition pour la prestation suivante :',
+    availabilityRequestIntro: 'Busmoov, filiale du groupe Centrale Autocar, vous sollicite pour une demande de prix. Nous avons une demande de transport ferme pour laquelle nous souhaitons recevoir votre meilleur tarif et connaître votre disponibilité. Une réponse rapide via le lien ci-dessous vous permet d\'être retenu en priorité.',
     reference: 'Référence',
     route: 'Trajet',
     departureDate: 'Date départ',
@@ -758,7 +758,7 @@ export const TEMPLATE_TRANSLATIONS: Record<string, Record<string, string>> = {
     // Verfügbarkeitsanfrage
     availabilityRequest: 'Verfügbarkeitsanfrage',
     hello: 'Guten Tag',
-    availabilityRequestIntro: 'Können Sie uns ein Angebot für folgende Leistung unterbreiten:',
+    availabilityRequestIntro: 'Busmoov, Tochtergesellschaft der Gruppe Centrale Autocar, bittet Sie um ein Preisangebot. Wir haben eine verbindliche Transportanfrage, für die wir Ihren besten Preis und Ihre Verfügbarkeit erfahren möchten. Eine schnelle Antwort über den Link ermöglicht eine bevorzugte Berücksichtigung.',
     reference: 'Referenz',
     route: 'Strecke',
     departureDate: 'Abfahrtsdatum',
@@ -788,7 +788,7 @@ export const TEMPLATE_TRANSLATIONS: Record<string, Record<string, string>> = {
     // Solicitud de disponibilidad
     availabilityRequest: 'Solicitud de disponibilidad',
     hello: 'Buenos días',
-    availabilityRequestIntro: '¿Podría hacernos una propuesta para el siguiente servicio?',
+    availabilityRequestIntro: 'Busmoov, filial del grupo Centrale Autocar, le solicita un presupuesto. Tenemos una solicitud de transporte en firme para la cual deseamos recibir su mejor tarifa y conocer su disponibilidad. Una respuesta rápida a través del enlace le permite ser seleccionado con prioridad.',
     reference: 'Referencia',
     route: 'Trayecto',
     departureDate: 'Fecha de salida',
@@ -818,7 +818,7 @@ export const TEMPLATE_TRANSLATIONS: Record<string, Record<string, string>> = {
     // Availability request
     availabilityRequest: 'Availability Request',
     hello: 'Hello',
-    availabilityRequestIntro: 'Could you please provide a quote for the following service:',
+    availabilityRequestIntro: 'Busmoov, a subsidiary of the Centrale Autocar group, is requesting a quote from you. We have a firm transport request for which we would like your best rate and your availability. A quick reply via the link below means you are considered first.',
     reference: 'Reference',
     route: 'Route',
     departureDate: 'Departure date',

@@ -179,7 +179,7 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
 
     // Demande disponibilité
     availabilityRequest: 'Demande de disponibilité',
-    availabilityRequestIntro: 'Nous avons une demande de transport pour laquelle nous souhaitons connaître votre disponibilité.',
+    availabilityRequestIntro: 'Busmoov, filiale du groupe Centrale Autocar, vous sollicite pour une demande de prix. Nous avons une demande de transport ferme pour laquelle nous souhaitons recevoir votre meilleur tarif et connaître votre disponibilité. Une réponse rapide via le lien ci-dessous vous permet d\'être retenu en priorité.',
     pleaseSendQuote: 'Merci de nous faire parvenir votre meilleur tarif pour cette prestation.',
     submitProposal: 'Soumettre une proposition',
 
@@ -365,7 +365,7 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
 
     // Demande disponibilité
     availabilityRequest: 'Solicitud de disponibilidad',
-    availabilityRequestIntro: 'Tenemos una solicitud de transporte para la cual nos gustaría conocer su disponibilidad.',
+    availabilityRequestIntro: 'Busmoov, filial del grupo Centrale Autocar, le solicita un presupuesto. Tenemos una solicitud de transporte en firme para la cual deseamos recibir su mejor tarifa y conocer su disponibilidad. Una respuesta rápida a través del enlace le permite ser seleccionado con prioridad.',
     pleaseSendQuote: 'Por favor envíenos su mejor tarifa para este servicio.',
     submitProposal: 'Enviar propuesta',
 
@@ -551,7 +551,7 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
 
     // Demande disponibilité
     availabilityRequest: 'Verfügbarkeitsanfrage',
-    availabilityRequestIntro: 'Wir haben eine Transportanfrage, für die wir gerne Ihre Verfügbarkeit kennen würden.',
+    availabilityRequestIntro: 'Busmoov, Tochtergesellschaft der Gruppe Centrale Autocar, bittet Sie um ein Preisangebot. Wir haben eine verbindliche Transportanfrage, für die wir Ihren besten Preis und Ihre Verfügbarkeit erfahren möchten. Eine schnelle Antwort über den Link ermöglicht eine bevorzugte Berücksichtigung.',
     pleaseSendQuote: 'Bitte senden Sie uns Ihr bestes Angebot für diese Leistung.',
     submitProposal: 'Angebot einreichen',
 
@@ -737,7 +737,7 @@ const EMAIL_TRANSLATIONS: Record<string, Record<string, string>> = {
 
     // Availability request
     availabilityRequest: 'Availability request',
-    availabilityRequestIntro: 'We have a transport request for which we would like to know your availability.',
+    availabilityRequestIntro: 'Busmoov, a subsidiary of the Centrale Autocar group, is requesting a quote from you. We have a firm transport request for which we would like your best rate and your availability. A quick reply via the link below means you are considered first.',
     pleaseSendQuote: 'Please send us your best rate for this service.',
     submitProposal: 'Submit proposal',
 
