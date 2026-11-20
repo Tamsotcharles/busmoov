@@ -1671,6 +1671,7 @@ export function MesDevisPage() {
                       aller_adresse_depart: voyageInfo.aller_adresse_depart,
                       aller_adresse_arrivee: voyageInfo.aller_adresse_arrivee,
                       aller_passagers: voyageInfo.aller_passagers,
+                      astreinte_tel: voyageInfo.astreinte_tel,
                       chauffeur_aller_nom: voyageInfo.chauffeur_aller_nom,
                       chauffeur_aller_tel: voyageInfo.chauffeur_aller_tel,
                       chauffeur_aller_immatriculation: voyageInfo.chauffeur_aller_immatriculation,

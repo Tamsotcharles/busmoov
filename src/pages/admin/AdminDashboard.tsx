@@ -4468,6 +4468,7 @@ L'équipe Busmoov`,
         aller_adresse_depart: voyageInfo.aller_adresse_depart,
         aller_adresse_arrivee: voyageInfo.aller_adresse_arrivee,
         aller_passagers: voyageInfo.aller_passagers,
+        astreinte_tel: voyageInfo.astreinte_tel || transporteurs.find(t => t.id === dossier.transporteur_id)?.astreinte_tel || null,
         chauffeur_aller_nom: voyageInfo.chauffeur_aller_nom,
         chauffeur_aller_tel: voyageInfo.chauffeur_aller_tel,
         chauffeur_aller_immatriculation: voyageInfo.chauffeur_aller_immatriculation,
@@ -7103,7 +7104,7 @@ L'équipe Busmoov`,
                                     tel: voyageInfo.chauffeur_retour_tel || '',
                                     immatriculation: voyageInfo.chauffeur_retour_immatriculation || '',
                                   }])
-                                  setAstreinteTelForm(voyageInfo.astreinte_tel || '')
+                                  setAstreinteTelForm(voyageInfo.astreinte_tel || transporteurs.find(t => t.id === dossier.transporteur_id)?.astreinte_tel || '')
                                   setMemeChauffeursRetour(!voyageInfo.chauffeur_retour_nom)
                                   setShowChauffeurManuelModal(true)
                                 }}
@@ -7162,6 +7163,7 @@ L'équipe Busmoov`,
 
                                   setChauffeursAllerForm(initialChauffeurs)
                                   setChauffeursRetourForm(initialChauffeurs.map(() => ({ nom: '', tel: '', immatriculation: '' })))
+                                  setAstreinteTelForm(transporteurs.find(t => t.id === dossier.transporteur_id)?.astreinte_tel || '')
                                   setMemeChauffeursRetour(true)
                                   setShowChauffeurManuelModal(true)
                                 }}
